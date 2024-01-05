@@ -4,6 +4,7 @@ import 'package:connect_kasa/vues/my_bottomnavbar_view.dart';
 import 'package:flutter/material.dart';
 import '../../models/datas/datas_lots.dart';
 import '../../models/lot.dart';
+import '../../vues/lot_bottom_sheet.dart';
 import '../features/my_tab_bar_controller.dart';
 import '../features/my_texts_styles.dart';
 
@@ -16,10 +17,10 @@ class MyNavBar extends StatefulWidget {
 class _MyNavBarState extends State<MyNavBar> {
 
   final MyTabBarController tabController = MyTabBarController();
-  late Lot lot;
+  Lot? lot;
   List<Lot> lots = [];
   DatasLots datasLots = DatasLots();
-  double pad = 25;
+  double pad = 0;
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _MyNavBarState extends State<MyNavBar> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.white,
         actions: <Widget>[
           IconButton(
             icon: MyTextStyle.IconDrawer(context, Icons.menu,EdgeInsets.only(top:pad)),
@@ -56,20 +58,21 @@ class _MyNavBarState extends State<MyNavBar> {
         title:MyTextStyle.logo(context, "connectKasa",EdgeInsets.only(top:pad)
         ),
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight + size.height/15),
+          preferredSize: Size.fromHeight(kToolbarHeight + kToolbarHeight),
           child: Column(
             children: [
-              SafeArea(
-                //minimum: EdgeInsets.symmetric(horizontal: 30),
-                child: tabController.tabBar(tabs)),
+              tabController.tabBar(tabs),
+              InkWell(child:
               SelectLotController(),
+              onTap:() {
+                _showLotBottomSheet(context);
+              })
             ],
-          ),
+          ),)
         ),
-      ),
+
       body:SingleChildScrollView(
         child: Homeview(),
-
       ),
 
 
@@ -88,6 +91,15 @@ class _MyNavBarState extends State<MyNavBar> {
             shape: CircleBorder(), // Utilisez CircleBorder pour définir la forme du bouton
             materialTapTargetSize: MaterialTapTargetSize.padded)),
 
+    );
+  }
+
+  void _showLotBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return LotBottomSheet(lot);
+      },
     );
   }
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 class Residence{
 
-  Icon icon;
   String name;
   String numero;
   String voie;
@@ -14,7 +13,6 @@ class Residence{
   int nombreResidents;
 
   Residence ({
-  required this.icon,
   required this.name,
   required this.numero,
   required this.voie,

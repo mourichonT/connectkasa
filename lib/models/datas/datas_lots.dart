@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:connect_kasa/models/lot.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +12,6 @@ class DatasLots {
 
   Lot CarreSalambo = Lot(
       numResidence: "00001",
-      icon: Icon(Icons.home_work_outlined),
       name: "Carré Salambo",
       numero: "412",
       voie : "rue",
@@ -29,7 +30,6 @@ class DatasLots {
 
   Lot Turin = Lot(
       numResidence: "00002",
-      icon: Icon(Icons.home_work_outlined),
       name: "Le Turin",
       numero: "509",
       voie : "rue",
@@ -48,7 +48,6 @@ class DatasLots {
 
   Lot Touchy = Lot(
       numResidence: "00003",
-      icon: Icon(Icons.home_work_outlined),
       name: "Domaine de Touchy",
       numero: "213",
       voie : "rue",
@@ -71,10 +70,25 @@ class DatasLots {
     ];
 
   }
+   /*toJson() {
+     Map<String, dynamic> jsonResult =
+     print("Json $jsonResult");
+   // Map<String, dynamic> jsonResult = Touchy.toJson();
+    //print("Json $jsonResult");
+    return jsonResult;
+  }*/
 
-  List<Icon> getIcons() {
-    return listLot().map((lot) => lot.icon).toList();
+  List<String> toJsonList() {
+    List<String> lotsJson = listLot().map((lot) => jsonEncode(lot.toJson())).toList();
+    print(lotsJson);
+    return lotsJson;
   }
+
+  Map<String, dynamic> toJsonListMap() {
+    return {"lots": toJsonList()};
+  }
+
+
 
   List<bool> getSelected(){
     return listLot().map((lot) => lot.selected).toList();

@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../models/datas/datas_lots.dart';
 import '../../models/enum/tab_bar_icon.dart';
-import '../../models/lot.dart';
-import '../../vues/color_view.dart';
 
 class MyTabBarController extends StatefulWidget {
   final IconTabBar iconTabBar = IconTabBar();
 
   TabBar tabBar(List<Tab> tabs) {
     return TabBar(
+      padding: EdgeInsets.symmetric(horizontal: 30),
       dividerColor: Colors.transparent,
       tabs: (tabs),
       onTap: (index) {
