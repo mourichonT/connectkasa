@@ -13,7 +13,6 @@ class Lot extends Residence {
 
   Lot({
     required this.numAppLot,
-    required Icon icon,
     required String name,
     required String numero,
     required String voie,
@@ -31,7 +30,6 @@ class Lot extends Residence {
     required int nombreResidents,
   }) : _selected = selected, // Initialisation ici
         super(
-        icon: icon,
         name: name,
         numero: numero,
         voie: voie,
@@ -48,4 +46,47 @@ class Lot extends Residence {
   set selected(bool value) {
     _selected = value;
   }
+
+
+  factory Lot.fromJson(Map<String, dynamic> json) {
+    return Lot(
+        numAppLot: json["numAppLot"],
+        name: json["name"],
+        numero: json["numero"],
+        voie: json["voie"],
+        street: json["street"],
+        zipCode: json["zipCode"],
+        city: json["city"],
+        selected: json["selected"],
+        colorSelected:  MaterialColor(json["colorSelected"],
+          <int, Color>{500: Color(json["colorSelected"])},),
+        type: json["type"],
+        numAppGerance: json["numAppGerance"],
+        numAppProprietaire: json["numAppProprietaire"],
+        numResidence: json["numResidence"],
+        nombreResidents: json["nombreResidents"]
+    );
+  }
+
+  toJson() {
+    return {
+      "numAppLot": numAppLot,
+      "name": name,
+      "numero": numero,
+      "voie": voie,
+      "street": street,
+      "zipCode": zipCode,
+      "city": city,
+      "selected": selected,
+      "colorSelected": colorSelected.value,
+      "type": type,
+      "numAppGerance":numAppGerance,
+      "numAppProprietaire":numAppProprietaire,
+      "numResidence": numResidence,
+      "nombreResidents": nombreResidents
+    };
+  }
 }
+
+
+

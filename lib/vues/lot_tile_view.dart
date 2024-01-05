@@ -26,19 +26,16 @@ class _LotTileViewState extends State<LotTileView> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        padding: EdgeInsets.symmetric(horizontal: 30),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          mainAxisSize: MainAxisSize.max,
+    return Row(
+          //crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
               padding: EdgeInsets.only(right: 15),
               child: Icon(Icons.home_work_outlined, size: 30),
             ),
-            Container(
-              child: Column(
+             Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
@@ -68,7 +65,7 @@ class _LotTileViewState extends State<LotTileView> {
                   ),
                 ],
               ),
-            ),
+
             /*Container(
               child: (lot.selected)
                   ? IconButton(
@@ -86,7 +83,7 @@ class _LotTileViewState extends State<LotTileView> {
             )*/
           ],
 
-      ),
+
     );
   }
 

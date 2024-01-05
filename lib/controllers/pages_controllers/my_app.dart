@@ -11,15 +11,9 @@ class MyApp extends StatelessWidget{
   Widget build(BuildContext context) {
     List<IconData> icons = iconTabBar.listIcons();
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
-        useMaterial3: true,
-      ),
-      home: DefaultTabController(
+    return DefaultTabController(
             length: icons.length,
             child:MyNavBar(),
-             ));
+             );
   }
 }
