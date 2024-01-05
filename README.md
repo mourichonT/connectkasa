@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # connect_kasa
 
 A new Flutter project.
@@ -14,3 +15,6 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# connectkasa
+>>>>>>> f1559f0c61e8c6ad4d049d9ea28525767a61d0aa
