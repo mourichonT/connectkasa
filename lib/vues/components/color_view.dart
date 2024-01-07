@@ -2,7 +2,7 @@ import 'package:connect_kasa/controllers/features/color_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../models/enum/tab_bar_icon.dart';
+import '../../../../models/enum/tab_bar_icon.dart';
 
 class ColorView extends StatelessWidget {
   IconTabBar iconTabBar = IconTabBar();

@@ -1,10 +1,11 @@
 import 'dart:convert';
 
 import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
+import 'package:connect_kasa/vues/pages_vues/my_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/datas/datas_lots.dart';
-import '../models/lot.dart';
+import '../../models/datas/datas_lots.dart';
+import '../../models/pages_models/lot.dart';
 import 'lot_tile_view.dart';
 
 class LotBottomSheet extends StatefulWidget {Lot? lot;
@@ -22,12 +23,14 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
   void initState() {
     super.initState();
     lots = datasLots.listLot();
-    //widget.lot = lots.first; // Sélectionnez le premier lot par défaut.
-
+    widget.lot = preferedLot; // Sélectionnez le premier lot par défaut.
   }
   void dispose(){
     super.dispose();
     //widget.lot = preferedLot;
+
+
+
   }
 
   @override
@@ -41,10 +44,10 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
           value: lots[index],
           groupValue: widget.lot,
           onChanged: (Lot? preferedLot) {
-            //updateSelectedLot(preferedLot);
             selectLot(preferedLot, context);
+
             //widget.lotSelectionNotifier.setSelectedLot(selectedLot);
-            //Navigator.pop(context); // Fermer le BottomSheet après la sélection.
+            //Navigator.pop(context,preferedLot); // Fermer le BottomSheet après la sélection.
           },
         ),
       ),
@@ -52,8 +55,9 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
   }
   updateSelectedLot(Lot? value) {
     setState(() {
-      print("je sélectionne ${value?.name}");
+      print("je sélectionne ${value?.residence?.name} ${value?.batiment} ${value?.lot}  ");
       widget.lot = value!;
+
       // Ajoutez d'autres actions si nécessaire
     });
 
@@ -69,15 +73,16 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
       // Enregistrer la chaîne JSON dans les préférences
       prefs.setString('preferedLot', selectedLotJson);
       updateSelectedLot(selectedLot);
-    }else {
+    }
+    /*else {
       _loadPreferedLot();
 
-    }
+    }*/
 
-    return selectedLot;
+   // return selectedLot;
   }
 
-
+/*
   _loadPreferedLot() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? lotJson = prefs.getString('preferedLot') ?? '';
@@ -89,7 +94,7 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
       });
     }
   }
-
+*/
 
 /*  _selectLot(Lot? selectedLot, context) async {
     if (selectedLot != null) {

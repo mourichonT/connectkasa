@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../controllers/features/my_bottomnavbar_ controller.dart';
 
-import '../controllers/features/my_bottomnavbar_ controller.dart';
 
 class MyBottomNavBarView extends StatelessWidget {
   final MyBottomNavBarController bottomNavBarController = MyBottomNavBarController();

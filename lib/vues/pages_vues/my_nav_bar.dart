@@ -1,12 +1,15 @@
-import 'package:connect_kasa/controllers/pages_controllers/select_lot_controller.dart';
-import 'package:connect_kasa/vues/home_view.dart';
-import 'package:connect_kasa/vues/my_bottomnavbar_view.dart';
+import 'dart:convert';
+
+import 'package:connect_kasa/vues/pages_vues/home_view.dart';
+import 'package:connect_kasa/vues/components/my_bottomnavbar_view.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/datas/datas_lots.dart';
-import '../../models/lot.dart';
-import '../../vues/lot_bottom_sheet.dart';
-import '../features/my_tab_bar_controller.dart';
-import '../features/my_texts_styles.dart';
+import '../../models/pages_models/lot.dart';
+import '../../controllers/features/my_tab_bar_controller.dart';
+import '../components/select_lot_component.dart';
+import '../components/lot_bottom_sheet.dart';
+import '../../controllers/features/my_texts_styles.dart';
 
 class MyNavBar extends StatefulWidget {
 
@@ -21,11 +24,14 @@ class _MyNavBarState extends State<MyNavBar> {
   List<Lot> lots = [];
   DatasLots datasLots = DatasLots();
   double pad = 0;
+  Lot? preferedLot;
 
   @override
   void initState() {
     super.initState();
     lots = datasLots.listLot();
+    preferedLot;
+
   }
 
   @override
@@ -44,7 +50,8 @@ class _MyNavBarState extends State<MyNavBar> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+       backgroundColor: Colors.yellow,
+        elevation: 20,
         actions: <Widget>[
           IconButton(
             icon: MyTextStyle.IconDrawer(context, Icons.menu,EdgeInsets.only(top:pad)),
@@ -57,13 +64,19 @@ class _MyNavBarState extends State<MyNavBar> {
         ],
         title:MyTextStyle.logo(context, "connectKasa",EdgeInsets.only(top:pad)
         ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.black12)),
+            color: Colors.white
+          ),
+        ),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(kToolbarHeight + kToolbarHeight),
           child: Column(
             children: [
               tabController.tabBar(tabs),
               InkWell(child:
-              SelectLotController(),
+              SelectLotComponent(),
               onTap:() {
                 _showLotBottomSheet(context);
               })
@@ -71,9 +84,7 @@ class _MyNavBarState extends State<MyNavBar> {
           ),)
         ),
 
-      body:SingleChildScrollView(
-        child: Homeview(),
-      ),
+      body: Homeview(),
 
 
       bottomNavigationBar:MyBottomNavBarView(),
@@ -85,6 +96,7 @@ class _MyNavBarState extends State<MyNavBar> {
             child:FloatingActionButton(
             backgroundColor: Theme.of(context).colorScheme.background,
             onPressed: () {
+              clearSharedPreferences();
               print("je suis la");
             },
             child: Icon(Icons.notifications_active, size: 30, color: Theme.of(context).primaryColor,),
@@ -98,8 +110,15 @@ class _MyNavBarState extends State<MyNavBar> {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return LotBottomSheet(lot);
+        return LotBottomSheet(preferedLot);
       },
     );
   }
+
+  void clearSharedPreferences() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    print("SharedPreferences cleared!");
+  }
+
 }
