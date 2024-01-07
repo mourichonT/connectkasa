@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../models/enum/tab_bar_icon.dart';
-import 'my_nav_bar.dart';
+import '../../vues/pages_vues/my_nav_bar.dart';
 
 class MyApp extends StatelessWidget{
   final IconTabBar iconTabBar = IconTabBar();

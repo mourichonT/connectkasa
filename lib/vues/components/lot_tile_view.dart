@@ -1,10 +1,8 @@
 
 
 import 'package:flutter/material.dart';
-
-import '../controllers/features/my_texts_styles.dart';
-import '../models/datas/datas_lots.dart';
-import '../models/lot.dart';
+import '../../controllers/features/my_texts_styles.dart';
+import '../../models/pages_models/lot.dart';
 
 class LotTileView extends StatefulWidget {
   final Lot lot;
@@ -16,7 +14,8 @@ class LotTileView extends StatefulWidget {
 }
 
 class _LotTileViewState extends State<LotTileView> {
-  late Lot lot;
+  Lot? lot;
+  //Lot? preferedLot;
 
   @override
   void initState() {
@@ -40,33 +39,37 @@ class _LotTileViewState extends State<LotTileView> {
                 children: [
                   Row(
                     children: [
-                      MyTextStyle.lotName(widget.lot.name.isNotEmpty ? widget.lot.name : 'N/A'),
+                      MyTextStyle.lotName(widget.lot.name.isNotEmpty ? widget.lot.name : "${widget.lot.residence?.name} ${widget.lot.batiment}${widget.lot.lot} "),
                       Container(padding: EdgeInsets.only(left: 2)),
-                      MyTextStyle.lotName(widget.lot.batiment != null && widget.lot.batiment!.isNotEmpty
-                          ? widget.lot.batiment!
-                          : 'N/A'),
-                      MyTextStyle.lotName(widget.lot.lot != null && widget.lot.lot!.isNotEmpty ? widget.lot.lot! : 'N/A'),
+                     ]
+                  ),
+                  Row(
+                    children: [
+                      MyTextStyle.lotDesc(widget.lot.residence?.numero??"N/A"),
+                      Container(padding: EdgeInsets.only(left: 2)),
+                      MyTextStyle.lotDesc(widget.lot.residence?.street??"N/A"),
+                      Container(padding: EdgeInsets.only(left: 2)),
                     ],
                   ),
                   Row(
                     children: [
-                      MyTextStyle.lotDesc(widget.lot.numero),
+                      MyTextStyle.lotDesc(widget.lot.residence?.zipCode??"N/A"),
                       Container(padding: EdgeInsets.only(left: 2)),
-                      MyTextStyle.lotDesc(widget.lot.street),
-                      Container(padding: EdgeInsets.only(left: 2)),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      MyTextStyle.lotDesc(widget.lot.zipCode),
-                      Container(padding: EdgeInsets.only(left: 2)),
-                      MyTextStyle.lotDesc(widget.lot.city),
+                      MyTextStyle.lotDesc(widget.lot.residence?.city??"N/A"),
                     ],
                   ),
                 ],
               ),
 
-            /*Container(
+
+          ],
+
+
+    );
+  }
+
+}
+/*Container(
               child: (lot.selected)
                   ? IconButton(
                 icon: Icon(Icons.check_circle_rounded),
@@ -81,10 +84,3 @@ class _LotTileViewState extends State<LotTileView> {
                 },
               ),
             )*/
-          ],
-
-
-    );
-  }
-
-}
