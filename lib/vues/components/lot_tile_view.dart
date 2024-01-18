@@ -14,13 +14,13 @@ class LotTileView extends StatefulWidget {
 }
 
 class _LotTileViewState extends State<LotTileView> {
-  Lot? lot;
+ // Lot? lot;
   //Lot? preferedLot;
 
   @override
   void initState() {
     super.initState();
-    lot = widget.lot;
+    //lot = widget.lot;
   }
 
   @override
@@ -69,18 +69,3 @@ class _LotTileViewState extends State<LotTileView> {
   }
 
 }
-/*Container(
-              child: (lot.selected)
-                  ? IconButton(
-                icon: Icon(Icons.check_circle_rounded),
-                onPressed: () {
-                  _toggleLotSelection();
-                },
-              )
-                  : IconButton(
-                icon: Icon(Icons.radio_button_unchecked_outlined),
-                onPressed: () {
-                  _toggleLotSelection();
-                },
-              ),
-            )*/
