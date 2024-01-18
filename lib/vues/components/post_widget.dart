@@ -54,18 +54,18 @@ class PostWidgetState extends State<PostWidget>{
           Container(
               height:width/2 ,
               width: width*2 ,
-              child: Image.asset(post.pathImage ?? "placeholder_image_path", fit: BoxFit.fill,)
+              child: Image.asset(post.pathImage ?? "placeholder_image_path", fit: BoxFit.fitWidth,)
           ),
-         Container(padding: EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-             child : Column(
-               mainAxisAlignment: MainAxisAlignment.start,
-               children:[
-                  MyTextStyle.lotName(post!.title),
-                  MyTextStyle.lotDesc(post!.description),
-                ]
-              )),
+        Container(padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+          child : Column(
+            //mainAxisAlignment: MainAxisAlignment.start,
+            //mainAxisSize: MainAxisSize.min,
+            children:[
+              MyTextStyle.lotName(post!.title),
+              MyTextStyle.lotDesc(post!.description),
+            ])),
           // Ajoutez d'autres détails du post selon vos besoins
-        Divider(),
+        Divider(thickness: 0.5,),
           Container(child:
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,

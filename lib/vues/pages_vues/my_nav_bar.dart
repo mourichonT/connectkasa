@@ -30,12 +30,14 @@ class _MyNavBarState extends State<MyNavBar> {
   void initState() {
     super.initState();
     lots = datasLots.listLot();
-    preferedLot;
+    //preferedLot;
+    _loadPreferedLot();
 
   }
 
   @override
   Widget build(BuildContext context) {
+
     Size size = MediaQuery.of(context).size;
     final List<IconData> icons = tabController.iconTabBar.listIcons();
     final List<Tab> tabs = icons.asMap().entries.map((entry) {
@@ -71,6 +73,7 @@ class _MyNavBarState extends State<MyNavBar> {
           ),
         ),
         bottom: PreferredSize(
+          key: UniqueKey(),
           preferredSize: Size.fromHeight(kToolbarHeight + kToolbarHeight),
           child: Column(
             children: [
@@ -110,7 +113,8 @@ class _MyNavBarState extends State<MyNavBar> {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return LotBottomSheet(preferedLot);
+        print (preferedLot?.residence?.name);
+        return LotBottomSheet(onRefresh: _loadPreferedLot);
       },
     );
   }
@@ -118,7 +122,19 @@ class _MyNavBarState extends State<MyNavBar> {
   void clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
-    print("SharedPreferences cleared!");
+   // print("SharedPreferences cleared!");
+  }
+
+  Future<void> _loadPreferedLot() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? lotJson = prefs.getString('preferedLot') ?? '';
+    if (lotJson.isNotEmpty) {
+      Map<String, dynamic> lotMap = json.decode(lotJson);
+      setState(() {
+        preferedLot = Lot.fromJson(lotMap);
+        //print("Je récupère dans _MyNavBarState ${preferedLot?.residence?.name}");
+      });
+    }
   }
 
 }
