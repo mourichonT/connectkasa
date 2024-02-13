@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "325705345982",
+    "project_id": "connectkasa-84f23",
+    "storage_bucket": "connectkasa-84f23.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:325705345982:android:731cd0e4e917d361d7e7ef",
+        "android_client_info": {
+          "package_name": "fr.connectkasa.connect_kasa"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUm-fFBYmMzKBYub-50EMBXPdKW0G-fLc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
