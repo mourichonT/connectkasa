@@ -7,8 +7,10 @@ import 'lot_tile_view.dart';
 
 class LotBottomSheet extends StatefulWidget {
   final Function()? onRefresh;
+  final Lot? selectedLot;
 
-  LotBottomSheet( {Key? key, this.onRefresh}) : super(key: key);
+  LotBottomSheet({Key? key, this.onRefresh, this.selectedLot})
+      : super(key: key);
   @override
   _LotBottomSheetState createState() => _LotBottomSheetState();
 }
@@ -18,16 +20,30 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
   late List<Lot> lots;
   Lot? preferedLot;
 
+  loadSharedPrefs() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? json = prefs.getString("preferedLot");
+    if (json != null) {
+      preferedLot = Lot.fromJson(jsonDecode(json));
+      setState(() {});
+    }
+  }
 
+  int? findLotInArray(List<Lot> lots) {
+    if (preferedLot != null) {
+      return lots
+          .indexWhere((element) => element.refLot == preferedLot!.refLot);
+    } else
+      return null;
+  }
 
   @override
   void initState() {
     super.initState();
+    loadSharedPrefs();
     lots = datasLots.listLot();
-  //  widget.lot;
-    preferedLot;
-    widget.onRefresh!(); // Chargez les préférences sauvegardées
-    //_loadPreferedLot();
+    preferedLot = widget.selectedLot;
+    //widget.onRefresh!(); // Chargez les préférences sauvegardées
   }
 
   @override
@@ -40,15 +56,19 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
             child: ListView.builder(
               itemCount: lots.length,
               itemBuilder: (context, index) {
-                return RadioListTile<Lot>(
-                title: LotTileView(lot: lots[index]),
-                value: lots[index],
-                groupValue: preferedLot,
-                onChanged: (selectedlot) {
-                  print("Construction de l'élément $index avec le lot ${lots[index].residence?.name}");
-                  selectLot(selectedlot, context);
-                },
-              );},
+                //print("je test le $preferedLot");
+                return RadioListTile<int>(
+                  title: LotTileView(lot: lots[index]),
+                  value: index,
+                  groupValue: findLotInArray(lots),
+                  onChanged: (preferedLot) {
+                    // print(preferedLot != null
+                    //     ? "Construction de l'élément $index avec le lot ${lots[preferedLot].residence?.name}"
+                    //     : "Rien à charger");
+                    selectLot(preferedLot, context);
+                  },
+                );
+              },
             ),
           ),
         ),
@@ -71,42 +91,21 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
   }
 
   // Méthode pour sélectionner un lot
-  selectLot(Lot? selectedLot, context) async {
-    if (selectedLot != null) {
+  selectLot(int? selectedLotIndex, context) async {
+    if (selectedLotIndex != null) {
+      Lot selectedLot = lots[selectedLotIndex];
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String selectedLotJson = jsonEncode(selectedLot.toJson());
+      //print(selectedLotJson);
       prefs.setString('preferedLot', selectedLotJson);
 
       // Mettez à jour l'état pour refléter le lot sélectionné
       setState(() {
         preferedLot = selectedLot;
-       // widget.lot =selectedLot;
+        // widget.lot =selectedLot;
 
-        print("Lot sélectionné : $preferedLot");
+        //print("Lot sélectionné : ${selectedLot.residence?.name}");
       });
     }
   }
-
-  // Charge les préférences sauvegardées ou sélectionne le premier lot par défaut
-/*  _loadPreferedLot() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? lotJson = prefs.getString('preferedLot') ?? '';
-    if (lotJson.isNotEmpty) {
-      Map<String, dynamic> lotMap = json.decode(lotJson);
-      setState(() {
-        preferedLot = Lot.fromJson(lotMap);
-        widget.lot = preferedLot;
-
-        print("je récupère 1 $preferedLot");
-      });
-    } else {
-      // Si aucune préférence n'est sauvegardée, sélectionnez le premier lot par défaut
-      setState(() {
-        preferedLot = lots.isNotEmpty ? lots.first : null;
-        widget.lot = preferedLot;
-      });
-    }
-  }*/
 }
-
-

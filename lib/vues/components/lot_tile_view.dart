@@ -39,7 +39,9 @@ class _LotTileViewState extends State<LotTileView> {
                 children: [
                   Row(
                     children: [
-                      MyTextStyle.lotName(widget.lot.name.isNotEmpty ? widget.lot.name : "${widget.lot.residence?.name} ${widget.lot.batiment}${widget.lot.lot} "),
+                      MyTextStyle.lotName(widget.lot.name.isNotEmpty
+                          ? widget.lot.name
+                          : "${widget.lot.residence?.name} ${widget.lot.batiment}${widget.lot.lot} "),
                       Container(padding: EdgeInsets.only(left: 2)),
                      ]
                   ),

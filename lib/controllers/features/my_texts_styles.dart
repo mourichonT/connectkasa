@@ -1,8 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 class MyTextStyle {
-
   static Color getColor(BuildContext context) {
     ThemeData theme = Theme.of(context);
     return theme.primaryColor;
@@ -15,14 +16,14 @@ class MyTextStyle {
     );
   }
 
-  static Widget styledText(BuildContext context, String text, TextStyle style, EdgeInsets padding) {
+  static Widget styledText(
+      BuildContext context, String text, TextStyle style, EdgeInsets padding) {
     return applyPadding(
-      Text(
-        text,
-        style: style.copyWith(color: getColor(context)),
-      ),
-      padding
-    );
+        Text(
+          text,
+          style: style.copyWith(color: getColor(context)),
+        ),
+        padding);
   }
 
   static Widget logo(BuildContext context, String text, EdgeInsets padding) {
@@ -37,14 +38,14 @@ class MyTextStyle {
     );
   }
 
-  static Widget IconDrawer(BuildContext context, IconData icon, EdgeInsets padding) {
+  static Widget IconDrawer(
+      BuildContext context, IconData icon, EdgeInsets padding) {
     return applyPadding(
         Icon(
-      icon,
-      color: getColor(context),
-    ),
-      padding
-    );
+          icon,
+          color: getColor(context),
+        ),
+        padding);
   }
 
   static Text lotName(String text) {
@@ -62,8 +63,70 @@ class MyTextStyle {
       text,
       style: GoogleFonts.roboto(
         fontSize: 13,
+        fontStyle: FontStyle.italic,
       ),
     );
+  }
+
+  static Text annonceDesc(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.roboto(
+        fontSize: 13,
+        fontStyle: FontStyle.italic,
+      ),
+      overflow: TextOverflow.ellipsis,
+      maxLines: 3,
+      textAlign: TextAlign.left,
+    );
+  }
+
+  static Text InitialAvatar(String initiales) {
+    return Text(
+      initiales,
+      style: GoogleFonts.roboto(
+          fontWeight: FontWeight.bold, fontSize: 35, color: Colors.black54),
+    );
+  }
+
+  static Widget postDate(Timestamp timeStamp) {
+    DateTime tsdate = timeStamp.toDate();
+    String formattedDate = DateFormat("le dd/MM/yyyy 'à' HH:mm").format(tsdate);
+
+    return Text(
+      formattedDate,
+      style: GoogleFonts.roboto(
+        fontStyle: FontStyle.italic,
+        fontSize: 11,
+      ),
+    );
+  }
+
+  static statuColor(String text, colorTheme) {
+    return Container(
+        //padding: EdgeInsets.symmetric(vertical: 3, horizontal:0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.all(Radius.circular(20.0)),
+          color: _getColorForStatus(text, colorTheme),
+        ),
+        child: Align(
+          alignment: Alignment.center,
+          child: Text(
+            text,
+            style: GoogleFonts.roboto(color: Colors.white, fontSize: 11),
+          ),
+        ));
+  }
+
+  static Color _getColorForStatus(String text, colorTheme) {
+    switch (text) {
+      case "En attente":
+        return Colors.grey;
+      case "Validé":
+        return colorTheme;
+      default:
+        return Colors.transparent;
+    }
   }
 
   static void changeColor(BuildContext context, Color newColor) {
@@ -72,5 +135,15 @@ class MyTextStyle {
       theme: theme,
     );
     runApp(app);
+  }
+
+  static Text iconText(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.roboto(
+        fontSize: 10,
+        fontStyle: FontStyle.italic,
+      ),
+    );
   }
 }
