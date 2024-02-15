@@ -1,3 +1,4 @@
+import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:flutter/material.dart';
 import '../../models/pages_models/post.dart';
 
@@ -20,8 +21,7 @@ class _LikeButtonState extends State<LikeButton> {
           IconButton(
             icon: Icon(
               isLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
-              color: isLiked ? Theme.of(context).primaryColor : null,
-            ),
+              color: isLiked ? Theme.of(context).primaryColor : null,size: 20,),
             onPressed: () {
               setState(() {
                 if (isLiked) {
@@ -33,7 +33,7 @@ class _LikeButtonState extends State<LikeButton> {
               });
             },
         ),
-          Text(widget.post.setLike()),
+          MyTextStyle.iconText(widget.post.setLike()),
         ]
         );
   }

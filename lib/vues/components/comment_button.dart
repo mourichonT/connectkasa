@@ -1,5 +1,6 @@
 import 'package:connect_kasa/vues/components/section_comment.dart';
 import 'package:flutter/material.dart';
+import '../../controllers/features/my_texts_styles.dart';
 import '../../models/pages_models/post.dart';
 
 class CommentButton extends StatefulWidget{
@@ -25,7 +26,7 @@ class CommentButtonState extends State<CommentButton>{
         IconButton(icon: Icon(
             (post!.comment>0)
             ?Icons.comment
-            :Icons.messenger_outline_outlined, color:(post!.comment>0)? Theme.of(context).primaryColor:null),
+            :Icons.messenger_outline_outlined, color:(post!.comment>0)? Theme.of(context).primaryColor:null, size: 20,),
           onPressed: (){
             showModalBottomSheet(
               context: context,
@@ -38,7 +39,7 @@ class CommentButtonState extends State<CommentButton>{
             );
          },
         ),
-      Text(post.setComments())
+        MyTextStyle.iconText(post.setComments())
       ],
     );
   }

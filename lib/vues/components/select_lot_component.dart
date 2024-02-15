@@ -28,7 +28,6 @@ class SelectLotComponentState extends State<SelectLotComponent> {
       Map<String, dynamic> lotMap = json.decode(lotJson);
       setState(() {
         preferedLot = Lot.fromJson(lotMap);
-        print("Je récupère dans SelectLotController ${preferedLot?.name}");
       });
     }
   }
@@ -36,30 +35,29 @@ class SelectLotComponentState extends State<SelectLotComponent> {
   @override
   Widget build(BuildContext context) {
     return Container(
-
       padding: EdgeInsets.symmetric(vertical: 10),
       child: Container(
         child: (preferedLot == null)
             ? Container(
-          padding: EdgeInsets.symmetric(vertical: 21),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Text("Sélectionner votre résidence"),
-              Icon(Icons.arrow_drop_down),
-            ],
-          ),
-        )
+                padding: EdgeInsets.symmetric(vertical: 21),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text("Sélectionner votre résidence"),
+                    Icon(Icons.arrow_drop_down),
+                  ],
+                ),
+              )
             : Padding(
-          padding: EdgeInsets.symmetric(horizontal: 50),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              LotTileView(lot:preferedLot!),
-              Icon(Icons.arrow_drop_down),
-            ],
-          ),
-        ),
+                padding: EdgeInsets.symmetric(horizontal: 50),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    LotTileView(lot: preferedLot!),
+                    Icon(Icons.arrow_drop_down),
+                  ],
+                ),
+              ),
       ),
     );
   }

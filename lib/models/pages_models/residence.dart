@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Residence{
 
@@ -51,6 +52,35 @@ class Residence{
     };
   }
 
+
+  factory Residence.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> snapshot,
+      SnapshotOptions? options,
+      ){
+    final data = snapshot.data();
+    return Residence(
+        name: data?["name"],
+        numero: data?["numero"],
+        voie: data?["voie"],
+        street: data?["street"],
+        zipCode: data?["zipCode"],
+        city: data?["city"],
+        refGerance: data?["refGerance"],
+        refResidence: data?["refResidence"]
+    );
+  }
+  Map<String, dynamic> toFirestore() {
+    return {
+      if (name != null) "name": name,
+      if (numero != null) "numero": numero,
+      if (voie != null) "voie": voie,
+      if (street != null) "street": street,
+      if (zipCode != null) "zipCode": zipCode,
+      if (city != null) "city": city,
+      if (refGerance != null) "refGerance": refGerance,
+      if (refResidence != null) "refResidence": refResidence,
+    };
+  }
 
 
 

@@ -1,10 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/models/pages_models/user.dart';
+
 class Post {
-  String numResidence;
-  String numUser;
+  String refResidence;
+  String user;
   String type;
-  String date;
-  String statu = "";
-  String _pathImage = ""; // Utilisation d'une variable privée (_pathImage) pour stocker le chemin de l'image.
+  String _subtype = "";
+  Timestamp timeStamp;
+  String _statu = "";
+  String _pathImage =
+      ""; // Utilisation d'une variable privée (_pathImage) pour stocker le chemin de l'image.
   String title;
   String description;
   int like;
@@ -12,11 +17,12 @@ class Post {
   int signalement;
 
   Post({
-    required this.numResidence,
-    required this.numUser,
+    required this.refResidence,
+    required this.user,
     required this.type,
-    required this.date,
-    String statu= "",
+    String subtype = "",
+    required this.timeStamp,
+    String statu = "",
     String pathImage = "",
     required this.title,
     required this.description,
@@ -25,6 +31,8 @@ class Post {
     this.signalement = 0,
   }) {
     this._pathImage = pathImage;
+    this._statu = statu;
+    this._subtype = subtype;
   }
 
   String? get pathImage {
@@ -37,27 +45,59 @@ class Post {
     }
   }
 
-  String setDate() => "Posté le $date";
+  String? get subtype {
+    return _subtype;
+  }
 
+  String? get statu {
+    return _statu;
+  }
+
+  set newStatu(String? newStatu) {
+    if (newStatu != "") {
+      _statu = newStatu!;
+    }
+  }
+
+  String setDate() => "Posté le $timeStamp";
 
   String setLike() {
-    return "$like j'aime";
+    if (like > 1) {
+      return "$like Likes";
+    } else {
+      return "$like Like";
+    }
   }
 
   String setComments() {
     if (comment > 1) {
-      return "$comment commentaires";
+      return "$comment Commentaires";
     } else {
-      return "$comment commentaire";
+      return "$comment Commentaire";
     }
   }
 
   String setSignalement() {
     if (signalement > 1) {
-      return "$signalement signalements";
+      return "$signalement Signalements";
     } else {
-      return "$signalement signalement";
+      return "$signalement Signalement";
     }
   }
 
+  factory Post.fromMap(Map<String, dynamic> map) {
+    return Post(
+        description: map['description'] ?? "",
+        subtype: map['subtype'] ?? "",
+        pathImage: map['pathImage'] ?? "",
+        refResidence: map['refResidence'] ?? "",
+        statu: map['statu'] ?? "",
+        timeStamp: map['timeStamp'] ?? 0,
+        title: map['title'] ?? "",
+        type: map['type'] ?? "",
+        user: map['user'] ?? "",
+        like: map['like'] ?? 0,
+        comment: map['comment'] ?? 0,
+        signalement: map['signalement'] ?? 0);
+  }
 }

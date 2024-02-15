@@ -94,6 +94,8 @@ class DatasLots {
     print("${selectedLot.name}+${selectedLot.selected}");
 
   }
+
+
  }
 
 
