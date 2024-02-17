@@ -30,8 +30,8 @@ class PostWidgetState extends State<PostWidget> {
     Color colorStatut = Theme.of(context).primaryColor;
     double width = MediaQuery.of(context).size.width;
     return Container(
-      decoration: BoxDecoration(boxShadow: [
-        BoxShadow(color: Colors.grey, blurRadius: 8, offset: Offset(0, 1))
+      decoration: const BoxDecoration(boxShadow: [
+        BoxShadow(color: Colors.grey, blurRadius: 10, offset: Offset(0, 3))
       ]),
       //color: Colors.white,
       child: Container(

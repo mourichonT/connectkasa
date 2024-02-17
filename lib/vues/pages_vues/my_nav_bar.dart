@@ -1,13 +1,11 @@
-import 'dart:convert';
-
+import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
 import 'package:connect_kasa/controllers/services/authentification_service.dart';
+import 'package:connect_kasa/controllers/services/databases_services.dart';
 import 'package:connect_kasa/vues/pages_vues/home_view.dart';
 import 'package:connect_kasa/vues/components/my_bottomnavbar_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/datas/datas_lots.dart';
 import '../../models/pages_models/lot.dart';
 import '../../controllers/features/my_tab_bar_controller.dart';
 import '../components/select_lot_component.dart';
@@ -20,10 +18,15 @@ class MyNavBar extends StatefulWidget {
 }
 
 class _MyNavBarState extends State<MyNavBar> {
+  final LoadPreferedData _loadPreferedData = LoadPreferedData();
   final MyTabBarController tabController = MyTabBarController();
   Lot? lot;
-  List<Lot> lots = [];
-  DatasLots datasLots = DatasLots();
+  //List<Lot> lots = [];
+  // DatasLots datasLots = DatasLots();
+
+//final DataBasesServices _databaseServices = DataBasesServices();
+//late Future<List<Lot?>> _lotByUser;
+
   double pad = 0;
   Lot? preferedLot;
   AuthentificationService authService = AuthentificationService();
@@ -31,34 +34,15 @@ class _MyNavBarState extends State<MyNavBar> {
   @override
   void initState() {
     super.initState();
-    lots = datasLots.listLot();
+    // _lotByUser = _databaseServices.getLotByIduser2(preferedLot!.idProprietaire);
+    //lots = datasLots.listLot();
     _loadPreferedLot();
-  }
-
-  Future<void> _loadPreferedLot([Lot? selectedLot]) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? lotJson = prefs.getString('preferedLot') ?? '';
-    if (lotJson.isNotEmpty) {
-      Map<String, dynamic> lotMap = json.decode(lotJson);
-      setState(() {
-        preferedLot = Lot.fromJson(lotMap);
-        // print(
-        //     "Je récupère dans _MyNavBarState ${preferedLot?.residence?.name}");
-      });
-    }
-  }
-
-  void clearSharedPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
   }
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
     final List<IconData> icons = tabController.iconTabBar.listIcons();
     final List<Tab> tabs = icons.asMap().entries.map((entry) {
-      int index = entry.key;
       IconData icon = entry.value;
       return Tab(
         icon: Icon(
@@ -98,13 +82,18 @@ class _MyNavBarState extends State<MyNavBar> {
                 InkWell(
                     child: SelectLotComponent(),
                     onTap: () {
-                      _loadPreferedLot();
+                      // _loadPreferedLot(preferedLot);
                       _showLotBottomSheet(context);
                     })
               ],
             ),
           )),
-      body: Homeview(),
+      body: preferedLot != null
+          ? Homeview(
+              key: UniqueKey(),
+              residenceSelected: preferedLot!.residenceId,
+            )
+          : CircularProgressIndicator(),
       endDrawer: Drawer(
         child: Column(children: [
           SizedBox(
@@ -128,7 +117,6 @@ class _MyNavBarState extends State<MyNavBar> {
           child: FloatingActionButton(
               backgroundColor: Theme.of(context).colorScheme.background,
               onPressed: () {
-                //clearSharedPreferences();
                 Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -145,16 +133,19 @@ class _MyNavBarState extends State<MyNavBar> {
     );
   }
 
+  Future<void> _loadPreferedLot() async {
+    preferedLot = await _loadPreferedData.loadPreferedLot(preferedLot);
+    setState(() {});
+  }
+
   void _showLotBottomSheet(BuildContext context) {
-    _loadPreferedLot();
     showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
-          //print(preferedLot?.residence?.name);
           return LotBottomSheet(
             selectedLot: preferedLot,
             onRefresh: () {
-              _loadPreferedLot(preferedLot);
+              _loadPreferedLot();
             },
           );
         });

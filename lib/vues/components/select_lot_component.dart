@@ -1,8 +1,7 @@
 import 'dart:convert';
 
-import 'package:flutter/cupertino.dart';
+import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../models/pages_models/lot.dart';
 import 'lot_tile_view.dart';
@@ -14,22 +13,12 @@ class SelectLotComponent extends StatefulWidget {
 
 class SelectLotComponentState extends State<SelectLotComponent> {
   Lot? preferedLot;
+  final LoadPreferedData _loadPreferedData = LoadPreferedData();
 
   @override
   void initState() {
     super.initState();
     _loadPreferedLot();
-  }
-
-  Future<void> _loadPreferedLot() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? lotJson = prefs.getString('preferedLot') ?? '';
-    if (lotJson.isNotEmpty) {
-      Map<String, dynamic> lotMap = json.decode(lotJson);
-      setState(() {
-        preferedLot = Lot.fromJson(lotMap);
-      });
-    }
   }
 
   @override
@@ -60,5 +49,10 @@ class SelectLotComponentState extends State<SelectLotComponent> {
               ),
       ),
     );
+  }
+
+  Future<void> _loadPreferedLot() async {
+    preferedLot = await _loadPreferedData.loadPreferedLot();
+    setState(() {});
   }
 }

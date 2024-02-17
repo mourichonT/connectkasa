@@ -31,8 +31,8 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
     _databaseServices.getUserById(post.user);
     return InkWell(
       child: Container(
-        decoration: BoxDecoration(boxShadow: [
-          BoxShadow(color: Colors.grey, blurRadius: 8, offset: Offset(0, 1))
+        decoration: const BoxDecoration(boxShadow: [
+          BoxShadow(color: Colors.grey, blurRadius: 10, offset: Offset(0, 3))
         ]),
         child: Container(
             color: Colors.white,

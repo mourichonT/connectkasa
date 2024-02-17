@@ -2,21 +2,22 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 
 class Post {
+  String id;
   String refResidence;
   String user;
   String type;
   String _subtype = "";
   Timestamp timeStamp;
   String _statu = "";
-  String _pathImage =
-      ""; // Utilisation d'une variable privée (_pathImage) pour stocker le chemin de l'image.
+  String _pathImage = "";
   String title;
   String description;
-  int like;
+  List<String> like;
   int comment;
   int signalement;
 
   Post({
+    required this.id,
     required this.refResidence,
     required this.user,
     required this.type,
@@ -26,7 +27,7 @@ class Post {
     String pathImage = "",
     required this.title,
     required this.description,
-    this.like = 0,
+    this.like = const [],
     this.comment = 0,
     this.signalement = 0,
   }) {
@@ -61,11 +62,12 @@ class Post {
 
   String setDate() => "Posté le $timeStamp";
 
-  String setLike() {
-    if (like > 1) {
-      return "$like Likes";
+  String setLike(likeCount) {
+    //  final likeCount = like.length;
+    if (likeCount > 1) {
+      return "$likeCount Likes";
     } else {
-      return "$like Like";
+      return "$likeCount Like";
     }
   }
 
@@ -86,18 +88,30 @@ class Post {
   }
 
   factory Post.fromMap(Map<String, dynamic> map) {
+    List<dynamic>? likeList = map['like'];
+    List<String> convertedLikeList = [];
+    if (likeList != null) {
+      for (var like in likeList) {
+        if (like is String) {
+          convertedLikeList.add(like);
+        }
+      }
+    }
+
     return Post(
-        description: map['description'] ?? "",
-        subtype: map['subtype'] ?? "",
-        pathImage: map['pathImage'] ?? "",
-        refResidence: map['refResidence'] ?? "",
-        statu: map['statu'] ?? "",
-        timeStamp: map['timeStamp'] ?? 0,
-        title: map['title'] ?? "",
-        type: map['type'] ?? "",
-        user: map['user'] ?? "",
-        like: map['like'] ?? 0,
-        comment: map['comment'] ?? 0,
-        signalement: map['signalement'] ?? 0);
+      id: map['id'] ?? "",
+      description: map['description'] ?? "",
+      subtype: map['subtype'] ?? "",
+      pathImage: map['pathImage'] ?? "",
+      refResidence: map['refResidence'] ?? "",
+      statu: map['statu'] ?? "",
+      timeStamp: map['timeStamp'] ?? 0,
+      title: map['title'] ?? "",
+      type: map['type'] ?? "",
+      user: map['user'] ?? "",
+      like: convertedLikeList,
+      comment: map['comment'] ?? 0,
+      signalement: map['signalement'] ?? 0,
+    );
   }
 }

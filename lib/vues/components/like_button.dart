@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/controllers/services/databases_services.dart';
 import '../../models/pages_models/post.dart';
 
 class LikeButton extends StatefulWidget {
@@ -12,29 +13,53 @@ class LikeButton extends StatefulWidget {
 }
 
 class _LikeButtonState extends State<LikeButton> {
-  bool isLiked = false;
+  bool alreadyLiked = false;
+  int likeCount = 0;
+  @override
+  void initState() {
+    super.initState();
+    alreadyLiked = widget.post.like.contains("U0001");
+    likeCount = widget.post.like.length;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row (
-        children: [
-          IconButton(
-            icon: Icon(
-              isLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
-              color: isLiked ? Theme.of(context).primaryColor : null,size: 20,),
-            onPressed: () {
+    return Row(
+      children: [
+        IconButton(
+          icon: Icon(
+            alreadyLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
+            color: alreadyLiked ? Theme.of(context).primaryColor : null,
+            size: 20,
+          ),
+          onPressed: () async {
+            //Appeler la méthode pour mettre à jour les likes dans la base de données
+            if (!alreadyLiked) {
+              await DataBasesServices().updatePostLikes(
+                "carreSalambo",
+                widget.post.id,
+                "U0001",
+              );
               setState(() {
-                if (isLiked) {
-                  widget.post.like -= 1;
-                } else {
-                  widget.post.like += 1;
-                }
-                isLiked = !isLiked;
+                alreadyLiked = true;
+                likeCount++; // Incrémentez likeCount après l'ajout de like
               });
-            },
+            } else {
+              await DataBasesServices().removePostLike(
+                "carreSalambo",
+                widget.post.id,
+                "U0001",
+              );
+
+              setState(() {
+                alreadyLiked = false;
+                likeCount--; // Décrémentez likeCount après la suppression de like
+              });
+            }
+          },
         ),
-          MyTextStyle.iconText(widget.post.setLike()),
-        ]
-        );
+        MyTextStyle.iconText(widget.post.setLike(likeCount)),
+      ],
+    );
   }
 }
