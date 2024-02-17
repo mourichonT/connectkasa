@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/services/databases_services.dart';
-import 'package:connect_kasa/models/datas/datas_posts.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/components/post_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -8,6 +9,10 @@ import '../../models/pages_models/post.dart';
 import '../components/annonce_widget.dart';
 
 class Homeview extends StatefulWidget {
+  String residenceSelected;
+
+  Homeview({Key? key, required this.residenceSelected}) : super(key: key);
+
   @override
   _HomeviewState createState() => _HomeviewState();
 }
@@ -19,7 +24,7 @@ class _HomeviewState extends State<Homeview> {
   @override
   void initState() {
     super.initState();
-    _allPostsFuture = _databaseServices.getAllPosts("carreSalambo");
+    _allPostsFuture = _databaseServices.getAllPosts(widget.residenceSelected);
   }
 
   @override
@@ -38,7 +43,7 @@ class _HomeviewState extends State<Homeview> {
           List<Post> allPosts = snapshot.data!;
           return SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.only(bottom: 35),
+              padding: EdgeInsets.only(top: 10, bottom: 35),
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: BouncingScrollPhysics(),
