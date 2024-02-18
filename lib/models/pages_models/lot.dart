@@ -1,6 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-
 class Lot {
   String _name = "";
   String refLot;

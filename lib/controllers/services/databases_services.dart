@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/models/pages_models/comment.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
@@ -30,7 +31,7 @@ class DataBasesServices {
       QuerySnapshot<Map<String, dynamic>> querySnapshot =
           await FirebaseFirestore.instance
               .collection("User")
-              .where("numUser", isEqualTo: numUser)
+              .where("UID", isEqualTo: numUser)
               .get();
       if (querySnapshot.docs.isNotEmpty) {
         // S'il y a des documents correspondants, prenez le premier
@@ -229,5 +230,43 @@ class DataBasesServices {
     }
   }
 
-  // Ajoutez d'autres méthodes pour interagir avec la base de données si nécessaire
+  Future<List<Comment>> getComments(String docRes, String postId) async {
+    List<Comment> comments = [];
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+          .collection("Residence")
+          .doc(docRes)
+          .collection("post")
+          .where("id", isEqualTo: postId)
+          .get(); // Récupérer les posts avec l'ID spécifié
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Si un post correspondant à l'ID est trouvé
+        for (var postSnapshot in querySnapshot.docs) {
+          // Récupérer les commentaires pour ce post
+          QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await db
+              .collection("Residence")
+              .doc(docRes)
+              .collection("post")
+              .doc(postSnapshot.id) // Utiliser l'ID du post trouvé
+              .collection("comments")
+              .get(); // Récupérer tous les commentaires du post
+
+          for (var docSnapshot in commentsSnapshot.docs) {
+            // Convertir chaque document en objet Comment
+            comments.add(Comment.fromMap(docSnapshot.data()));
+            print(comments);
+          }
+
+          print(
+              "Successfully retrieved comments for post with ID: ${postSnapshot.id}");
+        }
+      } else {
+        print("Post with ID $postId does not exist");
+      }
+    } catch (e) {
+      print("Error completing in getComments: $e");
+    }
+    return comments;
+  }
 }

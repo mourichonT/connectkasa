@@ -5,8 +5,10 @@ import '../../models/pages_models/post.dart';
 
 class LikeButton extends StatefulWidget {
   final Post post;
+  final String residence;
+  final String uid;
 
-  LikeButton({required this.post});
+  LikeButton({required this.post, required this.residence, required this.uid});
 
   @override
   _LikeButtonState createState() => _LikeButtonState();
@@ -18,7 +20,7 @@ class _LikeButtonState extends State<LikeButton> {
   @override
   void initState() {
     super.initState();
-    alreadyLiked = widget.post.like.contains("U0001");
+    alreadyLiked = widget.post.like.contains(widget.uid);
     likeCount = widget.post.like.length;
   }
 
@@ -36,9 +38,9 @@ class _LikeButtonState extends State<LikeButton> {
             //Appeler la méthode pour mettre à jour les likes dans la base de données
             if (!alreadyLiked) {
               await DataBasesServices().updatePostLikes(
-                "carreSalambo",
+                widget.residence,
                 widget.post.id,
-                "U0001",
+                widget.uid,
               );
               setState(() {
                 alreadyLiked = true;
@@ -46,9 +48,9 @@ class _LikeButtonState extends State<LikeButton> {
               });
             } else {
               await DataBasesServices().removePostLike(
-                "carreSalambo",
+                widget.residence,
                 widget.post.id,
-                "U0001",
+                widget.uid,
               );
 
               setState(() {

@@ -10,8 +10,10 @@ import '../components/annonce_widget.dart';
 
 class Homeview extends StatefulWidget {
   String residenceSelected;
+  String uid;
 
-  Homeview({Key? key, required this.residenceSelected}) : super(key: key);
+  Homeview({Key? key, required this.residenceSelected, required this.uid})
+      : super(key: key);
 
   @override
   _HomeviewState createState() => _HomeviewState();
@@ -34,7 +36,9 @@ class _HomeviewState extends State<Homeview> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // Affichez un indicateur de chargement si les données ne sont pas encore disponibles
-          return CircularProgressIndicator();
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         } else if (snapshot.hasError) {
           // Gérez les erreurs ici
           return Text('Error: ${snapshot.error}');
@@ -53,7 +57,7 @@ class _HomeviewState extends State<Homeview> {
                   return Column(
                     children: [
                       if (post.type == "Sinistre" || post.type == "Incivilité")
-                        PostWidget(post),
+                        PostWidget(post, widget.residenceSelected, widget.uid),
                       if (post.type == "Annonces") AnnonceWidget(post),
                     ],
                   );

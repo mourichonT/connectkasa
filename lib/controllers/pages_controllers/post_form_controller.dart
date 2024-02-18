@@ -3,17 +3,15 @@ import 'package:flutter/material.dart';
 
 import '../../vues/pages_vues/post_form.dart';
 
-class PostFormController extends StatelessWidget{
-
-@override
+class PostFormController extends StatelessWidget {
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: MyTextStyle.lotName('Déclarer un nouveau sinistre/incivilité'),
+        title: MyTextStyle.lotName(
+            'Déclarer un nouveau sinistre/incivilité', Colors.black87),
       ),
-      body : PostForm(),
-
+      body: PostForm(),
     );
   }
-
 }

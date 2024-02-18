@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
+import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_services.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,8 +10,10 @@ import 'lot_tile_view.dart';
 class LotBottomSheet extends StatefulWidget {
   final Function()? onRefresh;
   final Lot? selectedLot;
+  final String UID;
 
-  LotBottomSheet({Key? key, this.onRefresh, this.selectedLot})
+  LotBottomSheet(
+      {Key? key, this.onRefresh, this.selectedLot, required this.UID})
       : super(key: key);
   @override
   _LotBottomSheetState createState() => _LotBottomSheetState();
@@ -21,7 +24,6 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
   //late List<Lot> lots;
   final DataBasesServices _databaseServices = DataBasesServices();
   late Future<List<Lot?>> _lotByUser;
-  final String numUser = "U0001";
 
   Lot? preferedLot;
   final LoadPreferedData _loadPreferedData = LoadPreferedData();
@@ -44,64 +46,65 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
     super.initState();
     _loadPreferedLot();
     //lots = datasLots.listLot();
-    _lotByUser = _databaseServices.getLotByIdUser(numUser);
+    _lotByUser = _databaseServices.getLotByIdUser(widget.UID);
     preferedLot = widget.selectedLot;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: FutureBuilder<List<Lot?>>(
-            future: _lotByUser, // Attendre que _lotByUser soit résolu
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Center(child: Text('Erreur: ${snapshot.error}'));
-              }
-              List<Lot?> lots =
-                  snapshot.data ?? []; // Accéder à la liste de lots
-              return Container(
-                height: MediaQuery.of(context).size.height * 0.8,
-                child: ListView.builder(
-                  itemCount: lots.length,
-                  itemBuilder: (context, index) {
-                    return RadioListTile<int>(
-                      title: LotTileView(lot: lots[index]!),
-                      value: index,
-                      groupValue: findLotInArray(lots),
-                      onChanged: (int? selectedLotIndex) {
-                        // Changement de type ici
-                        if (selectedLotIndex != null) {
-                          selectLot(selectedLotIndex, context);
-                        }
+    return Padding(
+        padding: EdgeInsets.only(top: 20, bottom: 0),
+        child: Column(
+          children: [
+            Expanded(
+              child: FutureBuilder<List<Lot?>>(
+                future: _lotByUser, // Attendre que _lotByUser soit résolu
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.hasError) {
+                    return Center(child: Text('Erreur: ${snapshot.error}'));
+                  }
+                  List<Lot?> lots =
+                      snapshot.data ?? []; // Accéder à la liste de lots
+                  return Container(
+                    height: MediaQuery.of(context).size.height * 0.8,
+                    child: ListView.builder(
+                      itemCount: lots.length,
+                      itemBuilder: (context, index) {
+                        return RadioListTile<int>(
+                          title: LotTileView(lot: lots[index]!),
+                          value: index,
+                          groupValue: findLotInArray(lots),
+                          onChanged: (int? selectedLotIndex) {
+                            // Changement de type ici
+                            if (selectedLotIndex != null) {
+                              selectLot(selectedLotIndex, context);
+                            }
+                          },
+                        );
                       },
-                    );
-                  },
-                ),
-              );
-            },
-          ),
-        ),
-        OutlinedButton(
-          onPressed: () {
-            setState(() {
-              //widget.onRefresh?.call();
-              Navigator.pop(context);
-            });
-          },
-          child: Text("Fermer"),
-          style: OutlinedButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(5),
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ),
-      ],
-    );
+            Container(
+              width: double.infinity,
+              color: Theme.of(context).primaryColor,
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    //widget.onRefresh?.call();
+                    Navigator.pop(context);
+                  });
+                },
+                child: MyTextStyle.lotName("Fermer", Colors.white),
+              ),
+            ),
+          ],
+        ));
   }
 
 // Méthode pour sélectionner un lot
