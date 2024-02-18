@@ -17,12 +17,12 @@ class AnnonceWidget extends StatefulWidget {
 class AnnonceWidgetState extends State<AnnonceWidget> {
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   final DataBasesServices _databaseServices = DataBasesServices();
-  late Future<User?> userPost;
   late Post post;
+
   void initState() {
     super.initState();
     post = widget.post;
-    userPost = _databaseServices.getUserById(post.user);
+    widget.userPost = _databaseServices.getUserById(post.user);
     // Initialisez post à partir des propriétés du widget
   }
 
@@ -51,7 +51,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                       radius: 38,
                       backgroundColor: Theme.of(context).primaryColor,
                       child: FutureBuilder<User?>(
-                        future: userPost, // Future<User?> ici
+                        future: widget.userPost, // Future<User?> ici
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
@@ -64,16 +64,19 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                               if (user.profilPic != null &&
                                   user.profilPic != "") {
                                 // Retourner le widget avec l'image de profil si disponible
-                                return formatProfilPic.ProfilePic(35, userPost);
+                                return formatProfilPic.ProfilePic(
+                                    35, widget.userPost);
                               } else {
                                 // Sinon, retourner les initiales
                                 return formatProfilPic.getInitiales(
-                                    65, userPost);
+                                    65, widget.userPost);
                               }
                             } else {
                               // Gérer le cas où le futur est résolu mais qu'il n'y a pas de données
-                              return formatProfilPic.getInitiales(65,
-                                  userPost); // ou tout autre widget par défaut
+                              return formatProfilPic.getInitiales(
+                                  65,
+                                  widget
+                                      .userPost); // ou tout autre widget par défaut
                             }
                           }
                         },
@@ -89,7 +92,8 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              child: MyTextStyle.lotName(post.title),
+                              child: MyTextStyle.lotName(
+                                  post.title, Colors.black87),
                             ),
                             Padding(
                                 padding: EdgeInsets.only(bottom: 10),

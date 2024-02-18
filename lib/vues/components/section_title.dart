@@ -8,8 +8,9 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding( padding: EdgeInsets.symmetric(vertical: 30, horizontal:15),
-      child: MyTextStyle.lotName(text),
-      );
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 30, horizontal: 15),
+      child: MyTextStyle.lotName(text, Colors.black87),
+    );
   }
 }

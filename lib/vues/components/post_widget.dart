@@ -2,6 +2,7 @@ import 'package:connect_kasa/controllers/services/databases_services.dart';
 import 'package:connect_kasa/vues/components/like_button.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/vues/components/share_button.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/pages_models/post.dart';
@@ -9,20 +10,22 @@ import 'comment_button.dart';
 
 class PostWidget extends StatefulWidget {
   late Post post;
+  final String uid;
+  final String residence;
 
-  PostWidget(this.post);
+  PostWidget(this.post, this.residence, this.uid);
   @override
   State<StatefulWidget> createState() => PostWidgetState();
 }
 
 class PostWidgetState extends State<PostWidget> {
   DataBasesServices dbService = DataBasesServices();
-  late Post post;
 
   @override
   void initState() {
     super.initState();
-    post = widget.post; // Initialisez post à partir des propriétés du widget
+    widget.post =
+        widget.post; // Initialisez post à partir des propriétés du widget
   }
 
   @override
@@ -51,20 +54,21 @@ class PostWidgetState extends State<PostWidget> {
                           .baseline, // Centrer les éléments verticalement
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        MyTextStyle.lotName(post!.type),
+                        MyTextStyle.lotName(widget.post!.type, Colors.black87),
                         SizedBox(
                           width: 15,
                         ),
                         Container(
                             height: 20,
                             width: 120,
-                            child: MyTextStyle.postDate(post!.timeStamp)),
+                            child:
+                                MyTextStyle.postDate(widget.post!.timeStamp)),
                         Spacer(),
                         Container(
                             height: 20,
                             width: 70,
                             child: MyTextStyle.statuColor(
-                                post.statu!, colorStatut)),
+                                widget.post.statu!, colorStatut)),
                       ])),
               Divider(
                 height: 20,
@@ -80,7 +84,7 @@ class PostWidgetState extends State<PostWidget> {
                         height: width / 2,
                         width: width * 2,
                         child: Image.network(
-                          post.pathImage ?? "pas d'image",
+                          widget.post.pathImage ?? "pas d'image",
                           fit: BoxFit.fitWidth,
                         )
                         //Image.asset(post.pathImage ?? "placeholder_image_path", fit: BoxFit.fitWidth,)
@@ -94,11 +98,12 @@ class PostWidgetState extends State<PostWidget> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              MyTextStyle.lotName(post!.title),
+                              MyTextStyle.lotName(
+                                  widget.post!.title, Colors.black87),
                               SizedBox(
                                 height: 15,
                               ),
-                              MyTextStyle.lotDesc(post!.description),
+                              MyTextStyle.lotDesc(widget.post!.description),
                               SizedBox(
                                 height: 15,
                               ),
@@ -108,7 +113,7 @@ class PostWidgetState extends State<PostWidget> {
                       child: Row(
                         children: [
                           Spacer(),
-                          (post!.signalement > 0)
+                          (widget.post!.signalement > 0)
                               ? Icon(
                                   Icons.notifications,
                                   color: Theme.of(context).primaryColor,
@@ -118,7 +123,7 @@ class PostWidgetState extends State<PostWidget> {
                                   Icons.notifications_none,
                                   size: 20,
                                 ),
-                          MyTextStyle.iconText(post!.setSignalement()),
+                          MyTextStyle.iconText(widget.post!.setSignalement()),
                         ],
                       ),
                     ),
@@ -133,12 +138,19 @@ class PostWidgetState extends State<PostWidget> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Container(child: LikeButton(post: post)),
+                    Container(
+                        child: LikeButton(
+                      post: widget.post,
+                      residence: widget.residence,
+                      uid: widget.uid,
+                    )),
                     Container(
                         child: CommentButton(
-                      post: post,
+                      post: widget.post,
+                      residenceSelected: widget.residence,
+                      uid: widget.uid,
                     )),
-                    Container(child: ShareButton(post: post)),
+                    Container(child: ShareButton(post: widget.post)),
                   ],
                 ),
               ),

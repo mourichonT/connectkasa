@@ -33,9 +33,11 @@ class _LotTileViewState extends State<LotTileView> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(children: [
-              MyTextStyle.lotName(widget.lot.name.isNotEmpty
-                  ? widget.lot.name
-                  : "${widget.lot.residenceData["name"]} ${widget.lot.batiment}${widget.lot.lot} "),
+              MyTextStyle.lotName(
+                  widget.lot.name.isNotEmpty
+                      ? widget.lot.name
+                      : "${widget.lot.residenceData["name"]} ${widget.lot.batiment}${widget.lot.lot} ",
+                  Colors.black87),
               Container(padding: EdgeInsets.only(left: 2)),
             ]),
             Row(

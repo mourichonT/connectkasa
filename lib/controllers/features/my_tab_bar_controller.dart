@@ -22,6 +22,7 @@ class MyTabBarController extends StatefulWidget {
 class _MyTabBarControllerState extends State<MyTabBarController> {
   @override
   Widget build(BuildContext context) {
-    return widget.tabBar(<Tab>[]); // Utilisez la méthode tabBar ici avec une liste vide
+    return widget
+        .tabBar(<Tab>[]); // Utilisez la méthode tabBar ici avec une liste vide
   }
 }

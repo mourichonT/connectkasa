@@ -48,14 +48,13 @@ class MyTextStyle {
         padding);
   }
 
-  static Text lotName(String text) {
-    return Text(
-      text,
-      style: GoogleFonts.robotoCondensed(
-        fontWeight: FontWeight.w600,
-        fontSize: 16,
-      ),
-    );
+  static Text lotName(String text, Color color) {
+    return Text(text,
+        style: GoogleFonts.robotoCondensed(
+          fontWeight: FontWeight.w600,
+          fontSize: 16,
+          color: color,
+        ));
   }
 
   static Text lotDesc(String text) {

@@ -1,4 +1,5 @@
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
+import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
 import 'package:connect_kasa/controllers/services/authentification_service.dart';
 import 'package:connect_kasa/controllers/services/databases_services.dart';
@@ -20,22 +21,19 @@ class MyNavBar extends StatefulWidget {
 class _MyNavBarState extends State<MyNavBar> {
   final LoadPreferedData _loadPreferedData = LoadPreferedData();
   final MyTabBarController tabController = MyTabBarController();
+  final LoadUserController _loadUserController = LoadUserController();
   Lot? lot;
-  //List<Lot> lots = [];
-  // DatasLots datasLots = DatasLots();
-
-//final DataBasesServices _databaseServices = DataBasesServices();
-//late Future<List<Lot?>> _lotByUser;
-
+  // User? user;
   double pad = 0;
   Lot? preferedLot;
-  AuthentificationService authService = AuthentificationService();
+  //AuthentificationService authService = AuthentificationService();
+
+  // Déclaration de la variable user en dehors des méthodes.
+  //UserCredential? user;
 
   @override
   void initState() {
     super.initState();
-    // _lotByUser = _databaseServices.getLotByIduser2(preferedLot!.idProprietaire);
-    //lots = datasLots.listLot();
     _loadPreferedLot();
   }
 
@@ -55,17 +53,6 @@ class _MyNavBarState extends State<MyNavBar> {
       appBar: AppBar(
           backgroundColor: Colors.yellow,
           elevation: 20,
-          /* actions: <Widget>[
-            IconButton(
-              icon: MyTextStyle.IconDrawer(
-                  context, Icons.menu, EdgeInsets.only(top: pad)),
-              tooltip: 'Show Snackbar',
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('This is a snackbar')));
-              },
-            ),
-          ],*/
           title: MyTextStyle.logo(
               context, "connectKasa", EdgeInsets.only(top: pad)),
           flexibleSpace: Container(
@@ -81,32 +68,51 @@ class _MyNavBarState extends State<MyNavBar> {
                 tabController.tabBar(tabs),
                 InkWell(
                     child: SelectLotComponent(),
-                    onTap: () {
-                      // _loadPreferedLot(preferedLot);
-                      _showLotBottomSheet(context);
+                    onTap: () async {
+                      _handleGoogleSignIn();
                     })
               ],
             ),
           )),
       body: preferedLot != null
-          ? Homeview(
-              key: UniqueKey(),
-              residenceSelected: preferedLot!.residenceId,
+          ? FutureBuilder<String>(
+              future: _loadUserController.loadUserData(),
+              builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                } else if (snapshot.hasError) {
+                  return Text('Erreur: ${snapshot.error}');
+                } else {
+                  return Homeview(
+                    key: UniqueKey(),
+                    residenceSelected: preferedLot!.residenceId,
+                    uid: snapshot.data!,
+                  );
+                }
+              },
             )
-          : CircularProgressIndicator(),
+          : const Center(
+              child: CircularProgressIndicator(),
+            ),
       endDrawer: Drawer(
         child: Column(children: [
           SizedBox(
             height: 500,
           ),
           ElevatedButton(
-              onPressed: () async {
-                UserCredential user = await authService.signInWithGoogle();
-                if (user.user != null && user.user!.uid != "") {
-                  // Ton traitement pour stocker l'User dans Firebase
-                }
-              },
-              child: const Text("Google Auth"))
+            onPressed: () async {
+              _handleGoogleSignIn();
+            },
+            child: const Text("Google Auth"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              _loadUserController.handleGoogleSignOut();
+            },
+            child: const Text("Déconnexion"),
+          )
         ]),
       ),
       bottomNavigationBar: MyBottomNavBarView(),
@@ -127,8 +133,7 @@ class _MyNavBarState extends State<MyNavBar> {
                 size: 30,
                 color: Theme.of(context).primaryColor,
               ),
-              shape:
-                  CircleBorder(), // Utilisez CircleBorder pour définir la forme du bouton
+              shape: CircleBorder(),
               materialTapTargetSize: MaterialTapTargetSize.padded)),
     );
   }
@@ -138,7 +143,7 @@ class _MyNavBarState extends State<MyNavBar> {
     setState(() {});
   }
 
-  void _showLotBottomSheet(BuildContext context) {
+  void _showLotBottomSheet(BuildContext context, String uid) {
     showModalBottomSheet(
         context: context,
         builder: (BuildContext context) {
@@ -147,7 +152,35 @@ class _MyNavBarState extends State<MyNavBar> {
             onRefresh: () {
               _loadPreferedLot();
             },
+            UID: uid,
           );
         });
   }
+
+  Future<void> _handleGoogleSignIn() async {
+    try {
+      String uid = await _loadUserController.loadUserData();
+      _showLotBottomSheet(context, uid);
+    } catch (e) {
+      print("Erreur lors de la connexion avec Google: $e");
+    }
+  }
+  // Future<String> _loadUserData() async {
+  //   user = await authService.signUpWithGoogle();
+  //   String iud = user!.user!.uid;
+
+  //   return iud;
+  // }
+
+  // Utilisation de la variable user déclarée au niveau de la classe.
+
+  // // Utilisation de la variable user déclarée au niveau de la classe.
+  // Future<void> _handleGoogleSignOut() async {
+  //   try {
+  //     await authService.signOutWithGoogle();
+  //     print('Utilisateur déconnecté');
+  //   } catch (e) {
+  //     print('Erreur lors de la déconnexion avec Google: $e');
+  //   }
+  // }
 }
