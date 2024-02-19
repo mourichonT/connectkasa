@@ -13,7 +13,6 @@ class Post {
   String title;
   String description;
   List<String> like;
-  int comment;
   int signalement;
 
   Post({
@@ -28,7 +27,6 @@ class Post {
     required this.title,
     required this.description,
     this.like = const [],
-    this.comment = 0,
     this.signalement = 0,
   }) {
     this._pathImage = pathImage;
@@ -71,11 +69,11 @@ class Post {
     }
   }
 
-  String setComments() {
-    if (comment > 1) {
-      return "$comment Commentaires";
+  String setComments(commentCount) {
+    if (commentCount > 1) {
+      return "$commentCount Commentaires";
     } else {
-      return "$comment Commentaire";
+      return "$commentCount Commentaire";
     }
   }
 
@@ -110,7 +108,6 @@ class Post {
       type: map['type'] ?? "",
       user: map['user'] ?? "",
       like: convertedLikeList,
-      comment: map['comment'] ?? 0,
       signalement: map['signalement'] ?? 0,
     );
   }

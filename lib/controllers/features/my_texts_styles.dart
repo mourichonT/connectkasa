@@ -101,6 +101,29 @@ class MyTextStyle {
     );
   }
 
+  static commentDate(Timestamp timestamp) {
+    // Convertir le Timestamp en millisecondes depuis l'époque Unix
+    int milliseconds = timestamp.millisecondsSinceEpoch;
+
+    // Convertir les millisecondes en objet DateTime
+    DateTime commentTime = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+
+    // Obtenir la durée écoulée depuis le timestamp jusqu'à maintenant
+    Duration difference = DateTime.now().difference(commentTime);
+
+    // Formater la durée écoulée
+    if (difference.inSeconds < 60) {
+      return Text('il y a quelques secondes');
+    } else if (difference.inMinutes < 60) {
+      return Text('il y a ${difference.inMinutes} min');
+    } else if (difference.inHours < 24) {
+      return Text('il y a ${difference.inHours} h');
+    } else {
+      int days = difference.inDays;
+      return Text('il y a ${days} j');
+    }
+  }
+
   static statuColor(String text, colorTheme) {
     return Container(
         //padding: EdgeInsets.symmetric(vertical: 3, horizontal:0),
@@ -140,7 +163,7 @@ class MyTextStyle {
     return Text(
       text,
       style: GoogleFonts.roboto(
-        fontSize: 10,
+        fontSize: 12,
         fontStyle: FontStyle.italic,
       ),
     );

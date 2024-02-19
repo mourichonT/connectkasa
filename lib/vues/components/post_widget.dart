@@ -1,5 +1,5 @@
 import 'package:connect_kasa/controllers/services/databases_services.dart';
-import 'package:connect_kasa/vues/components/like_button.dart';
+import 'package:connect_kasa/vues/components/like_button_post.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/vues/components/share_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -139,7 +139,7 @@ class PostWidgetState extends State<PostWidget> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Container(
-                        child: LikeButton(
+                        child: LikeButtonPost(
                       post: widget.post,
                       residence: widget.residence,
                       uid: widget.uid,

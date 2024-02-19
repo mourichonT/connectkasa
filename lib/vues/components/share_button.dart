@@ -13,11 +13,13 @@ class ShareButton extends StatelessWidget {
     return Row(
       children: [
         IconButton(
-          icon: Icon(Icons.share,
+          icon: Icon(
+            Icons.share,
             size: 20,
           ),
           onPressed: () {
-            Share.share('Regardez ce post sur WhatsApp: ${post.title}\n${post.description}');
+            Share.share(
+                'Regardez ce post sur WhatsApp: ${post.title}\n${post.description}');
           },
         ),
         MyTextStyle.iconText("Partager"),

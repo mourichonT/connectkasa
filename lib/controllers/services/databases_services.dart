@@ -269,4 +269,149 @@ class DataBasesServices {
     }
     return comments;
   }
+
+  Future<void> updateCommentLikes(String residenceId, String postId,
+      String commentId, String userId) async {
+    print(
+        "je test UpdateCommentLikes =  residence :$residenceId, postId: $postId, commentId:$commentId, userId: $userId");
+    try {
+      // Obtenez une référence au commentaire dans la base de données
+      QuerySnapshot commentQuery = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("post")
+          .where("id", isEqualTo: postId)
+          .limit(1)
+          .get()
+          .then((querySnapshot) {
+        if (querySnapshot.docs.isNotEmpty) {
+          String postId = querySnapshot.docs.first.id;
+          return FirebaseFirestore.instance
+              .collection("Residence")
+              .doc(residenceId)
+              .collection("post")
+              .doc(postId)
+              .collection("comments")
+              .where("id", isEqualTo: commentId)
+              .get();
+        } else {
+          throw Exception("Post not found with ID: $postId");
+        }
+      });
+      // Vérifiez s'il y a un document correspondant à l'ID donné
+      if (commentQuery.docs.isNotEmpty) {
+        // Récupérez la référence du premier document (il devrait y en avoir un seul)
+        DocumentReference commentRef = commentQuery.docs.first.reference;
+
+        // Récupérez les données du document
+        DocumentSnapshot commentSnapshot = await commentRef.get();
+
+        // Vérifiez si la publication existe
+        if (commentSnapshot.exists) {
+          // Convertissez les données en Map<String, dynamic> de manière sûre
+          Map<String, dynamic> commentData =
+              commentSnapshot.data() as Map<String, dynamic>;
+
+          // Obtenez la liste de likes actuelle
+          List<dynamic> likes = commentData['like'] ?? [];
+
+          // Vérifiez si l'utilisateur est déjà dans la liste de likes
+          bool userLiked = likes.contains(userId);
+
+          // Ajoutez ou supprimez l'utilisateur de la liste de likes
+          if (!userLiked) {
+            // L'utilisateur n'a pas encore aimé la publication, alors ajoutez-le à la liste
+            likes.add(userId);
+          }
+
+          // Mettez à jour la liste de likes dans les données de la publication
+          commentData['like'] = likes;
+
+          // Mettez à jour la publication dans la base de données
+          await commentRef.update(commentData);
+
+          print("Successfully updated likes for comment $commentId");
+        } else {
+          throw Exception("comment not found!");
+        }
+      } else {
+        throw Exception("comment not found!");
+      }
+    } catch (e) {
+      print("Error updating likes for comment $commentId: $e");
+      throw e;
+    }
+  }
+
+  Future<void> removeCommentLike(String residenceId, String postId,
+      String commentId, String userId) async {
+    try {
+      // Obtenez une référence au commentaire dans la base de données
+      QuerySnapshot commentQuery = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("post")
+          .where("id", isEqualTo: postId)
+          .limit(1)
+          .get()
+          .then((querySnapshot) {
+        if (querySnapshot.docs.isNotEmpty) {
+          String postId = querySnapshot.docs.first.id;
+          return FirebaseFirestore.instance
+              .collection("Residence")
+              .doc(residenceId)
+              .collection("post")
+              .doc(postId)
+              .collection("comments")
+              .where("id", isEqualTo: commentId)
+              .get();
+        } else {
+          throw Exception("Post not found with ID: $postId");
+        }
+      });
+
+      // Vérifiez s'il y a un document correspondant à l'ID donné
+      if (commentQuery.docs.isNotEmpty) {
+        // Récupérez la référence du premier document (il devrait y en avoir un seul)
+        DocumentReference commentRef = commentQuery.docs.first.reference;
+
+        // Récupérez les données du document
+        DocumentSnapshot commentSnapshot = await commentRef.get();
+
+        // Vérifiez si la publication existe
+        if (commentSnapshot.exists) {
+          // Convertissez les données en Map<String, dynamic> de manière sûre
+          Map<String, dynamic> commentData =
+              commentSnapshot.data() as Map<String, dynamic>;
+
+          // Obtenez la liste de likes actuelle
+          List<dynamic> likes = commentData['like'] ?? [];
+
+          // Vérifiez si l'utilisateur est déjà dans la liste de likes
+          if (likes.contains(userId)) {
+            // Retirez l'utilisateur de la liste de likes
+            likes.remove(userId);
+
+            // Mettez à jour la liste de likes dans les données de la publication
+            commentData['like'] = likes;
+
+            // Mettez à jour la publication dans la base de données
+            await commentRef.update(commentData);
+
+            print(
+                "Successfully removed like for comment $commentId by user $userId");
+          } else {
+            print("User $userId did not like comment $commentId");
+          }
+        } else {
+          throw Exception("Comment not found!");
+        }
+      } else {
+        throw Exception("Comment not found!");
+      }
+    } catch (e) {
+      print("Error removing like for comment $commentId by user $userId: $e");
+      throw e;
+    }
+  }
 }

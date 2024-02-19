@@ -6,13 +6,14 @@ class Comment {
   String user;
   Timestamp timestamp;
   List<String> like;
+  String id;
 
-  Comment({
-    required this.comment,
-    required this.user,
-    required this.timestamp,
-    required this.like,
-  });
+  Comment(
+      {required this.comment,
+      required this.user,
+      required this.timestamp,
+      required this.like,
+      required this.id});
 
   String setLike(likeCount) {
     //  final likeCount = like.length;
@@ -29,6 +30,7 @@ class Comment {
       timestamp: map['timestamp'] ?? "",
       // La liste des likes doit être convertie depuis une liste de dynamic en une liste de String
       like: List<String>.from(map['like'] ?? []),
+      id: map['id'] ?? '',
     );
   }
 }
