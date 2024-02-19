@@ -54,7 +54,7 @@ class FormatProfilPic {
     );
   }
 
-  FutureBuilder<User?> ProfilePic(double radius, userPost) {
+  FutureBuilder<User?> ProfilePic(double radius, Future<User?> userPost) {
     return FutureBuilder<User?>(
       future: userPost,
       builder: (context, snapshot) {
