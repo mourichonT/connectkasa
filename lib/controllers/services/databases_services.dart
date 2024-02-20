@@ -414,4 +414,87 @@ class DataBasesServices {
       throw e;
     }
   }
+
+  Future<List<Comment>> addComment(
+      String docRes, String postId, Comment newComment,
+      {String? commentParentId}) async {
+    List<Comment> comments = [];
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+          .collection("Residence")
+          .doc(docRes)
+          .collection("post")
+          .where("id", isEqualTo: postId)
+          .get(); // Récupérer les posts avec l'ID spécifié
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Si un post correspondant à l'ID est trouvé
+        for (var postSnapshot in querySnapshot.docs) {
+          // Ajouter le nouveau commentaire à la collection
+          if (commentParentId != null) {
+            // Effectuer une requête pour obtenir le document qui correspond à la valeur de commentParentId
+            var parentCommentQuery = await db
+                .collection("Residence")
+                .doc(docRes)
+                .collection("post")
+                .doc(postSnapshot.id)
+                .collection("comments")
+                .where("id", isEqualTo: commentParentId)
+                .get();
+
+            // Vérifier s'il existe un document correspondant
+            if (parentCommentQuery.docs.isNotEmpty) {
+              // Récupérer l'ID du document parent
+              var parentCommentId = parentCommentQuery.docs.first.id;
+
+              // Ajouter le nouveau commentaire à la collection "replies"
+              await db
+                  .collection("Residence")
+                  .doc(docRes)
+                  .collection("post")
+                  .doc(postSnapshot.id)
+                  .collection("comments")
+                  .doc(parentCommentId)
+                  .collection("replies")
+                  .add(newComment.toMap());
+            } else {
+              // Gérer le cas où aucun document correspondant n'est trouvé
+              print("Le commentaire parent n'a pas été trouvé.");
+            }
+          } else {
+            // Si commentParentId n'est pas fourni, cela signifie que nous ajoutons un commentaire normal
+            await db
+                .collection("Residence")
+                .doc(docRes)
+                .collection("post")
+                .doc(postSnapshot.id) // Utiliser l'ID du post trouvé
+                .collection("comments")
+                .add(newComment.toMap()); // Ajouter le nouveau commentaire
+          }
+
+          // Récupérer les commentaires pour ce post
+          QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await db
+              .collection("Residence")
+              .doc(docRes)
+              .collection("post")
+              .doc(postSnapshot.id) // Utiliser l'ID du post trouvé
+              .collection("comments")
+              .get(); // Récupérer tous les commentaires du post
+
+          for (var docSnapshot in commentsSnapshot.docs) {
+            // Convertir chaque document en objet Comment
+            comments.add(Comment.fromMap(docSnapshot.data()));
+          }
+
+          print(
+              "Successfully retrieved comments for post with ID: ${postSnapshot.id}");
+        }
+      } else {
+        print("Post with ID $postId does not exist");
+      }
+    } catch (e) {
+      print("Error completing in getComments: $e");
+    }
+    return comments;
+  }
 }
