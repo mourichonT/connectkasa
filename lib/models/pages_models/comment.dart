@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 
 class Comment {
   String comment;
@@ -32,5 +31,16 @@ class Comment {
       like: List<String>.from(map['like'] ?? []),
       id: map['id'] ?? '',
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    // Génère un UUID v4 unique
+    return {
+      'comment': comment,
+      'user': user,
+      'timestamp': timestamp,
+      'like': like,
+      'id': id,
+    };
   }
 }

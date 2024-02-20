@@ -113,7 +113,7 @@ class MyTextStyle {
 
     // Formater la durée écoulée
     if (difference.inSeconds < 60) {
-      return Text('il y a quelques secondes');
+      return Text("à l'instant");
     } else if (difference.inMinutes < 60) {
       return Text('il y a ${difference.inMinutes} min');
     } else if (difference.inHours < 24) {

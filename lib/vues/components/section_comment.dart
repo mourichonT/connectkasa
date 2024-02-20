@@ -1,7 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/services/databases_services.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
+import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/comment_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 class SectionComment extends StatefulWidget {
   String residenceSelected;
@@ -30,6 +33,7 @@ class _SectionCommentState extends State<SectionComment>
   final DataBasesServices _databaseServices = DataBasesServices();
   late Future<List<Comment>> _allComments;
   bool isReply = false;
+  String commentId = "";
   @override
   void initState() {
     super.initState();
@@ -86,7 +90,18 @@ class _SectionCommentState extends State<SectionComment>
                           widget.uid,
                           widget.postSelected,
                           inputFocusNode,
-                          isReply: isReply,
+                          onReply: (value) {
+                            setState(() {
+                              isReply =
+                                  value; // Mettre à jour isReply lorsque la valeur change
+                            });
+                          },
+                          getCommentData: (value) {
+                            setState(() {
+                              commentId =
+                                  value; // Mettre à jour isReply lorsque la valeur change
+                            });
+                          },
                         )
                       ],
                     );
@@ -115,47 +130,93 @@ class _SectionCommentState extends State<SectionComment>
         onTap: () {
           FocusScope.of(context).requestFocus(inputFocusNode);
         },
-        child: Container(
-          decoration:
-              BoxDecoration(color: Theme.of(context).colorScheme.background),
-          padding: EdgeInsets.all(8.0),
-          width: MediaQuery.of(context).size.width,
-          child: IgnorePointer(
-            child: TextField(
-              controller: _textEditingController,
-              focusNode: inputFocusNode,
-              decoration: const InputDecoration(
-                hintText: 'Ajouter un commentaire...',
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.background,
+                  borderRadius: BorderRadius.all(Radius.circular(30.0))),
+              padding: EdgeInsets.symmetric(vertical: 3, horizontal: 30),
+              width: MediaQuery.of(context).size.width * 0.8,
+              child: IgnorePointer(
+                child: TextField(
+                  controller: _textEditingController,
+                  focusNode: inputFocusNode,
+                  decoration: const InputDecoration(
+                    hintMaxLines: 20,
+                    hintText: 'Ajouter un commentaire...',
+                  ),
+                ),
               ),
             ),
-          ),
-          // IconButton(
-          //   icon: Icon(Icons.send),
-          //   onPressed: () {
-          //     if (_textEditingController.text.isNotEmpty) {
-          //       //_addComment(_textEditingController.text, isReply);
-          //       _textEditingController.clear();
-          //     }
-          //   },
-          // ),
+            Container(
+              child: IconButton(
+                color: Theme.of(context).colorScheme.primary,
+                icon: Icon(Icons.send_rounded),
+                onPressed: () {
+                  if (_textEditingController.text.isNotEmpty) {
+                    _addComment(_textEditingController.text, isReply,
+                        commentId: commentId);
+                    _textEditingController.clear();
+                  }
+                },
+              ),
+            )
+          ],
         ),
       ),
     );
   }
 
-  // void _addComment(String comment, bool isReply) {
-// if (isReply)....databaseservice.reply faire un isReply=false
-
-  //   // Vous devrez ajouter la logique pour ajouter le commentaire à la base de données
-  //   // ou à votre liste locale de commentaires
-  //   // Par exemple :
-  //   setState(() {
-  //     _allComments.add(Comment(
-  //       text: comment,
-  //       user: widget.uid,
-  //       date: DateTime.now(),
-  //       like: [], // Vous pouvez initialiser la liste de likes comme vous le souhaitez
-  //     ));
-  //   });
-  // }
+  void _addComment(String commentText, bool isReply,
+      {String? commentId}) async {
+    var uuid = Uuid();
+    String uniqueId = uuid.v4();
+    if (isReply) {
+      print("JE TESTE LA CONDITION ISREPLY IS TRUE = $isReply");
+      print("commentId = $commentId");
+      await _databaseServices.addComment(
+          widget.residenceSelected,
+          widget.postSelected,
+          Comment(
+            comment: commentText,
+            user: widget.uid,
+            timestamp: Timestamp.now(),
+            like: [],
+            id: uniqueId,
+          ),
+          commentParentId: commentId);
+      setState(() {
+        _allComments = _databaseServices.getComments(
+            widget.residenceSelected, widget.postSelected);
+      });
+      isReply = false;
+      commentId = "";
+    } else {
+      print("JE TESTE LA CONDITION ISREPLY IS FALSE = $isReply");
+      try {
+        // Ajouter le commentaire à la base de données
+        await _databaseServices.addComment(
+          widget.residenceSelected,
+          widget.postSelected,
+          Comment(
+            comment: commentText,
+            user: widget.uid,
+            timestamp: Timestamp.now(),
+            like: [],
+            id: uniqueId,
+          ),
+        );
+        // Actualiser la liste des commentaires
+        setState(() {
+          _allComments = _databaseServices.getComments(
+              widget.residenceSelected, widget.postSelected);
+        });
+      } catch (e) {
+        print("Error adding comment: $e");
+        // Gérer l'erreur
+      }
+    }
+  }
 }
