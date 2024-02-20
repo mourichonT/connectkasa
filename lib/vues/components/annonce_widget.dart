@@ -69,14 +69,14 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                               } else {
                                 // Sinon, retourner les initiales
                                 return formatProfilPic.getInitiales(
-                                    65, widget.userPost);
+                                    65, widget.userPost, 37);
                               }
                             } else {
                               // Gérer le cas où le futur est résolu mais qu'il n'y a pas de données
                               return formatProfilPic.getInitiales(
                                   65,
-                                  widget
-                                      .userPost); // ou tout autre widget par défaut
+                                  widget.userPost,
+                                  37); // ou tout autre widget par défaut
                             }
                           }
                         },

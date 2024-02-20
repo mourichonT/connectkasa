@@ -8,9 +8,10 @@ class FormatProfilPic {
   final DataBasesServices _databaseServices = DataBasesServices();
   late Future<User?> userPost;
 
-  Widget getInitiales(double raduis, userPost) {
+  Widget getInitiales(
+      double raduis, Future<User?> userPostFuture, double size) {
     return FutureBuilder<User?>(
-      future: userPost,
+      future: userPostFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           // Retourner un indicateur de chargement pendant que le futur est en cours de résolution
@@ -25,10 +26,10 @@ class FormatProfilPic {
             List<String> lettresNom = [];
             List<String> lettresPrenom = [];
 
-            for (int i = 0; i < initName!.length; i++) {
+            for (int i = 0; i < initName.length; i++) {
               lettresNom.add(initName[i]);
             }
-            for (int i = 0; i < initSurname!.length; i++) {
+            for (int i = 0; i < initSurname.length; i++) {
               lettresPrenom.add(initSurname[i]);
             }
 
@@ -42,7 +43,7 @@ class FormatProfilPic {
                 shape: BoxShape.circle,
               ),
               child: Center(
-                child: MyTextStyle.InitialAvatar(initiale),
+                child: MyTextStyle.InitialAvatar(initiale, size),
               ),
             );
           } else {

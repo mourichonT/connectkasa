@@ -49,7 +49,6 @@ class _SectionCommentState extends State<SectionComment>
       keyBoardHeight = mediaQuery.viewInsets.bottom != 0.0
           ? mediaQuery.viewInsets.bottom - 20.0
           : 0.0;
-      print("keyBoardHeight = $keyBoardHeight");
     });
   }
 
@@ -90,6 +89,7 @@ class _SectionCommentState extends State<SectionComment>
                           widget.uid,
                           widget.postSelected,
                           inputFocusNode,
+                          _textEditingController,
                           onReply: (value) {
                             setState(() {
                               isReply =
@@ -99,7 +99,12 @@ class _SectionCommentState extends State<SectionComment>
                           getCommentData: (value) {
                             setState(() {
                               commentId =
-                                  value; // Mettre à jour isReply lorsque la valeur change
+                                  value; // Mettre à jour commentId lorsque la valeur change
+                            });
+                          },
+                          getUsertoreply: (value) {
+                            setState(() {
+                              _textEditingController = value;
                             });
                           },
                         )
@@ -107,7 +112,7 @@ class _SectionCommentState extends State<SectionComment>
                     );
                   },
                   separatorBuilder: (BuildContext context, int index) =>
-                      Divider(
+                      const Divider(
                     thickness: 0.5,
                   ),
                 ),
@@ -156,7 +161,7 @@ class _SectionCommentState extends State<SectionComment>
                 icon: Icon(Icons.send_rounded),
                 onPressed: () {
                   if (_textEditingController.text.isNotEmpty) {
-                    _addComment(_textEditingController.text, isReply,
+                    _addComment(_textEditingController, isReply,
                         commentId: commentId);
                     _textEditingController.clear();
                   }
@@ -169,18 +174,31 @@ class _SectionCommentState extends State<SectionComment>
     );
   }
 
-  void _addComment(String commentText, bool isReply,
+  void _addComment(TextEditingController textEditingController, bool isReply,
       {String? commentId}) async {
+    String commentFormatted = "";
     var uuid = Uuid();
     String uniqueId = uuid.v4();
     if (isReply) {
-      print("JE TESTE LA CONDITION ISREPLY IS TRUE = $isReply");
-      print("commentId = $commentId");
+      RegExp regex = RegExp(r"@([A-Z][a-z]+(?:[A-Z][a-z]+)*)\s+(.*)");
+      Iterable<Match> matches = regex.allMatches(textEditingController.text);
+
+      for (Match match in matches) {
+        String name = match.group(1)!;
+        String restOfThePhrase = match.group(2)!;
+        // Formater le nom avec un espace entre chaque mot commençant par une majuscule
+        String formattedName =
+            name.replaceAllMapped(RegExp(r"(?=[A-Z])"), (match) => " ");
+
+        // Concaténer le nom formaté et le reste de la phrase avec un espace entre eux
+        commentFormatted += "$formattedName $restOfThePhrase";
+      }
+
       await _databaseServices.addComment(
           widget.residenceSelected,
           widget.postSelected,
           Comment(
-            comment: commentText,
+            comment: commentFormatted,
             user: widget.uid,
             timestamp: Timestamp.now(),
             like: [],
@@ -194,14 +212,13 @@ class _SectionCommentState extends State<SectionComment>
       isReply = false;
       commentId = "";
     } else {
-      print("JE TESTE LA CONDITION ISREPLY IS FALSE = $isReply");
       try {
         // Ajouter le commentaire à la base de données
         await _databaseServices.addComment(
           widget.residenceSelected,
           widget.postSelected,
           Comment(
-            comment: commentText,
+            comment: _textEditingController.text,
             user: widget.uid,
             timestamp: Timestamp.now(),
             like: [],
