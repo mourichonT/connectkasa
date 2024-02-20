@@ -80,11 +80,11 @@ class MyTextStyle {
     );
   }
 
-  static Text InitialAvatar(String initiales) {
+  static Text InitialAvatar(String initiales, double size) {
     return Text(
       initiales,
       style: GoogleFonts.roboto(
-          fontWeight: FontWeight.bold, fontSize: 35, color: Colors.black54),
+          fontWeight: FontWeight.bold, fontSize: size, color: Colors.black54),
     );
   }
 

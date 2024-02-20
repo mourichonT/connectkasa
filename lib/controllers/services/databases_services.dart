@@ -255,11 +255,7 @@ class DataBasesServices {
           for (var docSnapshot in commentsSnapshot.docs) {
             // Convertir chaque document en objet Comment
             comments.add(Comment.fromMap(docSnapshot.data()));
-            print(comments);
           }
-
-          print(
-              "Successfully retrieved comments for post with ID: ${postSnapshot.id}");
         }
       } else {
         print("Post with ID $postId does not exist");
@@ -485,9 +481,6 @@ class DataBasesServices {
             // Convertir chaque document en objet Comment
             comments.add(Comment.fromMap(docSnapshot.data()));
           }
-
-          print(
-              "Successfully retrieved comments for post with ID: ${postSnapshot.id}");
         }
       } else {
         print("Post with ID $postId does not exist");

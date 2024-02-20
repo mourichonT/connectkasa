@@ -48,7 +48,6 @@ class CommentButtonState extends State<CommentButton> {
 
   @override
   Widget build(BuildContext context) {
-    print("commentCount = $commentCount");
     return Row(
       children: [
         IconButton(

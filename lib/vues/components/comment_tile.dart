@@ -9,6 +9,7 @@ import 'package:connect_kasa/controllers/services/databases_services.dart';
 class CommentTile extends StatefulWidget {
   final Function(bool) onReply;
   final Function(String) getCommentData;
+  final Function(TextEditingController) getUsertoreply;
   late Comment comment;
   final String residence;
   final String postId;
@@ -16,12 +17,14 @@ class CommentTile extends StatefulWidget {
   final String uid;
   FocusNode focusNode;
   bool isReply = false;
+  final TextEditingController textEditingController;
 
-  CommentTile(
-      this.residence, this.comment, this.uid, this.postId, this.focusNode,
+  CommentTile(this.residence, this.comment, this.uid, this.postId,
+      this.focusNode, this.textEditingController,
       {this.isReply = false,
       required this.onReply,
-      required this.getCommentData});
+      required this.getCommentData,
+      required this.getUsertoreply});
 
   @override
   State<StatefulWidget> createState() => CommentTileState();
@@ -73,10 +76,12 @@ class CommentTileState extends State<CommentTile> {
                             return formatProfilPic.ProfilePic(
                                 27, Future.value(user));
                           } else {
-                            return formatProfilPic.getInitiales(33, user);
+                            return formatProfilPic.getInitiales(
+                                40, Future.value(user), 25);
                           }
                         } else {
-                          return formatProfilPic.getInitiales(65, user);
+                          return formatProfilPic.getInitiales(
+                              37, Future.value(user), 25);
                         }
                       }
                     },
@@ -152,9 +157,11 @@ class CommentTileState extends State<CommentTile> {
 
       String replyText = "@${user.surname}${user.name} ";
       _textEditingController.text = replyText;
+
       _textEditingController.selection = TextSelection.fromPosition(
         TextPosition(offset: _textEditingController.text.length),
       );
+      widget.getUsertoreply(_textEditingController);
     } else {
       print("Utilisateur non trouvé");
     }
