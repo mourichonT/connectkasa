@@ -76,7 +76,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                               return formatProfilPic.getInitiales(
                                   65,
                                   widget.userPost,
-                                  37); // ou tout autre widget par défaut
+                                  3); // ou tout autre widget par défaut
                             }
                           }
                         },

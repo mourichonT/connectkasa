@@ -67,6 +67,16 @@ class MyTextStyle {
     );
   }
 
+  static Text commentTextFormat(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.roboto(
+        fontSize: 15,
+        fontStyle: FontStyle.italic,
+      ),
+    );
+  }
+
   static Text annonceDesc(String text) {
     return Text(
       text,

@@ -21,7 +21,7 @@ class CommentButton extends StatefulWidget {
 }
 
 class CommentButtonState extends State<CommentButton> {
-  int? commentCount = 0;
+  int commentCount = 0;
   final DataBasesServices _databaseServices = DataBasesServices();
   late Post post;
   late String idPost;
@@ -40,8 +40,7 @@ class CommentButtonState extends State<CommentButton> {
     // Utiliser 'await' pour attendre que la future se résolve
     comment.then((commentList) {
       setState(() {
-        // Assigner la longueur de la liste de commentaires à commentCount
-        commentCount = commentList.length;
+        processComments(commentList);
       });
     });
   }
@@ -83,6 +82,7 @@ class CommentButtonState extends State<CommentButton> {
                               residenceSelected: widget.residenceSelected,
                               postSelected: idPost,
                               uid: widget.uid,
+                              onCommentAdded: () => _onCommentAdded(),
                             )),
                       ],
                     ),
@@ -95,5 +95,37 @@ class CommentButtonState extends State<CommentButton> {
         MyTextStyle.iconText(post.setComments(commentCount))
       ],
     );
+  }
+
+// Callback function to be called when a comment is added
+  // Callback function to be called when a comment is added
+  void _onCommentAdded() {
+    setState(() {
+      // Update comments count
+      comment = _databaseServices.getComments(
+          widget.residenceSelected, widget.post.id);
+    });
+    // Recalculate comment count after adding a comment
+    comment.then((commentList) {
+      setState(() {
+        processComments(commentList);
+      });
+    });
+  }
+
+  void processComments(List<Comment> comments) async {
+    int totalCount = await getTotalComment(comments, 0);
+    setState(() {
+      commentCount = totalCount;
+    });
+  }
+
+  Future<int> getTotalComment(List<Comment> comments, int count) async {
+    for (var comment in comments) {
+      count++; // Compte le commentaire
+      count += await getTotalComment(
+          comment.replies, 0); // Compte les réponses récursivement
+    }
+    return count;
   }
 }

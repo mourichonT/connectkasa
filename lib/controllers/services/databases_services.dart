@@ -232,37 +232,62 @@ class DataBasesServices {
 
   Future<List<Comment>> getComments(String docRes, String postId) async {
     List<Comment> comments = [];
+
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
           .collection("Residence")
           .doc(docRes)
           .collection("post")
           .where("id", isEqualTo: postId)
-          .get(); // Récupérer les posts avec l'ID spécifié
+          .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        // Si un post correspondant à l'ID est trouvé
-        for (var postSnapshot in querySnapshot.docs) {
-          // Récupérer les commentaires pour ce post
-          QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await db
+      for (var postSnapshot in querySnapshot.docs) {
+        QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await db
+            .collection("Residence")
+            .doc(docRes)
+            .collection("post")
+            .doc(postSnapshot.id)
+            .collection("comments")
+            .get();
+
+        List<Comment> postComments = [];
+        for (var commentSnapshot in commentsSnapshot.docs) {
+          Comment comment = Comment.fromMap(commentSnapshot.data());
+
+          // Accéder au document de commentaire pour vérifier si la sous-collection "replies" existe
+          DocumentSnapshot<Map<String, dynamic>> commentDocSnapshot = await db
               .collection("Residence")
               .doc(docRes)
               .collection("post")
-              .doc(postSnapshot.id) // Utiliser l'ID du post trouvé
+              .doc(postSnapshot.id)
               .collection("comments")
-              .get(); // Récupérer tous les commentaires du post
+              .doc(commentSnapshot.id)
+              .get();
 
-          for (var docSnapshot in commentsSnapshot.docs) {
-            // Convertir chaque document en objet Comment
-            comments.add(Comment.fromMap(docSnapshot.data()));
+          // Vérifier si la sous-collection "replies" existe dans le document de commentaire
+          QuerySnapshot<Map<String, dynamic>> repliesQuerySnapshot =
+              await commentDocSnapshot.reference.collection('replies').get();
+
+          if (!repliesQuerySnapshot.docs.isEmpty) {
+            List<Comment> replies = [];
+            for (var replySnapshot in repliesQuerySnapshot.docs) {
+              Map<String, dynamic> replyData = replySnapshot.data();
+              replies.add(Comment.fromMap(replyData));
+              replies.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+            }
+            // Ajouter les réponses au commentaire
+            comment.replies = replies;
           }
+          postComments.add(comment);
         }
-      } else {
-        print("Post with ID $postId does not exist");
+// Trier les commentaires par timestamp
+        postComments.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        comments.addAll(postComments);
       }
     } catch (e) {
       print("Error completing in getComments: $e");
     }
+
     return comments;
   }
 
@@ -454,11 +479,11 @@ class DataBasesServices {
                   .collection("replies")
                   .add(newComment.toMap());
             } else {
-              // Gérer le cas où aucun document correspondant n'est trouvé
-              print("Le commentaire parent n'a pas été trouvé.");
+              print(
+                  "Le parentCommentId n'est pas recupéré ou ne correspond pas");
             }
           } else {
-            // Si commentParentId n'est pas fourni, cela signifie que nous ajoutons un commentaire normal
+            // Si parentCommentId n'est pas fourni, cela signifie que nous ajoutons un commentaire normal
             await db
                 .collection("Residence")
                 .doc(docRes)
