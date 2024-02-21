@@ -11,14 +11,16 @@ class SectionComment extends StatefulWidget {
   String postSelected;
   String uid;
   Future<List<Comment>> comment;
+  final void Function() onCommentAdded;
 
-  SectionComment(
-      {Key? key,
-      required this.comment,
-      required this.residenceSelected,
-      required this.postSelected,
-      required this.uid})
-      : super(key: key);
+  SectionComment({
+    Key? key,
+    required this.comment,
+    required this.residenceSelected,
+    required this.postSelected,
+    required this.uid,
+    required this.onCommentAdded,
+  }) : super(key: key);
 
   @override
   _SectionCommentState createState() => _SectionCommentState();
@@ -203,6 +205,7 @@ class _SectionCommentState extends State<SectionComment>
             timestamp: Timestamp.now(),
             like: [],
             id: uniqueId,
+            originalCommment: false,
           ),
           commentParentId: commentId);
       setState(() {
@@ -223,6 +226,7 @@ class _SectionCommentState extends State<SectionComment>
             timestamp: Timestamp.now(),
             like: [],
             id: uniqueId,
+            originalCommment: true,
           ),
         );
         // Actualiser la liste des commentaires
@@ -235,5 +239,6 @@ class _SectionCommentState extends State<SectionComment>
         // Gérer l'erreur
       }
     }
+    widget.onCommentAdded();
   }
 }
