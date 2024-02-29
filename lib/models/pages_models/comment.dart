@@ -8,20 +8,23 @@ class Comment {
   String id;
   List<Comment> replies;
   bool? originalCommment;
+  String? initialComment;
 
-  Comment(
-      {required this.comment,
-      required this.user,
-      required this.timestamp,
-      required this.like,
-      required this.id,
-      this.replies = const [],
-      this.originalCommment});
+  Comment({
+    required this.comment,
+    required this.user,
+    required this.timestamp,
+    required this.like,
+    required this.id,
+    this.replies = const [],
+    this.originalCommment,
+    this.initialComment,
+  });
 
 // Méthode toString() personnalisée pour afficher les détails du commentaire
   @override
   String toString() {
-    return 'Comment{comment: $comment, user: $user, timestamp: $timestamp, like: $like, id: $id, replies: $replies}, originalCommment : $originalCommment';
+    return 'Comment{comment: $comment, user: $user, timestamp: $timestamp, like: $like, id: $id, replies: $replies}, originalCommment : $originalCommment, initialComment:$initialComment';
   }
 
   String setLike(likeCount) {
@@ -45,6 +48,7 @@ class Comment {
           .map((replyData) => Comment.fromMap(replyData))
           .toList(),
       originalCommment: (map['originalCommment']),
+      initialComment: map['initialComment'] ?? '',
     );
   }
 
@@ -57,6 +61,7 @@ class Comment {
       'like': like,
       'id': id,
       'originalCommment': originalCommment,
+      'initialComment': initialComment
     };
   }
 }

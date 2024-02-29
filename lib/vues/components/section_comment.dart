@@ -36,6 +36,7 @@ class _SectionCommentState extends State<SectionComment>
   late Future<List<Comment>> _allComments;
   bool isReply = false;
   String commentId = "";
+  String initialComment = "";
   @override
   void initState() {
     super.initState();
@@ -86,30 +87,30 @@ class _SectionCommentState extends State<SectionComment>
                     return Column(
                       children: [
                         CommentTile(
-                          widget.residenceSelected,
-                          comment,
-                          widget.uid,
-                          widget.postSelected,
-                          inputFocusNode,
-                          _textEditingController,
-                          onReply: (value) {
-                            setState(() {
-                              isReply =
-                                  value; // Mettre à jour isReply lorsque la valeur change
-                            });
-                          },
-                          getCommentData: (value) {
-                            setState(() {
-                              commentId =
-                                  value; // Mettre à jour commentId lorsque la valeur change
-                            });
-                          },
-                          getUsertoreply: (value) {
-                            setState(() {
-                              _textEditingController = value;
-                            });
-                          },
-                        )
+                            widget.residenceSelected,
+                            comment,
+                            widget.uid,
+                            widget.postSelected,
+                            inputFocusNode,
+                            _textEditingController, onReply: (value) {
+                          setState(() {
+                            isReply =
+                                value; // Mettre à jour isReply lorsque la valeur change
+                          });
+                        }, getCommentId: (value) {
+                          setState(() {
+                            commentId =
+                                value; // Mettre à jour commentId lorsque la valeur change
+                          });
+                        }, getUsertoreply: (value) {
+                          setState(() {
+                            _textEditingController = value;
+                          });
+                        }, getInitialComment: (value) {
+                          setState(() {
+                            initialComment = value!;
+                          });
+                        })
                       ],
                     );
                   },
@@ -162,10 +163,34 @@ class _SectionCommentState extends State<SectionComment>
                 color: Theme.of(context).colorScheme.primary,
                 icon: Icon(Icons.send_rounded),
                 onPressed: () {
-                  if (_textEditingController.text.isNotEmpty) {
-                    _addComment(_textEditingController, isReply,
-                        commentId: commentId);
-                    _textEditingController.clear();
+                  print(
+                      "JE PRINT LE commentId DANS LE BUTTON EVOI ${commentId}");
+
+                  if (isReply == true) {
+                    if (_textEditingController.text.isNotEmpty) {
+                      print(
+                          "JE PRINT LE initialComment DANS la condition du LE BUTTON EVOI ${initialComment}");
+
+                      _addComment(
+                        _textEditingController,
+                        isReply,
+                        commentId: commentId,
+                        initialComment: initialComment,
+                      );
+                      _textEditingController.clear();
+                    }
+                  } else {
+                    if (isReply == false &&
+                        _textEditingController.text.isNotEmpty) {
+                      print(" initialComment == null isReply $isReply");
+                      _addComment(
+                        _textEditingController,
+                        isReply,
+                        commentId: commentId,
+                        initialComment: initialComment,
+                      );
+                      _textEditingController.clear();
+                    }
                   }
                 },
               ),
@@ -177,44 +202,41 @@ class _SectionCommentState extends State<SectionComment>
   }
 
   void _addComment(TextEditingController textEditingController, bool isReply,
-      {String? commentId}) async {
+      {String? commentId,
+      required String? initialComment,
+      bool? originalCommment}) async {
     String commentFormatted = "";
     var uuid = Uuid();
     String uniqueId = uuid.v4();
-    if (isReply) {
-      RegExp regex = RegExp(r"@([A-Z][a-z]+(?:[A-Z][a-z]+)*)\s+(.*)");
-      Iterable<Match> matches = regex.allMatches(textEditingController.text);
+    if (isReply == true) {
+      final String formattedComment =
+          _formatComment(textEditingController.text);
 
-      for (Match match in matches) {
-        String name = match.group(1)!;
-        String restOfThePhrase = match.group(2)!;
-        // Formater le nom avec un espace entre chaque mot commençant par une majuscule
-        String formattedName =
-            name.replaceAllMapped(RegExp(r"(?=[A-Z])"), (match) => " ");
-
-        // Concaténer le nom formaté et le reste de la phrase avec un espace entre eux
-        commentFormatted += "$formattedName $restOfThePhrase";
-      }
-
+      print(" initialComment in addcomment isReply = true est  $isReply");
       await _databaseServices.addComment(
           widget.residenceSelected,
           widget.postSelected,
           Comment(
-            comment: commentFormatted,
+            comment: formattedComment,
             user: widget.uid,
             timestamp: Timestamp.now(),
             like: [],
             id: uniqueId,
-            originalCommment: false,
+            originalCommment: !isReply,
+            initialComment: initialComment,
           ),
-          commentParentId: commentId);
+          commentId: commentId,
+          initialComment: initialComment);
+
+      print("commentParentId ====> ${commentId}");
+      print("initialComment ====> ${initialComment}");
       setState(() {
         _allComments = _databaseServices.getComments(
             widget.residenceSelected, widget.postSelected);
       });
-      isReply = false;
-      commentId = "";
+      // isReply = false;
     } else {
+      print(" initialComment in addcomment isReply = false est  $isReply");
       try {
         // Ajouter le commentaire à la base de données
         await _databaseServices.addComment(
@@ -226,7 +248,7 @@ class _SectionCommentState extends State<SectionComment>
             timestamp: Timestamp.now(),
             like: [],
             id: uniqueId,
-            originalCommment: true,
+            originalCommment: !isReply,
           ),
         );
         // Actualiser la liste des commentaires
@@ -240,5 +262,22 @@ class _SectionCommentState extends State<SectionComment>
       }
     }
     widget.onCommentAdded();
+  }
+
+  String _formatComment(String comment) {
+    final RegExp regex = RegExp(r"@([A-Z][a-z]+(?:[A-Z][a-z]+)*)\s+(.*)");
+    final Iterable<Match> matches = regex.allMatches(comment);
+    String formattedComment = "";
+
+    for (final Match match in matches) {
+      final String name = match.group(1)!;
+      final String restOfThePhrase = match.group(2)!;
+      final String formattedName =
+          name.replaceAllMapped(RegExp(r"(?=[A-Z])"), (match) => " ");
+
+      formattedComment += "$formattedName $restOfThePhrase";
+    }
+
+    return formattedComment.isNotEmpty ? formattedComment : comment;
   }
 }

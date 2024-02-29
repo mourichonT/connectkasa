@@ -8,7 +8,7 @@ import 'package:connect_kasa/controllers/services/databases_services.dart';
 
 class CommentTile extends StatefulWidget {
   final Function(bool) onReply;
-  final Function(String) getCommentData;
+  final Function(String) getCommentId;
   final Function(TextEditingController) getUsertoreply;
   late Comment comment;
   final String residence;
@@ -18,13 +18,21 @@ class CommentTile extends StatefulWidget {
   FocusNode focusNode;
   bool isReply = false;
   final TextEditingController textEditingController;
+  final Function(String?) getInitialComment;
 
-  CommentTile(this.residence, this.comment, this.uid, this.postId,
-      this.focusNode, this.textEditingController,
-      {this.isReply = false,
-      required this.onReply,
-      required this.getCommentData,
-      required this.getUsertoreply});
+  CommentTile(
+    this.residence,
+    this.comment,
+    this.uid,
+    this.postId,
+    this.focusNode,
+    this.textEditingController, {
+    this.isReply = false,
+    required this.onReply,
+    required this.getCommentId,
+    required this.getUsertoreply,
+    required this.getInitialComment,
+  });
 
   @override
   State<StatefulWidget> createState() => CommentTileState();
@@ -69,8 +77,9 @@ class CommentTileState extends State<CommentTile> {
                   widget.focusNode,
                   widget.textEditingController,
                   onReply: widget.onReply,
-                  getCommentData: widget.getCommentData,
+                  getCommentId: widget.getCommentId,
                   getUsertoreply: widget.getUsertoreply,
+                  getInitialComment: widget.getInitialComment,
                 );
               },
             ),
@@ -164,9 +173,27 @@ class CommentTileState extends State<CommentTile> {
                           child:
                               MyTextStyle.lotName("Répondre", Colors.black54),
                           onPressed: () {
-                            print("comment.id = ${comment.id}");
-                            widget.isReply = true;
-                            _replyToComment(comment, widget.isReply);
+                            String initComment = "";
+
+                            if (widget.comment.originalCommment == false) {
+                              initComment = comment.initialComment!;
+                              print(
+                                  "PRINT LA CONDITION DE REPONDRE = $initComment ");
+                              print(
+                                  "PRINT LA CONDITION DE REPONDRE FALSE= ${widget.isReply} ");
+                              print(
+                                  "PRINT LA CONDITION DE  originalCommment = ${comment.originalCommment} ");
+                              widget.isReply = true;
+                              _replyToComment(
+                                  comment, widget.isReply, initComment);
+                            } else {
+                              print(
+                                  "PRINT LA CONDITION DE REPONDRE TRUE= ${widget.isReply} ");
+                              widget.isReply = true;
+                              initComment = widget.comment.id;
+                              _replyToComment(comment, widget.isReply,
+                                  initComment); // initComment
+                            }
                           },
                         ),
                       ],
@@ -189,13 +216,17 @@ class CommentTileState extends State<CommentTile> {
     );
   }
 
-  void _replyToComment(Comment parentComment, bool isReply) async {
-    User? user = await _databaseServices.getUserById(parentComment.user);
+  void _replyToComment(
+      Comment currentComment, bool isReply, String? initComment) async {
+    User? user = await _databaseServices.getUserById(currentComment.user);
     if (user != null) {
       FocusScope.of(context).requestFocus(widget.focusNode);
+      widget.getUsertoreply(_textEditingController);
       widget.onReply(isReply);
-      print("isREPLY = ${isReply}");
-      widget.getCommentData(parentComment.id);
+      widget.getCommentId(currentComment.id);
+      widget.getInitialComment(initComment);
+      print("PRINT INITCOMMENT in _replyToComment $initComment");
+      print("PRINT INITCOMMENT in _replyToComment isReply $isReply");
 
       String replyText = "@${user.surname}${user.name} ";
       _textEditingController.text = replyText;
