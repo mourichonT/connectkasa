@@ -163,14 +163,8 @@ class _SectionCommentState extends State<SectionComment>
                 color: Theme.of(context).colorScheme.primary,
                 icon: Icon(Icons.send_rounded),
                 onPressed: () {
-                  print(
-                      "JE PRINT LE commentId DANS LE BUTTON EVOI ${commentId}");
-
                   if (isReply == true) {
                     if (_textEditingController.text.isNotEmpty) {
-                      print(
-                          "JE PRINT LE initialComment DANS la condition du LE BUTTON EVOI ${initialComment}");
-
                       _addComment(
                         _textEditingController,
                         isReply,
@@ -182,7 +176,6 @@ class _SectionCommentState extends State<SectionComment>
                   } else {
                     if (isReply == false &&
                         _textEditingController.text.isNotEmpty) {
-                      print(" initialComment == null isReply $isReply");
                       _addComment(
                         _textEditingController,
                         isReply,
@@ -212,7 +205,6 @@ class _SectionCommentState extends State<SectionComment>
       final String formattedComment =
           _formatComment(textEditingController.text);
 
-      print(" initialComment in addcomment isReply = true est  $isReply");
       await _databaseServices.addComment(
           widget.residenceSelected,
           widget.postSelected,
@@ -228,15 +220,12 @@ class _SectionCommentState extends State<SectionComment>
           commentId: commentId,
           initialComment: initialComment);
 
-      print("commentParentId ====> ${commentId}");
-      print("initialComment ====> ${initialComment}");
       setState(() {
         _allComments = _databaseServices.getComments(
             widget.residenceSelected, widget.postSelected);
       });
       // isReply = false;
     } else {
-      print(" initialComment in addcomment isReply = false est  $isReply");
       try {
         // Ajouter le commentaire à la base de données
         await _databaseServices.addComment(

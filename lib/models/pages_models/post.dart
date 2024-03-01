@@ -12,6 +12,7 @@ class Post {
   String _pathImage = "";
   String title;
   String description;
+  String emplacement;
   List<String> like;
   int signalement;
 
@@ -26,6 +27,7 @@ class Post {
     String pathImage = "",
     required this.title,
     required this.description,
+    required this.emplacement,
     this.like = const [],
     this.signalement = 0,
   }) {
@@ -99,6 +101,7 @@ class Post {
     return Post(
       id: map['id'] ?? "",
       description: map['description'] ?? "",
+      emplacement: map['emplacement'] ?? "",
       subtype: map['subtype'] ?? "",
       pathImage: map['pathImage'] ?? "",
       refResidence: map['refResidence'] ?? "",

@@ -559,4 +559,54 @@ class DataBasesServices {
     }
     return comments;
   }
+
+  Future<List<Post>> getSignalements(String docRes, String postId) async {
+    List<Post> posts = [];
+
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection("Residence")
+              .doc(docRes)
+              .collection("post")
+              .where("id", isEqualTo: postId)
+              .get();
+
+      // Récupérer tous les listPosts correspondants
+      for (var postSnapshot in querySnapshot.docs) {
+        String postDocId = postSnapshot.id;
+        Post post = Post.fromMap(postSnapshot.data());
+        posts.add(post);
+
+        // Vérifier chaque post pour les signalements
+        for (var querySnapshot in posts) {
+          print("ID : ${postDocId}");
+          // Vérifier si le post a une collection de signalements
+          QuerySnapshot<Map<String, dynamic>> signalementsSnapshot =
+              await FirebaseFirestore.instance
+                  .collection("Residence")
+                  .doc(docRes)
+                  .collection("post")
+                  .doc(postDocId)
+                  .collection("signalements")
+                  .get();
+
+          // Si des signalements existent pour ce post, les ajouter à la liste de signalements
+          if (signalementsSnapshot.docs.isNotEmpty) {
+            for (var signalementSnapshot in signalementsSnapshot.docs) {
+              Post signalement = Post.fromMap(signalementSnapshot.data());
+              posts.add(signalement);
+            }
+          } else {
+            print(
+                "Aucun signalement trouvé pour le post avec l'ID: ${querySnapshot.id}");
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching signalements: $e');
+    }
+
+    return posts;
+  }
 }
