@@ -47,6 +47,7 @@ dependencies:
   cached_network_image: ^3.3.1
   firebase_storage: ^11.6.5
   uuid: ^4.3.3
+  flutter_carousel_widget: ^2.2.0
 
 dev_dependencies:
   flutter_test:
