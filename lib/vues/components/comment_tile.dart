@@ -55,6 +55,7 @@ class CommentTileState extends State<CommentTile> {
 
   @override
   Widget build(BuildContext context) {
+    Color colorStatut = Theme.of(context).primaryColor;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -89,6 +90,7 @@ class CommentTileState extends State<CommentTile> {
   }
 
   Widget _buildCommentTile(Comment comment) {
+    Color colorStatut = Theme.of(context).primaryColor;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       mainAxisSize: MainAxisSize.max,
@@ -210,6 +212,7 @@ class CommentTileState extends State<CommentTile> {
             uid: widget.uid,
             comment: comment,
             postId: widget.postId,
+            color: colorStatut,
           ),
         ),
       ],

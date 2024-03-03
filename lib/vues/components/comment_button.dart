@@ -9,12 +9,15 @@ class CommentButton extends StatefulWidget {
   final Post post;
   final String residenceSelected;
   final String uid;
+  final Color colorIcon;
+  final Color? colorText;
 
-  CommentButton({
-    required this.post,
-    required this.residenceSelected,
-    required this.uid,
-  });
+  CommentButton(
+      {required this.post,
+      required this.residenceSelected,
+      required this.uid,
+      required this.colorIcon,
+      this.colorText});
 
   @override
   State<StatefulWidget> createState() => CommentButtonState();
@@ -51,10 +54,10 @@ class CommentButtonState extends State<CommentButton> {
       children: [
         IconButton(
           icon: Icon(
-            (commentCount! > 0)
+            (commentCount > 0)
                 ? Icons.comment
                 : Icons.messenger_outline_outlined,
-            color: (commentCount! > 0) ? Theme.of(context).primaryColor : null,
+            color: widget.colorIcon,
             size: 20,
           ),
           onPressed: () {
@@ -92,7 +95,8 @@ class CommentButtonState extends State<CommentButton> {
             );
           },
         ),
-        MyTextStyle.iconText(post.setComments(commentCount))
+        MyTextStyle.iconText(post.setComments(commentCount),
+            color: widget.colorText)
       ],
     );
   }

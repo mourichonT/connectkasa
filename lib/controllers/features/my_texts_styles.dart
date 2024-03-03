@@ -67,6 +67,16 @@ class MyTextStyle {
     );
   }
 
+  static Text postDesc(String text, double size, Color color) {
+    return Text(
+      text,
+      style: GoogleFonts.roboto(
+        fontSize: size,
+        color: color,
+      ),
+    );
+  }
+
   static Text commentTextFormat(String text) {
     return Text(
       text,
@@ -169,12 +179,13 @@ class MyTextStyle {
     runApp(app);
   }
 
-  static Text iconText(String text) {
+  static Text iconText(String text, {Color? color}) {
     return Text(
       text,
       style: GoogleFonts.roboto(
         fontSize: 12,
         fontStyle: FontStyle.italic,
+        color: color ?? Colors.black87,
       ),
     );
   }
