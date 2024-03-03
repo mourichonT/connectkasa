@@ -5,8 +5,10 @@ import '../../models/pages_models/post.dart';
 
 class ShareButton extends StatelessWidget {
   final Post post;
+  final Color colorIcon;
+  final Color? colorText;
 
-  ShareButton({required this.post});
+  ShareButton({required this.post, required this.colorIcon, this.colorText});
 
   @override
   Widget build(BuildContext context) {
@@ -15,6 +17,7 @@ class ShareButton extends StatelessWidget {
         IconButton(
           icon: Icon(
             Icons.share,
+            color: colorIcon,
             size: 20,
           ),
           onPressed: () {
@@ -22,7 +25,7 @@ class ShareButton extends StatelessWidget {
                 'Regardez ce post sur WhatsApp: ${post.title}\n${post.description}');
           },
         ),
-        MyTextStyle.iconText("Partager"),
+        MyTextStyle.iconText("Partager", color: colorText),
       ],
     );
   }

@@ -9,7 +9,10 @@ class Residence {
   String zipCode;
   String city;
   String refGerance;
-  String refResidence;
+  String id;
+  List<String>? elements;
+  List<String>? etage;
+  List<String>? localisation;
   int nombreLot;
 
   Residence({
@@ -20,35 +23,31 @@ class Residence {
     required this.zipCode,
     required this.city,
     required this.refGerance,
-    required this.refResidence,
+    required this.id,
+    this.elements,
+    this.etage,
+    this.localisation,
     this.nombreLot = 0,
   });
 
   factory Residence.fromJson(Map<String, dynamic> json) {
     return Residence(
-        name: json["name"] ?? "",
-        numero: json["numero"] ?? "",
-        voie: json["voie"] ?? "",
-        street: json["street"] ?? "",
-        zipCode: json["zipCode"] ?? "",
-        city: json["city"] ?? "",
-        refGerance: json["refGerance"] ?? "",
-        refResidence: json["refResidence"] ?? "",
-        nombreLot: json["nombreLot"] ?? 0);
-  }
-
-  toJson() {
-    return {
-      "name": name,
-      "numero": numero,
-      "voie": voie,
-      "street": street,
-      "zipcode": zipCode,
-      "city": city,
-      "refGerance": refGerance,
-      "refResidence": refResidence,
-      "nombreLot": nombreLot
-    };
+      name: json['name'] ?? '',
+      numero: json['numero'] ?? '',
+      voie: json['voie'] ?? '',
+      street: json['street'] ?? '',
+      zipCode: json['zipCode'] ?? '',
+      city: json['city'] ?? '',
+      refGerance: json['refGerance'] ?? '',
+      id: json['id'] ?? '',
+      elements:
+          json['elements'] != null ? List<String>.from(json['elements']) : null,
+      etage: json['etage'] != null ? List<String>.from(json['etage']) : null,
+      localisation: json['localisation'] != null
+          ? List<String>.from(json['localisation'])
+          : null,
+      nombreLot: json['nombreLot'] ?? 0,
+    );
   }
 
   factory Residence.fromFirestore(
@@ -57,28 +56,23 @@ class Residence {
   ) {
     final data = snapshot.data();
     return Residence(
-        name: data?["name"],
-        numero: data?["numero"],
-        voie: data?["voie"],
-        street: data?["street"],
-        zipCode: data?["zipCode"],
-        city: data?["city"],
-        refGerance: data?["refGerance"],
-        refResidence: data?["refResidence"],
-        nombreLot: data?["nombreLot"]);
-  }
-  Map<String, dynamic> toFirestore() {
-    return {
-      if (name != null) "name": name,
-      if (numero != null) "numero": numero,
-      if (voie != null) "voie": voie,
-      if (street != null) "street": street,
-      if (zipCode != null) "zipCode": zipCode,
-      if (city != null) "city": city,
-      if (refGerance != null) "refGerance": refGerance,
-      if (refResidence != null) "refResidence": refResidence,
-      if (nombreLot != null) "nombreLot": nombreLot,
-    };
+      name: data?["name"] ?? '',
+      numero: data?["numero"] ?? '',
+      voie: data?["voie"] ?? '',
+      street: data?["street"] ?? '',
+      zipCode: data?["zipCode"] ?? '',
+      city: data?["city"] ?? '',
+      refGerance: data?["refGerance"] ?? '',
+      id: data?["id"] ?? '',
+      elements: data?["elements"] != null
+          ? List<String>.from(data?["elements"])
+          : null,
+      etage: data?["etage"] != null ? List<String>.from(data?["etage"]) : null,
+      localisation: data?["localisation"] != null
+          ? List<String>.from(data?["localisation"])
+          : null,
+      nombreLot: data?["nombreLot"] ?? 0,
+    );
   }
 
   factory Residence.fromMap(Map<String, dynamic> map) {
@@ -90,7 +84,13 @@ class Residence {
       zipCode: map['zipCode'] ?? '',
       city: map['city'] ?? '',
       refGerance: map['refGerance'] ?? '',
-      refResidence: map['refResidence'] ?? '',
+      id: map['id'] ?? '',
+      elements:
+          map['elements'] != null ? List<String>.from(map['elements']) : null,
+      etage: map['etage'] != null ? List<String>.from(map['etage']) : null,
+      localisation: map['localisation'] != null
+          ? List<String>.from(map['localisation'])
+          : null,
       nombreLot: map['nombreLot'] ?? 0,
     );
   }

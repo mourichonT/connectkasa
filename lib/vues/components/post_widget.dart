@@ -1,4 +1,5 @@
 import 'package:connect_kasa/controllers/services/databases_services.dart';
+import 'package:connect_kasa/controllers/widgets_controllers/posts_counter.dart';
 import 'package:connect_kasa/vues/components/like_button_post.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/vues/components/share_button.dart';
@@ -22,18 +23,29 @@ class PostWidget extends StatefulWidget {
 class PostWidgetState extends State<PostWidget> {
   late Future<List<Post>> _signalementFuture;
   DataBasesServices dbService = DataBasesServices();
+  int postCount = 0;
 
   @override
   void initState() {
     super.initState();
     _signalementFuture = dbService.getSignalements(widget.residence,
         widget.post.id); // Initialisez post à partir des propriétés du widget
+    _loadSignalements();
+  }
+
+  void _loadSignalements() async {
+    final signalements =
+        await dbService.getSignalements(widget.residence, widget.post.id);
+    setState(() {
+      postCount = signalements.length;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     Color colorStatut = Theme.of(context).primaryColor;
     double width = MediaQuery.of(context).size.width;
+    double height = MediaQuery.of(context).size.width / 1.5;
 
     return Container(
       decoration: const BoxDecoration(
@@ -57,11 +69,6 @@ class PostWidgetState extends State<PostWidget> {
                 children: [
                   MyTextStyle.lotName(widget.post.type, Colors.black87),
                   SizedBox(width: 15),
-                  Container(
-                    height: 20,
-                    width: 120,
-                    child: MyTextStyle.postDate(widget.post.timeStamp),
-                  ),
                   Spacer(),
                   Container(
                     height: 20,
@@ -85,39 +92,37 @@ class PostWidgetState extends State<PostWidget> {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else {
                   List<Post> signalements = snapshot.data!;
-                  return Container(
-                    height: width, // Définir une hauteur fixe ou contrainte
-                    child: FlutterCarousel(
-                      options: CarouselOptions(
-                        viewportFraction: 1.0,
-                        pageSnapping: true,
-                        showIndicator: true,
-                        floatingIndicator: true,
-                        slideIndicator: CircularSlideIndicator(
-                            itemSpacing: 15.0,
-                            indicatorBackgroundColor: Colors.black12,
-                            currentIndicatorColor: colorStatut),
+                  postCount = signalements.length;
+                  return Column(
+                    children: [
+                      Container(
+                        height: width, // Définir une hauteur fixe ou contrainte
+                        child: FlutterCarousel(
+                          options: CarouselOptions(
+                            viewportFraction: 1.0,
+                            pageSnapping: true,
+                            showIndicator: true,
+                            floatingIndicator: true,
+                            slideIndicator: CircularSlideIndicator(
+                              indicatorRadius: 5,
+                              itemSpacing: 11.0,
+                              indicatorBackgroundColor: Colors.black12,
+                              currentIndicatorColor: colorStatut,
+                            ),
+                          ),
+                          items: signalements.map((post) {
+                            return SignalementTile(post, width, postCount,
+                                (count) {
+                              postCount = count;
+                            }, widget.residence, widget.uid);
+                          }).toList(),
+                        ),
                       ),
-                      items: signalements.map((post) {
-                        return SignalementTile(post, width);
-                      }).toList(),
-                    ),
+                      PostsController(post: widget.post, postCount: postCount),
+                    ],
                   );
                 }
               },
-            ),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              child: Row(
-                children: [
-                  Spacer(),
-                  (widget.post.signalement > 0)
-                      ? Icon(Icons.notifications,
-                          color: Theme.of(context).primaryColor, size: 20)
-                      : Icon(Icons.notifications_none, size: 20),
-                  MyTextStyle.iconText(widget.post.setSignalement()),
-                ],
-              ),
             ),
             Divider(thickness: 0.5),
             Container(
@@ -129,16 +134,21 @@ class PostWidgetState extends State<PostWidget> {
                       post: widget.post,
                       residence: widget.residence,
                       uid: widget.uid,
+                      colorIcon: colorStatut,
                     ),
                   ),
                   Container(
                     child: CommentButton(
-                      post: widget.post,
-                      residenceSelected: widget.residence,
-                      uid: widget.uid,
-                    ),
+                        post: widget.post,
+                        residenceSelected: widget.residence,
+                        uid: widget.uid,
+                        colorIcon: colorStatut),
                   ),
-                  Container(child: ShareButton(post: widget.post)),
+                  Container(
+                      child: ShareButton(
+                    post: widget.post,
+                    colorIcon: colorStatut,
+                  )),
                 ],
               ),
             ),

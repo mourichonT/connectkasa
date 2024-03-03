@@ -14,7 +14,8 @@ class Post {
   String description;
   String emplacement;
   List<String> like;
-  int signalement;
+  List<Post> signalement;
+  bool hideUser;
 
   Post({
     required this.id,
@@ -29,7 +30,8 @@ class Post {
     required this.description,
     required this.emplacement,
     this.like = const [],
-    this.signalement = 0,
+    this.signalement = const [],
+    required this.hideUser,
   }) {
     this._pathImage = pathImage;
     this._statu = statu;
@@ -79,11 +81,11 @@ class Post {
     }
   }
 
-  String setSignalement() {
-    if (signalement > 1) {
-      return "$signalement Signalements";
+  String setSignalement(postCount) {
+    if (postCount > 1) {
+      return "$postCount Signalements";
     } else {
-      return "$signalement Signalement";
+      return "$postCount Signalement";
     }
   }
 
@@ -111,7 +113,13 @@ class Post {
       type: map['type'] ?? "",
       user: map['user'] ?? "",
       like: convertedLikeList,
-      signalement: map['signalement'] ?? 0,
+      signalement: (map['signalement'] as List<dynamic>? ?? [])
+          .whereType<
+              Map<String,
+                  dynamic>>() // Filtrez les éléments qui ne sont pas des Map<String, dynamic>
+          .map((signalementData) => Post.fromMap(signalementData))
+          .toList(),
+      hideUser: map['hideUser'],
     );
   }
 }

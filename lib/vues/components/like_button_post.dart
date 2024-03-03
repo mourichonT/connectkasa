@@ -7,9 +7,15 @@ class LikeButtonPost extends StatefulWidget {
   final Post post;
   final String residence;
   final String uid;
+  final Color colorIcon;
+  final Color? colorText;
 
   LikeButtonPost(
-      {required this.post, required this.residence, required this.uid});
+      {required this.post,
+      required this.residence,
+      required this.uid,
+      required this.colorIcon,
+      this.colorText});
 
   @override
   _LikeButtonPostState createState() => _LikeButtonPostState();
@@ -32,7 +38,7 @@ class _LikeButtonPostState extends State<LikeButtonPost> {
         IconButton(
           icon: Icon(
             alreadyLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
-            color: alreadyLiked ? Theme.of(context).primaryColor : null,
+            color: widget.colorIcon,
             size: 20,
           ),
           onPressed: () async {
@@ -61,7 +67,8 @@ class _LikeButtonPostState extends State<LikeButtonPost> {
             }
           },
         ),
-        MyTextStyle.iconText(widget.post.setLike(likeCount)),
+        MyTextStyle.iconText(widget.post.setLike(likeCount),
+            color: widget.colorText),
       ],
     );
   }

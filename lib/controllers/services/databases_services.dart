@@ -580,7 +580,6 @@ class DataBasesServices {
 
         // Vérifier chaque post pour les signalements
         for (var querySnapshot in posts) {
-          print("ID : ${postDocId}");
           // Vérifier si le post a une collection de signalements
           QuerySnapshot<Map<String, dynamic>> signalementsSnapshot =
               await FirebaseFirestore.instance
@@ -599,7 +598,7 @@ class DataBasesServices {
             }
           } else {
             print(
-                "Aucun signalement trouvé pour le post avec l'ID: ${querySnapshot.id}");
+                "Aucun signalement supplémentaire trouvé pour le post avec l'ID: ${querySnapshot.id}");
           }
         }
       }

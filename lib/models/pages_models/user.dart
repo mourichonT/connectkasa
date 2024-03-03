@@ -4,6 +4,7 @@ class User {
   String _profilPic = "";
   String name;
   String surname;
+  String pseudo;
   String UID;
   String? profession;
   String? bio;
@@ -15,6 +16,7 @@ class User {
     required this.surname,
     required this.UID,
     this.profession,
+    required this.pseudo,
     this.private = true,
     this.bio,
   }) {
@@ -31,6 +33,10 @@ class User {
     }
   }
 
+  set setPseudo(String newValue) {
+    pseudo = newValue;
+  }
+
   set setPrivate(bool newValue) {
     private = newValue;
   }
@@ -40,6 +46,7 @@ class User {
       profilPic: map['profilPic'] ?? "",
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",
+      pseudo: map['pseudo'] ?? "",
       UID: map['UID'] ?? "",
       profession: map[
           'profession'], // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel

@@ -11,6 +11,8 @@ class CommentCountWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Color colorStatut = Theme.of(context).primaryColor;
+
     String formatCommentCount = commentCount.toString();
     return MyTextStyle.iconText(commentCount as String);
   }
