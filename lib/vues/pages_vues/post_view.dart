@@ -12,11 +12,14 @@ class PostView extends StatefulWidget {
   final Post post;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   final DataBasesServices _databaseServices = DataBasesServices();
-  late Future<User?> userPost = _databaseServices.getUserById(post.user);
   final String residence;
   final String uid;
 
-  PostView(this.post, this.userPost, this.residence, this.uid);
+  PostView(
+    this.post,
+    this.residence,
+    this.uid,
+  );
 
   @override
   State<StatefulWidget> createState() => PostViewState();
@@ -24,16 +27,13 @@ class PostView extends StatefulWidget {
 
 class PostViewState extends State<PostView> {
   @override
-  void initState() {
-    // TODO: implement initState
-  }
-
-  @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
     final double height = MediaQuery.of(context).size.height;
+    //final DataBasesServices _databaseServices = DataBasesServices();
+    late Future<User?> userPost =
+        widget._databaseServices.getUserById(widget.post.user);
     return Scaffold(
-      // Add Scaffold here
       body: Stack(children: [
         Positioned.fill(
           child: Image.network(
@@ -48,12 +48,29 @@ class PostViewState extends State<PostView> {
           left: 0,
           right: 0,
           child: Container(
-            child: AppBar(
-              foregroundColor: Colors.white,
-              backgroundColor: Color.fromARGB(80, 0, 0, 0),
-              elevation: 0, // remove shadow
-              title: MyTextStyle.lotName("${widget.post.title}",
-                  Colors.white), // Set title to empty to occupy space
+            decoration: BoxDecoration(color: Color.fromARGB(80, 0, 0, 0)),
+            height: height / 8,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                IconButton(
+                    onPressed: () async {
+                      Post? updatedLikeCount = await widget._databaseServices
+                          .getUpdatePost(widget.residence, widget.post.id);
+                      print("je test le iconButton");
+                      Navigator.pop(
+                        context,
+                      );
+                      setState(() {
+                        widget.post.like.length = updatedLikeCount!.like.length;
+                      });
+                    },
+                    icon: Icon(
+                      Icons.arrow_back_ios,
+                      color: Colors.white,
+                    )),
+              ],
             ),
           ),
         ),
@@ -81,7 +98,7 @@ class PostViewState extends State<PostView> {
                             radius: 20,
                             backgroundColor: Theme.of(context).primaryColor,
                             child: FutureBuilder<User?>(
-                              future: widget.userPost,
+                              future: userPost,
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
@@ -93,15 +110,14 @@ class PostViewState extends State<PostView> {
                                     if (user.profilPic != null &&
                                         user.profilPic != "") {
                                       return widget.formatProfilPic
-                                          .ProfilePic(17, widget.userPost);
+                                          .ProfilePic(17, userPost);
                                     } else {
                                       return widget.formatProfilPic
-                                          .getInitiales(
-                                              17, widget.userPost, 17);
+                                          .getInitiales(17, userPost, 17);
                                     }
                                   } else {
                                     return widget.formatProfilPic
-                                        .getInitiales(16, widget.userPost, 3);
+                                        .getInitiales(16, userPost, 3);
                                   }
                                 }
                               },
@@ -109,7 +125,7 @@ class PostViewState extends State<PostView> {
                           ),
                         ),
                         FutureBuilder<User?>(
-                          future: widget.userPost,
+                          future: userPost,
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
@@ -145,6 +161,12 @@ class PostViewState extends State<PostView> {
                           uid: widget.uid,
                           colorIcon: Colors.white,
                           colorText: Colors.white,
+                          // likeCount: _likeCount(widget.likeCount),
+                          // onUpdateLikeCount: (newLikeCount) {
+                          //   setState(() {
+                          //     likeCount = newLikeCount;
+                          //   });
+                          // },
                         ),
                       ),
                       Container(

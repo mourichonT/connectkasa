@@ -608,4 +608,26 @@ class DataBasesServices {
 
     return posts;
   }
+
+  Future<Post?> getUpdatePost(String docRes, String postId) async {
+    Post? post;
+
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+          .collection("Residence")
+          .doc(docRes)
+          .collection("post")
+          .where("id", isEqualTo: postId)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // S'il y a des documents correspondants, prenez le premier
+        post = Post.fromMap(querySnapshot.docs.first.data());
+      }
+    } catch (e) {
+      print("impossible de récupérer le Post");
+    }
+
+    return post;
+  }
 }
