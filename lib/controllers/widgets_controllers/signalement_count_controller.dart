@@ -2,17 +2,19 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:flutter/material.dart';
 
-class PostsController extends StatefulWidget {
+class SignalementsCountController extends StatefulWidget {
   int postCount;
   late Post post;
 
-  PostsController({required this.post, required this.postCount});
+  SignalementsCountController({required this.post, required this.postCount});
 
   @override
-  _PostsControllerState createState() => _PostsControllerState();
+  _SignalementsCountControllerState createState() =>
+      _SignalementsCountControllerState();
 }
 
-class _PostsControllerState extends State<PostsController> {
+class _SignalementsCountControllerState
+    extends State<SignalementsCountController> {
   int _postCount = 0;
 
   @override

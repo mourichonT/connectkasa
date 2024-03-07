@@ -1,9 +1,10 @@
 import 'package:connect_kasa/controllers/services/databases_services.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/posts_counter.dart';
+import 'package:connect_kasa/controllers/widgets_controllers/signalement_count_controller.dart';
 import 'package:connect_kasa/vues/components/like_button_post.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/vues/components/share_button.dart';
 import 'package:connect_kasa/vues/components/signalement_tile.dart';
+import 'package:connect_kasa/vues/pages_vues/post_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 
@@ -15,22 +16,31 @@ class PostWidget extends StatefulWidget {
   final String uid;
   final String residence;
 
-  PostWidget(this.post, this.residence, this.uid);
+  PostWidget(
+    this.post,
+    this.residence,
+    this.uid,
+  );
   @override
   State<StatefulWidget> createState() => PostWidgetState();
 }
 
 class PostWidgetState extends State<PostWidget> {
   late Future<List<Post>> _signalementFuture;
+  late Future<Post?> _getPostFuture;
   DataBasesServices dbService = DataBasesServices();
   int postCount = 0;
+  int likeCount = 0;
 
   @override
   void initState() {
     super.initState();
+    //likeCount = widget.post.like.length;
     _signalementFuture = dbService.getSignalements(widget.residence,
         widget.post.id); // Initialisez post à partir des propriétés du widget
     _loadSignalements();
+
+    //print("_likeCountdans postview = $likeCount");
   }
 
   void _loadSignalements() async {
@@ -45,7 +55,6 @@ class PostWidgetState extends State<PostWidget> {
   Widget build(BuildContext context) {
     Color colorStatut = Theme.of(context).primaryColor;
     double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.width / 1.5;
 
     return Container(
       decoration: const BoxDecoration(
@@ -111,14 +120,56 @@ class PostWidgetState extends State<PostWidget> {
                             ),
                           ),
                           items: signalements.map((post) {
-                            return SignalementTile(post, width, postCount,
+                            return InkWell(
+                              onTap: () {
+                                _getPostFuture = dbService.getUpdatePost(
+                                    widget.residence, widget.post.id);
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => FutureBuilder<Post?>(
+                                      future: _getPostFuture,
+                                      builder: (BuildContext context,
+                                          AsyncSnapshot<Post?> snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return CircularProgressIndicator();
+                                        } else if (snapshot.hasError) {
+                                          return Text(
+                                              'Error: ${snapshot.error}');
+                                        } else {
+                                          final postUpdated = snapshot.data;
+                                          if (postUpdated != null) {
+                                            print(
+                                                "TEST / ${postUpdated.like.length}");
+                                            return PostView(postUpdated,
+                                                widget.residence, widget.uid);
+                                          } else {
+                                            return Text('No data available');
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: SignalementTile(
+                                post,
+                                width,
+                                postCount,
                                 (count) {
-                              postCount = count;
-                            }, widget.residence, widget.uid);
+                                  postCount = count;
+                                },
+                                widget.residence,
+                                widget.uid,
+                              ),
+                            );
                           }).toList(),
                         ),
                       ),
-                      PostsController(post: widget.post, postCount: postCount),
+                      SignalementsCountController(
+                          post: widget.post, postCount: postCount),
                     ],
                   );
                 }
@@ -135,6 +186,12 @@ class PostWidgetState extends State<PostWidget> {
                       residence: widget.residence,
                       uid: widget.uid,
                       colorIcon: colorStatut,
+                      //likeCount: _likeCount(likeCount),
+                      // onUpdateLikeCount: (newLikeCount) {
+                      //   setState(() {
+                      //     likeCount = newLikeCount;
+                      //   });
+                      // },
                     ),
                   ),
                   Container(
