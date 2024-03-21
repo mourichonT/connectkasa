@@ -16,7 +16,6 @@ class LoadUserController {
   Future<void> handleGoogleSignOut() async {
     try {
       await authService.signOutWithGoogle();
-      print('Utilisateur déconnecté');
     } catch (e) {
       print('Erreur lors de la déconnexion avec Google: $e');
     }

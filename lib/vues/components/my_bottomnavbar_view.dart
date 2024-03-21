@@ -1,38 +1,52 @@
-import 'package:flutter/material.dart';
-import '../../controllers/features/my_bottomnavbar_ controller.dart';
+// ignore_for_file: prefer_const_constructors_in_immutables
 
+import 'package:connect_kasa/controllers/pages_controllers/my_bottomnavbar_%20controller.dart';
+import 'package:flutter/material.dart';
 
 class MyBottomNavBarView extends StatelessWidget {
-  final MyBottomNavBarController bottomNavBarController = MyBottomNavBarController();
+  final String residenceSelected;
+  final String residenceName;
+
+  MyBottomNavBarView(
+      {super.key,
+      required this.residenceSelected,
+      required this.residenceName});
 
   @override
   Widget build(BuildContext context) {
+    final MyBottomNavBarController bottomNavBarController =
+        MyBottomNavBarController(
+      residenceSelected: residenceSelected,
+      residenceName: residenceName,
+    );
     // Récupérez les icônes à ce niveau
-    List<List<dynamic>> icons = bottomNavBarController.iconTabBar.listIconsBottom();
+    List<List<dynamic>> icons =
+        bottomNavBarController.iconTabBar.listIconsBottom();
 
     // Créez les onglets de la barre de navigation avec la couleur du thème
-    List<BottomNavigationBarItem> bottomTabs = icons.asMap().entries.map((entry) {
-      int bottomIndex = entry.key;
+    List<BottomNavigationBarItem> bottomTabs =
+        icons.asMap().entries.map((entry) {
+      // int bottomIndex = entry.key;
       IconData icon = entry.value[0];
       String label = entry.value[1];
       return BottomNavigationBarItem(
         icon: Icon(
           icon,
-          color: Theme.of(context).iconTheme.color,
+          color: Colors.black54,
         ),
         label: label,
       );
     }).toList();
 
-    return Container(
-            color: Colors.blue, // Vous pouvez définir la couleur de fond de la BottomNavBar ici
-            child: Row(
-              children: [
-                Expanded(
-                  child: MyBottomNavBarController().bottomNavBar(bottomTabs, context),
-                ),
-              ],
-            ),
-          );
+    return Row(
+      children: [
+        Expanded(
+          child: bottomNavBarController.bottomNavBar(
+            bottomTabs,
+            context,
+          ), // Correction : Passer un index initial (0 dans cet exemple)
+        ),
+      ],
+    );
   }
 }

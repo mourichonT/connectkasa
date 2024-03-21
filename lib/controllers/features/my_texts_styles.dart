@@ -38,7 +38,7 @@ class MyTextStyle {
     );
   }
 
-  static Widget IconDrawer(
+  static Widget iconDrawer(
       BuildContext context, IconData icon, EdgeInsets padding) {
     return applyPadding(
         Icon(
@@ -57,11 +57,11 @@ class MyTextStyle {
         ));
   }
 
-  static Text lotDesc(String text) {
+  static Text lotDesc(String text, double size) {
     return Text(
       text,
       style: GoogleFonts.roboto(
-        fontSize: 13,
+        fontSize: size,
         fontStyle: FontStyle.italic,
       ),
     );
@@ -87,11 +87,11 @@ class MyTextStyle {
     );
   }
 
-  static Text annonceDesc(String text) {
+  static Text annonceDesc(String text, double size) {
     return Text(
       text,
       style: GoogleFonts.roboto(
-        fontSize: 13,
+        fontSize: size,
         fontStyle: FontStyle.italic,
       ),
       overflow: TextOverflow.ellipsis,
@@ -100,7 +100,7 @@ class MyTextStyle {
     );
   }
 
-  static Text InitialAvatar(String initiales, double size) {
+  static Text initialAvatar(String initiales, double size) {
     return Text(
       initiales,
       style: GoogleFonts.roboto(
@@ -133,14 +133,14 @@ class MyTextStyle {
 
     // Formater la durée écoulée
     if (difference.inSeconds < 60) {
-      return Text("à l'instant");
+      return const Text("à l'instant");
     } else if (difference.inMinutes < 60) {
       return Text('il y a ${difference.inMinutes} min');
     } else if (difference.inHours < 24) {
       return Text('il y a ${difference.inHours} h');
     } else {
       int days = difference.inDays;
-      return Text('il y a ${days} j');
+      return Text('il y a $days j');
     }
   }
 
@@ -148,7 +148,7 @@ class MyTextStyle {
     return Container(
         //padding: EdgeInsets.symmetric(vertical: 3, horizontal:0),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.all(Radius.circular(20.0)),
+          borderRadius: const BorderRadius.all(Radius.circular(20.0)),
           color: _getColorForStatus(text, colorTheme),
         ),
         child: Align(

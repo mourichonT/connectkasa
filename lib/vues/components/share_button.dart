@@ -5,10 +5,11 @@ import '../../models/pages_models/post.dart';
 
 class ShareButton extends StatelessWidget {
   final Post post;
-  final Color colorIcon;
+  final Color? colorIcon;
   final Color? colorText;
 
-  ShareButton({required this.post, required this.colorIcon, this.colorText});
+  const ShareButton(
+      {super.key, required this.post, this.colorIcon, this.colorText});
 
   @override
   Widget build(BuildContext context) {

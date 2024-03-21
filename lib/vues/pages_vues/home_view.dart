@@ -1,7 +1,6 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
-import 'package:connect_kasa/controllers/services/databases_services.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
+// ignore_for_file: must_be_immutable, library_private_types_in_public_api
+
+import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/vues/components/post_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -12,15 +11,14 @@ class Homeview extends StatefulWidget {
   String residenceSelected;
   String uid;
 
-  Homeview({Key? key, required this.residenceSelected, required this.uid})
-      : super(key: key);
+  Homeview({super.key, required this.residenceSelected, required this.uid});
 
   @override
   _HomeviewState createState() => _HomeviewState();
 }
 
 class _HomeviewState extends State<Homeview> {
-  final DataBasesServices _databaseServices = DataBasesServices();
+  final DataBasesPostServices _databaseServices = DataBasesPostServices();
   late Future<List<Post>> _allPostsFuture;
 
   @override
@@ -47,16 +45,17 @@ class _HomeviewState extends State<Homeview> {
           List<Post> allPosts = snapshot.data!;
           return SingleChildScrollView(
             child: Padding(
-              padding: EdgeInsets.only(top: 10, bottom: 35),
+              padding: const EdgeInsets.only(top: 10, bottom: 35),
               child: ListView.separated(
                 shrinkWrap: true,
-                physics: BouncingScrollPhysics(),
+                physics: const BouncingScrollPhysics(),
                 itemCount: allPosts.length,
                 itemBuilder: (context, index) {
                   Post post = allPosts[index];
                   return Column(
                     children: [
-                      if (post.type == "Sinistre" || post.type == "Incivilité")
+                      if (post.type == "sinistres" ||
+                          post.type == "incivilites")
                         PostWidget(post, widget.residenceSelected, widget.uid),
                       if (post.type == "Annonces") AnnonceWidget(post),
                     ],
@@ -64,7 +63,7 @@ class _HomeviewState extends State<Homeview> {
                 },
                 separatorBuilder: (BuildContext context, int index) =>
                     Container(
-                  padding: EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
                 ),
               ),
             ),

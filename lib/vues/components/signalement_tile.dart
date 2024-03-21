@@ -1,10 +1,8 @@
-import 'package:connect_kasa/controllers/features/format_profil_pic.dart';
+import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_services.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/signalement_count_controller.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/pages_vues/post_view.dart';
 import 'package:flutter/material.dart';
 
 class SignalementTile extends StatelessWidget {
@@ -15,20 +13,21 @@ class SignalementTile extends StatelessWidget {
   final String residence;
   final String uid;
 
-  SignalementTile(this.post, this.width, this.postCount, this.postCountCallback,
-      this.residence, this.uid);
+  const SignalementTile(this.post, this.width, this.postCount,
+      this.postCountCallback, this.residence, this.uid,
+      {super.key});
 
   @override
   Widget build(BuildContext context) {
     final FormatProfilPic formatProfilPic = FormatProfilPic();
-    final DataBasesServices _databaseServices = DataBasesServices();
-    late Future<User?> userPost = _databaseServices.getUserById(post.user);
+    final DataBasesUserServices databasesUserServices = DataBasesUserServices();
+    late Future<User?> userPost = databasesUserServices.getUserById(post.user);
     postCountCallback(postCount);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
+        SizedBox(
           height: width / 1.5,
           width: width,
           child: Stack(
@@ -39,14 +38,14 @@ class SignalementTile extends StatelessWidget {
                   fit: BoxFit.cover,
                 ),
               ),
-              if (post.hideUser == true)
+              if (post.hideUser == false)
                 Positioned(
                   top: 0,
                   left: 5,
                   child: Row(
                     children: [
                       Padding(
-                        padding: EdgeInsets.only(
+                        padding: const EdgeInsets.only(
                             top: 5, bottom: 5, left: 5, right: 5),
                         child: CircleAvatar(
                           radius: 20,
@@ -57,7 +56,8 @@ class SignalementTile extends StatelessWidget {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
                                 // Afficher un indicateur de chargement si le futur est en cours de chargement
-                                return CircularProgressIndicator();
+                                return const Center(
+                                    child: CircularProgressIndicator());
                               } else {
                                 // Si le futur est résolu, vous pouvez accéder aux propriétés de l'objet User
                                 if (snapshot.hasData && snapshot.data != null) {
@@ -70,12 +70,12 @@ class SignalementTile extends StatelessWidget {
                                   } else {
                                     // Sinon, retourner les initiales
                                     return formatProfilPic.getInitiales(
-                                        17, userPost, 17);
+                                        34, userPost, 17);
                                   }
                                 } else {
                                   // Gérer le cas où le futur est résolu mais qu'il n'y a pas de données
                                   return formatProfilPic.getInitiales(
-                                      16,
+                                      17,
                                       userPost,
                                       3); // ou tout autre widget par défaut
                                 }
@@ -89,14 +89,15 @@ class SignalementTile extends StatelessWidget {
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return CircularProgressIndicator();
+                            return const Center(
+                                child: CircularProgressIndicator());
                           } else {
                             if (snapshot.hasData && snapshot.data != null) {
                               var user = snapshot.data!;
                               return MyTextStyle.lotName(
-                                  "${user.pseudo}", Colors.white);
+                                  user.pseudo, Colors.white);
                             } else {
-                              return Text('Utilisateur inconnue',
+                              return const Text('Utilisateur inconnue',
                                   style: TextStyle(
                                       color: Colors
                                           .white)); // Placeholder for unknown name
@@ -110,37 +111,42 @@ class SignalementTile extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  MyTextStyle.lotName(post.title, Colors.black87),
-                  Spacer(),
-                  Container(
-                    height: 20,
-                    width: 120,
-                    child: MyTextStyle.postDate(post.timeStamp),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  MyTextStyle.lotName("Localisation : ", Colors.black54),
-                  MyTextStyle.lotName(post.emplacement, Colors.black54),
-                ],
-              ),
-              SizedBox(
-                height: 15,
-              ),
-              MyTextStyle.lotDesc(post.description),
-              SizedBox(
-                height: 15,
-              ),
-              //SignalementsCountController(post: post, postCount: postCount),
-            ],
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    MyTextStyle.lotName(post.title, Colors.black87),
+                    const Spacer(),
+                    SizedBox(
+                      height: 20,
+                      width: 120,
+                      child: MyTextStyle.postDate(post.timeStamp),
+                    ),
+                  ],
+                ),
+                post.emplacement == ""
+                    ? Container()
+                    : Row(
+                        children: [
+                          MyTextStyle.lotName(
+                              "Localisation : ", Colors.black54),
+                          MyTextStyle.lotName(post.emplacement, Colors.black54),
+                        ],
+                      ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Flexible(child: MyTextStyle.annonceDesc(post.description, 14)),
+                const SizedBox(
+                  height: 15,
+                ),
+                //SignalementsCountController(post: post, postCount: postCount),
+              ],
+            ),
           ),
         ),
       ],

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 
 class Post {
   String id;
@@ -28,14 +27,14 @@ class Post {
     String pathImage = "",
     required this.title,
     required this.description,
-    required this.emplacement,
+    this.emplacement = "",
     this.like = const [],
     this.signalement = const [],
     required this.hideUser,
   }) {
-    this._pathImage = pathImage;
-    this._statu = statu;
-    this._subtype = subtype;
+    _pathImage = pathImage;
+    _statu = statu;
+    _subtype = subtype;
   }
 
   String? get pathImage {
@@ -121,5 +120,24 @@ class Post {
           .toList(),
       hideUser: map['hideUser'],
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'description': description,
+      'emplacement': emplacement,
+      'subtype': subtype,
+      'pathImage': pathImage,
+      'refResidence': refResidence,
+      'statu': statu,
+      'timeStamp': timeStamp,
+      'title': title,
+      'type': type,
+      'user': user,
+      'like': like,
+      'signalement': signalement.map((post) => post.toMap()).toList(),
+      'hideUser': hideUser,
+    };
   }
 }

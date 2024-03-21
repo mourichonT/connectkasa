@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ColorController extends StatefulWidget {
+  const ColorController({super.key});
+
   @override
   ColorControllerState createState() => ColorControllerState();
 }
@@ -22,6 +24,7 @@ class ColorControllerState extends State<ColorController> {
       // Autres éléments de l'interface utilisateur ici...
     );
   }
+
   void selectedColor(String hexColor, int numberOfTabs) {
     setState(() {
       _color = _hexToMaterialColor(hexColor);
@@ -32,7 +35,7 @@ class ColorControllerState extends State<ColorController> {
   MaterialColor _hexToMaterialColor(String hexColor) {
     hexColor = hexColor.toUpperCase().replaceAll("#", "");
     if (hexColor.length == 6) {
-      hexColor = "FF" + hexColor;
+      hexColor = "FF$hexColor";
     }
     Color color = Color(int.parse(hexColor, radix: 16));
 
@@ -56,6 +59,4 @@ class ColorControllerState extends State<ColorController> {
   MaterialColor getColor() {
     return _color;
   }
-
-
 }

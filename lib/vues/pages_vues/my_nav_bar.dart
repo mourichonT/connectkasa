@@ -1,19 +1,22 @@
+// ignore_for_file: library_private_types_in_public_api
+
+import 'dart:math';
+
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
+import 'package:connect_kasa/controllers/features/route_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
-import 'package:connect_kasa/controllers/services/authentification_service.dart';
-import 'package:connect_kasa/controllers/services/databases_services.dart';
 import 'package:connect_kasa/vues/pages_vues/home_view.dart';
 import 'package:connect_kasa/vues/components/my_bottomnavbar_view.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../../models/pages_models/lot.dart';
-import '../../controllers/features/my_tab_bar_controller.dart';
+import '../../controllers/pages_controllers/my_tab_bar_controller.dart';
 import '../components/select_lot_component.dart';
 import '../components/lot_bottom_sheet.dart';
-import '../../controllers/features/my_texts_styles.dart';
 
 class MyNavBar extends StatefulWidget {
+  const MyNavBar({super.key});
+
   @override
   _MyNavBarState createState() => _MyNavBarState();
 }
@@ -39,6 +42,7 @@ class _MyNavBarState extends State<MyNavBar> {
 
   @override
   Widget build(BuildContext context) {
+    final double width = MediaQuery.of(context).size.width;
     final List<IconData> icons = tabController.iconTabBar.listIcons();
     final List<Tab> tabs = icons.asMap().entries.map((entry) {
       IconData icon = entry.value;
@@ -51,23 +55,27 @@ class _MyNavBarState extends State<MyNavBar> {
 
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Colors.yellow,
+          backgroundColor: Colors.white,
           elevation: 20,
-          title: MyTextStyle.logo(
-              context, "connectKasa", EdgeInsets.only(top: pad)),
+          title: Image.asset(
+            width: width / 2.5,
+            "images/logoCK250connectKasa.png",
+            fit: BoxFit.fitWidth,
+          ),
           flexibleSpace: Container(
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
                 border: Border(bottom: BorderSide(color: Colors.black12)),
                 color: Colors.white),
           ),
           bottom: PreferredSize(
             key: UniqueKey(),
-            preferredSize: Size.fromHeight(kToolbarHeight + kToolbarHeight),
+            preferredSize:
+                const Size.fromHeight(kToolbarHeight + kToolbarHeight),
             child: Column(
               children: [
                 tabController.tabBar(tabs),
                 InkWell(
-                    child: SelectLotComponent(),
+                    child: const SelectLotComponent(),
                     onTap: () async {
                       _handleGoogleSignIn();
                     })
@@ -98,7 +106,7 @@ class _MyNavBarState extends State<MyNavBar> {
             ),
       endDrawer: Drawer(
         child: Column(children: [
-          SizedBox(
+          const SizedBox(
             height: 500,
           ),
           ElevatedButton(
@@ -115,26 +123,37 @@ class _MyNavBarState extends State<MyNavBar> {
           )
         ]),
       ),
-      bottomNavigationBar: MyBottomNavBarView(),
+      bottomNavigationBar: MyBottomNavBarView(
+        residenceSelected: preferedLot?.residenceId ?? "",
+        residenceName: preferedLot?.residenceData['name'] ?? "",
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: Container(
+      floatingActionButton: SizedBox(
           height: 65,
           width: 65,
           child: FloatingActionButton(
               backgroundColor: Theme.of(context).colorScheme.background,
-              onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => PostFormController()));
+              onPressed: () async {
+                String uid = await _loadUserController.loadUserData();
+                Navigator.of(context).push(RouteController().createRoute(
+                  PostFormController(
+                    racineFolder: "residences",
+                    preferedLot: preferedLot!,
+                    uid: uid,
+                  ),
+                ));
               },
-              child: Icon(
-                Icons.notifications_active,
-                size: 30,
-                color: Theme.of(context).primaryColor,
-              ),
-              shape: CircleBorder(),
-              materialTapTargetSize: MaterialTapTargetSize.padded)),
+              shape: const CircleBorder(
+                  side: BorderSide(color: Colors.black12, width: 0.3)),
+              materialTapTargetSize: MaterialTapTargetSize.padded,
+              child: Transform.rotate(
+                angle: 330 * pi / 180,
+                child: Icon(
+                  Icons.campaign,
+                  size: 50,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ))),
     );
   }
 
@@ -152,7 +171,7 @@ class _MyNavBarState extends State<MyNavBar> {
             onRefresh: () {
               _loadPreferedLot();
             },
-            UID: uid,
+            uid: uid,
           );
         });
   }
@@ -165,22 +184,4 @@ class _MyNavBarState extends State<MyNavBar> {
       print("Erreur lors de la connexion avec Google: $e");
     }
   }
-  // Future<String> _loadUserData() async {
-  //   user = await authService.signUpWithGoogle();
-  //   String iud = user!.user!.uid;
-
-  //   return iud;
-  // }
-
-  // Utilisation de la variable user déclarée au niveau de la classe.
-
-  // // Utilisation de la variable user déclarée au niveau de la classe.
-  // Future<void> _handleGoogleSignOut() async {
-  //   try {
-  //     await authService.signOutWithGoogle();
-  //     print('Utilisateur déconnecté');
-  //   } catch (e) {
-  //     print('Erreur lors de la déconnexion avec Google: $e');
-  //   }
-  // }
 }
