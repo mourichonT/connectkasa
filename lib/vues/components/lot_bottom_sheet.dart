@@ -1,7 +1,9 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'dart:convert';
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_services.dart';
+import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/pages_models/lot.dart';
@@ -10,19 +12,16 @@ import 'lot_tile_view.dart';
 class LotBottomSheet extends StatefulWidget {
   final Function()? onRefresh;
   final Lot? selectedLot;
-  final String UID;
+  final String uid;
 
-  LotBottomSheet(
-      {Key? key, this.onRefresh, this.selectedLot, required this.UID})
-      : super(key: key);
+  const LotBottomSheet(
+      {super.key, this.onRefresh, this.selectedLot, required this.uid});
   @override
   _LotBottomSheetState createState() => _LotBottomSheetState();
 }
 
 class _LotBottomSheetState extends State<LotBottomSheet> {
-  //final DatasLots datasLots = DatasLots();
-  //late List<Lot> lots;
-  final DataBasesServices _databaseServices = DataBasesServices();
+  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
   late Future<List<Lot?>> _lotByUser;
 
   Lot? preferedLot;
@@ -37,8 +36,9 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
     if (preferedLot != null) {
       return lots
           .indexWhere((element) => element?.refLot == preferedLot!.refLot);
-    } else
+    } else {
       return null;
+    }
   }
 
   @override
@@ -46,14 +46,14 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
     super.initState();
     _loadPreferedLot();
     //lots = datasLots.listLot();
-    _lotByUser = _databaseServices.getLotByIdUser(widget.UID);
+    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
     preferedLot = widget.selectedLot;
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: EdgeInsets.only(top: 20, bottom: 0),
+        padding: const EdgeInsets.only(top: 20, bottom: 0),
         child: Column(
           children: [
             Expanded(
@@ -68,7 +68,7 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
                   }
                   List<Lot?> lots =
                       snapshot.data ?? []; // Accéder à la liste de lots
-                  return Container(
+                  return SizedBox(
                     height: MediaQuery.of(context).size.height * 0.8,
                     child: ListView.builder(
                       itemCount: lots.length,

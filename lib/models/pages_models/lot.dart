@@ -85,7 +85,7 @@ class Lot {
       if (type.isNotEmpty) "type": type,
       if (idProprietaire.isNotEmpty) "idProprietaire": idProprietaire,
       if (idLocataire != null) "idLocataire": idLocataire,
-      if (residenceId != null) "residenceId": residenceId,
+      "residenceId": residenceId,
 
       "residenceData":
           residenceData, // Ajouter residenceData lors de l'envoi à Firestore

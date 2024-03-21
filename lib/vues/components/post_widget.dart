@@ -1,5 +1,8 @@
-import 'package:connect_kasa/controllers/services/databases_services.dart';
+// ignore_for_file: must_be_immutable
+
+import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/signalement_count_controller.dart';
+import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/vues/components/like_button_post.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/vues/components/share_button.dart';
@@ -16,11 +19,7 @@ class PostWidget extends StatefulWidget {
   final String uid;
   final String residence;
 
-  PostWidget(
-    this.post,
-    this.residence,
-    this.uid,
-  );
+  PostWidget(this.post, this.residence, this.uid, {super.key});
   @override
   State<StatefulWidget> createState() => PostWidgetState();
 }
@@ -28,10 +27,10 @@ class PostWidget extends StatefulWidget {
 class PostWidgetState extends State<PostWidget> {
   late Future<List<Post>> _signalementFuture;
   late Future<Post?> _getPostFuture;
-  DataBasesServices dbService = DataBasesServices();
+  DataBasesPostServices dbService = DataBasesPostServices();
+  List<List<String>> typeList = TypeList().typeDeclaration();
   int postCount = 0;
   int likeCount = 0;
-
   @override
   void initState() {
     super.initState();
@@ -39,8 +38,6 @@ class PostWidgetState extends State<PostWidget> {
     _signalementFuture = dbService.getSignalements(widget.residence,
         widget.post.id); // Initialisez post à partir des propriétés du widget
     _loadSignalements();
-
-    //print("_likeCountdans postview = $likeCount");
   }
 
   void _loadSignalements() async {
@@ -49,6 +46,22 @@ class PostWidgetState extends State<PostWidget> {
     setState(() {
       postCount = signalements.length;
     });
+  }
+
+  String getType(Post post) {
+    for (var type in typeList) {
+      // Vous pouvez accéder à chaque type avec type[0] pour le nom et type[1] pour la valeur
+      var typeName = type[0];
+      var typeValue = type[1];
+      // Vous devez probablement utiliser le post ici pour récupérer la valeur de type
+      // Par exemple :
+      if (widget.post.type == typeValue) {
+        return typeName;
+      }
+    }
+    // Vous devez décider de ce que vous voulez retourner si aucun type ne correspond à post.type
+    // Dans cet exemple, je retourne une chaîne vide.
+    return '';
   }
 
   @override
@@ -70,16 +83,17 @@ class PostWidgetState extends State<PostWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Padding(
-              padding: EdgeInsets.only(top: 10, bottom: 1, left: 10, right: 10),
+              padding: const EdgeInsets.only(
+                  top: 10, bottom: 1, left: 10, right: 10),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  MyTextStyle.lotName(widget.post.type, Colors.black87),
-                  SizedBox(width: 15),
-                  Spacer(),
-                  Container(
+                  MyTextStyle.lotName(getType(widget.post), Colors.black87),
+                  const SizedBox(width: 15),
+                  const Spacer(),
+                  SizedBox(
                     height: 20,
                     width: 70,
                     child:
@@ -88,7 +102,7 @@ class PostWidgetState extends State<PostWidget> {
                 ],
               ),
             ),
-            Divider(
+            const Divider(
               height: 20,
               thickness: 0.5,
             ),
@@ -96,7 +110,7 @@ class PostWidgetState extends State<PostWidget> {
               future: _signalementFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator());
+                  return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else {
@@ -104,7 +118,7 @@ class PostWidgetState extends State<PostWidget> {
                   postCount = signalements.length;
                   return Column(
                     children: [
-                      Container(
+                      SizedBox(
                         height: width, // Définir une hauteur fixe ou contrainte
                         child: FlutterCarousel(
                           options: CarouselOptions(
@@ -119,7 +133,7 @@ class PostWidgetState extends State<PostWidget> {
                               currentIndicatorColor: colorStatut,
                             ),
                           ),
-                          items: signalements.map((post) {
+                          items: signalements.map((postSelected) {
                             return InkWell(
                               onTap: () {
                                 _getPostFuture = dbService.getUpdatePost(
@@ -134,19 +148,36 @@ class PostWidgetState extends State<PostWidget> {
                                           AsyncSnapshot<Post?> snapshot) {
                                         if (snapshot.connectionState ==
                                             ConnectionState.waiting) {
-                                          return CircularProgressIndicator();
+                                          return const CircularProgressIndicator();
                                         } else if (snapshot.hasError) {
                                           return Text(
                                               'Error: ${snapshot.error}');
                                         } else {
                                           final postUpdated = snapshot.data;
                                           if (postUpdated != null) {
-                                            print(
-                                                "TEST / ${postUpdated.like.length}");
-                                            return PostView(postUpdated,
-                                                widget.residence, widget.uid);
+                                            return PopScope(
+                                              onPopInvoked: (didPop) async {
+                                                Post? postChanges =
+                                                    await dbService
+                                                        .getUpdatePost(
+                                                            widget.residence,
+                                                            widget.post.id);
+
+                                                if (postChanges != null) {
+                                                  setState(() {
+                                                    widget.post = postChanges;
+                                                  });
+                                                }
+                                              },
+                                              child: PostView(
+                                                  postUpdated,
+                                                  postSelected,
+                                                  widget.residence,
+                                                  widget.uid),
+                                            );
                                           } else {
-                                            return Text('No data available');
+                                            return const Text(
+                                                'No data available');
                                           }
                                         }
                                       },
@@ -155,7 +186,7 @@ class PostWidgetState extends State<PostWidget> {
                                 );
                               },
                               child: SignalementTile(
-                                post,
+                                postSelected,
                                 width,
                                 postCount,
                                 (count) {
@@ -175,39 +206,26 @@ class PostWidgetState extends State<PostWidget> {
                 }
               },
             ),
-            Divider(thickness: 0.5),
-            Container(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Container(
-                    child: LikeButtonPost(
-                      post: widget.post,
-                      residence: widget.residence,
-                      uid: widget.uid,
-                      colorIcon: colorStatut,
-                      //likeCount: _likeCount(likeCount),
-                      // onUpdateLikeCount: (newLikeCount) {
-                      //   setState(() {
-                      //     likeCount = newLikeCount;
-                      //   });
-                      // },
-                    ),
-                  ),
-                  Container(
-                    child: CommentButton(
-                        post: widget.post,
-                        residenceSelected: widget.residence,
-                        uid: widget.uid,
-                        colorIcon: colorStatut),
-                  ),
-                  Container(
-                      child: ShareButton(
+            const Divider(thickness: 0.5),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                LikePostButton(
+                  post: widget.post,
+                  residence: widget.residence,
+                  uid: widget.uid,
+                  colorIcon: colorStatut,
+                ),
+                CommentButton(
                     post: widget.post,
-                    colorIcon: colorStatut,
-                  )),
-                ],
-              ),
+                    residenceSelected: widget.residence,
+                    uid: widget.uid,
+                    colorIcon: colorStatut),
+                ShareButton(
+                  post: widget.post,
+                  //colorIcon: colorStatut,
+                ),
+              ],
             ),
           ],
         ),

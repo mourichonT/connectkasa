@@ -5,15 +5,13 @@ class CommentCountWidget extends StatelessWidget {
   final int commentCount;
 
   const CommentCountWidget({
-    Key? key,
+    super.key,
     required this.commentCount,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
-    Color colorStatut = Theme.of(context).primaryColor;
-
     String formatCommentCount = commentCount.toString();
-    return MyTextStyle.iconText(commentCount as String);
+    return MyTextStyle.iconText(formatCommentCount);
   }
 }

@@ -1,10 +1,12 @@
+// ignore_for_file: must_be_immutable
+
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/like_button_comment.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/controllers/features/format_profil_pic.dart';
+import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
-import 'package:connect_kasa/controllers/services/databases_services.dart';
 
 class CommentTile extends StatefulWidget {
   final Function(bool) onReply;
@@ -27,6 +29,7 @@ class CommentTile extends StatefulWidget {
     this.postId,
     this.focusNode,
     this.textEditingController, {
+    super.key,
     this.isReply = false,
     required this.onReply,
     required this.getCommentId,
@@ -42,7 +45,7 @@ class CommentTileState extends State<CommentTile> {
   TextEditingController _textEditingController = TextEditingController();
   late Future<User?> user;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
-  final DataBasesServices _databaseServices = DataBasesServices();
+  final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
   late Comment comment;
 
   @override
@@ -50,24 +53,24 @@ class CommentTileState extends State<CommentTile> {
     super.initState();
     _textEditingController = TextEditingController();
     comment = widget.comment;
-    user = _databaseServices.getUserById(comment.user);
+    user = _databasesUserServices.getUserById(comment.user);
   }
 
   @override
   Widget build(BuildContext context) {
-    Color colorStatut = Theme.of(context).primaryColor;
+    //Color colorStatut = Theme.of(context).primaryColor;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildCommentTile(comment),
         if (comment.replies.isNotEmpty)
           Padding(
-            padding: EdgeInsets.only(
+            padding: const EdgeInsets.only(
               left: 25.0,
             ),
             child: ListView.builder(
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: comment.replies.length,
               itemBuilder: (context, index) {
                 return CommentTile(
@@ -96,124 +99,105 @@ class CommentTileState extends State<CommentTile> {
       mainAxisSize: MainAxisSize.max,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding:
-                    EdgeInsets.only(top: 10, bottom: 5, left: 5, right: 15),
-                child: CircleAvatar(
-                  radius: 23,
-                  backgroundColor: Theme.of(context).primaryColor,
-                  child: FutureBuilder<User?>(
-                    future: user,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return CircularProgressIndicator();
-                      } else {
-                        if (snapshot.hasData && snapshot.data != null) {
-                          var user = snapshot.data!;
-                          if (user.profilPic != null && user.profilPic != "") {
-                            return formatProfilPic.ProfilePic(
-                                27, Future.value(user));
-                          } else {
-                            return formatProfilPic.getInitiales(
-                                40, Future.value(user), 25);
-                          }
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding:
+                  const EdgeInsets.only(top: 10, bottom: 5, left: 5, right: 15),
+              child: CircleAvatar(
+                radius: 23,
+                backgroundColor: Theme.of(context).primaryColor,
+                child: FutureBuilder<User?>(
+                  future: user,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else {
+                      if (snapshot.hasData && snapshot.data != null) {
+                        var user = snapshot.data!;
+                        if (user.profilPic != null && user.profilPic != "") {
+                          return formatProfilPic.ProfilePic(
+                              27, Future.value(user));
                         } else {
                           return formatProfilPic.getInitiales(
-                              37, Future.value(user), 25);
+                              40, Future.value(user), 25);
                         }
+                      } else {
+                        return formatProfilPic.getInitiales(
+                            37, Future.value(user), 25);
                       }
-                    },
-                  ),
+                    }
+                  },
                 ),
               ),
-              Container(
-                //padding: EdgeInsets.only(right: 15),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    Row(
-                      children: [
-                        FutureBuilder<User?>(
-                          future: user,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return CircularProgressIndicator();
-                            } else if (snapshot.hasError) {
-                              return Text("Error: ${snapshot.error}");
-                            } else if (snapshot.hasData &&
-                                snapshot.data != null) {
-                              var user = snapshot.data!;
-                              String pseudo = user.surname + ' ' + user.name;
-                              return MyTextStyle.lotName(
-                                  pseudo, Colors.black87);
-                            } else {
-                              return SizedBox();
-                            }
-                          },
-                        ),
-                        SizedBox(width: 10),
-                        Container(
-                          child: MyTextStyle.commentDate(comment.timestamp),
-                        ),
-                      ],
+                    FutureBuilder<User?>(
+                      future: user,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return Text("Error: ${snapshot.error}");
+                        } else if (snapshot.hasData && snapshot.data != null) {
+                          var user = snapshot.data!;
+                          String pseudo = user.pseudo;
+                          return MyTextStyle.lotName(pseudo, Colors.black87);
+                        } else {
+                          return const SizedBox();
+                        }
+                      },
                     ),
+                    const SizedBox(width: 10),
                     Container(
-                        width: MediaQuery.of(context).size.width * 0.55,
-                        child: MyTextStyle.commentTextFormat(comment.comment)),
-                    Row(
-                      children: [
-                        TextButton(
-                          child:
-                              MyTextStyle.lotName("Répondre", Colors.black54),
-                          onPressed: () {
-                            String initComment = "";
-
-                            if (widget.comment.originalCommment == false) {
-                              initComment = comment.initialComment!;
-                              print(
-                                  "PRINT LA CONDITION DE REPONDRE = $initComment ");
-                              print(
-                                  "PRINT LA CONDITION DE REPONDRE FALSE= ${widget.isReply} ");
-                              print(
-                                  "PRINT LA CONDITION DE  originalCommment = ${comment.originalCommment} ");
-                              widget.isReply = true;
-                              _replyToComment(
-                                  comment, widget.isReply, initComment);
-                            } else {
-                              print(
-                                  "PRINT LA CONDITION DE REPONDRE TRUE= ${widget.isReply} ");
-                              widget.isReply = true;
-                              initComment = widget.comment.id;
-                              _replyToComment(comment, widget.isReply,
-                                  initComment); // initComment
-                            }
-                          },
-                        ),
-                      ],
+                      child: MyTextStyle.commentDate(comment.timestamp),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
+                SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.50,
+                    child: MyTextStyle.commentTextFormat(comment.comment)),
+                Row(
+                  children: [
+                    TextButton(
+                      child: MyTextStyle.lotName("Répondre", Colors.black54),
+                      onPressed: () {
+                        String initComment = "";
+
+                        if (widget.comment.originalCommment == false) {
+                          initComment = comment.initialComment!;
+                          widget.isReply = true;
+                          _replyToComment(comment, widget.isReply, initComment);
+                        } else {
+                          widget.isReply = true;
+                          initComment = widget.comment.id;
+                          _replyToComment(comment, widget.isReply,
+                              initComment); // initComment
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
-        Container(
-          child: LikeButtonComment(
-            residence: widget.residence,
-            uid: widget.uid,
-            comment: comment,
-            postId: widget.postId,
-            color: colorStatut,
-          ),
+        LikeButtonComment(
+          residence: widget.residence,
+          uid: widget.uid,
+          comment: comment,
+          postId: widget.postId,
+          color: colorStatut,
         ),
       ],
     );
@@ -221,17 +205,15 @@ class CommentTileState extends State<CommentTile> {
 
   void _replyToComment(
       Comment currentComment, bool isReply, String? initComment) async {
-    User? user = await _databaseServices.getUserById(currentComment.user);
+    User? user = await _databasesUserServices.getUserById(currentComment.user);
     if (user != null) {
       FocusScope.of(context).requestFocus(widget.focusNode);
       widget.getUsertoreply(_textEditingController);
       widget.onReply(isReply);
       widget.getCommentId(currentComment.id);
       widget.getInitialComment(initComment);
-      print("PRINT INITCOMMENT in _replyToComment $initComment");
-      print("PRINT INITCOMMENT in _replyToComment isReply $isReply");
 
-      String replyText = "@${user.surname}${user.name} ";
+      String replyText = "@${user.pseudo} ";
       _textEditingController.text = replyText;
 
       _textEditingController.selection = TextSelection.fromPosition(

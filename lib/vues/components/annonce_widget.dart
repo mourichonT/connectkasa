@@ -1,6 +1,8 @@
-import 'package:connect_kasa/controllers/features/format_profil_pic.dart';
+// ignore_for_file: must_be_immutable
+
+import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_services.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:flutter/material.dart';
 import '../../models/pages_models/post.dart';
@@ -9,26 +11,27 @@ class AnnonceWidget extends StatefulWidget {
   late Post post;
   late Future<User?> userPost;
 
-  AnnonceWidget(this.post);
+  AnnonceWidget(this.post, {super.key});
   @override
   State<StatefulWidget> createState() => AnnonceWidgetState();
 }
 
 class AnnonceWidgetState extends State<AnnonceWidget> {
   final FormatProfilPic formatProfilPic = FormatProfilPic();
-  final DataBasesServices _databaseServices = DataBasesServices();
+  final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
   late Post post;
 
+  @override
   void initState() {
     super.initState();
     post = widget.post;
-    widget.userPost = _databaseServices.getUserById(post.user);
+    widget.userPost = _databasesUserServices.getUserById(post.user);
     // Initialisez post à partir des propriétés du widget
   }
 
   @override
   Widget build(BuildContext context) {
-    _databaseServices.getUserById(post.user);
+    _databasesUserServices.getUserById(post.user);
     return InkWell(
       child: Container(
         decoration: const BoxDecoration(boxShadow: [
@@ -37,7 +40,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
         child: Container(
             color: Colors.white,
             child: Padding(
-              padding: EdgeInsets.only(right: 10),
+              padding: const EdgeInsets.only(right: 10),
               child: Row(
                 mainAxisAlignment:
                     MainAxisAlignment.start, // Ajustez cette ligne
@@ -45,8 +48,8 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Padding(
-                    padding:
-                        EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 20),
+                    padding: const EdgeInsets.only(
+                        top: 5, bottom: 5, left: 5, right: 20),
                     child: CircleAvatar(
                       radius: 38,
                       backgroundColor: Theme.of(context).primaryColor,
@@ -56,7 +59,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             // Afficher un indicateur de chargement si le futur est en cours de chargement
-                            return CircularProgressIndicator();
+                            return const CircularProgressIndicator();
                           } else {
                             // Si le futur est résolu, vous pouvez accéder aux propriétés de l'objet User
                             if (snapshot.hasData && snapshot.data != null) {
@@ -85,7 +88,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                   ),
                   Expanded(
                     child: Padding(
-                        padding: EdgeInsets.symmetric(vertical: 15),
+                        padding: const EdgeInsets.symmetric(vertical: 15),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.start,
@@ -96,22 +99,23 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                   post.title, Colors.black87),
                             ),
                             Padding(
-                                padding: EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.only(bottom: 10),
                                 child: Row(children: [
-                                  Container(
+                                  SizedBox(
                                       height: 20,
                                       width: 120,
                                       child: MyTextStyle.lotDesc(
-                                          post.subtype ?? 'n/a')),
-                                  Spacer(),
-                                  Container(
+                                          post.subtype ?? 'n/a', 13)),
+                                  const Spacer(),
+                                  SizedBox(
                                       height: 20,
                                       width: 120,
                                       child:
                                           MyTextStyle.postDate(post.timeStamp))
                                 ])),
                             Flexible(
-                              child: MyTextStyle.annonceDesc(post.description),
+                              child:
+                                  MyTextStyle.annonceDesc(post.description, 14),
                             ),
                           ],
                         )),

@@ -4,22 +4,22 @@ import 'package:flutter/material.dart';
 import '../../models/enum/tab_bar_icon.dart';
 import '../../vues/pages_vues/my_nav_bar.dart';
 
-class MyApp extends StatelessWidget{
+class MyApp extends StatelessWidget {
   final IconTabBar iconTabBar = IconTabBar();
   final FirebaseFirestore firestore;
 
   MyApp({
-    Key? key,
+    super.key,
     required this.firestore,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     List<IconData> icons = iconTabBar.listIcons();
 
     return DefaultTabController(
-            length: icons.length,
-            child:MyNavBar(),
-             );
+      length: icons.length,
+      child: const MyNavBar(),
+    );
   }
 }

@@ -1,27 +1,30 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/controllers/services/databases_services.dart';
+import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import '../../models/pages_models/post.dart';
 
-class LikeButtonPost extends StatefulWidget {
+class LikePostButton extends StatefulWidget {
   final Post post;
   final String residence;
   final String uid;
   final Color colorIcon;
+  final Color? colorIconUnselected;
   final Color? colorText;
 
-  LikeButtonPost(
-      {required this.post,
+  const LikePostButton(
+      {super.key,
+      required this.post,
       required this.residence,
       required this.uid,
       required this.colorIcon,
+      this.colorIconUnselected,
       this.colorText});
 
   @override
-  _LikeButtonPostState createState() => _LikeButtonPostState();
+  LikePostButtonState createState() => LikePostButtonState();
 }
 
-class _LikeButtonPostState extends State<LikeButtonPost> {
+class LikePostButtonState extends State<LikePostButton> {
   bool alreadyLiked = false;
   int likeCount = 0;
   @override
@@ -36,15 +39,14 @@ class _LikeButtonPostState extends State<LikeButtonPost> {
     return Row(
       children: [
         IconButton(
-          icon: Icon(
-            alreadyLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
-            color: widget.colorIcon,
-            size: 20,
-          ),
+          icon: alreadyLiked
+              ? Icon(Icons.thumb_up, color: widget.colorIcon, size: 20)
+              : Icon(Icons.thumb_up_alt_outlined,
+                  color: widget.colorIconUnselected, size: 20),
           onPressed: () async {
             //Appeler la méthode pour mettre à jour les likes dans la base de données
             if (!alreadyLiked) {
-              await DataBasesServices().updatePostLikes(
+              await DataBasesPostServices().updatePostLikes(
                 widget.residence,
                 widget.post.id,
                 widget.uid,
@@ -54,7 +56,7 @@ class _LikeButtonPostState extends State<LikeButtonPost> {
                 likeCount++; // Incrémentez likeCount après l'ajout de like
               });
             } else {
-              await DataBasesServices().removePostLike(
+              await DataBasesPostServices().removePostLike(
                 widget.residence,
                 widget.post.id,
                 widget.uid,

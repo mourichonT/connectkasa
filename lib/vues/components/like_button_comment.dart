@@ -1,8 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/services/databases_comment_services.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/controllers/services/databases_services.dart';
-import '../../models/pages_models/post.dart';
 
 class LikeButtonComment extends StatefulWidget {
   final Comment comment;
@@ -11,18 +10,19 @@ class LikeButtonComment extends StatefulWidget {
   final String postId;
   final Color color;
 
-  LikeButtonComment(
-      {required this.comment,
+  const LikeButtonComment(
+      {super.key,
+      required this.comment,
       required this.postId,
       required this.residence,
       required this.uid,
       required this.color});
 
   @override
-  _LikeButtonPostState createState() => _LikeButtonPostState();
+  LikeButtonPostState createState() => LikeButtonPostState();
 }
 
-class _LikeButtonPostState extends State<LikeButtonComment> {
+class LikeButtonPostState extends State<LikeButtonComment> {
   bool alreadyLiked = false;
   int likeCount = 0;
   @override
@@ -45,7 +45,7 @@ class _LikeButtonPostState extends State<LikeButtonComment> {
           onPressed: () async {
             //Appeler la méthode pour mettre à jour les likes dans la base de données
             if (!alreadyLiked) {
-              await DataBasesServices().updateCommentLikes(
+              await DataBasesCommentServices().updateCommentLikes(
                 widget.residence,
                 widget.postId,
                 widget.comment.id,
@@ -56,7 +56,7 @@ class _LikeButtonPostState extends State<LikeButtonComment> {
                 likeCount++; // Incrémentez likeCount après l'ajout de like
               });
             } else {
-              await DataBasesServices().removeCommentLike(
+              await DataBasesCommentServices().removeCommentLike(
                 widget.residence,
                 widget.postId,
                 widget.comment.id,

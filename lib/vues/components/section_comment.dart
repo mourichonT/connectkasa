@@ -1,7 +1,8 @@
+// ignore_for_file: must_be_immutable, library_private_types_in_public_api
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/services/databases_services.dart';
+import 'package:connect_kasa/controllers/services/databases_comment_services.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/comment_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
@@ -14,13 +15,13 @@ class SectionComment extends StatefulWidget {
   final void Function() onCommentAdded;
 
   SectionComment({
-    Key? key,
+    super.key,
     required this.comment,
     required this.residenceSelected,
     required this.postSelected,
     required this.uid,
     required this.onCommentAdded,
-  }) : super(key: key);
+  });
 
   @override
   _SectionCommentState createState() => _SectionCommentState();
@@ -32,7 +33,7 @@ class _SectionCommentState extends State<SectionComment>
   FocusNode inputFocusNode = FocusNode();
   bool focused = false;
   TextEditingController _textEditingController = TextEditingController();
-  final DataBasesServices _databaseServices = DataBasesServices();
+  final DataBasesCommentServices _databaseServices = DataBasesCommentServices();
   late Future<List<Comment>> _allComments;
   bool isReply = false;
   String commentId = "";
@@ -73,17 +74,17 @@ class _SectionCommentState extends State<SectionComment>
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else {
-          List<Comment> _allComments = snapshot.data!;
+          List<Comment> allComments = snapshot.data!;
           return Stack(
             children: [
-              Container(
+              SizedBox(
                 height: MediaQuery.of(context).size.height * 0.7,
                 child: ListView.separated(
                   shrinkWrap: true,
-                  physics: BouncingScrollPhysics(),
-                  itemCount: _allComments.length,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: allComments.length,
                   itemBuilder: (context, index) {
-                    Comment comment = _allComments[index];
+                    Comment comment = allComments[index];
                     return Column(
                       children: [
                         CommentTile(
@@ -139,54 +140,52 @@ class _SectionCommentState extends State<SectionComment>
           FocusScope.of(context).requestFocus(inputFocusNode);
         },
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Container(
               decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.background,
-                  borderRadius: BorderRadius.all(Radius.circular(30.0))),
-              padding: EdgeInsets.symmetric(vertical: 3, horizontal: 30),
-              width: MediaQuery.of(context).size.width * 0.8,
+                  borderRadius: const BorderRadius.all(Radius.circular(30.0))),
+              padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 15),
+              width: MediaQuery.of(context).size.width * 0.75,
               child: IgnorePointer(
                 child: TextField(
                   controller: _textEditingController,
                   focusNode: inputFocusNode,
                   decoration: const InputDecoration(
-                    hintMaxLines: 20,
+                    hintMaxLines: 15,
                     hintText: 'Ajouter un commentaire...',
                   ),
                 ),
               ),
             ),
-            Container(
-              child: IconButton(
-                color: Theme.of(context).colorScheme.primary,
-                icon: Icon(Icons.send_rounded),
-                onPressed: () {
-                  if (isReply == true) {
-                    if (_textEditingController.text.isNotEmpty) {
-                      _addComment(
-                        _textEditingController,
-                        isReply,
-                        commentId: commentId,
-                        initialComment: initialComment,
-                      );
-                      _textEditingController.clear();
-                    }
-                  } else {
-                    if (isReply == false &&
-                        _textEditingController.text.isNotEmpty) {
-                      _addComment(
-                        _textEditingController,
-                        isReply,
-                        commentId: commentId,
-                        initialComment: initialComment,
-                      );
-                      _textEditingController.clear();
-                    }
+            IconButton(
+              color: Theme.of(context).colorScheme.primary,
+              icon: const Icon(Icons.send_rounded),
+              onPressed: () {
+                if (isReply == true) {
+                  if (_textEditingController.text.isNotEmpty) {
+                    _addComment(
+                      _textEditingController,
+                      isReply,
+                      commentId: commentId,
+                      initialComment: initialComment,
+                    );
+                    _textEditingController.clear();
                   }
-                },
-              ),
+                } else {
+                  if (isReply == false &&
+                      _textEditingController.text.isNotEmpty) {
+                    _addComment(
+                      _textEditingController,
+                      isReply,
+                      commentId: commentId,
+                      initialComment: initialComment,
+                    );
+                    _textEditingController.clear();
+                  }
+                }
+              },
             )
           ],
         ),
@@ -198,8 +197,8 @@ class _SectionCommentState extends State<SectionComment>
       {String? commentId,
       required String? initialComment,
       bool? originalCommment}) async {
-    String commentFormatted = "";
-    var uuid = Uuid();
+    // String commentFormatted = "";
+    var uuid = const Uuid();
     String uniqueId = uuid.v4();
     if (isReply == true) {
       final String formattedComment =

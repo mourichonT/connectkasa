@@ -1,11 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class User {
   String _profilPic = "";
   String name;
   String surname;
   String pseudo;
-  String UID;
+  String uid;
   String? profession;
   String? bio;
   bool private;
@@ -14,13 +12,13 @@ class User {
     String profilPic = "",
     required this.name,
     required this.surname,
-    required this.UID,
+    required this.uid,
     this.profession,
     required this.pseudo,
     this.private = true,
     this.bio,
   }) {
-    this._profilPic = profilPic;
+    _profilPic = profilPic;
   }
 
   String? get profilPic {
@@ -47,7 +45,7 @@ class User {
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",
       pseudo: map['pseudo'] ?? "",
-      UID: map['UID'] ?? "",
+      uid: map['uid'] ?? "",
       profession: map[
           'profession'], // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
       bio: map[
