@@ -7,11 +7,9 @@ import '../../vues/pages_vues/my_nav_bar.dart';
 class MyApp extends StatelessWidget {
   final IconTabBar iconTabBar = IconTabBar();
   final FirebaseFirestore firestore;
+  final String uid;
 
-  MyApp({
-    super.key,
-    required this.firestore,
-  });
+  MyApp({super.key, required this.firestore, required this.uid});
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +17,9 @@ class MyApp extends StatelessWidget {
 
     return DefaultTabController(
       length: icons.length,
-      child: const MyNavBar(),
+      child: MyNavBar(
+        uid: uid,
+      ),
     );
   }
 }

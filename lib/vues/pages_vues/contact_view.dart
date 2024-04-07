@@ -9,6 +9,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ContactView extends StatelessWidget {
+  final String uid;
   final String residenceSelected;
   final String residenceName;
   final DataBasesResidenceServices _databaseContactServices =
@@ -18,7 +19,8 @@ class ContactView extends StatelessWidget {
   ContactView(
       {super.key,
       required this.residenceSelected,
-      required this.residenceName});
+      required this.residenceName,
+      required this.uid});
 
   @override
   Widget build(BuildContext context) {
@@ -58,8 +60,10 @@ class ContactView extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 CupertinoPageRoute(
-                                    builder: (context) =>
-                                        DetailContactView(contact: contact)),
+                                    builder: (context) => DetailContactView(
+                                          contact: contact,
+                                          uid: uid,
+                                        )),
                               );
                             },
                             leading: SizedBox(

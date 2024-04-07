@@ -21,6 +21,9 @@ class StorageServices {
         case 'png':
           mimeType = 'image/png';
           break;
+        case 'pdf':
+          mimeType = 'application/pdf';
+          break;
         // Ajoutez d'autres cas pour les extensions de fichiers supplémentaires si nécessaire
         default:
           throw UnsupportedError(

@@ -3,7 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/services/databases_comment_services.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
-import 'package:connect_kasa/vues/components/comment_tile.dart';
+import 'package:connect_kasa/vues/widget_view/comment_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 

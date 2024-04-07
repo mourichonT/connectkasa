@@ -1,5 +1,6 @@
 // ignore_for_file: must_be_immutable
 
+import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
@@ -64,7 +65,7 @@ class EmergenciesContactsView extends StatelessWidget {
                           trailing: IconButton(
                             icon: const Icon(Icons.call),
                             onPressed: () {
-                              launchPhoneCall(contact.phone);
+                              ContactFeatures.launchPhoneCall(contact.phone);
                             },
                           ),
                         ),
@@ -76,14 +77,5 @@ class EmergenciesContactsView extends StatelessWidget {
             );
           }
         });
-  }
-
-  void launchPhoneCall(String phoneNumber) async {
-    Uri url = Uri.parse('tel:$phoneNumber');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url);
-    } else {
-      throw 'Could not launch $url';
-    }
   }
 }

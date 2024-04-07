@@ -7,15 +7,16 @@ import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/route_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
 import 'package:connect_kasa/vues/pages_vues/home_view.dart';
-import 'package:connect_kasa/vues/components/my_bottomnavbar_view.dart';
+import 'package:connect_kasa/vues/widget_view/my_bottomnavbar_view.dart';
 import 'package:flutter/material.dart';
 import '../../models/pages_models/lot.dart';
 import '../../controllers/pages_controllers/my_tab_bar_controller.dart';
-import '../components/select_lot_component.dart';
-import '../components/lot_bottom_sheet.dart';
+import '../widget_view/select_lot_component.dart';
+import '../widget_view/lot_bottom_sheet.dart';
 
 class MyNavBar extends StatefulWidget {
-  const MyNavBar({super.key});
+  final String uid;
+  MyNavBar({super.key, required this.uid});
 
   @override
   _MyNavBarState createState() => _MyNavBarState();
@@ -26,18 +27,15 @@ class _MyNavBarState extends State<MyNavBar> {
   final MyTabBarController tabController = MyTabBarController();
   final LoadUserController _loadUserController = LoadUserController();
   Lot? lot;
-  // User? user;
   double pad = 0;
   Lot? preferedLot;
-  //AuthentificationService authService = AuthentificationService();
-
-  // Déclaration de la variable user en dehors des méthodes.
-  //UserCredential? user;
+  String uid = "";
 
   @override
   void initState() {
     super.initState();
     _loadPreferedLot();
+    uid = widget.uid;
   }
 
   @override
@@ -55,11 +53,12 @@ class _MyNavBarState extends State<MyNavBar> {
 
     return Scaffold(
       appBar: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
           elevation: 20,
           title: Image.asset(
-            width: width / 2.5,
-            "images/logoCK250connectKasa.png",
+            width: width / 2.2,
+            "images/assets/logoCK250connectKasa.png",
             fit: BoxFit.fitWidth,
           ),
           flexibleSpace: Container(
@@ -77,29 +76,17 @@ class _MyNavBarState extends State<MyNavBar> {
                 InkWell(
                     child: const SelectLotComponent(),
                     onTap: () async {
-                      _handleGoogleSignIn();
+                      //_handleGoogleSignIn();
+                      _showLotBottomSheet(context, uid);
                     })
               ],
             ),
           )),
       body: preferedLot != null
-          ? FutureBuilder<String>(
-              future: _loadUserController.loadUserData(),
-              builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (snapshot.hasError) {
-                  return Text('Erreur: ${snapshot.error}');
-                } else {
-                  return Homeview(
-                    key: UniqueKey(),
-                    residenceSelected: preferedLot!.residenceId,
-                    uid: snapshot.data!,
-                  );
-                }
-              },
+          ? Homeview(
+              key: UniqueKey(),
+              residenceSelected: preferedLot!.residenceId,
+              uid: uid,
             )
           : const Center(
               child: CircularProgressIndicator(),
@@ -111,13 +98,8 @@ class _MyNavBarState extends State<MyNavBar> {
           ),
           ElevatedButton(
             onPressed: () async {
-              _handleGoogleSignIn();
-            },
-            child: const Text("Google Auth"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
               _loadUserController.handleGoogleSignOut();
+              Navigator.popUntil(context, ModalRoute.withName('/'));
             },
             child: const Text("Déconnexion"),
           )
@@ -126,6 +108,7 @@ class _MyNavBarState extends State<MyNavBar> {
       bottomNavigationBar: MyBottomNavBarView(
         residenceSelected: preferedLot?.residenceId ?? "",
         residenceName: preferedLot?.residenceData['name'] ?? "",
+        uid: uid,
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: SizedBox(
@@ -134,7 +117,7 @@ class _MyNavBarState extends State<MyNavBar> {
           child: FloatingActionButton(
               backgroundColor: Theme.of(context).colorScheme.background,
               onPressed: () async {
-                String uid = await _loadUserController.loadUserData();
+                // String uid = uid;
                 Navigator.of(context).push(RouteController().createRoute(
                   PostFormController(
                     racineFolder: "residences",
@@ -178,7 +161,7 @@ class _MyNavBarState extends State<MyNavBar> {
 
   Future<void> _handleGoogleSignIn() async {
     try {
-      String uid = await _loadUserController.loadUserData();
+      // uid = await _loadUserController.loadUserData();
       _showLotBottomSheet(context, uid);
     } catch (e) {
       print("Erreur lors de la connexion avec Google: $e");

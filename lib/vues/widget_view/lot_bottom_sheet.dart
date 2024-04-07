@@ -7,7 +7,7 @@ import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/pages_models/lot.dart';
-import 'lot_tile_view.dart';
+import '../components/lot_tile_view.dart';
 
 class LotBottomSheet extends StatefulWidget {
   final Function()? onRefresh;

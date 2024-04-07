@@ -182,7 +182,7 @@ class PostViewState extends State<PostView> {
                                 if (snapshot.hasData && snapshot.data != null) {
                                   var user = snapshot.data!;
                                   return MyTextStyle.lotName(
-                                    user.pseudo,
+                                    user.pseudo!,
                                     Colors.white,
                                   );
                                 } else {

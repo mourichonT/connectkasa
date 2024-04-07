@@ -1,7 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/vues/components/incivilite_form.dart';
-import 'package:connect_kasa/vues/components/sinistre_form.dart';
+import 'package:connect_kasa/vues/widget_view/incivilite_form.dart';
+import 'package:connect_kasa/vues/widget_view/sinistre_form.dart';
 import 'package:connect_kasa/vues/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';

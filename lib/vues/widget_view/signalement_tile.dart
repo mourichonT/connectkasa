@@ -95,7 +95,7 @@ class SignalementTile extends StatelessWidget {
                             if (snapshot.hasData && snapshot.data != null) {
                               var user = snapshot.data!;
                               return MyTextStyle.lotName(
-                                  user.pseudo, Colors.white);
+                                  user.pseudo!, Colors.white);
                             } else {
                               return const Text('Utilisateur inconnue',
                                   style: TextStyle(

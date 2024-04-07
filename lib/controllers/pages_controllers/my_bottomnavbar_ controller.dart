@@ -8,11 +8,15 @@ import '../../models/enum/tab_bar_icon.dart';
 class MyBottomNavBarController extends StatefulWidget {
   final String residenceSelected;
   final String residenceName;
+  final String uid;
 
   final IconTabBar iconTabBar = IconTabBar();
 
   MyBottomNavBarController(
-      {Key? key, required this.residenceSelected, required this.residenceName});
+      {Key? key,
+      required this.residenceSelected,
+      required this.residenceName,
+      required this.uid});
 
   @override
   State<StatefulWidget> createState() => MyBottomNavBarState();
@@ -30,6 +34,7 @@ class MyBottomNavBarController extends StatefulWidget {
               ContactView(
                 residenceSelected: residenceSelected,
                 residenceName: residenceName,
+                uid: uid,
               ),
             ));
 

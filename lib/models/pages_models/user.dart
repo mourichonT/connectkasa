@@ -1,11 +1,15 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class User {
   String _profilPic = "";
   String name;
   String surname;
-  String pseudo;
+  String? pseudo;
   String uid;
   String? profession;
   String? bio;
+  Timestamp? createdDate;
+  bool approved;
   bool private;
 
   User({
@@ -14,8 +18,10 @@ class User {
     required this.surname,
     required this.uid,
     this.profession,
-    required this.pseudo,
+    this.pseudo,
     this.private = true,
+    required this.approved,
+    this.createdDate,
     this.bio,
   }) {
     _profilPic = profilPic;
@@ -42,6 +48,8 @@ class User {
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       profilPic: map['profilPic'] ?? "",
+      approved: map['approved'] ?? false,
+      createdDate: map['createdDate'] ?? "",
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",
       pseudo: map['pseudo'] ?? "",
@@ -51,7 +59,22 @@ class User {
       bio: map[
           'bio'], // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
       private: map['private'] ??
-          true, // Si 'private' est null, utilisez false par défaut
+          false, // Si 'private' est null, utilisez false par défaut
     );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'profilPic': profilPic,
+      'approved': approved,
+      'createdDate': createdDate,
+      'name': name,
+      'surname': surname,
+      'pseudo': pseudo,
+      'uid': uid,
+      'profession': profession,
+      'bio': bio,
+      'private': private,
+    };
   }
 }

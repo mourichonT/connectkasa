@@ -77,6 +77,18 @@ class MyTextStyle {
     );
   }
 
+  static Text login(
+      String text, double size, Color color, FontWeight fontWeight) {
+    return Text(
+      text,
+      style: GoogleFonts.roboto(
+        fontSize: size,
+        fontWeight: fontWeight,
+        color: color,
+      ),
+    );
+  }
+
   static Text commentTextFormat(String text) {
     return Text(
       text,

@@ -1,10 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/models/pages_models/user_temp.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class DataBasesUserServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
+
+  Future<UserTemp> setUserTemp(UserTemp newUser) async {
+    try {
+      // Si aucun post correspondant n'est trouvé, ajouter le nouveau post à la collection
+      await db.collection("UserTemp").add(newUser.toMap());
+    } catch (e) {
+      print("Impossible de poster le nouvel user: $e");
+    }
+
+    return newUser;
+  }
 
   Future<User?> getUserById(String numUser) async {
     User? user;
@@ -12,7 +24,7 @@ class DataBasesUserServices {
       QuerySnapshot<Map<String, dynamic>> querySnapshot =
           await FirebaseFirestore.instance
               .collection("User")
-              .where("UID", isEqualTo: numUser)
+              .where("uid", isEqualTo: numUser)
               .get();
       if (querySnapshot.docs.isNotEmpty) {
         // S'il y a des documents correspondants, prenez le premier
