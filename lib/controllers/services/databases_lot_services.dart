@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:connect_kasa/models/pages_models/residence.dart';
 
 class DataBasesLotServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -58,5 +59,72 @@ class DataBasesLotServices {
     }
 
     return lots;
+  }
+
+  Future<List<Lot>> getLotByResidence(String residenceId) async {
+    List<Lot> lots = [];
+    try {
+      // Récupérer la référence de la collection "Residence" basée sur le nom de la résidence
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection("Residence")
+              .where("id", isEqualTo: residenceId)
+              .get();
+
+      // Vérifier si une résidence correspondant au nom existe
+      if (querySnapshot.docs.isNotEmpty) {
+        // Récupérer la référence de la résidence trouvée
+        DocumentSnapshot<Map<String, dynamic>> residenceDoc =
+            querySnapshot.docs.first;
+
+        // Récupérer les lots de la résidence spécifique
+        QuerySnapshot<Map<String, dynamic>> lotQuerySnapshot =
+            await residenceDoc.reference.collection("lot").get();
+
+        // Parcourir chaque document de la collection "lot"
+        for (QueryDocumentSnapshot<Map<String, dynamic>> lotDoc
+            in lotQuerySnapshot.docs) {
+          // Convertir chaque document en objet Lot
+          lots.add(Lot.fromMap(lotDoc.data()));
+        }
+      } else {
+        print(
+            "Aucune résidence correspondant au nom '$residenceId' n'a été trouvée.");
+      }
+    } catch (e) {
+      print("Impossible de récupérer les lots - erreur : $e");
+    }
+    return lots;
+  }
+
+  Future<Lot?> getUniqueLot(
+      String residenceId, String bat, String numlot) async {
+    Lot? lot;
+
+    QuerySnapshot<Map<String, dynamic>> querySnapshot = await FirebaseFirestore
+        .instance
+        .collection("Residence")
+        .where("id", isEqualTo: residenceId)
+        .get();
+
+    // Vérifier si une résidence correspondant au nom existe
+    if (querySnapshot.docs.isNotEmpty) {
+      // Récupérer la référence de la résidence trouvée
+      DocumentSnapshot<Map<String, dynamic>> residenceDoc =
+          querySnapshot.docs.first;
+
+      QuerySnapshot<Map<String, dynamic>> lotQuerySnapshot = await residenceDoc
+          .reference
+          .collection("lot")
+          .where("batiment", isEqualTo: bat)
+          .where('lot', isEqualTo: numlot)
+          .get();
+
+      if (lotQuerySnapshot.docs.isNotEmpty) {
+        // Construction de l'objet Lot à partir des données récupérées
+        lot = Lot.fromMap(lotQuerySnapshot.docs.first.data());
+      }
+    }
+    return lot;
   }
 }

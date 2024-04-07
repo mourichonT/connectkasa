@@ -3,14 +3,20 @@ class Contact {
   String service;
   String phone;
   String? mail;
-  String? adresse;
+  String? num;
+  String? street;
+  String? city;
+  String? zipcode;
   String? web;
 
   Contact({
     required this.name,
     required this.phone,
     required this.service,
-    this.adresse,
+    this.num,
+    this.street,
+    this.city,
+    this.zipcode,
     this.mail,
     this.web,
   });
@@ -20,7 +26,10 @@ class Contact {
       service: json['service'],
       phone: json['phone'],
       mail: json['mail'],
-      adresse: json['adresse'],
+      num: json['num'],
+      street: json['street'],
+      city: json['city'],
+      zipcode: json['zipcode'],
       web: json['web'],
     );
   }
@@ -31,7 +40,10 @@ class Contact {
       'service': service,
       'phone': phone,
       'mail': mail,
-      'adresse': adresse,
+      'num': num,
+      'stree': street,
+      'zipcode': zipcode,
+      'city': city,
       'web': web
     };
   }

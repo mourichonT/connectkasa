@@ -151,8 +151,8 @@ class CommentTileState extends State<CommentTile> {
                           return Text("Error: ${snapshot.error}");
                         } else if (snapshot.hasData && snapshot.data != null) {
                           var user = snapshot.data!;
-                          String pseudo = user.pseudo;
-                          return MyTextStyle.lotName(pseudo, Colors.black87);
+                          String? pseudo = user.pseudo;
+                          return MyTextStyle.lotName(pseudo!, Colors.black87);
                         } else {
                           return const SizedBox();
                         }

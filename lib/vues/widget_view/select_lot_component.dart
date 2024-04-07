@@ -2,7 +2,7 @@ import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/pages_models/lot.dart';
-import 'lot_tile_view.dart';
+import '../components/lot_tile_view.dart';
 
 class SelectLotComponent extends StatefulWidget {
   const SelectLotComponent({super.key});

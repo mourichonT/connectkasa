@@ -13,6 +13,7 @@ class CameraOrFiles extends StatefulWidget {
   final String folderName;
   final String title;
   final Function(String) onImageUploaded;
+  final bool cardOverlay;
 
   CameraOrFiles(
       {super.key,
@@ -20,7 +21,8 @@ class CameraOrFiles extends StatefulWidget {
       required this.residence,
       required this.folderName,
       required this.title,
-      required this.onImageUploaded});
+      required this.onImageUploaded,
+      required this.cardOverlay});
   @override
   CameraOrFilesState createState() => CameraOrFilesState();
 }
@@ -32,13 +34,21 @@ class CameraOrFilesState extends State<CameraOrFiles> {
   @override
   Widget build(BuildContext context) {
     final double height = MediaQuery.of(context).size.height;
+    final double width = MediaQuery.of(context).size.width;
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: height / 20),
+      padding: EdgeInsets.symmetric(vertical: 20),
       child: Stack(
         children: [
           _selectedImage != null
-              ? Image.file(_selectedImage!)
+              ? Container(
+                  width: width / 2.2,
+                  height: width / 2.2,
+                  child: Image.file(
+                    _selectedImage!,
+                    fit: BoxFit.cover,
+                  ),
+                )
               : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,

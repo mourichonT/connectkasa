@@ -1,13 +1,12 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/components/camera_files_choices.dart';
-import 'package:connect_kasa/vues/components/my_dropdown_menu.dart';
+import 'package:connect_kasa/vues/widget_view/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 
-class SinistreForm extends StatefulWidget {
+class InciviliteForm extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => SinistreFormState();
+  State<StatefulWidget> createState() => InciviliteFormState();
   final Lot preferedLot;
   final String racineFolder;
   final String uid;
@@ -15,10 +14,10 @@ class SinistreForm extends StatefulWidget {
   final Function(String) updateUrl; // Fonction pour mettre à jour imagePath
   final String folderName;
 
-  const SinistreForm({
+  const InciviliteForm({
     super.key,
-    required this.racineFolder,
     required this.preferedLot,
+    required this.racineFolder,
     required this.uid,
     required this.idPost,
     required this.updateUrl,
@@ -26,7 +25,7 @@ class SinistreForm extends StatefulWidget {
   });
 }
 
-class SinistreFormState extends State<SinistreForm> {
+class InciviliteFormState extends State<InciviliteForm> {
   late List<String> itemsType;
   late TextEditingController textEditingController;
 
@@ -47,15 +46,11 @@ class SinistreFormState extends State<SinistreForm> {
       return const Icon(Icons.close);
     },
   );
-  String localisation = "";
-  String etage = "";
-  //String element = "";
   TextEditingController title = TextEditingController();
   TextEditingController desc = TextEditingController();
   String imagePath = "";
   String fileName = '';
-  bool anonymPost = false;
-  Set<String> filters = <String>{};
+  bool anonymPost = true;
 
   void updateItem(String updatedElement) {
     String item = "";
@@ -79,17 +74,6 @@ class SinistreFormState extends State<SinistreForm> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> itemsLocalisation =
-        List<String>.from(widget.preferedLot.residenceData["localistation"]);
-
-    List<String> itemsEtage =
-        List<String>.from(widget.preferedLot.residenceData["etage"]);
-
-    List<String> itemsElements =
-        List<String>.from(widget.preferedLot.residenceData["elements"]);
-
-    final double width = MediaQuery.of(context).size.width;
-
     return Column(
       children: [
         Column(
@@ -101,87 +85,15 @@ class SinistreFormState extends State<SinistreForm> {
             const SizedBox(
               height: 15,
             ),
-            MyDropDownMenu(
-              width,
-              "Localisation",
-              "Choisir une localisation",
-              preferedLot: widget.preferedLot,
-              items: itemsLocalisation,
-              onValueChanged: (String value) {
-                setState(() {
-                  localisation = value;
-                  updateItem(localisation);
-                });
-              },
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            MyDropDownMenu(
-              width,
-              "Etage",
-              "Choisir un étage",
-              preferedLot: widget.preferedLot,
-              items: itemsEtage,
-              onValueChanged: (String value) {
-                setState(() {
-                  etage = value;
-                  updateItem(etage);
-                });
-              },
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            const Divider(),
-            const SizedBox(
-              height: 15,
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MyTextStyle.lotName(
-                    "Apportez des précisions pour localiser le sinistre:",
-                    Colors.black87),
-                const SizedBox(
-                  height: 15,
-                ),
-                Center(
-                  child: Wrap(
-                    spacing: 5.0,
-                    children: itemsElements.map((String itemsElement) {
-                      return FilterChip(
-                        label: Text(itemsElement),
-                        selected: filters.contains(itemsElement),
-                        onSelected: (bool selected) {
-                          setState(() {
-                            if (selected) {
-                              filters.add(itemsElement);
-                            } else {
-                              filters.remove(itemsElement);
-                            }
-                          });
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(
-              height: 15,
-            ),
-            const Divider(),
             Center(
               child: CameraOrFiles(
-                residence: widget.preferedLot.residenceId,
                 racineFolder: widget.racineFolder,
+                residence: widget.preferedLot.residenceId,
                 folderName: widget.folderName,
                 title: title.text,
                 onImageUploaded:
                     downloadImagePath, // Passer la fonction de rappel
+                cardOverlay: false,
               ),
             ),
             const Divider(),
@@ -259,9 +171,6 @@ class SinistreFormState extends State<SinistreForm> {
                     desc,
                     anonymPost,
                     widget.preferedLot.residenceId,
-                    localisation: localisation,
-                    etage: etage,
-                    element: filters,
                   );
                   Navigator.pop(context);
                 },

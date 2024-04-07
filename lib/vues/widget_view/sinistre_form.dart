@@ -1,12 +1,13 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/components/camera_files_choices.dart';
+import 'package:connect_kasa/vues/widget_view/camera_files_choices.dart';
+import 'package:connect_kasa/vues/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 
-class InciviliteForm extends StatefulWidget {
+class SinistreForm extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => InciviliteFormState();
+  State<StatefulWidget> createState() => SinistreFormState();
   final Lot preferedLot;
   final String racineFolder;
   final String uid;
@@ -14,10 +15,10 @@ class InciviliteForm extends StatefulWidget {
   final Function(String) updateUrl; // Fonction pour mettre à jour imagePath
   final String folderName;
 
-  const InciviliteForm({
+  const SinistreForm({
     super.key,
-    required this.preferedLot,
     required this.racineFolder,
+    required this.preferedLot,
     required this.uid,
     required this.idPost,
     required this.updateUrl,
@@ -25,7 +26,7 @@ class InciviliteForm extends StatefulWidget {
   });
 }
 
-class InciviliteFormState extends State<InciviliteForm> {
+class SinistreFormState extends State<SinistreForm> {
   late List<String> itemsType;
   late TextEditingController textEditingController;
 
@@ -46,11 +47,15 @@ class InciviliteFormState extends State<InciviliteForm> {
       return const Icon(Icons.close);
     },
   );
+  String localisation = "";
+  String etage = "";
+  //String element = "";
   TextEditingController title = TextEditingController();
   TextEditingController desc = TextEditingController();
   String imagePath = "";
   String fileName = '';
-  bool anonymPost = true;
+  bool anonymPost = false;
+  Set<String> filters = <String>{};
 
   void updateItem(String updatedElement) {
     String item = "";
@@ -74,6 +79,17 @@ class InciviliteFormState extends State<InciviliteForm> {
 
   @override
   Widget build(BuildContext context) {
+    List<String> itemsLocalisation =
+        List<String>.from(widget.preferedLot.residenceData["localistation"]);
+
+    List<String> itemsEtage =
+        List<String>.from(widget.preferedLot.residenceData["etage"]);
+
+    List<String> itemsElements =
+        List<String>.from(widget.preferedLot.residenceData["elements"]);
+
+    final double width = MediaQuery.of(context).size.width;
+
     return Column(
       children: [
         Column(
@@ -85,14 +101,88 @@ class InciviliteFormState extends State<InciviliteForm> {
             const SizedBox(
               height: 15,
             ),
+            MyDropDownMenu(
+              width,
+              "Localisation",
+              "Choisir une localisation",
+              preferedLot: widget.preferedLot,
+              items: itemsLocalisation,
+              onValueChanged: (String value) {
+                setState(() {
+                  localisation = value;
+                  updateItem(localisation);
+                });
+              },
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            MyDropDownMenu(
+              width,
+              "Etage",
+              "Choisir un étage",
+              preferedLot: widget.preferedLot,
+              items: itemsEtage,
+              onValueChanged: (String value) {
+                setState(() {
+                  etage = value;
+                  updateItem(etage);
+                });
+              },
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            const Divider(),
+            const SizedBox(
+              height: 15,
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                MyTextStyle.lotName(
+                    "Apportez des précisions pour localiser le sinistre:",
+                    Colors.black87),
+                const SizedBox(
+                  height: 15,
+                ),
+                Center(
+                  child: Wrap(
+                    spacing: 5.0,
+                    children: itemsElements.map((String itemsElement) {
+                      return FilterChip(
+                        label: Text(itemsElement),
+                        selected: filters.contains(itemsElement),
+                        onSelected: (bool selected) {
+                          setState(() {
+                            if (selected) {
+                              filters.add(itemsElement);
+                            } else {
+                              filters.remove(itemsElement);
+                            }
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(
+              height: 15,
+            ),
+            const Divider(),
             Center(
               child: CameraOrFiles(
-                racineFolder: widget.racineFolder,
                 residence: widget.preferedLot.residenceId,
+                racineFolder: widget.racineFolder,
                 folderName: widget.folderName,
                 title: title.text,
-                onImageUploaded:
-                    downloadImagePath, // Passer la fonction de rappel
+                onImageUploaded: downloadImagePath,
+                // Passer la fonction de rappel
+                cardOverlay: false,
               ),
             ),
             const Divider(),
@@ -170,6 +260,9 @@ class InciviliteFormState extends State<InciviliteForm> {
                     desc,
                     anonymPost,
                     widget.preferedLot.residenceId,
+                    localisation: localisation,
+                    etage: etage,
+                    element: filters,
                   );
                   Navigator.pop(context);
                 },

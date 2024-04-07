@@ -1,6 +1,6 @@
 import 'package:connect_kasa/controllers/services/databases_comment_services.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
-import 'package:connect_kasa/vues/components/section_comment.dart';
+import 'package:connect_kasa/vues/widget_view/section_comment.dart';
 import 'package:flutter/material.dart';
 import '../../controllers/features/my_texts_styles.dart';
 import '../../models/pages_models/post.dart';

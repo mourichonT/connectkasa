@@ -4,8 +4,12 @@
 <dict>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
-	<string>sms</string>
-	<string>tel</string>
+		<string>https</string>
+		<string>http</string>
+		<string>mailto</string>
+		<string>tel</string>
+		<string>sms</string>
+		<string>file</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>

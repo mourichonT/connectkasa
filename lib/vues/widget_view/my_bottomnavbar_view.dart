@@ -6,11 +6,13 @@ import 'package:flutter/material.dart';
 class MyBottomNavBarView extends StatelessWidget {
   final String residenceSelected;
   final String residenceName;
+  final String uid;
 
   MyBottomNavBarView(
       {super.key,
       required this.residenceSelected,
-      required this.residenceName});
+      required this.residenceName,
+      required this.uid});
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +20,7 @@ class MyBottomNavBarView extends StatelessWidget {
         MyBottomNavBarController(
       residenceSelected: residenceSelected,
       residenceName: residenceName,
+      uid: uid,
     );
     // Récupérez les icônes à ce niveau
     List<List<dynamic>> icons =
