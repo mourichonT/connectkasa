@@ -133,6 +133,19 @@ class MyTextStyle {
     );
   }
 
+  static Widget chatdate(Timestamp timeStamp) {
+    DateTime tsdate = timeStamp.toDate();
+    String formattedDate = DateFormat("dd/MM, HH:mm").format(tsdate);
+
+    return Text(
+      formattedDate,
+      style: GoogleFonts.roboto(
+        fontStyle: FontStyle.italic,
+        fontSize: 11,
+      ),
+    );
+  }
+
   static commentDate(Timestamp timestamp) {
     // Convertir le Timestamp en millisecondes depuis l'époque Unix
     int milliseconds = timestamp.millisecondsSinceEpoch;
