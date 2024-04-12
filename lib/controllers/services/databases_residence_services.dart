@@ -69,33 +69,4 @@ class DataBasesResidenceServices {
 
     return residencesTrouvees;
   }
-
-  // Future<List<Residence>> rechercheFirestore(String saisie) async {
-  //   List<Residence> residences = [];
-  //   // Récupérer une référence à la collection
-  //   CollectionReference collectionReference =
-  //       FirebaseFirestore.instance.collection("Residence");
-
-  //   // Effectuer la requête de recherche
-  //   QuerySnapshot querySnapshot = await collectionReference.get();
-
-  //   // Boucler à travers les documents
-  //   for (var doc in querySnapshot.docs) {
-  //     // Vérifier si les données du document ne sont pas nulles et sont de type Map<String, dynamic>
-  //     if (doc.data() != null && doc.data() is Map<String, dynamic>) {
-  //       // Convertir les données en un Map<String, dynamic>
-  //       Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-  //       // Vérifier si la clé "votre_recherche" existe dans les données
-  //       if (data.containsValue(saisie)) {
-  //         residences.add(Residence.fromJson(data));
-  //         print("Document trouvé : ${doc.id}");
-  //         print(
-  //             "Champ correspondant : votre_recherche - Valeur : ${data[saisie]}");
-  //         // Vous pouvez ajouter ici le traitement supplémentaire que vous souhaitez effectuer pour chaque document trouvé
-  //       }
-  //     }
-  //   }
-  //   return residences;
-  // }
 }

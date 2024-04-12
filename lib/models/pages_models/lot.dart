@@ -5,6 +5,7 @@ class Lot {
   String? lot;
   String typeLot;
   //Color colorSelected; // Modifier le type de colorSelected
+  String? refGerance;
   String type;
   String idProprietaire;
   List<String>? idLocataire;
@@ -18,6 +19,7 @@ class Lot {
     this.lot,
     required this.typeLot,
     // required this.colorSelected,
+    this.refGerance,
     required this.type,
     required this.idProprietaire,
     this.idLocataire,
@@ -33,6 +35,7 @@ class Lot {
       lot: json["lot"] ?? "",
       typeLot: json["typeLot"] ?? "",
       type: json["type"] ?? "",
+      refGerance: json["refGerance"] ?? "",
       idProprietaire: json["idProprietaire"] ?? "",
       idLocataire: json["idLocataire"] != null
           ? List<String>.from(json["idLocataire"])
@@ -48,6 +51,7 @@ class Lot {
     return {
       "name": name,
       "refLot": refLot,
+      "refGerance": refGerance,
       "batiment": batiment,
       "lot": lot,
       "typeLot": typeLot,
@@ -83,6 +87,7 @@ class Lot {
     return {
       if (_name.isNotEmpty) "name": name,
       if (refLot.isNotEmpty) "refLot": refLot,
+      "refGerance": refGerance,
       if (batiment != null) "batiment": batiment,
       if (lot != null) "lot": lot,
       "typeLot": typeLot,
@@ -104,6 +109,7 @@ class Lot {
       batiment: map['batiment'],
       lot: map['lot'],
       typeLot: map['typeLot'],
+      refGerance: map["refGerance"],
       //colorSelected: Color(map['colorSelected']), // Utiliser Color au lieu de MaterialColor
       type: map['type'] ?? "",
       idProprietaire: map['idProprietaire'] ?? "",

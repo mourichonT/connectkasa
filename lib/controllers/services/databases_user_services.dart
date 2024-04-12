@@ -108,4 +108,96 @@ class DataBasesUserServices {
 
     return lots;
   }
+
+  Future<List<String>> getNumUsersByResidence(
+      String residenceId, String uid) async {
+    List<String> users = [];
+
+    try {
+      // Récupérer la référence de la collection "Residence" basée sur le nom de la résidence
+      DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+          await FirebaseFirestore.instance
+              .collection("Residence")
+              .doc(residenceId)
+              .get();
+
+      // Vérifier si une résidence correspondant au nom existe
+      if (documentSnapshot.exists) {
+        // Récupérer la référence de la résidence trouvée
+        DocumentSnapshot<Map<String, dynamic>> residenceDoc = documentSnapshot;
+
+        // Récupérer les lots de la résidence spécifique
+        QuerySnapshot<Map<String, dynamic>> lotQuerySnapshot =
+            await residenceDoc.reference.collection("lot").get();
+
+        // Parcourir chaque document de la collection "lot"
+        for (QueryDocumentSnapshot<Map<String, dynamic>> lotDoc
+            in lotQuerySnapshot.docs) {
+          // Récupérer les idLocataire et idProprietaire de chaque lot
+          List<String> idLocataire = List.from(lotDoc.data()["idLocataire"]);
+          String idProprietaire = lotDoc.data()["idProprietaire"];
+
+          // Ajouter chaque élément de idLocataire et idProprietaire à la liste si non nuls
+          if (idLocataire != null) {
+            users.addAll(idLocataire);
+          }
+          if (idProprietaire != null &&
+              (idLocataire == null || !idLocataire.contains(uid))) {
+            users.add(idProprietaire);
+          }
+        }
+      } else {
+        print(
+            "Aucune résidence correspondant au nom '$residenceId' n'a été trouvée.");
+      }
+    } catch (e) {
+      print("Impossible de récupérer les lots - erreur : $e");
+    }
+    return users;
+  }
+
+  // Future<List<String>> getNumUsersByResidence(String residenceId) async {
+  //   List<String> users = [];
+
+  //   try {
+  //     // Récupérer la référence de la collection "Residence" basée sur le nom de la résidence
+  //     DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+  //         await FirebaseFirestore.instance
+  //             .collection("Residence")
+  //             .doc(residenceId)
+  //             .get();
+
+  //     // Vérifier si une résidence correspondant au nom existe
+  //     if (documentSnapshot.exists) {
+  //       // Récupérer la référence de la résidence trouvée
+  //       DocumentSnapshot<Map<String, dynamic>> residenceDoc = documentSnapshot;
+
+  //       // Récupérer les lots de la résidence spécifique
+  //       QuerySnapshot<Map<String, dynamic>> lotQuerySnapshot =
+  //           await residenceDoc.reference.collection("lot").get();
+
+  //       // Parcourir chaque document de la collection "lot"
+  //       for (QueryDocumentSnapshot<Map<String, dynamic>> lotDoc
+  //           in lotQuerySnapshot.docs) {
+  //         // Récupérer les idLocataire et idProprietaire de chaque lot
+  //         List<String> idLocataire = List.from(lotDoc.data()["idLocataire"]);
+  //         String idProprietaire = lotDoc.data()["idProprietaire"];
+
+  //         // Ajouter chaque élément de idLocataire et idProprietaire à la liste si non nuls
+  //         if (idLocataire != null) {
+  //           users.addAll(idLocataire);
+  //         }
+  //         if (idProprietaire != null) {
+  //           users.add(idProprietaire);
+  //         }
+  //       }
+  //     } else {
+  //       print(
+  //           "Aucune résidence correspondant au nom '$residenceId' n'a été trouvée.");
+  //     }
+  //   } catch (e) {
+  //     print("Impossible de récupérer les lots - erreur : $e");
+  //   }
+  //   return users;
+  // }
 }

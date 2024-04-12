@@ -1,7 +1,9 @@
 // ignore_for_file: use_key_in_widget_constructors, file_names
 
 import 'package:connect_kasa/controllers/features/route_controller.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/pages_vues/contact_view.dart';
+import 'package:connect_kasa/vues/pages_vues/page_chat_friends_list.dart';
 import 'package:flutter/material.dart';
 import '../../models/enum/tab_bar_icon.dart';
 
@@ -9,6 +11,7 @@ class MyBottomNavBarController extends StatefulWidget {
   final String residenceSelected;
   final String residenceName;
   final String uid;
+  final Lot selectedLot;
 
   final IconTabBar iconTabBar = IconTabBar();
 
@@ -16,7 +19,8 @@ class MyBottomNavBarController extends StatefulWidget {
       {Key? key,
       required this.residenceSelected,
       required this.residenceName,
-      required this.uid});
+      required this.uid,
+      required this.selectedLot});
 
   @override
   State<StatefulWidget> createState() => MyBottomNavBarState();
@@ -40,7 +44,14 @@ class MyBottomNavBarController extends StatefulWidget {
 
             break;
           case 1:
-            print("message");
+            Navigator.of(context).push(RouteController().createRoute(
+              PageChatFriendsList(
+                uid: uid,
+                residence: residenceSelected,
+                selectedLot: selectedLot,
+              ),
+            ));
+
             break;
         }
       },

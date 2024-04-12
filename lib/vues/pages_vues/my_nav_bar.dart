@@ -1,11 +1,12 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'dart:math';
-
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
-import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/route_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
+import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/vues/components/my_drawer.dart';
 import 'package:connect_kasa/vues/pages_vues/home_view.dart';
 import 'package:connect_kasa/vues/widget_view/my_bottomnavbar_view.dart';
 import 'package:flutter/material.dart';
@@ -23,19 +24,22 @@ class MyNavBar extends StatefulWidget {
 }
 
 class _MyNavBarState extends State<MyNavBar> {
+  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
+  final DataBasesResidenceServices _dataBasesResidenceServices =
+      DataBasesResidenceServices();
   final LoadPreferedData _loadPreferedData = LoadPreferedData();
   final MyTabBarController tabController = MyTabBarController();
-  final LoadUserController _loadUserController = LoadUserController();
-  Lot? lot;
   double pad = 0;
+  List<Lot?>? lot;
   Lot? preferedLot;
   String uid = "";
 
   @override
   void initState() {
     super.initState();
-    _loadPreferedLot();
     uid = widget.uid;
+    _loadPreferedLot();
+    _loadDefaultLot(widget.uid);
   }
 
   @override
@@ -91,24 +95,22 @@ class _MyNavBarState extends State<MyNavBar> {
           : const Center(
               child: CircularProgressIndicator(),
             ),
-      endDrawer: Drawer(
-        child: Column(children: [
-          const SizedBox(
-            height: 500,
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              _loadUserController.handleGoogleSignOut();
-              Navigator.popUntil(context, ModalRoute.withName('/'));
-            },
-            child: const Text("Déconnexion"),
-          )
-        ]),
+      endDrawer: MyDrawer(
+        uid: uid,
       ),
       bottomNavigationBar: MyBottomNavBarView(
         residenceSelected: preferedLot?.residenceId ?? "",
         residenceName: preferedLot?.residenceData['name'] ?? "",
         uid: uid,
+        selectedLot: preferedLot ??
+            lot?.first ??
+            Lot(
+                refLot: "",
+                typeLot: "",
+                type: "",
+                idProprietaire: '',
+                residenceId: "",
+                residenceData: {}),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: SizedBox(
@@ -140,7 +142,15 @@ class _MyNavBarState extends State<MyNavBar> {
     );
   }
 
+  Future<void> _loadDefaultLot(uid) async {
+    if (lot != null) {
+      lot = (await _databasesLotServices.getLotByIdUser(uid));
+      setState(() {});
+    }
+  }
+
   Future<void> _loadPreferedLot() async {
+    if (preferedLot != null) {}
     preferedLot = await _loadPreferedData.loadPreferedLot(preferedLot);
     setState(() {});
   }
@@ -159,12 +169,12 @@ class _MyNavBarState extends State<MyNavBar> {
         });
   }
 
-  Future<void> _handleGoogleSignIn() async {
-    try {
-      // uid = await _loadUserController.loadUserData();
-      _showLotBottomSheet(context, uid);
-    } catch (e) {
-      print("Erreur lors de la connexion avec Google: $e");
-    }
-  }
+  // Future<void> _handleGoogleSignIn() async {
+  //   try {
+  //     // uid = await _loadUserController.loadUserData();
+  //     _showLotBottomSheet(context, uid);
+  //   } catch (e) {
+  //     print("Erreur lors de la connexion avec Google: $e");
+  //   }
+  // }
 }
