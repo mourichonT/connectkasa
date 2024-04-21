@@ -169,6 +169,30 @@ class MyTextStyle {
     }
   }
 
+  static MailDate(Timestamp timestamp) {
+    // Convertir le Timestamp en millisecondes depuis l'époque Unix
+    int milliseconds = timestamp.millisecondsSinceEpoch;
+
+    // Convertir les millisecondes en objet DateTime
+    DateTime commentTime = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+
+    // Obtenir la durée écoulée depuis le timestamp jusqu'à maintenant
+    Duration difference = DateTime.now().difference(commentTime);
+
+    // Formater la durée écoulée
+    if (difference.inSeconds < 60) {
+      return const Text("à l'instant");
+    } else if (difference.inMinutes < 60) {
+      return Text('il y a ${difference.inMinutes} min');
+    } else if (difference.inHours < 24) {
+      return Text('il y a ${difference.inHours} h');
+    } else {
+      String formattedDate =
+          DateFormat('dd/MM/yyyy à hh:ss').format(commentTime);
+      return Text('Le $formattedDate');
+    }
+  }
+
   static statuColor(String text, colorTheme) {
     return Container(
         //padding: EdgeInsets.symmetric(vertical: 3, horizontal:0),

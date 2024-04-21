@@ -1,39 +1,60 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/agency_dept.dart';
 
-final FirebaseFirestore db = FirebaseFirestore.instance;
+class DatabasesAgencyServices {
+  final FirebaseFirestore db = FirebaseFirestore.instance;
 
-Future<AgencyDept?> getDeptByRefId(String refId) async {
-  AgencyDept? deptDetails; // Déclarer comme nullable
-  try {
-    // Récupérer la référence de la collection "Gerance"
-    CollectionReference geranceRef = db.collection("Gerance");
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> getDeptByRefId(
+      String refId, String dept) async {
+    List<DocumentSnapshot<Map<String, dynamic>>> deptDetails =
+        []; // Liste pour stocker les documents correspondants
+    try {
+      // Récupérer la référence de la collection "Gerance"
+      CollectionReference geranceRef = db.collection("Gerance");
 
-    // Récupérer les documents de la collection "Gerance"
-    QuerySnapshot<Map<String, dynamic>> querySnapshot =
-        await geranceRef.get() as QuerySnapshot<Map<String, dynamic>>;
-
-    // Parcourir chaque document de la collection "Gerance"
-    for (QueryDocumentSnapshot<Map<String, dynamic>> geranceDoc
-        in querySnapshot.docs) {
-      // Vérifier si le champ "ref" correspond
-      if (geranceDoc.data()['ref'] == refId) {
-        // Récupérer les depts de chaque résidence
-        QuerySnapshot<Map<String, dynamic>> deptQuerySnapshot =
-            await geranceDoc.reference.collection("dept").get();
-
-        // Récupérer les données du document de la résidence
-        Map<String, dynamic> geranceData = geranceDoc.data();
-        // Utiliser les données récupérées pour construire ou mettre à jour deptDetails
-        // Exemple :
-        // deptDetails = AgencyDept.fromMap(geranceData);
-
-        // Break out de la boucle si le document correspondant est trouvé
-        break;
-      }
+      // Appeler une fonction récursive pour parcourir les sous-collections
+      await _getDeptRecursively(geranceRef, refId, dept, deptDetails);
+    } catch (e) {
+      print("Impossible de récupérer l'id $e");
     }
-  } catch (e) {
-    print("Impossible de récupérer l'id $e");
+    return deptDetails;
   }
-  return deptDetails;
+
+  Future<void> _getDeptRecursively(
+      CollectionReference collectionRef,
+      String refId,
+      String dept,
+      List<DocumentSnapshot<Map<String, dynamic>>> deptDetails) async {
+    try {
+      // Récupérer les documents de la collection actuelle
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await collectionRef.get() as QuerySnapshot<Map<String, dynamic>>;
+
+      // Parcourir chaque document de la collection actuelle
+      for (QueryDocumentSnapshot<Map<String, dynamic>> doc
+          in querySnapshot.docs) {
+        // Vérifier si le champ "id" correspond à "refId"
+        if (doc.data()['id'] == refId) {
+          deptDetails.add(doc);
+          // Récupérer le document parent
+          DocumentSnapshot<Map<String, dynamic>> parentDoc =
+              await collectionRef.parent!.get();
+          deptDetails.add(parentDoc);
+        }
+      }
+
+      // Parcourir chaque sous-collection de la collection actuelle
+      for (QueryDocumentSnapshot<Map<String, dynamic>> doc
+          in querySnapshot.docs) {
+        // Si le document a une sous-collection
+        if (doc.reference.collection(dept).id == dept) {
+          // Appeler récursivement cette fonction pour cette sous-collection
+          await _getDeptRecursively(
+              doc.reference.collection(dept), refId, dept, deptDetails);
+        }
+      }
+    } catch (e) {
+      print("Impossible de récupérer l'id $e");
+    }
+  }
 }

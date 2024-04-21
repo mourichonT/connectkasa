@@ -1,7 +1,7 @@
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/components/card_contact.dart';
+import 'package:connect_kasa/controllers/widgets_controllers/card_contact_controller.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page.dart';
 import 'package:connect_kasa/vues/widget_view/message_user_tile.dart';
 import 'package:flutter/material.dart';
@@ -140,8 +140,10 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                   child: Center(child: Text('Specifications tab')),
                 )
               else if (widget.selectedLot?.refGerance != null)
-                CardContact(
+                CardContactController(
                   widget.selectedLot,
+                  "geranceLocative",
+                  uid: widget.uid,
                 )
               else
                 Card(
