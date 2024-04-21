@@ -56,6 +56,8 @@ dependencies:
   camera: ^0.10.5+9
   image: ^4.1.7
   flutter_keyboard_visibility: ^6.0.0
+  google_maps_flutter: ^2.5.3
+  geocoding: ^3.0.0
   
 
 dev_dependencies:
