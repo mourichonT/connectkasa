@@ -33,7 +33,7 @@ class _MyNavBarState extends State<MyNavBar> {
   List<Lot?>? lot;
   Lot? preferedLot;
   String uid = "";
-
+  int nbrTab = 0;
   @override
   void initState() {
     super.initState();

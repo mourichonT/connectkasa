@@ -15,12 +15,13 @@ class MyBottomNavBarController extends StatefulWidget {
 
   final IconTabBar iconTabBar = IconTabBar();
 
-  MyBottomNavBarController(
-      {Key? key,
-      required this.residenceSelected,
-      required this.residenceName,
-      required this.uid,
-      required this.selectedLot});
+  MyBottomNavBarController({
+    Key? key,
+    required this.residenceSelected,
+    required this.residenceName,
+    required this.uid,
+    required this.selectedLot,
+  });
 
   @override
   State<StatefulWidget> createState() => MyBottomNavBarState();
