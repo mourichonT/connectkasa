@@ -1,15 +1,21 @@
+import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/buid_google_map.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:connect_kasa/vues/components/modal_entry_text.dart';
+import 'package:connect_kasa/vues/pages_vues/mail_chat_page.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/services/databases_mail_services.dart';
 import 'package:connect_kasa/models/pages_models/mail.dart';
-import 'package:intl/intl.dart';
 
 class CardContactView extends StatefulWidget {
+  final Lot selectedlot;
+  final String accountantFonction;
   final String accountantName;
   final String accountantSurname;
   final String accountantPhone;
+  final String accountantMail;
   final String agencyName;
   final String agencystreet;
   final String agencyNum;
@@ -17,8 +23,10 @@ class CardContactView extends StatefulWidget {
   final String agencyZIPCode;
   final String agencyCity;
   final String uid;
+  final String accountantId;
 
   CardContactView({
+    required this.selectedlot,
     required this.accountantName,
     required this.accountantSurname,
     required this.accountantPhone,
@@ -29,6 +37,9 @@ class CardContactView extends StatefulWidget {
     required this.agencyZIPCode,
     required this.agencyCity,
     required this.uid,
+    required this.accountantMail,
+    required this.accountantFonction,
+    required this.accountantId,
   });
 
   @override
@@ -42,7 +53,9 @@ class _CardContactViewState extends State<CardContactView> {
   @override
   void initState() {
     super.initState();
-    _mailsFuture = _databasesMail.getMailFromUid(widget.uid);
+    // _mailsFuture = _databasesMail.getMailFromUid(widget.uid);
+    _mailsFuture = _databasesMail.getMailFromUid(
+        widget.uid, widget.selectedlot, widget.accountantMail);
   }
 
   @override
@@ -51,7 +64,7 @@ class _CardContactViewState extends State<CardContactView> {
         '${widget.agencyNum} ${widget.agencyVoie} ${widget.agencystreet}, ${widget.agencyZIPCode} ${widget.agencyCity}';
 
     return FutureBuilder<List<Mail>>(
-      future: _mailsFuture,
+      future: _mailsFuture!,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(
@@ -83,7 +96,7 @@ class _CardContactViewState extends State<CardContactView> {
                           topRight: Radius.circular(10),
                         ),
                       ),
-                      child: Row(
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
@@ -94,45 +107,66 @@ class _CardContactViewState extends State<CardContactView> {
                               fontWeight: FontWeight.w900,
                             ),
                           ),
+                          Text(
+                            "${widget.accountantFonction}",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                   ),
                   if (mails.isNotEmpty) // Add this condition
                     Positioned(
-                      top: 60,
+                      top: 80,
                       left: 0,
                       right: 0,
-                      child: Container(
-                        padding: EdgeInsets.only(top: 20),
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        height: 300, // Set fixed height
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                        ),
-                        child: ListView.separated(
-                          itemCount: mails.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                              child: ListTile(
-                                title: MyTextStyle.MailDate(
-                                    mails[index].startTime),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => MailChatPage(
+                                        selectedLot: widget.selectedlot,
+                                        agencyName: widget.agencyName,
+                                        mails: mails,
+                                        to: [widget.accountantMail],
+                                        uid: widget.uid,
+                                      )));
+                        },
+                        child: Container(
+                          padding: EdgeInsets.only(top: 20),
+                          width: MediaQuery.of(context).size.width * 0.9,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                          ),
+                          child: Column(
+                            children: [
+                              ListTile(
+                                leading: Container(
+                                  width: 30, // Set a specific width
+                                  child: mails.last.from != null
+                                      ? Icon(Icons
+                                          .subdirectory_arrow_right_rounded)
+                                      : Container(),
+                                ),
+                                title:
+                                    MyTextStyle.MailDate(mails.last.startTime),
                                 subtitle: Text(
-                                  mails[index].html,
-                                  overflow: TextOverflow
-                                      .ellipsis, // Gérer le dépassement de texte
+                                  mails.last.html,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                            );
-                          },
-                          separatorBuilder: (context, index) => Divider(
-                            thickness: 0.3,
+                            ],
                           ),
                         ),
                       ),
                     ),
                   Positioned(
-                    top: mails.isNotEmpty ? 320 : 60,
+                    top: mails.isNotEmpty ? 170 : 90,
                     left: 0,
                     right: 0,
                     child: Container(
@@ -146,14 +180,18 @@ class _CardContactViewState extends State<CardContactView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.max,
                         children: [
+                          Divider(
+                            thickness: 0.3,
+                          ),
                           Padding(
-                            padding: const EdgeInsets.only(bottom: 20),
+                            padding: const EdgeInsets.only(top: 20, bottom: 20),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 ElevatedButton(
                                   onPressed: () {
-                                    // Call action
+                                    ContactFeatures.launchPhoneCall(
+                                        widget.accountantPhone);
                                   },
                                   child: Row(
                                     children: [
@@ -170,7 +208,17 @@ class _CardContactViewState extends State<CardContactView> {
                                 ),
                                 ElevatedButton(
                                   onPressed: () {
-                                    // Message action
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => MailChatPage(
+                                                  selectedLot:
+                                                      widget.selectedlot,
+                                                  agencyName: widget.agencyName,
+                                                  mails: mails,
+                                                  to: [widget.accountantMail],
+                                                  uid: widget.uid,
+                                                )));
                                   },
                                   child: Row(
                                     children: [
@@ -289,7 +337,17 @@ class _CardContactViewState extends State<CardContactView> {
                                           ),
                                           recognizer: TapGestureRecognizer()
                                             ..onTap = () {
-                                              // Action when "ici" is clicked
+                                              showModalBottomSheet(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return TextEntryModal(
+                                                    onSave: (String text) {
+                                                      // Faites quelque chose avec le texte ici, par exemple, envoyez-le à une fonction ou mettez-le dans une variable.
+                                                    },
+                                                  );
+                                                },
+                                              );
                                             },
                                         ),
                                       ],

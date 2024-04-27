@@ -57,4 +57,28 @@ class DatabasesAgencyServices {
       print("Impossible de récupérer l'id $e");
     }
   }
+
+  Future<List<DocumentSnapshot<Map<String, dynamic>>>> getDeptByResidence(
+      String refId) async {
+    List<DocumentSnapshot<Map<String, dynamic>>> deptDetails = [];
+    try {
+      // Récupérer la référence de la collection "Gerance"
+      QuerySnapshot<Map<String, dynamic>> residenceRef = db
+          .collection("Residence")
+          .where('id', isEqualTo: refId)
+          .get() as QuerySnapshot<Map<String, dynamic>>;
+
+      for (QueryDocumentSnapshot<Map<String, dynamic>> doc
+          in residenceRef.docs) {
+        deptDetails.add(doc);
+      }
+    } catch (e) {
+      print(
+          'Une erreur s\'est produite lors de la récupération de la residence: $e');
+      // Vous pouvez choisir de renvoyer une liste vide ou de lancer l'erreur
+      throw Exception('Impossible de récupérer la résidence');
+    }
+
+    return deptDetails;
+  }
 }

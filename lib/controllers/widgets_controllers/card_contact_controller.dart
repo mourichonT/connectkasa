@@ -2,28 +2,29 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
-import 'package:connect_kasa/models/pages_models/agency_dept.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/components/card_contact_view.dart';
 import 'package:flutter/material.dart';
 
 class CardContactController extends StatelessWidget {
-  final Lot? selectedlot;
+  final String? refGerance;
+  final Lot selectedlot;
   final String? dept;
   final String uid;
-  late AgencyDept? agence;
 
-  CardContactController(this.selectedlot, this.dept, {required this.uid});
+  CardContactController(this.selectedlot, this.dept,
+      {required this.uid, this.refGerance});
 
-  DatabasesAgencyServices _databasesAgency = DatabasesAgencyServices();
-
+  final DatabasesAgencyServices _databasesAgency = DatabasesAgencyServices();
   @override
   Widget build(BuildContext context) {
+    final choiceDept = (dept == "serviceSyndic")
+        ? selectedlot.residenceData["refGerance"]
+        : selectedlot.refGerance;
     return Card(
       margin: const EdgeInsets.all(16.0),
       child: FutureBuilder<List<DocumentSnapshot<Map<String, dynamic>>>>(
-        future:
-            _databasesAgency.getDeptByRefId(selectedlot!.refGerance!, dept!),
+        future: _databasesAgency.getDeptByRefId(choiceDept, dept!),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // Retourner un indicateur de chargement pendant la récupération de l'agence
@@ -40,8 +41,11 @@ class CardContactController extends StatelessWidget {
               final accountantData = documents.first.data();
               final agencyData = documents.last.data();
               final accountantName = accountantData?['name'] ?? '';
+              final accountantId = accountantData?['id'] ?? '';
               final accountantSurname = accountantData?['surname'] ?? '';
               final accountantPhone = accountantData?['phone'] ?? '';
+              final accountantMail = accountantData?['mail'] ?? '';
+              final accountantFonction = accountantData?['fonction'] ?? '';
               final agencyName = agencyData?['name'] ?? '';
               final agencystreet = agencyData?['street'] ?? '';
               final agencyNum = agencyData?['numeros'] ?? '';
@@ -50,9 +54,12 @@ class CardContactController extends StatelessWidget {
               final agencyCity = agencyData?['city'] ?? '';
 
               return CardContactView(
+                selectedlot: selectedlot,
                 accountantName: accountantName,
                 accountantSurname: accountantSurname,
                 accountantPhone: accountantPhone,
+                accountantMail: accountantMail,
+                accountantFonction: accountantFonction,
                 agencyName: agencyName,
                 agencystreet: agencystreet,
                 agencyNum: agencyNum,
@@ -60,6 +67,7 @@ class CardContactController extends StatelessWidget {
                 agencyZIPCode: agencyZIPCode,
                 agencyCity: agencyCity,
                 uid: uid,
+                accountantId: accountantId,
               );
             } else {
               // Gérer le cas où l'agence est null ou vide

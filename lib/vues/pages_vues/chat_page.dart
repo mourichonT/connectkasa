@@ -25,12 +25,17 @@ class ChatPage extends StatefulWidget {
 class ChatPageState extends State<ChatPage> {
   final chatController = TextEditingController();
   final ChatServices _chatServices = ChatServices();
+  final FocusNode _focusNode = FocusNode();
 
   void sendMessage() async {
     if (chatController.text.isNotEmpty) {
       await _chatServices.sendMessage(widget.idUserFrom, widget.idUserTo,
           chatController.text, widget.residence);
-      chatController.clear();
+
+      setState(() {
+        chatController.clear();
+        _focusNode.unfocus();
+      });
     }
   }
 
@@ -45,6 +50,7 @@ class ChatPageState extends State<ChatPage> {
     // TODO: implement dispose
     super.dispose();
     chatController.dispose();
+    _focusNode.dispose();
   }
 
   @override
@@ -166,6 +172,7 @@ class ChatPageState extends State<ChatPage> {
           Expanded(
             // Wrap TextFormField with Expanded
             child: TextFormField(
+              focusNode: _focusNode,
               controller: chatController,
               enableInteractiveSelection: true,
               decoration: InputDecoration(

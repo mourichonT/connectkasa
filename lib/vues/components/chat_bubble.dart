@@ -16,7 +16,7 @@ class ChatBubble extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        constraints: BoxConstraints(maxWidth: 200),
+        constraints: BoxConstraints(maxWidth: 250),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),

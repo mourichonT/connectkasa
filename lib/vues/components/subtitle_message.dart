@@ -7,15 +7,16 @@ import 'package:connect_kasa/vues/widget_view/message_user_tile.dart';
 import 'package:flutter/material.dart';
 
 class SubtitleMessage extends StatefulWidget {
-  const SubtitleMessage(
-      {super.key,
-      required this.residence,
-      required this.uid,
-      this.selectedLot});
-
   final String residence;
   final String uid;
   final Lot? selectedLot;
+
+  const SubtitleMessage({
+    super.key,
+    required this.residence,
+    required this.uid,
+    this.selectedLot,
+  });
 
   @override
   State<SubtitleMessage> createState() => _SubtitleMessageState();
@@ -27,15 +28,41 @@ class _SubtitleMessageState extends State<SubtitleMessage>
   late Future<List<String>> listNumUsers;
   late Future<List<User>> _allUsersInResidence;
 
+  late final TabController _tabController;
+  int nbrTab = 0;
+  bool loca = true;
+
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    getNbrTab();
     listNumUsers = _dataBasesUserServices.getNumUsersByResidence(
         widget.residence, widget.uid);
     _fetchAllUsers();
     _allUsersInResidence = Future.value(
         []); // Initialisation avec une liste vide pour éviter les erreurs de type
+    _tabController = TabController(length: nbrTab, vsync: this);
+  }
+
+  getNbrTab() {
+    if (widget.selectedLot?.idProprietaire == widget.uid &&
+        widget.selectedLot?.refGerance != "")
+      setState(() {
+        nbrTab = 3;
+        loca = false;
+      });
+    else if (widget.selectedLot?.idProprietaire == widget.uid &&
+        widget.selectedLot?.refGerance == "")
+      setState(() {
+        nbrTab = 3;
+        loca = true;
+      });
+    else
+      setState(() {
+        nbrTab = 2;
+      });
+
+    return nbrTab;
   }
 
   Future<void> _fetchAllUsers() async {
@@ -67,8 +94,6 @@ class _SubtitleMessageState extends State<SubtitleMessage>
     }
   }
 
-  late final TabController _tabController;
-
   @override
   void dispose() {
     _tabController.dispose();
@@ -77,17 +102,43 @@ class _SubtitleMessageState extends State<SubtitleMessage>
 
   @override
   Widget build(BuildContext context) {
+    print(nbrTab);
+    print(loca);
+    print(widget.selectedLot?.refGerance);
     return Column(
       children: <Widget>[
         TabBar.secondary(
-          controller: _tabController,
-          tabs: <Widget>[
-            Tab(text: 'Mes voisins'),
-            widget.selectedLot?.idProprietaire == widget.uid
-                ? Tab(text: 'Mon syndic')
-                : Tab(text: 'Mon agence'),
-          ],
-        ),
+            controller: _tabController,
+            tabs: (nbrTab == 3)
+                ? <Widget>[
+                    Tab(text: 'Mes voisins'),
+
+                    //condition d'affichage par type de contact
+                    if (widget.selectedLot?.idProprietaire == widget.uid)
+                      Tab(text: 'Mon syndic')
+                    else if (widget.selectedLot?.refGerance != "")
+                      Tab(text: 'Mon agence')
+                    else
+                      const Tab(
+                        text: 'Mon proprio',
+                      ),
+
+                    loca == false
+                        ? const Tab(text: 'Mon agence')
+                        : const Tab(text: 'Mon locataire')
+                  ]
+                : <Widget>[
+                    Tab(text: 'Mes voisins'),
+                    //condition d'affichage par type de contact
+                    if (widget.selectedLot?.idProprietaire == widget.uid)
+                      Tab(text: 'Mon syndic')
+                    else if (widget.selectedLot?.refGerance != "")
+                      Tab(text: 'Mon agence')
+                    else
+                      Tab(
+                        text: 'Mon proprio',
+                      ),
+                  ]),
         Expanded(
           child: TabBarView(
             controller: _tabController,
@@ -122,8 +173,6 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                                               residence: widget.residence,
                                               idUserFrom: user.uid,
                                               idUserTo: widget.uid)));
-                                  print('uidFrom : ${user.uid}');
-                                  print('uidTo : ${widget.uid}');
                                 },
                                 child:
                                     MessageUserTile(radius: 23, uid: user.uid));
@@ -134,22 +183,66 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                   },
                 ),
               ),
+
+              // partie 2
               if (widget.selectedLot?.idProprietaire == widget.uid)
-                Card(
-                  margin: const EdgeInsets.all(16.0),
-                  child: Center(child: Text('Specifications tab')),
-                )
-              else if (widget.selectedLot?.refGerance != null)
                 CardContactController(
-                  widget.selectedLot,
+                  widget.selectedLot!,
+                  "serviceSyndic",
+                  uid: widget.uid,
+                  //refGerance: widget.selectedLot!.residenceData["refGerance"],
+                )
+              else if (widget.selectedLot?.refGerance != "")
+                CardContactController(
+                  widget.selectedLot!,
                   "geranceLocative",
                   uid: widget.uid,
+                  //refGerance: widget.selectedLot!.residenceData["refGerance"],
                 )
               else
                 Card(
-                  margin: const EdgeInsets.all(16.0),
-                  child: Center(child: Text('mon Proprio')),
+                  margin: EdgeInsets.all(16),
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                        left: 15, right: 15, top: 10, bottom: 35),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ChatPage(
+                                          residence: widget.residence,
+                                          idUserFrom: widget
+                                              .selectedLot!.idProprietaire,
+                                          idUserTo: widget.uid)));
+                            },
+                            child: MessageUserTile(
+                              radius: 23,
+                              uid: widget.selectedLot!.idProprietaire,
+                            ),
+                          ),
+                        ),
+                        const Divider(),
+                      ],
+                    ),
+                  ),
                 ),
+              // partie 3
+              if (nbrTab == 3 && loca == false)
+                CardContactController(
+                  widget.selectedLot!,
+                  "geranceLocative",
+                  uid: widget.uid,
+                  refGerance: widget.selectedLot!.residenceData["refGerance"],
+                )
+              else if (nbrTab == 3 && loca == true)
+                Card(
+                  child: Text("Loca"),
+                )
             ],
           ),
         ),

@@ -10,12 +10,13 @@ class MyBottomNavBarView extends StatelessWidget {
   final String uid;
   final Lot selectedLot;
 
-  MyBottomNavBarView(
-      {super.key,
-      required this.residenceSelected,
-      required this.residenceName,
-      required this.uid,
-      required this.selectedLot});
+  MyBottomNavBarView({
+    super.key,
+    required this.residenceSelected,
+    required this.residenceName,
+    required this.uid,
+    required this.selectedLot,
+  });
 
   @override
   Widget build(BuildContext context) {
