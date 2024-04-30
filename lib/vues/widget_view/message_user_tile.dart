@@ -63,7 +63,7 @@ class MessageUserTileState extends State<MessageUserTile> {
                               27, Future.value(user));
                         } else {
                           return formatProfilPic.getInitiales(
-                              40, Future.value(user), 25);
+                              40, Future.value(user), 18);
                         }
                       } else {
                         return formatProfilPic.getInitiales(

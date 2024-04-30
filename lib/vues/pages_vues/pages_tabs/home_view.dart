@@ -4,8 +4,8 @@ import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/vues/widget_view/post_widget.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/pages_models/post.dart';
-import '../widget_view/annonce_widget.dart';
+import '../../../models/pages_models/post.dart';
+import '../../widget_view/annonce_widget.dart';
 
 class Homeview extends StatefulWidget {
   String residenceSelected;

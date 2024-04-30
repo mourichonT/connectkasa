@@ -114,8 +114,8 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                           MyTextStyle.postDate(post.timeStamp))
                                 ])),
                             Flexible(
-                              child:
-                                  MyTextStyle.annonceDesc(post.description, 14),
+                              child: MyTextStyle.annonceDesc(
+                                  post.description, 14, 3),
                             ),
                           ],
                         )),

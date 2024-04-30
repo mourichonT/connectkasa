@@ -83,7 +83,11 @@ class _SubtitleMessageState extends State<SubtitleMessage>
 
       // Mettre à jour l'état avec la liste des utilisateurs récupérés
       List<User> users = usersNullable
-          .where((user) => user != null && user.uid != widget.uid)
+          .where((user) =>
+              user != null &&
+              user.uid != widget.uid &&
+              !widget.selectedLot!.idLocataire!
+                  .any((id) => user.uid.contains(id)))
           .cast<User>()
           .toList();
       setState(() {
@@ -102,9 +106,6 @@ class _SubtitleMessageState extends State<SubtitleMessage>
 
   @override
   Widget build(BuildContext context) {
-    print(nbrTab);
-    print(loca);
-    print(widget.selectedLot?.refGerance);
     return Column(
       children: <Widget>[
         TabBar.secondary(
@@ -125,7 +126,11 @@ class _SubtitleMessageState extends State<SubtitleMessage>
 
                     loca == false
                         ? const Tab(text: 'Mon agence')
-                        : const Tab(text: 'Mon locataire')
+                        : widget.selectedLot?.idLocataire == null ||
+                                (widget.selectedLot?.idLocataire?.length ?? 0) >
+                                    1
+                            ? const Tab(text: 'Mes locataires')
+                            : const Tab(text: 'Mon locataire')
                   ]
                 : <Widget>[
                     Tab(text: 'Mes voisins'),
@@ -241,7 +246,26 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                 )
               else if (nbrTab == 3 && loca == true)
                 Card(
-                  child: Text("Loca"),
+                  margin: EdgeInsets.all(16),
+                  child: ListView.separated(
+                    separatorBuilder: (context, index) => Divider(),
+                    itemCount: widget.selectedLot!.idLocataire!.length,
+                    itemBuilder: (context, index) {
+                      String locataires =
+                          widget.selectedLot!.idLocataire![index];
+                      return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => ChatPage(
+                                        residence: widget.residence,
+                                        idUserFrom: locataires,
+                                        idUserTo: widget.uid)));
+                          },
+                          child: MessageUserTile(radius: 23, uid: locataires));
+                    },
+                  ),
                 )
             ],
           ),

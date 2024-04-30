@@ -58,6 +58,7 @@ dependencies:
   flutter_keyboard_visibility: ^6.0.0
   google_maps_flutter: ^2.5.3
   geocoding: ^3.0.0
+  table_calendar: ^3.1.1
   
 
 dev_dependencies:
