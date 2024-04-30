@@ -140,7 +140,8 @@ class SignalementTile extends StatelessWidget {
                 const SizedBox(
                   height: 15,
                 ),
-                Flexible(child: MyTextStyle.annonceDesc(post.description, 14)),
+                Flexible(
+                    child: MyTextStyle.annonceDesc(post.description, 14, 3)),
                 const SizedBox(
                   height: 15,
                 ),

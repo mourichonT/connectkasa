@@ -99,7 +99,7 @@ class MyTextStyle {
     );
   }
 
-  static Text annonceDesc(String text, double size) {
+  static Text annonceDesc(String text, double size, int maxLines) {
     return Text(
       text,
       style: GoogleFonts.roboto(
@@ -107,7 +107,7 @@ class MyTextStyle {
         fontStyle: FontStyle.italic,
       ),
       overflow: TextOverflow.ellipsis,
-      maxLines: 3,
+      maxLines: maxLines,
       textAlign: TextAlign.left,
     );
   }

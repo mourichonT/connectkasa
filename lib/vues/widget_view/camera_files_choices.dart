@@ -64,8 +64,8 @@ class CameraOrFilesState extends State<CameraOrFiles> {
                           onPressed: () {
                             _pickImageFromGallery();
                           },
-                          child:
-                              MyTextStyle.annonceDesc("Choisir une image", 14)),
+                          child: MyTextStyle.annonceDesc(
+                              "Choisir une image", 14, 3)),
                     ]),
           if (_selectedImage != null)
             Positioned(

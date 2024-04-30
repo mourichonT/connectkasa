@@ -164,7 +164,7 @@ class _Step2State extends State<Step2> {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 35),
                     child: MyTextStyle.annonceDesc(
-                        "Merci de fournir votre extrait de KBIS", 14),
+                        "Merci de fournir votre extrait de KBIS", 14, 3),
                   ),
                   compagnyBuy == true
                       ? CameraOrFiles(

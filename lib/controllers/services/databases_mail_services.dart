@@ -14,7 +14,7 @@ class DatabasesMailServices {
                 "Vous avez un message pour la residence ${selectedLot.residenceData['name']} - lot ${selectedLot.batiment} ${selectedLot.lot}")
         .where(Filter.or(
           Filter('to', isEqualTo: accountantMail),
-          Filter('from', isEqualTo: accountantMail),
+          Filter('from', isEqualTo: accountantMail.first),
         ))
         //Filter('from', isEqualTo: accountantMail.first),
         .orderBy("delivery.startTime", descending: false) // Trie par startTime
