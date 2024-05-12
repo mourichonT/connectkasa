@@ -176,8 +176,8 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                                       MaterialPageRoute(
                                           builder: (context) => ChatPage(
                                               residence: widget.residence,
-                                              idUserFrom: user.uid,
-                                              idUserTo: widget.uid)));
+                                              idUserFrom: widget.uid,
+                                              idUserTo: user.uid)));
                                 },
                                 child:
                                     MessageUserTile(radius: 23, uid: user.uid));
@@ -221,9 +221,9 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                                   MaterialPageRoute(
                                       builder: (context) => ChatPage(
                                           residence: widget.residence,
-                                          idUserFrom: widget
-                                              .selectedLot!.idProprietaire,
-                                          idUserTo: widget.uid)));
+                                          idUserFrom: widget.uid,
+                                          idUserTo: widget
+                                              .selectedLot!.idProprietaire)));
                             },
                             child: MessageUserTile(
                               radius: 23,

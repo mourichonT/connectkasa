@@ -1,25 +1,25 @@
 // ignore_for_file: must_be_immutable
 
+import 'package:connect_kasa/controllers/features/line_interaction.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/signalement_count_controller.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/vues/components/like_button_post.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/vues/components/share_button.dart';
 import 'package:connect_kasa/vues/widget_view/signalement_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/post_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 
 import '../../models/pages_models/post.dart';
-import '../components/comment_button.dart';
 
 class PostWidget extends StatefulWidget {
   late Post post;
   final String uid;
   final String residence;
+  final double scrollController;
 
-  PostWidget(this.post, this.residence, this.uid, {super.key});
+  PostWidget(this.post, this.residence, this.uid, this.scrollController,
+      {super.key});
   @override
   State<StatefulWidget> createState() => PostWidgetState();
 }
@@ -170,10 +170,12 @@ class PostWidgetState extends State<PostWidget> {
                                                 }
                                               },
                                               child: PostView(
-                                                  postUpdated,
-                                                  postSelected,
-                                                  widget.residence,
-                                                  widget.uid),
+                                                postUpdated,
+                                                postSelected,
+                                                widget.residence,
+                                                widget.uid,
+                                                widget.scrollController,
+                                              ),
                                             );
                                           } else {
                                             return const Text(
@@ -206,27 +208,8 @@ class PostWidgetState extends State<PostWidget> {
                 }
               },
             ),
-            const Divider(thickness: 0.5),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                LikePostButton(
-                  post: widget.post,
-                  residence: widget.residence,
-                  uid: widget.uid,
-                  colorIcon: colorStatut,
-                ),
-                CommentButton(
-                    post: widget.post,
-                    residenceSelected: widget.residence,
-                    uid: widget.uid,
-                    colorIcon: colorStatut),
-                ShareButton(
-                  post: widget.post,
-                  //colorIcon: colorStatut,
-                ),
-              ],
-            ),
+            IteractionLine(
+                widget.post, widget.residence, widget.uid, colorStatut)
           ],
         ),
       ),

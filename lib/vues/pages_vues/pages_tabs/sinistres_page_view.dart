@@ -105,28 +105,33 @@ class SinistrePageViewState extends State<SinistrePageView>
                   // Les données sont prêtes, vous pouvez maintenant utiliser snapshot.data
                   List<Post> allPosts = snapshot.data!;
                   return SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10, bottom: 35),
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: allPosts.length,
-                        itemBuilder: (context, index) {
-                          Post post = allPosts[index];
-                          return Column(
-                            children: [
-                              if (post.user == widget.uid &&
-                                      post.type == widget.argument1 ||
-                                  post.user == widget.uid &&
-                                      post.type == widget.argument2)
-                                SinistreTile(post, widget.residenceSelected,
-                                    widget.uid, true),
-                            ],
-                          );
-                        },
-                        separatorBuilder: (BuildContext context, int index) =>
-                            SizedBox(height: 5),
-                      ),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10, bottom: 35),
+                          child: ListView.separated(
+                            shrinkWrap: true,
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: allPosts.length,
+                            itemBuilder: (context, index) {
+                              Post post = allPosts[index];
+                              return Column(
+                                children: [
+                                  if (post.user == widget.uid &&
+                                          post.type == widget.argument1 ||
+                                      post.user == widget.uid &&
+                                          post.type == widget.argument2)
+                                    SinistreTile(post, widget.residenceSelected,
+                                        widget.uid, true),
+                                ],
+                              );
+                            },
+                            separatorBuilder:
+                                (BuildContext context, int index) =>
+                                    SizedBox(height: 5),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 }

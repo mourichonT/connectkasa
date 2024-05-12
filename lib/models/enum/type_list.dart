@@ -5,6 +5,7 @@ class TypeList {
       ["Incivilité", "incivilites"],
       ["Petite annonce", "annonces"],
       ["Demande aux voisins", "demandes"],
+      ["Evénement", "events"],
     ];
   }
 }

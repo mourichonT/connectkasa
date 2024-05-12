@@ -15,6 +15,8 @@ class Post {
   List<String> like;
   List<Post> signalement;
   bool hideUser;
+  List<String>? participants;
+  String? price;
 
   Post({
     required this.id,
@@ -31,6 +33,8 @@ class Post {
     this.like = const [],
     this.signalement = const [],
     required this.hideUser,
+    this.participants = const [],
+    this.price,
   }) {
     _pathImage = pathImage;
     _statu = statu;
@@ -80,6 +84,24 @@ class Post {
     }
   }
 
+  String setParticipant(participantCount) {
+    if (participantCount > 1) {
+      return "Participants ( $participantCount )";
+    } else {
+      return "Participant ( $participantCount )";
+    }
+  }
+
+  String setPrice(price) {
+    if (price == "0") {
+      return "Gratuit";
+    } else if (price == "") {
+      return "Gratuit";
+    } else {
+      return "$price €";
+    }
+  }
+
   String setSignalement(postCount) {
     if (postCount > 1) {
       return "$postCount Signalements";
@@ -98,28 +120,38 @@ class Post {
         }
       }
     }
+    List<dynamic>? participantsList = map['participants'];
+    List<String> convertedParticipantsList = [];
+    if (participantsList != null) {
+      for (var user in participantsList) {
+        if (user is String) {
+          convertedParticipantsList.add(user);
+        }
+      }
+    }
 
     return Post(
-      id: map['id'] ?? "",
-      description: map['description'] ?? "",
-      emplacement: map['emplacement'] ?? "",
-      subtype: map['subtype'] ?? "",
-      pathImage: map['pathImage'] ?? "",
-      refResidence: map['refResidence'] ?? "",
-      statu: map['statu'] ?? "",
-      timeStamp: map['timeStamp'] ?? 0,
-      title: map['title'] ?? "",
-      type: map['type'] ?? "",
-      user: map['user'] ?? "",
-      like: convertedLikeList,
-      signalement: (map['signalement'] as List<dynamic>? ?? [])
-          .whereType<
-              Map<String,
-                  dynamic>>() // Filtrez les éléments qui ne sont pas des Map<String, dynamic>
-          .map((signalementData) => Post.fromMap(signalementData))
-          .toList(),
-      hideUser: map['hideUser'],
-    );
+        id: map['id'] ?? "",
+        description: map['description'] ?? "",
+        emplacement: map['emplacement'] ?? "",
+        subtype: map['subtype'] ?? "",
+        pathImage: map['pathImage'] ?? "",
+        refResidence: map['refResidence'] ?? "",
+        statu: map['statu'] ?? "",
+        timeStamp: map['timeStamp'] ?? 0,
+        title: map['title'] ?? "",
+        type: map['type'] ?? "",
+        user: map['user'] ?? "",
+        like: convertedLikeList,
+        signalement: (map['signalement'] as List<dynamic>? ?? [])
+            .whereType<
+                Map<String,
+                    dynamic>>() // Filtrez les éléments qui ne sont pas des Map<String, dynamic>
+            .map((signalementData) => Post.fromMap(signalementData))
+            .toList(),
+        hideUser: map['hideUser'],
+        participants: convertedParticipantsList,
+        price: map['price'] ?? "");
   }
 
   Map<String, dynamic> toMap() {
@@ -138,6 +170,8 @@ class Post {
       'like': like,
       'signalement': signalement.map((post) => post.toMap()).toList(),
       'hideUser': hideUser,
+      'participants': participants,
+      'price': price
     };
   }
 }

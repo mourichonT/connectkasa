@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -48,21 +50,22 @@ class MyTextStyle {
         padding);
   }
 
-  static Text lotName(String text, Color color) {
+  static Text lotName(String text, Color color, [double? size]) {
     return Text(text,
         style: GoogleFonts.robotoCondensed(
           fontWeight: FontWeight.w600,
-          fontSize: 16,
+          fontSize: size != null ? size : 16,
           color: color,
         ));
   }
 
-  static Text lotDesc(String text, double size) {
+  static Text lotDesc(String text, double size, [FontWeight? weight]) {
     return Text(
       text,
       style: GoogleFonts.roboto(
         fontSize: size,
         fontStyle: FontStyle.italic,
+        fontWeight: weight ?? FontWeight.normal,
       ),
     );
   }
@@ -146,6 +149,13 @@ class MyTextStyle {
     );
   }
 
+  static String completDate(Timestamp timeStamp) {
+    DateTime tsdate = timeStamp.toDate();
+    DateFormat formatter = DateFormat("dd MMM à HH'h'mm", 'fr_FR');
+    String formattedDate = formatter.format(tsdate);
+    return formattedDate;
+  }
+
   static commentDate(Timestamp timestamp) {
     // Convertir le Timestamp en millisecondes depuis l'époque Unix
     int milliseconds = timestamp.millisecondsSinceEpoch;
@@ -167,6 +177,42 @@ class MyTextStyle {
       int days = difference.inDays;
       return Text('il y a $days j');
     }
+  }
+
+  static EventDateDay(Timestamp timestamp, double size) {
+    // Convertir le Timestamp en millisecondes depuis l'époque Unix
+    int milliseconds = timestamp.millisecondsSinceEpoch;
+    DateTime eventDate = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+
+    String formattedDate = DateFormat('dd').format(eventDate);
+    return Text(
+      formattedDate,
+      style: TextStyle(fontSize: size),
+    );
+  }
+
+  static EventHours(Timestamp timestamp, double size) {
+    // Convertir le Timestamp en millisecondes depuis l'époque Unix
+    int milliseconds = timestamp.millisecondsSinceEpoch;
+    DateTime eventDate = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+
+    String formattedDate = DateFormat('HH:mm', 'fr_FR').format(eventDate);
+    return Text(
+      formattedDate,
+      style: TextStyle(fontSize: size),
+    );
+  }
+
+  static EventDateMonth(Timestamp timestamp, double size) {
+    // Convertir le Timestamp en millisecondes depuis l'époque Unix
+    int milliseconds = timestamp.millisecondsSinceEpoch;
+    DateTime eventDate = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+
+    String formattedMonth = DateFormat.MMM('fr').format(eventDate);
+    return Text(
+      formattedMonth,
+      style: TextStyle(fontSize: size),
+    );
   }
 
   static MailDate(Timestamp timestamp) {

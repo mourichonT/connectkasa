@@ -1,30 +1,57 @@
 // ignore_for_file: must_be_immutable, library_private_types_in_public_api
 
+import 'dart:async';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/vues/components/event_widget.dart';
+import 'package:connect_kasa/vues/widget_view/annonce_widget.dart';
 import 'package:connect_kasa/vues/widget_view/post_widget.dart';
 import 'package:flutter/material.dart';
-
 import '../../../models/pages_models/post.dart';
-import '../../widget_view/annonce_widget.dart';
 
 class Homeview extends StatefulWidget {
   String residenceSelected;
   String uid;
+  double upDatescrollController;
 
-  Homeview({super.key, required this.residenceSelected, required this.uid});
+  Homeview(
+      {super.key,
+      required this.residenceSelected,
+      required this.uid,
+      required this.upDatescrollController});
 
   @override
   _HomeviewState createState() => _HomeviewState();
 }
 
 class _HomeviewState extends State<Homeview> {
+  late ScrollController _scrollController = ScrollController();
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
   late Future<List<Post>> _allPostsFuture;
+  late Color colorStatut = Theme.of(context).primaryColor;
+  final GlobalKey _scrollKey = GlobalKey();
+  double scrollPosition = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _scrollController =
+        ScrollController(initialScrollOffset: widget.upDatescrollController);
+    _scrollController.addListener(_scrollListener);
     _allPostsFuture = _databaseServices.getAllPosts(widget.residenceSelected);
+  }
+
+  void _scrollListener() {
+    setState(() {
+      scrollPosition = _scrollController.offset;
+      ;
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -44,9 +71,11 @@ class _HomeviewState extends State<Homeview> {
           // Les données sont prêtes, vous pouvez maintenant utiliser snapshot.data
           List<Post> allPosts = snapshot.data!;
           return SingleChildScrollView(
+            controller: _scrollController,
             child: Padding(
               padding: const EdgeInsets.only(top: 10, bottom: 35),
               child: ListView.separated(
+                key: _scrollKey,
                 shrinkWrap: true,
                 physics: const BouncingScrollPhysics(),
                 itemCount: allPosts.length,
@@ -56,8 +85,28 @@ class _HomeviewState extends State<Homeview> {
                     children: [
                       if (post.type == "sinistres" ||
                           post.type == "incivilites")
-                        PostWidget(post, widget.residenceSelected, widget.uid),
-                      if (post.type == "Annonces") AnnonceWidget(post),
+                        PostWidget(
+                          post,
+                          widget.residenceSelected,
+                          widget.uid,
+                          scrollPosition,
+                        ),
+                      if (post.type == "annonces")
+                        AnnonceWidget(
+                          post: post,
+                          uid: widget.uid,
+                          residenceSelected: widget.residenceSelected,
+                          colorStatut: colorStatut,
+                          scrollController: scrollPosition,
+                        ),
+                      if (post.type == "events")
+                        EventWidget(
+                          post: post,
+                          uid: widget.uid,
+                          residenceSelected: widget.residenceSelected,
+                          colorStatut: colorStatut,
+                          scrollController: scrollPosition,
+                        )
                     ],
                   );
                 },
