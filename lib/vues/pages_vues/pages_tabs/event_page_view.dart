@@ -1,16 +1,26 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/services/databases_events_services.dart';
+import 'package:connect_kasa/models/pages_models/event.dart';
+import 'package:connect_kasa/vues/components/button_add.dart';
+import 'package:connect_kasa/vues/components/event_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Importez ce package
 import 'package:table_calendar/table_calendar.dart';
 
 class EventPageView extends StatefulWidget {
+  final String residenceSelected;
+  final String uid;
+
+  const EventPageView(
+      {super.key, required this.residenceSelected, required this.uid});
+
   @override
   State<StatefulWidget> createState() => EventPageViewState();
 }
 
 class EventPageViewState extends State<EventPageView>
     with SingleTickerProviderStateMixin {
+  // Initialisez votre service de base de données
   DateTime today = DateTime.now();
   @override
   void initState() {
@@ -54,25 +64,14 @@ class EventPageViewState extends State<EventPageView>
           SizedBox(
             height: 20,
           ),
-          Container(
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.add,
-                    color: Colors.white,
-                  ),
-                  SizedBox(width: 8), // Espace entre l'icône et le texte
-                  MyTextStyle.lotName('Ajouter un évenement', Colors.white),
-                ],
-              ),
-            ),
-          )
+          ButtonAdd(
+            color: Theme.of(context).primaryColor,
+            icon: Icons.add,
+            text: 'Ajouter un évenement',
+            horizontal: 10,
+            vertical: 2,
+          ),
+          EventTile(widget.uid, widget.residenceSelected)
         ],
       ),
     );

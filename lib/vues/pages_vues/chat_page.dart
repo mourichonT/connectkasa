@@ -10,12 +10,14 @@ class ChatPage extends StatefulWidget {
   final String residence;
   final String idUserFrom;
   final String idUserTo;
+  final String? message;
 
   const ChatPage({
     super.key,
     required this.idUserFrom,
     required this.idUserTo,
     required this.residence,
+    this.message,
   });
 
   @override
@@ -57,7 +59,7 @@ class ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: MessageUserTile(radius: 16, uid: widget.idUserFrom),
+        title: MessageUserTile(radius: 16, uid: widget.idUserTo),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0), // Hauteur du Divider
           child: Divider(
@@ -172,8 +174,13 @@ class ChatPageState extends State<ChatPage> {
           Expanded(
             // Wrap TextFormField with Expanded
             child: TextFormField(
+              maxLines: null,
+              minLines: 1,
+              keyboardType: TextInputType.multiline,
               focusNode: _focusNode,
-              controller: chatController,
+              controller: widget.message != null
+                  ? TextEditingController(text: widget.message)
+                  : chatController,
               enableInteractiveSelection: true,
               decoration: InputDecoration(
                 hintText: "Votre message",

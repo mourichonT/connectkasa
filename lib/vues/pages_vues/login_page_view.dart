@@ -81,7 +81,7 @@ class LoginPageView extends StatelessWidget {
                       SignIn(
                           context, _emailController.text, _MdPController.text);
                     },
-                    child: MyTextStyle.lotName("Connexion", Colors.white),
+                    child: MyTextStyle.lotName("Connexion", Colors.white, 20),
                   ),
                 ),
                 const SizedBox(

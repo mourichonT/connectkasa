@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
       length: icons.length,
       child: MyNavBar(
         uid: uid,
+        scrollController: 0.0,
       ),
     );
   }

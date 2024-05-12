@@ -4,6 +4,27 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 class DataBasesPostServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
+  Future<List<Post>> getAnnonceById(String doc, String uid) async {
+    List<Post> posts = [];
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+          .collection("Residence")
+          .doc(doc)
+          .collection("post")
+          .where('user', isEqualTo: uid)
+          .where('type', isEqualTo: 'annonces')
+          //.orderBy('timeStamp', descending: true)
+          .get();
+      for (var docSnapshot in querySnapshot.docs) {
+        // Convertir chaque document en objet Post
+        posts.add(Post.fromMap(docSnapshot.data()));
+      }
+    } catch (e) {
+      print("Error completing in getAllpos: $e");
+    }
+    return posts;
+  }
+
   Future<List<Post>> getAllPosts(String doc) async {
     List<Post> posts = [];
     try {
@@ -214,5 +235,112 @@ class DataBasesPostServices {
     }
 
     return post;
+  }
+
+  Future<void> updatePostParticipants(
+      String residenceId, String postId, String userId) async {
+    try {
+      // Obtenez une référence à la publication dans la base de données
+      QuerySnapshot postQuery = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("post")
+          .where("id", isEqualTo: postId)
+          .get();
+
+      // Vérifiez s'il y a un document correspondant à l'ID donné
+      if (postQuery.docs.isNotEmpty) {
+        // Récupérez la référence du premier document (il devrait y en avoir un seul)
+        DocumentReference postRef = postQuery.docs.first.reference;
+
+        // Récupérez les données du document
+        DocumentSnapshot postSnapshot = await postRef.get();
+
+        // Vérifiez si la publication existe
+        if (postSnapshot.exists) {
+          // Convertissez les données en Map<String, dynamic> de manière sûre
+          Map<String, dynamic> postData =
+              postSnapshot.data() as Map<String, dynamic>;
+
+          // Obtenez la liste de likes actuelle
+          List<dynamic> participants = postData['participants'] ?? [];
+
+          // Vérifiez si l'utilisateur est déjà dans la liste de likes
+          bool userParticiped = participants.contains(userId);
+
+          // Ajoutez ou supprimez l'utilisateur de la liste de likes
+          if (!userParticiped) {
+            // L'utilisateur n'a pas encore aimé la publication, alors ajoutez-le à la liste
+            participants.add(userId);
+          }
+
+          // Mettez à jour la liste de likes dans les données de la publication
+          postData['participants'] = participants;
+
+          // Mettez à jour la publication dans la base de données
+          await postRef.update(postData);
+        } else {
+          throw Exception("Post not found!");
+        }
+      } else {
+        throw Exception("Post not found!");
+      }
+    } catch (e) {
+      print("Error updating participants for post $postId: $e");
+      throw e;
+    }
+  }
+
+  Future<void> removePostParticipants(
+      String residenceId, String postId, String userId) async {
+    try {
+      // Obtenez une référence à la publication dans la base de données
+      QuerySnapshot postQuery = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("post")
+          .where("id", isEqualTo: postId)
+          .get();
+
+      // Vérifiez s'il y a un document correspondant à l'ID donné
+      if (postQuery.docs.isNotEmpty) {
+        // Récupérez la référence du premier document (il devrait y en avoir un seul)
+        DocumentReference postRef = postQuery.docs.first.reference;
+
+        // Récupérez les données du document
+        DocumentSnapshot postSnapshot = await postRef.get();
+
+        // Vérifiez si la publication existe
+        if (postSnapshot.exists) {
+          // Convertissez les données en Map<String, dynamic> de manière sûre
+          Map<String, dynamic> postData =
+              postSnapshot.data() as Map<String, dynamic>;
+
+          // Obtenez la liste de likes actuelle
+          List<dynamic> userParticiped = postData['participants'] ?? [];
+
+          // Vérifiez si l'utilisateur est déjà dans la liste de likes
+          if (userParticiped.contains(userId)) {
+            // Retirez l'utilisateur de la liste de likes
+            userParticiped.remove(userId);
+
+            // Mettez à jour la liste de likes dans les données de la publication
+            postData['participants'] = userParticiped;
+
+            // Mettez à jour la publication dans la base de données
+            await postRef.update(postData);
+          } else {
+            print("User $userId did not like post $postId");
+          }
+        } else {
+          throw Exception("Post not found!");
+        }
+      } else {
+        throw Exception("Post not found!");
+      }
+    } catch (e) {
+      print("Error removing Participants for post $postId by user $userId: $e");
+      throw e;
+    }
   }
 }

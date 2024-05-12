@@ -1,10 +1,10 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/vues/pages_vues/my_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/comment_button.dart';
@@ -16,11 +16,12 @@ class PostView extends StatefulWidget {
   late Post postSelected;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
-  final DataBasesPostServices _databasesPostServices = DataBasesPostServices();
   final String residence;
   final String uid;
+  final double scrollController;
 
   PostView(this.postOrigin, this.postSelected, this.residence, this.uid,
+      this.scrollController,
       {super.key});
 
   @override
@@ -93,12 +94,13 @@ class PostViewState extends State<PostView> {
                   children: [
                     IconButton(
                       onPressed: () async {
-                        Post? updatedLikeCount =
-                            await widget._databasesPostServices.getUpdatePost(
-                                widget.residence, widget.postSelected.id);
-                        Navigator.pop(
-                          context,
-                        );
+                        Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => MyNavBar(
+                                    uid: widget.uid,
+                                    scrollController:
+                                        widget.scrollController)));
                       },
                       icon: const Icon(
                         Icons.arrow_back_ios,

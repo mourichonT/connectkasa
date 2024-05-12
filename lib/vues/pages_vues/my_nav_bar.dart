@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/my_docs.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +10,6 @@ import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/route_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/vues/components/my_drawer.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/home_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/sinistres_page_view.dart';
@@ -19,7 +17,10 @@ import 'package:connect_kasa/vues/widget_view/my_bottomnavbar_view.dart';
 
 class MyNavBar extends StatefulWidget {
   final String uid;
-  MyNavBar({Key? key, required this.uid}) : super(key: key);
+  final double scrollController;
+
+  const MyNavBar(
+      {super.key, required this.uid, required this.scrollController});
 
   @override
   _MyNavBarState createState() => _MyNavBarState();
@@ -28,10 +29,9 @@ class MyNavBar extends StatefulWidget {
 class _MyNavBarState extends State<MyNavBar>
     with SingleTickerProviderStateMixin {
   final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
-  final DataBasesResidenceServices _dataBasesResidenceServices =
-      DataBasesResidenceServices();
   final LoadPreferedData _loadPreferedData = LoadPreferedData();
   late MyTabBarController tabController;
+
   double pad = 0;
   List<Lot?>? lot;
   Lot? preferedLot;
@@ -94,14 +94,14 @@ class _MyNavBarState extends State<MyNavBar>
         ),
       ),
       body: TabBarView(
-        physics: NeverScrollableScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         controller: tabController.tabController,
         children: [
           Homeview(
-            key: UniqueKey(),
-            residenceSelected: preferedLot?.residenceId ?? "",
-            uid: uid,
-          ),
+              key: UniqueKey(),
+              residenceSelected: preferedLot?.residenceId ?? "",
+              uid: uid,
+              upDatescrollController: widget.scrollController),
           SinistrePageView(
             key: UniqueKey(),
             residenceSelected: preferedLot?.residenceId ?? "",
@@ -109,7 +109,10 @@ class _MyNavBarState extends State<MyNavBar>
             argument1: "sinistres",
             argument2: "incivilites",
           ),
-          EventPageView(),
+          EventPageView(
+            residenceSelected: preferedLot?.residenceId ?? "",
+            uid: uid,
+          ),
           SinistrePageView(
             key: UniqueKey(),
             residenceSelected: preferedLot?.residenceId ?? "",
