@@ -1,3 +1,6 @@
+import 'package:connect_kasa/vues/components/payement_page.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
@@ -8,7 +11,6 @@ import 'package:connect_kasa/vues/components/button_add.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page.dart';
 import 'package:connect_kasa/vues/pages_vues/my_nav_bar.dart';
-import 'package:flutter/material.dart';
 
 class AnnoncePageDetails extends StatefulWidget {
   final Post post;
@@ -16,178 +18,194 @@ class AnnoncePageDetails extends StatefulWidget {
   final String residence;
   final Color colorStatut;
   final double scrollController;
-  final FormatProfilPic formatProfilPic = FormatProfilPic();
 
-  final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
-
-  AnnoncePageDetails(
-      {super.key,
-      required this.post,
-      required this.uid,
-      required this.residence,
-      required this.colorStatut,
-      required this.scrollController});
+  AnnoncePageDetails({
+    Key? key,
+    required this.post,
+    required this.uid,
+    required this.residence,
+    required this.colorStatut,
+    required this.scrollController,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => AnnoncePageDetailsState();
 }
 
 class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
+  final FormatProfilPic formatProfilPic = FormatProfilPic();
+  late Future<User?> userPost;
+  late Future<User?> userCurrent;
+  late Future<List<Post>> _allAnnonceFuture;
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
-  late Future<User?> userPost =
-      widget._databasesUserServices.getUserById(widget.post.user);
-  late Future<List<Post>> _allAnnonceFuture =
-      _databaseServices.getAnnonceById(widget.residence, widget.uid);
+  final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
+
+  @override
+  void initState() {
+    super.initState();
+    userCurrent = _databasesUserServices.getUserById(widget.uid);
+    userPost = _databasesUserServices.getUserById(widget.post.user);
+    _allAnnonceFuture =
+        _databaseServices.getAnnonceById(widget.residence, widget.post.user);
+  }
 
   @override
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
     final double height = MediaQuery.of(context).size.height;
     return Scaffold(
-        body: SingleChildScrollView(
-          child: SizedBox(
-            height: height,
-            child: Container(
-              child: Stack(children: [
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: widget.post.pathImage != ""
-                      ? Image.network(
-                          widget.post.pathImage!,
-                          fit: BoxFit.cover,
-                        )
-                      : ImageAnnounced(context, width, 250),
-                ),
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: height / 9,
-                    child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisSize: MainAxisSize.max,
-                        children: [
-                          IconButton(
-                            onPressed: () async {
-                              // Naviguer vers une nouvelle instance de Homeview pour recharger l'application
-                              Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => MyNavBar(
-                                          uid: widget.uid,
-                                          scrollController:
-                                              widget.scrollController)));
-                            },
-                            icon: const Icon(
-                              Icons.arrow_back_ios,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ]),
+      body: CustomScrollView(
+        slivers: <Widget>[
+          SliverAppBar(
+            leading: IconButton(
+              onPressed: () async {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MyNavBar(
+                      uid: widget.uid,
+                      scrollController: widget.scrollController,
+                    ),
                   ),
-                ),
-                Positioned(
-                  top: height / 3,
-                  left: 0,
-                  right: 0,
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.max,
+                );
+              },
+              icon: const Icon(
+                Icons.arrow_back_ios,
+                color: Colors.white,
+              ),
+            ),
+            expandedHeight: height / 3,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              background: widget.post.pathImage != ""
+                  ? Image.network(
+                      widget.post.pathImage!,
+                      fit: BoxFit.cover,
+                    )
+                  : ImageAnnounced(context, width, height / 3),
+            ),
+          ),
+          SliverList(
+            delegate: SliverChildListDelegate(
+              [
+                Column(
+                  children: [
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(right: 15),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 15),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.max,
                             children: [
-                              Row(
-                                children: [
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      top: 10,
-                                      bottom: 10,
-                                      left: 10,
-                                      right: 10,
-                                    ),
-                                    child: CircleAvatar(
-                                      radius: 20,
-                                      backgroundColor:
-                                          Theme.of(context).primaryColor,
-                                      child: FutureBuilder<User?>(
-                                        future: userPost,
-                                        builder: (context, snapshot) {
-                                          if (snapshot.connectionState ==
-                                              ConnectionState.waiting) {
-                                            return const Center(
-                                                child:
-                                                    CircularProgressIndicator());
-                                          } else {
-                                            if (snapshot.hasData &&
-                                                snapshot.data != null) {
-                                              var user = snapshot.data!;
-                                              if (user.profilPic != null &&
-                                                  user.profilPic != "") {
-                                                return widget.formatProfilPic
-                                                    .ProfilePic(17, userPost);
-                                              } else {
-                                                return widget.formatProfilPic
-                                                    .getInitiales(
-                                                        34, userPost, 17);
-                                              }
-                                            } else {
-                                              return widget.formatProfilPic
-                                                  .getInitiales(
-                                                      17, userPost, 3);
-                                            }
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  FutureBuilder<User?>(
-                                    future: userPost,
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return const Center(
-                                            child: CircularProgressIndicator());
-                                      } else {
-                                        if (snapshot.hasData &&
-                                            snapshot.data != null) {
-                                          var user = snapshot.data!;
-                                          return MyTextStyle.lotName(
-                                            user.pseudo!,
-                                            Colors.black87,
-                                          );
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                    top: 5, bottom: 5, left: 5, right: 20),
+                                child: Row(
+                                  children: [
+                                    FutureBuilder<User?>(
+                                      future: userPost, // Future<User?> ici
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          // Afficher un indicateur de chargement si le futur est en cours de chargement
+                                          return const CircularProgressIndicator();
                                         } else {
-                                          return const Text(
-                                            'Utilisateur inconnue',
-                                            style:
-                                                TextStyle(color: Colors.white),
-                                          );
+                                          // Si le futur est résolu, vous pouvez accéder aux propriétés de l'objet User
+                                          if (snapshot.hasData &&
+                                              snapshot.data != null) {
+                                            var user = snapshot.data!;
+                                            if (user.profilPic != null &&
+                                                user.profilPic != "") {
+                                              // Retourner le widget avec l'image de profil si disponible
+                                              return Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 20,
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .primaryColor,
+                                                    child: formatProfilPic
+                                                        .ProfilePic(
+                                                            15, userPost),
+                                                  ),
+                                                  SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  MyTextStyle.lotName(
+                                                    user.pseudo!,
+                                                    Colors.black87,
+                                                  ),
+                                                ],
+                                              );
+                                            } else {
+                                              // Sinon, retourner les initiales
+                                              return Row(
+                                                children: [
+                                                  CircleAvatar(
+                                                    radius: 20,
+                                                    backgroundColor:
+                                                        Theme.of(context)
+                                                            .primaryColor,
+                                                    child: formatProfilPic
+                                                        .getInitiales(
+                                                            35, userPost, 20),
+                                                  ),
+                                                  SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  MyTextStyle.lotName(
+                                                    user.pseudo!,
+                                                    Colors.black87,
+                                                  ),
+                                                ],
+                                              );
+                                            }
+                                          } else {
+                                            // Gérer le cas où le futur est résolu mais qu'il n'y a pas de données
+                                            return Row(
+                                              children: [
+                                                CircleAvatar(
+                                                  radius: 20,
+                                                  backgroundColor:
+                                                      Theme.of(context)
+                                                          .primaryColor,
+                                                  child: formatProfilPic
+                                                      .getInitiales(
+                                                          65, userPost, 3),
+                                                ),
+                                                SizedBox(
+                                                  width: 5,
+                                                ),
+                                                MyTextStyle.lotName(
+                                                  "Utilisteur inconnu",
+                                                  Colors.black87,
+                                                ),
+                                              ],
+                                            ); // ou tout autre widget par défaut
+                                          }
                                         }
-                                      }
-                                    },
-                                  ),
-                                ],
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                //
                               ),
                               ButtonAdd(
                                 function: () {
                                   Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => ChatPage(
-                                              message:
-                                                  "Je vous contact au sujet de votre annonce \"${widget.post.title}\", est-ce toujours possible?",
-                                              residence: widget.residence,
-                                              idUserFrom: widget.uid,
-                                              idUserTo: widget.post.user)));
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => ChatPage(
+                                        message:
+                                            "Je vous contact au sujet de votre annonce \"${widget.post.title}\", est-ce toujours possible?",
+                                        residence: widget.residence,
+                                        idUserFrom: widget.uid,
+                                        idUserTo: widget.post.user,
+                                      ),
+                                    ),
+                                  );
                                 },
                                 color: Theme.of(context).primaryColor,
                                 icon: Icons.mail,
@@ -199,174 +217,330 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                           ),
                         ),
                         Divider(),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              child: MyTextStyle.lotName(
-                                  widget.post.title, Colors.black87, 20),
-                            ),
-                            Container(
-                                padding: const EdgeInsets.only(right: 20),
-                                child: MyTextStyle.annonceDesc(
-                                    MyTextStyle.completDate(
-                                        widget.post.timeStamp),
-                                    14,
-                                    1)),
-                          ],
+                        SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              MyTextStyle.lotName(
+                                widget.post.title,
+                                Colors.black87,
+                                20,
+                              ),
+                              MyTextStyle.annonceDesc(
+                                MyTextStyle.completDate(widget.post.timeStamp),
+                                14,
+                                1,
+                              ),
+                            ],
+                          ),
                         ),
-                        Container(
+                        Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: MyTextStyle.lotDesc(
                               widget.post.subtype ?? 'n/a', 14),
                         ),
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Row(
-                          children: [
-                            Container(
-                              padding:
-                                  const EdgeInsets.only(left: 20, right: 10),
-                              child: MyTextStyle.lotDesc(
-                                'Prix :',
-                                14,
-                                FontWeight.w900,
+                        SizedBox(height: 20),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  MyTextStyle.lotDesc(
+                                    'Prix :',
+                                    14,
+                                    FontStyle.italic,
+                                    FontWeight.w900,
+                                  ),
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  MyTextStyle.lotName(
+                                    widget.post.setPrice(widget.post.price),
+                                    Theme.of(context).primaryColor,
+                                    18,
+                                  ),
+                                ],
                               ),
-                            ),
-                            Container(
-                              child: MyTextStyle.lotName(
-                                widget.post.setPrice(widget.post.price),
-                                Theme.of(context).primaryColor,
-                                18,
+                              Row(
+                                children: [
+                                  MyTextStyle.lotDesc(
+                                    'Votre solde :',
+                                    14,
+                                    //FontWeight.w300,
+                                  ),
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  FutureBuilder<User?>(
+                                    future: userCurrent,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return CircularProgressIndicator();
+                                      } else {
+                                        var user = snapshot.data;
+                                        if (user != null) {
+                                          return MyTextStyle.lotDesc(
+                                            user.setSolde(user.solde),
+                                            14,
+                                          );
+                                        } else {
+                                          return Text('Utilisateur inconnu');
+                                        }
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         Divider(),
-                        Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 20),
-                            child: MyTextStyle.annonceDesc(
-                                widget.post.description, 14, 15)),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Divider(),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 20, horizontal: 20),
-                              child: FutureBuilder<User?>(
-                                future: userPost,
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return CircularProgressIndicator();
-                                  } else {
-                                    if (snapshot.hasData &&
-                                        snapshot.data != null) {
-                                      var owner = snapshot.data!;
-                                      return MyTextStyle.lotName(
-                                          "Les annonces de ${owner.pseudo!}",
-                                          Colors.black87);
-                                    } else {
-                                      return Text('Chargement...');
-                                    }
-                                  }
-                                },
-                              ),
-                            ),
-                            FutureBuilder<List<Post>>(
-                              future: _allAnnonceFuture,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  // Affichez un indicateur de chargement si les données ne sont pas encore disponibles
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                } else if (snapshot.hasError) {
-                                  // Gérez les erreurs ici
-                                  return Text('Error: ${snapshot.error}');
-                                } else {
-                                  List<Post> allAnnonces = snapshot.data!;
-                                  return SizedBox(
-                                    height:
-                                        400, // Ajustez la hauteur selon vos besoins
-                                    child: ListView.builder(
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: allAnnonces.length,
-                                      itemBuilder: (context, index) {
-                                        Post annonce = allAnnonces[index];
-                                        return Padding(
-                                          padding: const EdgeInsets.all(8.0),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 20),
+                          child: MyTextStyle.annonceDesc(
+                            widget.post.description,
+                            14,
+                            15,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Divider(),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          child: FutureBuilder<User?>(
+                            future: userPost,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState ==
+                                  ConnectionState.waiting) {
+                                return CircularProgressIndicator();
+                              } else {
+                                var owner = snapshot.data;
+                                return owner != null
+                                    ? MyTextStyle.lotName(
+                                        "Les annonces de ${owner.pseudo!}",
+                                        Colors.black87,
+                                      )
+                                    : Text('Chargement...');
+                              }
+                            },
+                          ),
+                        ),
+                        FutureBuilder<List<Post>>(
+                          future: _allAnnonceFuture,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              return Center(child: CircularProgressIndicator());
+                            } else if (snapshot.hasError) {
+                              return Text('Error: ${snapshot.error}');
+                            } else {
+                              List<Post> allAnnonces = snapshot.data ?? [];
+                              return SizedBox(
+                                height: 290,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: allAnnonces.length,
+                                  itemBuilder: (context, index) {
+                                    Post annonce = allAnnonces[index];
+                                    if (annonce.id != widget.post.id) {
+                                      return Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: InkWell(
+                                          radius: 10,
+                                          onTap: () {
+                                            Navigator.of(context)
+                                                .push(CupertinoPageRoute(
+                                              builder: (context) =>
+                                                  AnnoncePageDetails(
+                                                post: annonce,
+                                                uid: widget.uid,
+                                                residence: widget.residence,
+                                                colorStatut: widget.colorStatut,
+                                                scrollController:
+                                                    widget.scrollController,
+                                              ),
+                                            ));
+                                          },
                                           child: Card(
                                             child: Container(
-                                              width:
-                                                  200, // Ajustez la largeur selon vos besoins
+                                              width: 200,
                                               child: Column(
                                                 crossAxisAlignment:
                                                     CrossAxisAlignment.start,
                                                 children: [
-                                                  annonce.pathImage != ""
-                                                      ? Image.network(
-                                                          annonce.pathImage!,
-                                                          fit: BoxFit.cover,
-                                                        )
-                                                      : ImageAnnounced(
-                                                          context, 200, 130),
-                                                  Text(annonce.title),
-                                                  Text(annonce.description),
-                                                  // Autres détails de l'annonce
+                                                  ClipRRect(
+                                                    // Ajout de ClipRRect pour appliquer le coin arrondi à l'image
+                                                    borderRadius:
+                                                        BorderRadius.only(
+                                                      topLeft:
+                                                          Radius.circular(10),
+                                                      topRight:
+                                                          Radius.circular(10),
+                                                    ),
+                                                    child: annonce.pathImage !=
+                                                            ""
+                                                        ? Container(
+                                                            width: 200,
+                                                            height: 130,
+                                                            child:
+                                                                Image.network(
+                                                              annonce
+                                                                  .pathImage!,
+                                                              fit: BoxFit.cover,
+                                                            ),
+                                                          )
+                                                        : ImageAnnounced(
+                                                            context, 200, 130),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            5.0),
+                                                    child: MyTextStyle.lotName(
+                                                        annonce.title,
+                                                        Colors.black87,
+                                                        14),
+                                                  ),
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            5.0),
+                                                    child:
+                                                        MyTextStyle.annonceDesc(
+                                                            annonce.description,
+                                                            14,
+                                                            3),
+                                                  ),
+                                                  Padding(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 5),
+                                                    child: Row(
+                                                      children: [
+                                                        MyTextStyle.lotDesc(
+                                                          'Prix :',
+                                                          14,
+                                                          FontStyle.italic,
+                                                          FontWeight.w900,
+                                                        ),
+                                                        SizedBox(
+                                                          width: 5,
+                                                        ),
+                                                        MyTextStyle.lotName(
+                                                          widget.post.setPrice(
+                                                              annonce.price),
+                                                          Theme.of(context)
+                                                              .primaryColor,
+                                                          16,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
                                                 ],
                                               ),
                                             ),
                                           ),
-                                        );
-                                      },
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
+                                        ),
+                                      );
+                                    } else {
+                                      // Retourner un widget vide si c'est l'annonce principale
+                                      return SizedBox.shrink();
+                                    }
+                                  },
+                                ),
+                              );
+                            }
+                          },
                         ),
-                        SizedBox(
-                          height: 100,
-                        )
-                      ]),
-                ),
-              ]),
-            ),
-          ),
-        ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                width: 1, // Adjust the width as needed
-                color: Colors.black12, // Specify the color you want
-              ),
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ButtonAdd(
-                  function: () {},
-                  color: Theme.of(context).primaryColor,
-                  text: widget.post.price == "" ? "Demander" : "Acheter",
-                  horizontal: 20,
-                  vertical: 10,
+                      ],
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ));
+        ],
+      ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(
+              width: 1,
+              color: Colors.black12,
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              widget.post.price == ""
+                  ? ButtonAdd(
+                      function: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatPage(
+                              message:
+                                  "Bonjour, je souhaiterais réservé \"${widget.post.title}\", est-ce toujours possible?",
+                              residence: widget.residence,
+                              idUserFrom: widget.uid,
+                              idUserTo: widget.post.user,
+                            ),
+                          ),
+                        );
+                      },
+                      color: Theme.of(context).primaryColor,
+                      text: "Réservé",
+                      horizontal: 20,
+                      vertical: 10,
+                    )
+                  : ButtonAdd(
+                      function: () {
+                        _showBottomSheet(context, widget.post.price!,
+                            widget.uid, widget.post);
+                      },
+                      color: Theme.of(context).primaryColor,
+                      text: "Payer",
+                      horizontal: 20,
+                      vertical: 10,
+                    ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showBottomSheet(
+      BuildContext context, String price, String uidFrom, Post post) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // Pour rendre le contenu scrollable
+      builder: (context) {
+        return FractionallySizedBox(
+          heightFactor: 3 / 4, // Définir la fraction de la hauteur de l'écran
+          child: Container(
+            // Contenu du BottomSheet
+            child: PayementPage(post: post, uidFrom: uidFrom),
+          ),
+        );
+      },
+    );
   }
 }

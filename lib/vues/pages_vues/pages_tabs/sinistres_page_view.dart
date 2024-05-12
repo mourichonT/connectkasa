@@ -64,7 +64,8 @@ class SinistrePageViewState extends State<SinistrePageView>
                   List<Post> allPosts = snapshot.data!;
                   return SingleChildScrollView(
                     child: Padding(
-                      padding: const EdgeInsets.only(top: 10, bottom: 35),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 5, vertical: 5),
                       child: ListView.separated(
                         shrinkWrap: true,
                         physics: const BouncingScrollPhysics(),
@@ -108,8 +109,9 @@ class SinistrePageViewState extends State<SinistrePageView>
                     child: Column(
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(top: 10, bottom: 35),
-                          child: ListView.separated(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 5, vertical: 10),
+                          child: ListView.builder(
                             shrinkWrap: true,
                             physics: const BouncingScrollPhysics(),
                             itemCount: allPosts.length,
@@ -126,9 +128,6 @@ class SinistrePageViewState extends State<SinistrePageView>
                                 ],
                               );
                             },
-                            separatorBuilder:
-                                (BuildContext context, int index) =>
-                                    SizedBox(height: 5),
                           ),
                         ),
                       ],

@@ -11,6 +11,7 @@ class User {
   Timestamp? createdDate;
   bool approved;
   bool private;
+  String _solde = "0"; // Nouvel attribut pour le solde
 
   User({
     String profilPic = "",
@@ -23,8 +24,20 @@ class User {
     required this.approved,
     this.createdDate,
     this.bio,
+    String solde = "0",
   }) {
     _profilPic = profilPic;
+    _solde = solde;
+  }
+
+  // Méthode pour obtenir le solde
+  String get solde => _solde;
+
+  // Méthode pour définir le solde
+  set solde(String newSolde) {
+    if (newSolde != '0') {
+      _solde = newSolde;
+    }
   }
 
   String? get profilPic {
@@ -45,6 +58,16 @@ class User {
     private = newValue;
   }
 
+  String setSolde(solde) {
+    if (solde == 0) {
+      return "0 Kasa";
+    } else if (solde == "1") {
+      return "$solde Kasa";
+    } else {
+      return "$solde Kasas";
+    }
+  }
+
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       profilPic: map['profilPic'] ?? "",
@@ -60,6 +83,8 @@ class User {
           'bio'], // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
       private: map['private'] ??
           false, // Si 'private' est null, utilisez false par défaut
+      solde: map['solde'] ??
+          "0", // Ajout du solde lors de la création d'une instance depuis une Map
     );
   }
 
@@ -75,6 +100,7 @@ class User {
       'profession': profession,
       'bio': bio,
       'private': private,
+      'solde': _solde, // Ajout du solde lors de la conversion en Map
     };
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/my_docs.dart';
 import 'package:flutter/material.dart';
@@ -113,11 +114,11 @@ class _MyNavBarState extends State<MyNavBar>
             residenceSelected: preferedLot?.residenceId ?? "",
             uid: uid,
           ),
-          SinistrePageView(
+          AnnoncesPageView(
             key: UniqueKey(),
             residenceSelected: preferedLot?.residenceId ?? "",
             uid: uid,
-            argument1: "Annonces",
+            argument1: "annonces",
           ),
           MydocsPageView(),
         ],
