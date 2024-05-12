@@ -57,6 +57,7 @@ class _PartipedTileState extends State<PartipedTile> {
             MyTextStyle.lotDesc(
               widget.post.setParticipant(userParticipatedCount),
               14,
+              FontStyle.italic,
               FontWeight.w900,
             ),
             SizedBox(height: 10),

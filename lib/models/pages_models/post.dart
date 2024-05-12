@@ -34,7 +34,7 @@ class Post {
     this.signalement = const [],
     required this.hideUser,
     this.participants = const [],
-    this.price,
+    this.price = "",
   }) {
     _pathImage = pathImage;
     _statu = statu;
@@ -95,10 +95,10 @@ class Post {
   String setPrice(price) {
     if (price == "0") {
       return "Gratuit";
-    } else if (price == "") {
-      return "Gratuit";
+    } else if (price == "1") {
+      return "$price Kasa";
     } else {
-      return "$price €";
+      return "$price Kasas";
     }
   }
 

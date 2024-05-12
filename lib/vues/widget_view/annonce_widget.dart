@@ -211,6 +211,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                                       MyTextStyle.lotDesc(
                                                         "Prix:",
                                                         14,
+                                                        FontStyle.italic,
                                                         FontWeight.w900,
                                                       ),
                                                       SizedBox(
@@ -220,6 +221,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                                         widget.post.setPrice(
                                                             widget.post.price),
                                                         14,
+                                                        FontStyle.italic,
                                                         FontWeight.w900,
                                                       ),
                                                     ],

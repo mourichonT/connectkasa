@@ -42,70 +42,85 @@ class SignalementTile extends StatelessWidget {
                 Positioned(
                   top: 0,
                   left: 5,
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            top: 5, bottom: 5, left: 5, right: 5),
-                        child: CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          child: FutureBuilder<User?>(
-                            future: userPost, // Future<User?> ici
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                // Afficher un indicateur de chargement si le futur est en cours de chargement
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              } else {
-                                // Si le futur est résolu, vous pouvez accéder aux propriétés de l'objet User
-                                if (snapshot.hasData && snapshot.data != null) {
-                                  var user = snapshot.data!;
-                                  if (user.profilPic != null &&
-                                      user.profilPic != "") {
-                                    // Retourner le widget avec l'image de profil si disponible
-                                    return formatProfilPic.ProfilePic(
-                                        17, userPost);
-                                  } else {
-                                    // Sinon, retourner les initiales
-                                    return formatProfilPic.getInitiales(
-                                        34, userPost, 17);
-                                  }
-                                } else {
-                                  // Gérer le cas où le futur est résolu mais qu'il n'y a pas de données
-                                  return formatProfilPic.getInitiales(
-                                      17,
-                                      userPost,
-                                      3); // ou tout autre widget par défaut
-                                }
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                      FutureBuilder<User?>(
-                        future: userPost,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          } else {
-                            if (snapshot.hasData && snapshot.data != null) {
-                              var user = snapshot.data!;
-                              return MyTextStyle.lotName(
-                                  user.pseudo!, Colors.white);
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: FutureBuilder<User?>(
+                      future: userPost, // Future<User?> ici
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          // Afficher un indicateur de chargement si le futur est en cours de chargement
+                          return const CircularProgressIndicator();
+                        } else {
+                          // Si le futur est résolu, vous pouvez accéder aux propriétés de l'objet User
+                          if (snapshot.hasData && snapshot.data != null) {
+                            var user = snapshot.data!;
+                            if (user.profilPic != null &&
+                                user.profilPic != "") {
+                              // Retourner le widget avec l'image de profil si disponible
+                              return Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor:
+                                        Theme.of(context).primaryColor,
+                                    child: formatProfilPic.ProfilePic(
+                                        18, userPost),
+                                  ),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  MyTextStyle.lotName(
+                                    user.pseudo!,
+                                    Colors.white,
+                                  ),
+                                ],
+                              );
                             } else {
-                              return const Text('Utilisateur inconnue',
-                                  style: TextStyle(
-                                      color: Colors
-                                          .white)); // Placeholder for unknown name
+                              // Sinon, retourner les initiales
+                              return Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor:
+                                        Theme.of(context).primaryColor,
+                                    child: formatProfilPic.getInitiales(
+                                        35, userPost, 20),
+                                  ),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  MyTextStyle.lotName(
+                                    user.pseudo!,
+                                    Colors.white,
+                                  ),
+                                ],
+                              );
                             }
+                          } else {
+                            // Gérer le cas où le futur est résolu mais qu'il n'y a pas de données
+                            return Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                  child: formatProfilPic.getInitiales(
+                                      65, userPost, 3),
+                                ),
+                                SizedBox(
+                                  width: 5,
+                                ),
+                                MyTextStyle.lotName(
+                                  "Utilisteur inconnu",
+                                  Colors.white,
+                                ),
+                              ],
+                            ); // ou tout autre widget par défaut
                           }
-                        },
-                      ),
-                    ],
+                        }
+                      },
+                    ),
                   ),
                 ),
             ],

@@ -28,12 +28,23 @@ class MyTextStyle {
         padding);
   }
 
-  static Widget logo(BuildContext context, String text, EdgeInsets padding) {
+  static Text symbolKasa(String text, Color color, [double? size]) {
+    return Text(
+      text,
+      style: GoogleFonts.majorMonoDisplay(
+        fontSize: size,
+        fontWeight: FontWeight.w300,
+      ),
+    );
+  }
+
+  static Widget logo(
+      BuildContext context, String text, EdgeInsets padding, double size) {
     return styledText(
       context,
       text,
       GoogleFonts.majorMonoDisplay(
-        fontSize: 20,
+        fontSize: size,
         fontWeight: FontWeight.w300,
       ),
       padding,
@@ -59,12 +70,13 @@ class MyTextStyle {
         ));
   }
 
-  static Text lotDesc(String text, double size, [FontWeight? weight]) {
+  static Text lotDesc(String text, double size,
+      [FontStyle? fontsize, FontWeight? weight]) {
     return Text(
       text,
       style: GoogleFonts.roboto(
         fontSize: size,
-        fontStyle: FontStyle.italic,
+        fontStyle: fontsize ?? FontStyle.italic,
         fontWeight: weight ?? FontWeight.normal,
       ),
     );
