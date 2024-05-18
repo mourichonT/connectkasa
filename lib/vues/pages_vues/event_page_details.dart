@@ -136,7 +136,9 @@ class EventPageDetailsState extends State<EventPageDetails> {
                                   16)),
                           Container(
                               child: MyTextStyle.lotName(
-                                  widget.post.emplacement, Colors.black54, 16)),
+                                  widget.post.location_element,
+                                  Colors.black54,
+                                  16)),
                         ],
                       ),
                     ]),

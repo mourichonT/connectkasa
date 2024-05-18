@@ -8,6 +8,7 @@ import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
+import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page.dart';
 import 'package:flutter/cupertino.dart';
@@ -87,6 +88,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
 
                   Navigator.of(context).push(CupertinoPageRoute(
                     builder: (context) => AnnoncePageDetails(
+                      returnHomePage: true,
                       post: updatedPost!,
                       uid: widget.uid,
                       residence: widget.residenceSelected,
@@ -106,7 +108,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                     Container(
                         color: Colors.white,
                         child: Padding(
-                          padding: const EdgeInsets.only(right: 10),
+                          padding: const EdgeInsets.only(right: 20),
                           child: Row(
                             mainAxisAlignment:
                                 MainAxisAlignment.start, // Ajustez cette ligne
@@ -114,45 +116,10 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Padding(
-                                padding: const EdgeInsets.only(
-                                    top: 5, bottom: 5, left: 5, right: 20),
-                                child: CircleAvatar(
-                                  radius: 38,
-                                  backgroundColor:
-                                      Theme.of(context).primaryColor,
-                                  child: FutureBuilder<User?>(
-                                    future: userPost, // Future<User?> ici
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        // Afficher un indicateur de chargement si le futur est en cours de chargement
-                                        return const CircularProgressIndicator();
-                                      } else {
-                                        // Si le futur est résolu, vous pouvez accéder aux propriétés de l'objet User
-                                        if (snapshot.hasData &&
-                                            snapshot.data != null) {
-                                          var user = snapshot.data!;
-                                          if (user.profilPic != null &&
-                                              user.profilPic != "") {
-                                            // Retourner le widget avec l'image de profil si disponible
-                                            return formatProfilPic.ProfilePic(
-                                                35, userPost);
-                                          } else {
-                                            // Sinon, retourner les initiales
-                                            return formatProfilPic.getInitiales(
-                                                65, userPost, 37);
-                                          }
-                                        } else {
-                                          // Gérer le cas où le futur est résolu mais qu'il n'y a pas de données
-                                          return formatProfilPic.getInitiales(
-                                              65,
-                                              userPost,
-                                              3); // ou tout autre widget par défaut
-                                        }
-                                      }
-                                    },
-                                  ),
-                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: ProfilTile(widget.post.user, 30, 26, 30,
+                                    false, Colors.black),
                               ),
                               Expanded(
                                 child: Padding(
@@ -197,61 +164,57 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                         ),
                                         Column(
                                           children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  right: 15),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                mainAxisSize: MainAxisSize.max,
-                                                children: [
-                                                  Row(
-                                                    children: [
-                                                      MyTextStyle.lotDesc(
-                                                        "Prix:",
-                                                        14,
-                                                        FontStyle.italic,
-                                                        FontWeight.w900,
-                                                      ),
-                                                      SizedBox(
-                                                        width: 5,
-                                                      ),
-                                                      MyTextStyle.lotDesc(
-                                                        widget.post.setPrice(
-                                                            widget.post.price),
-                                                        14,
-                                                        FontStyle.italic,
-                                                        FontWeight.w900,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  ButtonAdd(
-                                                    function: () {
-                                                      Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                              builder: (context) => ChatPage(
-                                                                  message:
-                                                                      "Je vous contact au sujet de votre annonce \"${widget.post.title}\", est-ce toujours possible?",
-                                                                  residence: widget
-                                                                      .residenceSelected,
-                                                                  idUserFrom:
-                                                                      widget
-                                                                          .uid,
-                                                                  idUserTo: widget
-                                                                      .post
-                                                                      .user)));
-                                                    },
-                                                    color: Theme.of(context)
-                                                        .primaryColor,
-                                                    icon: Icons.mail,
-                                                    text: "Contacter",
-                                                    horizontal: 10,
-                                                    vertical: 2,
-                                                  ),
-                                                ],
-                                              ),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              mainAxisSize: MainAxisSize.max,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    MyTextStyle.lotDesc(
+                                                      "Prix:",
+                                                      14,
+                                                      FontStyle.italic,
+                                                      FontWeight.w900,
+                                                    ),
+                                                    SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    MyTextStyle.lotDesc(
+                                                      widget.post.setPrice(
+                                                          widget.post.price),
+                                                      14,
+                                                      FontStyle.italic,
+                                                      FontWeight.w900,
+                                                    ),
+                                                  ],
+                                                ),
+                                                ButtonAdd(
+                                                  function: () {
+                                                    Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                            builder: (context) => ChatPage(
+                                                                message:
+                                                                    "Je vous contact au sujet de votre annonce \"${widget.post.title}\", est-ce toujours possible?",
+                                                                residence: widget
+                                                                    .residenceSelected,
+                                                                idUserFrom:
+                                                                    widget.uid,
+                                                                idUserTo: widget
+                                                                    .post
+                                                                    .user)));
+                                                  },
+                                                  color: Theme.of(context)
+                                                      .primaryColor,
+                                                  icon: Icons.mail,
+                                                  text: "Contacter",
+                                                  horizontal: 10,
+                                                  vertical: 2,
+                                                  size: 13,
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         )

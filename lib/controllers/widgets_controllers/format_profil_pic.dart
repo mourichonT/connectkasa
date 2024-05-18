@@ -7,85 +7,63 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class FormatProfilPic {
-  final DataBasesUserServices databaseServices = DataBasesUserServices();
-  late Future<User?> userPost;
+  Widget getInitiales(double raduis, User user, double size) {
+    // Une fois que le futur est résolu, vous pouvez accéder aux propriétés de l'utilisateur
 
-  Widget getInitiales(
-      double raduis, Future<User?> userPostFuture, double size) {
-    return FutureBuilder<User?>(
-      future: userPostFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // Retourner un indicateur de chargement pendant que le futur est en cours de résolution
-          return const Center(child: CircularProgressIndicator());
-        } else {
-          // Une fois que le futur est résolu, vous pouvez accéder aux propriétés de l'utilisateur
-          var userPost = snapshot.data;
-          if (userPost != null) {
-            String? initName = userPost.name;
-            String? initSurname = userPost.surname;
+    String? initName = user.name;
+    String? initSurname = user.surname;
 
-            List<String> lettresNom = [];
-            List<String> lettresPrenom = [];
+    List<String> lettresNom = [];
+    List<String> lettresPrenom = [];
 
-            for (int i = 0; i < initName.length; i++) {
-              lettresNom.add(initName[i]);
-            }
-            for (int i = 0; i < initSurname.length; i++) {
-              lettresPrenom.add(initSurname[i]);
-            }
+    for (int i = 0; i < initName.length; i++) {
+      lettresNom.add(initName[i]);
+    }
+    for (int i = 0; i < initSurname.length; i++) {
+      lettresPrenom.add(initSurname[i]);
+    }
 
-            String initiale = "${lettresNom.first}${lettresPrenom.first}";
+    String initiale = "${lettresNom.first}${lettresPrenom.first}";
 
-            return Container(
-              height: raduis,
-              width: raduis,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: MyTextStyle.initialAvatar(initiale, size),
-              ),
-            );
-          } else {
-            // Gérer le cas où le futur est résolu mais qu'il n'y a pas de données
-            return const SizedBox(); // ou tout autre widget par défaut
-          }
-        }
-      },
+    return CircleAvatar(
+      radius: raduis,
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+        ),
+        child: Center(
+          child: MyTextStyle.initialAvatar(initiale, size),
+        ),
+      ),
     );
   }
 
-  FutureBuilder<User?> ProfilePic(double radius, Future<User?> userPost) {
-    return FutureBuilder<User?>(
-      future: userPost,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          // Retourner un indicateur de chargement pendant que le futur est en cours de résolution
-          return const Center(child: CircularProgressIndicator());
-        } else {
-          // Une fois que le futur est résolu, vous pouvez accéder aux propriétés de l'utilisateur
-          var userPost = snapshot.data;
-          if (userPost != null &&
-              userPost.profilPic != null &&
-              userPost.profilPic != "") {
-            return CircleAvatar(
-              radius: radius,
-              backgroundImage: CachedNetworkImageProvider(
-                userPost.profilPic!,
-              ),
-            );
-          } else {
-            // Retourner un widget par défaut si les conditions ne sont pas remplies
-            return CircleAvatar(
-              radius: radius,
-              // Par exemple, vous pouvez utiliser une image par défaut ou des initiales
-              child: const Text("CK"), // Par défaut, afficher simplement "A"
-            );
-          }
-        }
-      },
-    );
+  Widget ProfilePic(double radius, User? userPost, double size) {
+    if (userPost != null &&
+        userPost.profilPic != null &&
+        userPost.profilPic != "") {
+      return CircleAvatar(
+        radius: radius,
+        backgroundImage: CachedNetworkImageProvider(
+          userPost.profilPic!,
+        ),
+      );
+    } else {
+      // Retourner un widget par défaut si les conditions ne sont pas remplies
+      return CircleAvatar(
+        radius: radius,
+        // Par exemple, vous pouvez utiliser une image par défaut ou des initiales
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: MyTextStyle.initialAvatar("!?", size),
+          ),
+        ), // Par défaut, afficher simplement "A"
+      );
+    }
   }
 }

@@ -4,6 +4,56 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 class DataBasesPostServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
+  Future<Post> getPost(String residenceId, String postId, String userId) async {
+    try {
+      // Obtenez une référence à la publication dans la base de données
+      QuerySnapshot postQuery = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("post")
+          .where("id", isEqualTo: postId)
+          .get();
+
+      // Vérifie si la requête a retourné des documents
+      if (postQuery.docs.isNotEmpty) {
+        // Si oui, récupère le premier document (il ne devrait y en avoir qu'un)
+        DocumentSnapshot postDoc = postQuery.docs.first;
+
+        // Crée une instance de Post à partir du document
+        return Post.fromMap(postDoc.data() as Map<String, dynamic>);
+      } else {
+        throw Exception(
+            'Aucune publication trouvée avec l\'ID $postId dans la résidence $residenceId');
+      }
+    } catch (e) {
+      // Gère les erreurs ici
+      print(
+          'Une erreur s\'est produite lors de la récupération de la publication: $e');
+      // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
+      throw e;
+    }
+  }
+
+  Future<List<Post>> getAllAnnonces(String doc) async {
+    List<Post> posts = [];
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+          .collection("Residence")
+          .doc(doc)
+          .collection("post")
+          .where('type', isEqualTo: 'annonces')
+          //.orderBy('timeStamp', descending: true)
+          .get();
+      for (var docSnapshot in querySnapshot.docs) {
+        // Convertir chaque document en objet Post
+        posts.add(Post.fromMap(docSnapshot.data()));
+      }
+    } catch (e) {
+      print("Error completing in getAllpos: $e");
+    }
+    return posts;
+  }
+
   Future<List<Post>> getAnnonceById(String doc, String uid) async {
     List<Post> posts = [];
     try {
@@ -21,6 +71,41 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Error completing in getAllpos: $e");
+    }
+    return posts;
+  }
+
+  Future<List<Post>> getAllPostsWithFilters(
+      {required String doc,
+      List<String?>? locationElement,
+      String? locationDetails,
+      String? type}) async {
+    List<Post> posts = [];
+    try {
+      Query<Map<String, dynamic>> query =
+          db.collection("Residence").doc(doc).collection("post");
+
+      if (locationElement != null && locationElement.isNotEmpty) {
+        // Utilisez whereIn pour filtrer les documents ayant location_element
+        query = query.where('location_element', whereIn: locationElement);
+
+        if (locationDetails != null && locationDetails.isNotEmpty) {
+          query = query.where('location_details', isEqualTo: locationDetails);
+        }
+
+        if (type != null && type.isNotEmpty) {
+          query = query.where('type', isEqualTo: type);
+        }
+
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
+
+        for (var docSnapshot in querySnapshot.docs) {
+          posts.add(Post.fromMap(docSnapshot.data()));
+        }
+      }
+    } catch (e) {
+      // Handle the error appropriately, e.g., return an error object or rethrow
+      print("Error completing in getAllPostsWithFilters: $e");
     }
     return posts;
   }

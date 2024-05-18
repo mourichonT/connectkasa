@@ -31,7 +31,7 @@ class SubmitPostController {
     Post newPost = Post(
         id: idPost, // Vous devez générer un ID unique pour chaque post
         description: desc.text,
-        emplacement: location,
+        location_element: location,
         subtype: "",
         pathImage: imagePath,
         refResidence: docRes,

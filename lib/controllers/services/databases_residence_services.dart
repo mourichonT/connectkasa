@@ -69,4 +69,47 @@ class DataBasesResidenceServices {
 
     return residencesTrouvees;
   }
+
+  Future<List<String>> getAllLocalisation(String residence) async {
+    List<String> _allLocalisation = [];
+    try {
+      // Obtenez une référence au document spécifique dans la collection "Residence"
+      DocumentReference documentReference =
+          FirebaseFirestore.instance.collection("Residence").doc(residence);
+
+      // Effectuer la requête de recherche
+      DocumentSnapshot documentSnapshot = await documentReference.get();
+
+      // Vérifiez si le document existe
+      if (documentSnapshot.exists) {
+        // Récupérez les données du document
+        Map<String, dynamic> data =
+            (documentSnapshot.data() as Map<String, dynamic>);
+
+        // Vérifiez si le champ "localisation" existe et s'il est non nul
+        if (data.containsKey("localistation") &&
+            data["localistation"] != null) {
+          // Récupérez la liste des localisations
+          List<dynamic> localisations = data["localistation"];
+
+          // Parcourir la liste et ajouter chaque localisation à la liste _allLocalisation
+          for (var loc in localisations) {
+            if (loc is String) {
+              _allLocalisation.add(loc);
+            }
+          }
+        } else {
+          print(
+              "Le champ 'localisation' est manquant ou nul dans le document '$residence'");
+        }
+      } else {
+        print(
+            "Le document '$residence' n'existe pas dans la collection 'Residence'");
+      }
+    } catch (e) {
+      // Gérer les erreurs ici, si nécessaire
+      print("Une erreur s'est produite : $e");
+    }
+    return _allLocalisation;
+  }
 }

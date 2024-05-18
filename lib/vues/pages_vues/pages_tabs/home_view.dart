@@ -12,12 +12,14 @@ class Homeview extends StatefulWidget {
   String residenceSelected;
   String uid;
   double upDatescrollController;
+  Color colorStatut;
 
   Homeview(
       {super.key,
       required this.residenceSelected,
       required this.uid,
-      required this.upDatescrollController});
+      required this.upDatescrollController,
+      required this.colorStatut});
 
   @override
   _HomeviewState createState() => _HomeviewState();
@@ -27,7 +29,7 @@ class _HomeviewState extends State<Homeview> {
   late ScrollController _scrollController = ScrollController();
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
   late Future<List<Post>> _allPostsFuture;
-  late Color colorStatut = Theme.of(context).primaryColor;
+  //late Color colorStatut = Theme.of(context).primaryColor;
   final GlobalKey _scrollKey = GlobalKey();
   double scrollPosition = 0.0;
 
@@ -96,7 +98,7 @@ class _HomeviewState extends State<Homeview> {
                           post: post,
                           uid: widget.uid,
                           residenceSelected: widget.residenceSelected,
-                          colorStatut: colorStatut,
+                          colorStatut: widget.colorStatut,
                           scrollController: scrollPosition,
                         ),
                       if (post.type == "events")
@@ -104,7 +106,7 @@ class _HomeviewState extends State<Homeview> {
                           post: post,
                           uid: widget.uid,
                           residenceSelected: widget.residenceSelected,
-                          colorStatut: colorStatut,
+                          colorStatut: widget.colorStatut,
                           scrollController: scrollPosition,
                         )
                     ],
