@@ -1,4 +1,5 @@
 import 'package:connect_kasa/vues/components/payement_page.dart';
+import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
@@ -18,6 +19,7 @@ class AnnoncePageDetails extends StatefulWidget {
   final String residence;
   final Color colorStatut;
   final double scrollController;
+  final bool returnHomePage;
 
   AnnoncePageDetails({
     Key? key,
@@ -26,6 +28,7 @@ class AnnoncePageDetails extends StatefulWidget {
     required this.residence,
     required this.colorStatut,
     required this.scrollController,
+    required this.returnHomePage,
   }) : super(key: key);
 
   @override
@@ -59,15 +62,17 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
           SliverAppBar(
             leading: IconButton(
               onPressed: () async {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MyNavBar(
-                      uid: widget.uid,
-                      scrollController: widget.scrollController,
-                    ),
-                  ),
-                );
+                widget.returnHomePage
+                    ? Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyNavBar(
+                            uid: widget.uid,
+                            scrollController: widget.scrollController,
+                          ),
+                        ),
+                      )
+                    : Navigator.pop(context);
               },
               icon: const Icon(
                 Icons.arrow_back_ios,
@@ -99,99 +104,8 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                    top: 5, bottom: 5, left: 5, right: 20),
-                                child: Row(
-                                  children: [
-                                    FutureBuilder<User?>(
-                                      future: userPost, // Future<User?> ici
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          // Afficher un indicateur de chargement si le futur est en cours de chargement
-                                          return const CircularProgressIndicator();
-                                        } else {
-                                          // Si le futur est résolu, vous pouvez accéder aux propriétés de l'objet User
-                                          if (snapshot.hasData &&
-                                              snapshot.data != null) {
-                                            var user = snapshot.data!;
-                                            if (user.profilPic != null &&
-                                                user.profilPic != "") {
-                                              // Retourner le widget avec l'image de profil si disponible
-                                              return Row(
-                                                children: [
-                                                  CircleAvatar(
-                                                    radius: 20,
-                                                    backgroundColor:
-                                                        Theme.of(context)
-                                                            .primaryColor,
-                                                    child: formatProfilPic
-                                                        .ProfilePic(
-                                                            15, userPost),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  MyTextStyle.lotName(
-                                                    user.pseudo!,
-                                                    Colors.black87,
-                                                  ),
-                                                ],
-                                              );
-                                            } else {
-                                              // Sinon, retourner les initiales
-                                              return Row(
-                                                children: [
-                                                  CircleAvatar(
-                                                    radius: 20,
-                                                    backgroundColor:
-                                                        Theme.of(context)
-                                                            .primaryColor,
-                                                    child: formatProfilPic
-                                                        .getInitiales(
-                                                            35, userPost, 20),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  MyTextStyle.lotName(
-                                                    user.pseudo!,
-                                                    Colors.black87,
-                                                  ),
-                                                ],
-                                              );
-                                            }
-                                          } else {
-                                            // Gérer le cas où le futur est résolu mais qu'il n'y a pas de données
-                                            return Row(
-                                              children: [
-                                                CircleAvatar(
-                                                  radius: 20,
-                                                  backgroundColor:
-                                                      Theme.of(context)
-                                                          .primaryColor,
-                                                  child: formatProfilPic
-                                                      .getInitiales(
-                                                          65, userPost, 3),
-                                                ),
-                                                SizedBox(
-                                                  width: 5,
-                                                ),
-                                                MyTextStyle.lotName(
-                                                  "Utilisteur inconnu",
-                                                  Colors.black87,
-                                                ),
-                                              ],
-                                            ); // ou tout autre widget par défaut
-                                          }
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                //
-                              ),
+                              ProfilTile(widget.post.user, 20, 18, 20, true,
+                                  Colors.black87),
                               ButtonAdd(
                                 function: () {
                                   Navigator.push(
@@ -212,6 +126,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                 text: "Contacter",
                                 horizontal: 10,
                                 vertical: 2,
+                                size: 13,
                               ),
                             ],
                           ),
@@ -366,6 +281,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                                 .push(CupertinoPageRoute(
                                               builder: (context) =>
                                                   AnnoncePageDetails(
+                                                returnHomePage: false,
                                                 post: annonce,
                                                 uid: widget.uid,
                                                 residence: widget.residence,
@@ -509,7 +425,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                       text: "Réservé",
                       horizontal: 20,
                       vertical: 10,
-                    )
+                      size: 13)
                   : ButtonAdd(
                       function: () {
                         _showBottomSheet(context, widget.post.price!,
@@ -519,7 +435,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                       text: "Payer",
                       horizontal: 20,
                       vertical: 10,
-                    ),
+                      size: 13),
             ],
           ),
         ),

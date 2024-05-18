@@ -4,6 +4,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/like_button_comment.dart';
+import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
@@ -94,112 +95,95 @@ class CommentTileState extends State<CommentTile> {
 
   Widget _buildCommentTile(Comment comment) {
     Color colorStatut = Theme.of(context).primaryColor;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      mainAxisSize: MainAxisSize.max,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding:
-                  const EdgeInsets.only(top: 10, bottom: 5, left: 5, right: 15),
-              child: CircleAvatar(
-                radius: 23,
-                backgroundColor: Theme.of(context).primaryColor,
-                child: FutureBuilder<User?>(
-                  future: user,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else {
-                      if (snapshot.hasData && snapshot.data != null) {
-                        var user = snapshot.data!;
-                        if (user.profilPic != null && user.profilPic != "") {
-                          return formatProfilPic.ProfilePic(
-                              27, Future.value(user));
-                        } else {
-                          return formatProfilPic.getInitiales(
-                              40, Future.value(user), 25);
-                        }
-                      } else {
-                        return formatProfilPic.getInitiales(
-                            37, Future.value(user), 25);
-                      }
-                    }
-                  },
-                ),
+    return Padding(
+      padding: const EdgeInsets.only(left: 5, right: 15),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisSize: MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                    top: 10, bottom: 5, left: 5, right: 15),
+                child:
+                    ProfilTile(comment.user, 20, 18, 20, false, Colors.white),
               ),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    FutureBuilder<User?>(
-                      future: user,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        } else if (snapshot.hasError) {
-                          return Text("Error: ${snapshot.error}");
-                        } else if (snapshot.hasData && snapshot.data != null) {
-                          var user = snapshot.data!;
-                          String? pseudo = user.pseudo;
-                          return MyTextStyle.lotName(pseudo!, Colors.black87);
-                        } else {
-                          return const SizedBox();
-                        }
-                      },
-                    ),
-                    const SizedBox(width: 10),
-                    Container(
-                      child: MyTextStyle.commentDate(comment.timestamp),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.50,
-                    child: MyTextStyle.commentTextFormat(comment.comment)),
-                Row(
-                  children: [
-                    TextButton(
-                      child: MyTextStyle.lotName("Répondre", Colors.black54),
-                      onPressed: () {
-                        String initComment = "";
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      FutureBuilder<User?>(
+                        future: user,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          } else if (snapshot.hasError) {
+                            return Text("Error: ${snapshot.error}");
+                          } else if (snapshot.hasData &&
+                              snapshot.data != null) {
+                            var user = snapshot.data!;
+                            String? pseudo = user.pseudo;
+                            return MyTextStyle.lotName(pseudo!, Colors.black87);
+                          } else {
+                            return MyTextStyle.lotName(
+                                "Utilisteur inconnu", Colors.black87);
+                            ;
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        child: MyTextStyle.commentDate(comment.timestamp),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.50,
+                      child: MyTextStyle.commentTextFormat(comment.comment)),
+                  Row(
+                    children: [
+                      TextButton(
+                        child: MyTextStyle.lotName("Répondre", Colors.black54),
+                        onPressed: () {
+                          String initComment = "";
 
-                        if (widget.comment.originalCommment == false) {
-                          initComment = comment.initialComment!;
-                          widget.isReply = true;
-                          _replyToComment(comment, widget.isReply, initComment);
-                        } else {
-                          widget.isReply = true;
-                          initComment = widget.comment.id;
-                          _replyToComment(comment, widget.isReply,
-                              initComment); // initComment
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        ),
-        LikeButtonComment(
-          residence: widget.residence,
-          uid: widget.uid,
-          comment: comment,
-          postId: widget.postId,
-          color: colorStatut,
-        ),
-      ],
+                          if (widget.comment.originalCommment == false) {
+                            initComment = comment.initialComment!;
+                            widget.isReply = true;
+                            _replyToComment(
+                                comment, widget.isReply, initComment);
+                          } else {
+                            widget.isReply = true;
+                            initComment = widget.comment.id;
+                            _replyToComment(comment, widget.isReply,
+                                initComment); // initComment
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+          LikeButtonComment(
+            residence: widget.residence,
+            uid: widget.uid,
+            comment: comment,
+            postId: widget.postId,
+            color: colorStatut,
+          ),
+        ],
+      ),
     );
   }
 

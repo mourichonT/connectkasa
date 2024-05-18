@@ -6,6 +6,7 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
+import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 
 class PartipedTile extends StatefulWidget {
@@ -76,6 +77,7 @@ class _PartipedTileState extends State<PartipedTile> {
                     text: "Ne plus Participer",
                     horizontal: 10,
                     vertical: 2,
+                    size: 13,
                   )
                 : ButtonAdd(
                     function: participedUser,
@@ -84,6 +86,7 @@ class _PartipedTileState extends State<PartipedTile> {
                     text: "Participer",
                     horizontal: 10,
                     vertical: 2,
+                    size: 13,
                   ),
           ],
         ),
@@ -112,7 +115,7 @@ class _PartipedTileState extends State<PartipedTile> {
                     i++)
                   Container(
                       padding: EdgeInsets.all(widget.space),
-                      child: buildAvatar(users![i])),
+                      child: ProfilTile(users![i]!.uid, 12, 11, 12, false)),
               ],
             );
           }

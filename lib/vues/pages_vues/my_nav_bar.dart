@@ -50,6 +50,7 @@ class _MyNavBarState extends State<MyNavBar>
 
   @override
   Widget build(BuildContext context) {
+    final Color colorStatut = Theme.of(context).primaryColor;
     final double width = MediaQuery.of(context).size.width;
     final List<IconData> icons = tabController.iconTabBar.listIcons();
     final List<Tab> tabs = icons.asMap().entries.map((entry) {
@@ -99,10 +100,12 @@ class _MyNavBarState extends State<MyNavBar>
         controller: tabController.tabController,
         children: [
           Homeview(
-              key: UniqueKey(),
-              residenceSelected: preferedLot?.residenceId ?? "",
-              uid: uid,
-              upDatescrollController: widget.scrollController),
+            key: UniqueKey(),
+            residenceSelected: preferedLot?.residenceId ?? "",
+            uid: uid,
+            upDatescrollController: widget.scrollController,
+            colorStatut: colorStatut,
+          ),
           SinistrePageView(
             key: UniqueKey(),
             residenceSelected: preferedLot?.residenceId ?? "",
@@ -118,7 +121,9 @@ class _MyNavBarState extends State<MyNavBar>
             key: UniqueKey(),
             residenceSelected: preferedLot?.residenceId ?? "",
             uid: uid,
-            argument1: "annonces",
+            type: "annonces",
+            colorStatut: colorStatut,
+            scrollController: widget.scrollController,
           ),
           MydocsPageView(),
         ],

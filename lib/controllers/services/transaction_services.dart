@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/models/pages_models/transaction.dart';
 
-class TransactionController {
+class TransactionServices {
   static Future<bool> effectuerTransaction(
       String idUserEmetteur, String idUserReceveur, String montant) async {
     try {
@@ -46,6 +47,40 @@ class TransactionController {
       // Une erreur s'est produite lors de la transaction
       print('Erreur lors de la transaction : $e');
       return false;
+    }
+  }
+
+  Future<List<TransactionModel>> getTransactionByUid(
+      String uidAcheteur, String residenceId) async {
+    List<TransactionModel> transactions = [];
+    try {
+      // Accéder à la collection "transactions" dans Firestore
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('transaction') // Correction du nom de la collection
+          .where("residenceId", isEqualTo: residenceId)
+          .where('uidAcheteur', isEqualTo: uidAcheteur)
+          .get();
+
+      // Liste pour stocker les transactions récupérées
+
+      // Parcourir chaque document dans le QuerySnapshot
+      querySnapshot.docs.forEach((doc) {
+        // Accéder aux données du document
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        // Ajouter la référence du document à l'objet TransactionModel
+        data['documentReference'] = doc.reference;
+        // Créer une instance de Transaction à partir des données du document
+        TransactionModel transaction = TransactionModel.fromJson(data);
+        // Ajouter la transaction à la liste
+        transactions.add(transaction);
+      });
+
+      // Retourner la liste des transactions récupérées
+      return transactions;
+    } catch (e) {
+      // Gérer les erreurs
+      print("Erreur lors de la récupération des transactions : $e");
+      return []; // Retourner une liste vide en cas d'erreur
     }
   }
 }

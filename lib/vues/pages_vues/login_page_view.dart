@@ -118,6 +118,7 @@ class LoginPageView extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     InkWell(
+                      radius: 35,
                       onTap: () {
                         AuthentificationProcess(
                           context: context,

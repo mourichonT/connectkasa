@@ -1,6 +1,3 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_events_services.dart';
-import 'package:connect_kasa/models/pages_models/event.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
 import 'package:connect_kasa/vues/components/event_tile.dart';
 import 'package:flutter/material.dart';
@@ -65,12 +62,12 @@ class EventPageViewState extends State<EventPageView>
             height: 20,
           ),
           ButtonAdd(
-            color: Theme.of(context).primaryColor,
-            icon: Icons.add,
-            text: 'Ajouter un évenement',
-            horizontal: 10,
-            vertical: 2,
-          ),
+              color: Theme.of(context).primaryColor,
+              icon: Icons.add,
+              text: 'Ajouter un évenement',
+              horizontal: 10,
+              vertical: 2,
+              size: 13),
           EventTile(widget.uid, widget.residenceSelected)
         ],
       ),

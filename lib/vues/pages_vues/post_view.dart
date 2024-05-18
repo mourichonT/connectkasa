@@ -1,6 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/my_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
@@ -110,7 +111,7 @@ class PostViewState extends State<PostView> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 11),
                       child: MyTextStyle.lotName(
-                        "${widget.postSelected.title} / ${widget.postSelected.emplacement}",
+                        "${widget.postSelected.title} / ${widget.postSelected.location_element}",
                         Colors.white,
                       ),
                     ),
@@ -131,73 +132,12 @@ class PostViewState extends State<PostView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (widget.postSelected.hideUser == false)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 10,
-                              bottom: 10,
-                              left: 10,
-                              right: 10,
-                            ),
-                            child: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: Theme.of(context).primaryColor,
-                              child: FutureBuilder<User?>(
-                                future: userPost,
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
-                                  } else {
-                                    if (snapshot.hasData &&
-                                        snapshot.data != null) {
-                                      var user = snapshot.data!;
-                                      if (user.profilPic != null &&
-                                          user.profilPic != "") {
-                                        return widget.formatProfilPic
-                                            .ProfilePic(17, userPost);
-                                      } else {
-                                        return widget.formatProfilPic
-                                            .getInitiales(34, userPost, 17);
-                                      }
-                                    } else {
-                                      return widget.formatProfilPic
-                                          .getInitiales(17, userPost, 3);
-                                    }
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                          FutureBuilder<User?>(
-                            future: userPost,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              } else {
-                                if (snapshot.hasData && snapshot.data != null) {
-                                  var user = snapshot.data!;
-                                  return MyTextStyle.lotName(
-                                    user.pseudo!,
-                                    Colors.white,
-                                  );
-                                } else {
-                                  return const Text(
-                                    'Utilisateur inconnue',
-                                    style: TextStyle(color: Colors.white),
-                                  );
-                                }
-                              }
-                            },
-                          ),
-                        ],
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: ProfilTile(widget.postSelected.user, 20, 18, 20,
+                            true, Colors.white),
                       ),
+
                     Flexible(
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20),

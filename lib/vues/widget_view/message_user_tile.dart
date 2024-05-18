@@ -3,6 +3,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 
@@ -46,61 +47,8 @@ class MessageUserTileState extends State<MessageUserTile> {
           children: [
             Padding(
               padding:
-                  const EdgeInsets.only(top: 10, bottom: 5, left: 5, right: 15),
-              child: CircleAvatar(
-                radius: widget.radius,
-                backgroundColor: Theme.of(context).primaryColor,
-                child: FutureBuilder<User?>(
-                  future: user,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    } else {
-                      if (snapshot.hasData && snapshot.data != null) {
-                        var user = snapshot.data!;
-                        if (user.profilPic != null && user.profilPic != "") {
-                          return formatProfilPic.ProfilePic(
-                              27, Future.value(user));
-                        } else {
-                          return formatProfilPic.getInitiales(
-                              40, Future.value(user), 18);
-                        }
-                      } else {
-                        return formatProfilPic.getInitiales(
-                            37, Future.value(user), 25);
-                      }
-                    }
-                  },
-                ),
-              ),
-            ),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    FutureBuilder<User?>(
-                      future: user,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
-                        } else if (snapshot.hasError) {
-                          return Text("Error: ${snapshot.error}");
-                        } else if (snapshot.hasData && snapshot.data != null) {
-                          var user = snapshot.data!;
-                          String? pseudo = user.pseudo;
-                          return MyTextStyle.lotName(pseudo!, Colors.black87);
-                        } else {
-                          return const SizedBox();
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ],
+                  const EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
+              child: ProfilTile(widget.uid, 20, 18, 20, true, Colors.black87),
             ),
           ],
         ),

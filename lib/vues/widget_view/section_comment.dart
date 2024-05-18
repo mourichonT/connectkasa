@@ -139,55 +139,61 @@ class _SectionCommentState extends State<SectionComment>
         onTap: () {
           FocusScope.of(context).requestFocus(inputFocusNode);
         },
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.background,
-                  borderRadius: const BorderRadius.all(Radius.circular(30.0))),
-              padding: const EdgeInsets.symmetric(vertical: 3, horizontal: 15),
-              width: MediaQuery.of(context).size.width * 0.75,
-              child: IgnorePointer(
-                child: TextField(
-                  controller: _textEditingController,
-                  focusNode: inputFocusNode,
-                  decoration: const InputDecoration(
-                    hintMaxLines: 15,
-                    hintText: 'Ajouter un commentaire...',
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 15),
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.5),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Expanded(
+                child: IgnorePointer(
+                  child: TextFormField(
+                    enableInteractiveSelection: true,
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    minLines: 1,
+                    controller: _textEditingController,
+                    focusNode: inputFocusNode,
+                    decoration: const InputDecoration(
+                      hintMaxLines: 15,
+                      hintText: 'Ajouter un commentaire...',
+                    ),
                   ),
                 ),
               ),
-            ),
-            IconButton(
-              color: Theme.of(context).colorScheme.primary,
-              icon: const Icon(Icons.send_rounded),
-              onPressed: () {
-                if (isReply == true) {
-                  if (_textEditingController.text.isNotEmpty) {
-                    _addComment(
-                      _textEditingController,
-                      isReply,
-                      commentId: commentId,
-                      initialComment: initialComment,
-                    );
-                    _textEditingController.clear();
+              IconButton(
+                color: Theme.of(context).colorScheme.primary,
+                icon: const Icon(Icons.send_rounded),
+                onPressed: () {
+                  if (isReply == true) {
+                    if (_textEditingController.text.isNotEmpty) {
+                      _addComment(
+                        _textEditingController,
+                        isReply,
+                        commentId: commentId,
+                        initialComment: initialComment,
+                      );
+                      _textEditingController.clear();
+                    }
+                  } else {
+                    if (isReply == false &&
+                        _textEditingController.text.isNotEmpty) {
+                      _addComment(
+                        _textEditingController,
+                        isReply,
+                        commentId: commentId,
+                        initialComment: initialComment,
+                      );
+                      _textEditingController.clear();
+                    }
                   }
-                } else {
-                  if (isReply == false &&
-                      _textEditingController.text.isNotEmpty) {
-                    _addComment(
-                      _textEditingController,
-                      isReply,
-                      commentId: commentId,
-                      initialComment: initialComment,
-                    );
-                    _textEditingController.clear();
-                  }
-                }
-              },
-            )
-          ],
+                },
+              )
+            ],
+          ),
         ),
       ),
     );

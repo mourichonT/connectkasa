@@ -1,5 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/transaction_controller.dart';
+import 'package:connect_kasa/controllers/services/transaction_services.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
@@ -188,32 +188,32 @@ class PayementPageState extends State<PayementPage> {
                 child: Padding(
                   padding: const EdgeInsets.only(top: 50),
                   child: ButtonAdd(
-                    function: () async {
-                      bool transactionReussie =
-                          await TransactionController.effectuerTransaction(
-                              widget.uidFrom,
-                              widget.post.user,
-                              amount.toString());
+                      function: () async {
+                        bool transactionReussie =
+                            await TransactionServices.effectuerTransaction(
+                                widget.uidFrom,
+                                widget.post.user,
+                                amount.toString());
 
-                      if (transactionReussie) {
-                        showSnackBarFun(context);
-                        // Gérer d'autres actions à effectuer en cas de succès de la transaction
-                        print("La transaction a été effectuée avec succès.");
+                        if (transactionReussie) {
+                          showSnackBarFun(context);
+                          // Gérer d'autres actions à effectuer en cas de succès de la transaction
+                          print("La transaction a été effectuée avec succès.");
 
-                        setState(() {
-                          //widget.onRefresh?.call();
-                          Navigator.pop(context);
-                        });
-                      } else {
-                        print('La transaction a échoué.');
-                        // Gérer d'autres actions à effectuer en cas d'échec de la transaction
-                      }
-                    },
-                    color: Theme.of(context).primaryColor,
-                    text: "Valider le paiement",
-                    horizontal: 30,
-                    vertical: 10,
-                  ),
+                          setState(() {
+                            //widget.onRefresh?.call();
+                            Navigator.pop(context);
+                          });
+                        } else {
+                          print('La transaction a échoué.');
+                          // Gérer d'autres actions à effectuer en cas d'échec de la transaction
+                        }
+                      },
+                      color: Theme.of(context).primaryColor,
+                      text: "Valider le paiement",
+                      horizontal: 30,
+                      vertical: 10,
+                      size: 15),
                 ),
               ),
             ],

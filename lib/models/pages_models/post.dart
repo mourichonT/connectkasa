@@ -11,7 +11,9 @@ class Post {
   String _pathImage = "";
   String title;
   String description;
-  String emplacement;
+  String location_element;
+  String location_details;
+  String location_floor;
   List<String> like;
   List<Post> signalement;
   bool hideUser;
@@ -29,7 +31,9 @@ class Post {
     String pathImage = "",
     required this.title,
     required this.description,
-    this.emplacement = "",
+    this.location_element = "",
+    this.location_details = "", // Nouvel attribut
+    this.location_floor = "", // Nouvel attribut
     this.like = const [],
     this.signalement = const [],
     required this.hideUser,
@@ -131,34 +135,40 @@ class Post {
     }
 
     return Post(
-        id: map['id'] ?? "",
-        description: map['description'] ?? "",
-        emplacement: map['emplacement'] ?? "",
-        subtype: map['subtype'] ?? "",
-        pathImage: map['pathImage'] ?? "",
-        refResidence: map['refResidence'] ?? "",
-        statu: map['statu'] ?? "",
-        timeStamp: map['timeStamp'] ?? 0,
-        title: map['title'] ?? "",
-        type: map['type'] ?? "",
-        user: map['user'] ?? "",
-        like: convertedLikeList,
-        signalement: (map['signalement'] as List<dynamic>? ?? [])
-            .whereType<
-                Map<String,
-                    dynamic>>() // Filtrez les éléments qui ne sont pas des Map<String, dynamic>
-            .map((signalementData) => Post.fromMap(signalementData))
-            .toList(),
-        hideUser: map['hideUser'],
-        participants: convertedParticipantsList,
-        price: map['price'] ?? "");
+      id: map['id'] ?? "",
+      description: map['description'] ?? "",
+      location_element:
+          map['location_element'] ?? "", // Mise à jour du nom de l'attribut
+      location_details: map['location_details'] ?? "", // Nouvel attribut
+      location_floor: map['location_floor'] ?? "", // Nouvel attribut
+      subtype: map['subtype'] ?? "",
+      pathImage: map['pathImage'] ?? "",
+      refResidence: map['refResidence'] ?? "",
+      statu: map['statu'] ?? "",
+      timeStamp: map['timeStamp'] ?? 0,
+      title: map['title'] ?? "",
+      type: map['type'] ?? "",
+      user: map['user'] ?? "",
+      like: convertedLikeList,
+      signalement: (map['signalement'] as List<dynamic>? ?? [])
+          .whereType<
+              Map<String,
+                  dynamic>>() // Filtrez les éléments qui ne sont pas des Map<String, dynamic>
+          .map((signalementData) => Post.fromMap(signalementData))
+          .toList(),
+      hideUser: map['hideUser'],
+      participants: convertedParticipantsList,
+      price: map['price'] ?? "",
+    );
   }
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'description': description,
-      'emplacement': emplacement,
+      'location_element': location_element, // Mise à jour du nom de l'attribut
+      'location_details': location_details, // Nouvel attribut
+      'location_floor': location_floor, // Nouvel attribut
       'subtype': subtype,
       'pathImage': pathImage,
       'refResidence': refResidence,

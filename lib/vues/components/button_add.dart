@@ -8,6 +8,7 @@ class ButtonAdd extends StatelessWidget {
   final String text;
   final double horizontal;
   final double vertical;
+  final double size;
 
   const ButtonAdd(
       {Key? key,
@@ -16,7 +17,8 @@ class ButtonAdd extends StatelessWidget {
       this.icon,
       required this.text,
       required this.horizontal,
-      required this.vertical})
+      required this.vertical,
+      required this.size})
       : super(key: key);
 
   @override
@@ -43,10 +45,10 @@ class ButtonAdd extends StatelessWidget {
                     size: 16,
                   ),
                   SizedBox(width: 5),
-                  MyTextStyle.lotName(text, Colors.white, 15)
+                  MyTextStyle.lotName(text, Colors.white, size)
                 ],
               )
-            : MyTextStyle.lotName(text, Colors.white, 15),
+            : MyTextStyle.lotName(text, Colors.white, size),
       ),
     );
   }
