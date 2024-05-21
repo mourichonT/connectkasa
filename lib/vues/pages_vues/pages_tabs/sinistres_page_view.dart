@@ -28,6 +28,8 @@ class SinistrePageView extends StatefulWidget {
 
 class SinistrePageViewState extends State<SinistrePageView>
     with SingleTickerProviderStateMixin {
+  final TextEditingController _dateFromController = TextEditingController();
+  final TextEditingController _dateToController = TextEditingController();
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
   final DataBasesResidenceServices _ResServices = DataBasesResidenceServices();
   late final TabController _tabController;
@@ -36,14 +38,23 @@ class SinistrePageViewState extends State<SinistrePageView>
   bool _showFilters = false;
   bool _selectedTab = false;
   late Post post;
-  String? _selectedLocation;
   String? _selectedDetails;
-  String? _selectedType;
-  String? selectedValue;
+  String? selectedType;
+  // String? selectedValue;
   final TypeList _typeList = TypeList();
   final _multiSelectKey = GlobalKey<FormFieldState>();
-  List<String?> _selectedEmplacement =
-      []; // Déclarez _selectedEmplacement comme List<String?>
+  final _multiStatutKey = GlobalKey<FormFieldState>();
+  final _multiTypeKey = GlobalKey<FormFieldState>();
+  List<String?> _selectedEmplacement = [];
+  List<String?> _selectedStatut = [];
+  List<String?> labelsType = [];
+  //List<String?> typeValue = [];
+
+  final List<String> listStatu = [
+    "Validé",
+    "En attente",
+    "Refusé"
+  ]; // Déclarez _selectedEmplacement comme List<String?>
   @override
   void initState() {
     super.initState();
@@ -73,18 +84,19 @@ class SinistrePageViewState extends State<SinistrePageView>
       _allPostsFuture = _databaseServices.getAllPostsWithFilters(
         doc: widget.residenceSelected,
         locationElement: _selectedEmplacement,
-        locationDetails: _selectedDetails,
-        type: selectedValue,
+        type: labelsType,
+        dateFrom: _dateFromController.text,
+        dateTo: _dateToController.text,
+        statut: _selectedStatut,
       );
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    List<List<String>> declarationType = _typeList.typeDeclaration();
     initializeDateFormatting('fr_FR', null);
 
-    List<List<String>> declarationType = _typeList.typeDeclaration();
-    List<String> labelsType = declarationType.map((e) => e.first).toList();
     final Color color = Theme.of(context).primaryColor;
     final double width = MediaQuery.of(context).size.width;
     double sizeDate = width / 2.2;
@@ -125,63 +137,55 @@ class SinistrePageViewState extends State<SinistrePageView>
                             return Expanded(
                               child: Container(
                                 width: sizeDate,
-                                padding: EdgeInsets.only(right: 50),
-                                child: Container(
-                                  child: MultiSelectBottomSheetField<String?>(
-                                    key: _multiSelectKey,
-                                    initialChildSize: 0.7,
-                                    maxChildSize: 0.95,
-                                    title: MyTextStyle.annonceDesc(
-                                        "Recherche", 16, 1),
-                                    buttonText: MyTextStyle.lotDesc(
-                                      "Localisation",
-                                      14,
-                                      FontStyle.normal,
-                                    ),
-                                    checkColor: Colors.white,
-                                    selectedColor: color,
-                                    items: _items
-                                        .map((item) => MultiSelectItem<String?>(
-                                            item, item!))
-                                        .toList(),
-                                    searchable: true,
-                                    buttonIcon: Icon(Icons.arrow_drop_down),
-                                    // validator: (values) {
-                                    //   if (values == null || values.isEmpty) {
-                                    //     _updateFilters();
-                                    //   }
-                                    // },
-                                    decoration: const BoxDecoration(
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: Colors
-                                              .black12, // Changez la couleur ici
-                                          width:
-                                              0.5, // Ajustez l'épaisseur de la ligne si nécessaire
-                                        ),
+                                child: MultiSelectBottomSheetField<String?>(
+                                  isDismissible: true,
+                                  key: _multiSelectKey,
+                                  initialChildSize: 0.7,
+                                  maxChildSize: 0.95,
+                                  title: MyTextStyle.annonceDesc(
+                                      "Recherche", 16, 1),
+                                  buttonText: MyTextStyle.lotDesc(
+                                    "Localisation",
+                                    13,
+                                    FontStyle.normal,
+                                  ),
+                                  checkColor: Colors.white,
+                                  selectedColor: color,
+                                  items: _items
+                                      .map((item) =>
+                                          MultiSelectItem<String?>(item, item!))
+                                      .toList(),
+                                  searchable: true,
+                                  buttonIcon: Icon(Icons.arrow_drop_down),
+                                  decoration: const BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: Colors
+                                            .black12, // Changez la couleur ici
+                                        width:
+                                            0.5, // Ajustez l'épaisseur de la ligne si nécessaire
                                       ),
                                     ),
-                                    onConfirm: (List<String?> values) {
+                                  ),
+                                  onConfirm: (List<String?> values) {
+                                    setState(() {
+                                      _selectedEmplacement = values
+                                          .where((element) => element != null)
+                                          .map((element) =>
+                                              element!) // Convertissez les éléments non nuls en non-optionnels
+                                          .toList();
+                                      _updateFilters();
+                                    });
+                                    _multiSelectKey.currentState?.validate();
+                                  },
+                                  chipDisplay: MultiSelectChipDisplay(
+                                    height: 50,
+                                    onTap: (item) {
                                       setState(() {
-                                        _selectedEmplacement = values
-                                            .where((element) => element != null)
-                                            .map((element) =>
-                                                element!) // Convertissez les éléments non nuls en non-optionnels
-                                            .toList();
-                                        _updateFilters();
+                                        _selectedEmplacement.remove(item);
                                       });
-                                      _multiSelectKey.currentState?.validate();
+                                      _multiSelectKey.currentState!.validate();
                                     },
-                                    chipDisplay: MultiSelectChipDisplay(
-                                      height: 50,
-                                      onTap: (item) {
-                                        setState(() {
-                                          _selectedEmplacement.remove(item);
-                                        });
-                                        _multiSelectKey.currentState!
-                                            .validate();
-                                      },
-                                    ),
                                   ),
                                 ),
                               ),
@@ -190,40 +194,61 @@ class SinistrePageViewState extends State<SinistrePageView>
                         },
                       ),
                       Container(
-                        height: 50,
-                        child: DropdownButton<String>(
-                          value: _selectedType,
-                          onChanged: (newValue) {
-                            setState(() {
-                              _selectedType = newValue;
-                              selectedValue = declarationType
-                                  .firstWhere(
-                                      (element) => element.first == newValue)
-                                  .last;
-                            });
-                            _updateFilters();
-                          },
-                          items: labelsType.map((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: MyTextStyle.lotDesc(
-                                value,
-                                14,
-                                FontStyle.normal,
-                              ),
-                            );
-                          }).toList(),
-                          hint: MyTextStyle.lotDesc(
-                            'Type',
-                            14,
+                        width: sizeDate,
+                        child: MultiSelectBottomSheetField<String?>(
+                          key: _multiTypeKey,
+                          initialChildSize: 0.7,
+                          maxChildSize: 0.95,
+                          title: MyTextStyle.annonceDesc("Recherche", 16, 1),
+                          buttonText: MyTextStyle.lotDesc(
+                            "Type",
+                            13,
                             FontStyle.normal,
                           ),
-                          underline: Container(
-                            padding: EdgeInsets.only(top: 50),
-                            height: 0.3, // La hauteur de la ligne
-                            color: Colors
-                                .black26, // Couleur de la ligne (ici transparente)
-                            // Ajouter une marge en haut pour baisser la ligne
+                          checkColor: Colors.white,
+                          selectedColor: color,
+                          items: declarationType
+                              .map((e) => e.last)
+                              .map((item) =>
+                                  MultiSelectItem<String?>(item, item!))
+                              .toList(),
+                          searchable: true,
+                          buttonIcon: Icon(
+                            Icons.arrow_drop_down,
+                            size: 24,
+                          ),
+                          decoration: const BoxDecoration(
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.black12, // Changez la couleur ici
+                                width:
+                                    1, // Ajustez l'épaisseur de la ligne si nécessaire
+                              ),
+                            ),
+                          ),
+                          onConfirm: (List<String?> values) {
+                            setState(() {
+                              labelsType =
+                                  declarationType.map((e) => e.last).toList();
+                              //typeValue = declarationType.map((e) => e.last).toList();
+                              labelsType = values
+                                  .where((element) => element != null)
+                                  .map((element) =>
+                                      element!) // Convertissez les éléments non nuls en non-optionnels
+                                  .toList();
+
+                              _updateFilters();
+                            });
+                            _multiTypeKey.currentState?.validate();
+                          },
+                          chipDisplay: MultiSelectChipDisplay(
+                            height: 50,
+                            onTap: (item) {
+                              setState(() {
+                                labelsType.remove(item);
+                              });
+                              _multiTypeKey.currentState!.validate();
+                            },
                           ),
                         ),
                       ),
@@ -232,66 +257,183 @@ class SinistrePageViewState extends State<SinistrePageView>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        height: 50,
-                        //padding: EdgeInsets.only(right: 50),
-                        width: sizeDate,
-                        child: TextField(
-                          decoration: InputDecoration(
-                            prefixIconConstraints:
-                                BoxConstraints(minWidth: 0, minHeight: 0),
-                            suffixIconConstraints:
-                                BoxConstraints(minWidth: 0, minHeight: 0),
-                            // filled: true,
-                            prefixIcon: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              child: Icon(
-                                Icons.calendar_today,
-                                size: 14,
+                      Expanded(
+                        child: Container(
+                          padding: EdgeInsets.only(left: 0),
+                          height: 50,
+                          width: sizeDate,
+                          child: TextField(
+                            textAlign: TextAlign.center,
+                            controller: _dateFromController,
+                            decoration: InputDecoration(
+                              enabledBorder: const UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors
+                                        .black12), // Change to your desired color
+                              ),
+                              prefixIconConstraints:
+                                  BoxConstraints(minWidth: 0, minHeight: 0),
+                              suffixIconConstraints:
+                                  BoxConstraints(minWidth: 0, minHeight: 0),
+                              // filled: true,
+                              prefixIcon: const Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 10),
+                                child: Icon(
+                                  Icons.calendar_today,
+                                  size: 14,
+                                ),
+                              ),
+                              suffixIcon: Padding(
+                                padding: const EdgeInsets.only(right: 1),
+                                child: const Icon(
+                                  Icons.arrow_drop_down,
+                                  size: 23,
+                                ),
+                              ),
+                              label: Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: MyTextStyle.lotDesc(
+                                  "Depuis",
+                                  13,
+                                  FontStyle.normal,
+                                ),
+                              ),
+                              focusColor: color,
+                            ),
+                            readOnly: true,
+                            onTap: () {
+                              _selectDate("dateFrom");
+                            },
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(
+                          height: 50,
+                          width: sizeDate,
+                          child: TextField(
+                            textAlign: TextAlign.center,
+                            controller: _dateToController,
+                            decoration: InputDecoration(
+                              enabledBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: Colors
+                                        .black12), // Change to your desired color
+                              ),
+                              prefixIconConstraints:
+                                  BoxConstraints(minWidth: 0, minHeight: 0),
+                              suffixIconConstraints:
+                                  BoxConstraints(minWidth: 0, minHeight: 0),
+                              // filled: true,
+                              prefixIcon: Padding(
+                                padding:
+                                    const EdgeInsets.only(left: 20, right: 10),
+                                child: Icon(
+                                  Icons.calendar_today,
+                                  size: 14,
+                                ),
+                              ),
+                              suffixIcon: Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: Icon(Icons.arrow_drop_down),
+                              ),
+                              label: MyTextStyle.lotDesc(
+                                "Jusqu'à",
+                                13,
+                                FontStyle.normal,
+                              ),
+                              focusColor: color,
+                            ),
+                            readOnly: true,
+                            onTap: () {
+                              _selectDate("dateTo");
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          width: sizeDate,
+                          child: MultiSelectBottomSheetField<String?>(
+                            isDismissible: true,
+                            key: _multiStatutKey,
+                            initialChildSize: 0.7,
+                            maxChildSize: 0.95,
+                            title: MyTextStyle.annonceDesc("Recherche", 16, 1),
+                            buttonText: MyTextStyle.lotDesc(
+                              "Statut",
+                              13,
+                              FontStyle.normal,
+                            ),
+                            checkColor: Colors.white,
+                            selectedColor: color,
+                            items: listStatu
+                                .map((item) =>
+                                    MultiSelectItem<String?>(item, item))
+                                .toList(),
+                            searchable: true,
+                            buttonIcon: Icon(Icons.arrow_drop_down),
+                            decoration: const BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color:
+                                      Colors.black12, // Changez la couleur ici
+                                  width:
+                                      1, // Ajustez l'épaisseur de la ligne si nécessaire
+                                ),
                               ),
                             ),
-                            suffixIcon: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 11.0),
-                              child: Icon(Icons.arrow_drop_down),
-                            ),
-                            label: MyTextStyle.lotDesc(
-                              'Depuis',
-                              14,
-                              FontStyle.normal,
+                            onConfirm: (List<String?> values) {
+                              setState(() {
+                                _selectedStatut = values
+                                    .where((element) => element != null)
+                                    .map((element) =>
+                                        element!) // Convertissez les éléments non nuls en non-optionnels
+                                    .toList();
+                                _updateFilters();
+                              });
+                              _multiSelectKey.currentState?.validate();
+                            },
+                            chipDisplay: MultiSelectChipDisplay(
+                              height: 50,
+                              onTap: (item) {
+                                setState(() {
+                                  _selectedStatut.remove(item);
+                                });
+                                _multiSelectKey.currentState!.validate();
+                              },
                             ),
                           ),
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.only(left: 30),
-                        height: 50,
                         width: sizeDate,
-                        child: TextField(
-                          decoration: InputDecoration(
-                              // filled: true,
-                              prefixIcon: Icon(
-                                Icons.calendar_today,
-                                size: 14,
-                              ),
-                              suffixIcon: Icon(Icons.arrow_drop_down),
-                              label: MyTextStyle.lotDesc(
-                                'Depuis',
-                                14,
-                                FontStyle.normal,
-                              ),
-                              focusColor: color,
-                              focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: color))),
-                          readOnly: true,
-                          onTap: () {
-                            _selectDate();
-                          },
-                        ),
-                      ),
+                        child: TextButton(
+                            onPressed: () {
+                              _selectedEmplacement = [];
+                              labelsType = [];
+                              _dateFromController.text = "";
+                              _dateToController.text = "";
+                              _selectedStatut = [];
+
+                              _updateFilters();
+
+                              _showFilters = !_showFilters;
+                            },
+                            child: MyTextStyle.lotName(
+                                "Réinitialiser les filtres",
+                                Colors.black38,
+                                13)),
+                      )
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -420,15 +562,27 @@ class SinistrePageViewState extends State<SinistrePageView>
     );
   }
 
-  Future<void> _selectDate() async {
+  Future<void> _selectDate(String choice) async {
     DateTime today = DateTime.now();
-    Locale myLocale = Locale('fr', 'FR');
+    // Locale myLocale = Locale('fr', 'FR');
     DateTime nextYear = DateTime.utc(today.year + 1, today.month, today.day);
-    await showDatePicker(
-        locale: myLocale,
+    DateTime? _picked = await showDatePicker(
+        //   locale: myLocale,
         context: context,
         initialDate: today,
         firstDate: DateTime(2022),
-        lastDate: nextYear);
+        lastDate: today);
+
+    if (_picked != null && choice == "dateFrom") {
+      setState(() {
+        _dateFromController.text = _picked.toString().split(" ")[0];
+        _updateFilters();
+      });
+    } else {
+      setState(() {
+        _dateToController.text = _picked.toString().split(" ")[0];
+        _updateFilters();
+      });
+    }
   }
 }

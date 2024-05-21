@@ -78,27 +78,87 @@ class DataBasesPostServices {
   Future<List<Post>> getAllPostsWithFilters(
       {required String doc,
       List<String?>? locationElement,
-      String? locationDetails,
-      String? type}) async {
+      List<String?>? type,
+      String? dateFrom,
+      String? dateTo,
+      List<String?>? statut}) async {
     List<Post> posts = [];
     try {
-      Query<Map<String, dynamic>> query =
+      Query<Map<String, dynamic>> baseQuery =
           db.collection("Residence").doc(doc).collection("post");
 
-      if (locationElement != null && locationElement.isNotEmpty) {
-        // Utilisez whereIn pour filtrer les documents ayant location_element
-        query = query.where('location_element', whereIn: locationElement);
+      // Convert date strings to Timestamps
+      Timestamp? timestampFrom;
+      Timestamp? timestampTo;
 
-        if (locationDetails != null && locationDetails.isNotEmpty) {
-          query = query.where('location_details', isEqualTo: locationDetails);
+      if (dateFrom != null && dateFrom.isNotEmpty) {
+        timestampFrom = Timestamp.fromDate(DateTime.parse(dateFrom));
+      }
+      if (dateTo != null && dateTo.isNotEmpty) {
+        timestampTo = Timestamp.fromDate(DateTime.parse(dateTo));
+      }
+
+      // Generate all combinations of locationElement, type, dateFrom, dateTo, and statut
+      List<List<dynamic>> combinations = [];
+      if (locationElement != null &&
+          locationElement.isNotEmpty &&
+          type != null &&
+          type.isNotEmpty &&
+          statut != null &&
+          statut.isNotEmpty) {
+        for (var loc in locationElement) {
+          for (var t in type) {
+            for (var s in statut) {
+              combinations.add([loc, t, timestampFrom, timestampTo, s]);
+            }
+          }
         }
+      } else if (locationElement != null &&
+          locationElement.isNotEmpty &&
+          type != null &&
+          type.isNotEmpty) {
+        for (var loc in locationElement) {
+          for (var t in type) {
+            combinations.add([loc, t, timestampFrom, timestampTo, null]);
+          }
+        }
+      } else if (locationElement != null && locationElement.isNotEmpty) {
+        for (var loc in locationElement) {
+          combinations.add([loc, null, timestampFrom, timestampTo, null]);
+        }
+      } else if (type != null && type.isNotEmpty) {
+        for (var t in type) {
+          combinations.add([null, t, timestampFrom, timestampTo, null]);
+        }
+      } else if (statut != null && statut.isNotEmpty) {
+        for (var s in statut) {
+          combinations.add([null, null, timestampFrom, timestampTo, s]);
+        }
+      } else {
+        combinations.add([null, null, timestampFrom, timestampTo, null]);
+      }
 
-        if (type != null && type.isNotEmpty) {
-          query = query.where('type', isEqualTo: type);
+      // Perform queries for each combination
+      for (var combo in combinations) {
+        Query<Map<String, dynamic>> query = baseQuery;
+
+        if (combo[0] != null) {
+          query = query.where('location_element', isEqualTo: combo[0]);
+        }
+        if (combo[1] != null) {
+          query = query.where('type', isEqualTo: combo[1]);
+        }
+        if (combo[2] != null) {
+          query = query.where('timeStamp', isGreaterThanOrEqualTo: combo[2]);
+        }
+        if (combo[3] != null) {
+          query = query.where('timeStamp', isLessThanOrEqualTo: combo[3]);
+        }
+        if (combo[4] != null) {
+          query = query.where('statu', isEqualTo: combo[4]);
         }
 
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
-
         for (var docSnapshot in querySnapshot.docs) {
           posts.add(Post.fromMap(docSnapshot.data()));
         }

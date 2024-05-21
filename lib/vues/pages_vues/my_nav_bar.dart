@@ -67,10 +67,13 @@ class _MyNavBarState extends State<MyNavBar>
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         elevation: 20,
-        title: Image.asset(
-          "images/assets/logoCK250connectKasa.png",
-          width: width / 2.2,
-          fit: BoxFit.fitWidth,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 5, bottom: 5),
+          child: Image.asset(
+            "images/assets/logoCK250connectKasa.png",
+            width: width / 2.3,
+            fit: BoxFit.fitWidth,
+          ),
         ),
         flexibleSpace: Container(
           decoration: const BoxDecoration(
