@@ -35,7 +35,6 @@ class TransactionTileState extends State<TransactionTile> {
     post = postData.getPost(
       widget.residence,
       widget.transac.postId,
-      widget.uid,
     );
     // TODO: implement initState
 

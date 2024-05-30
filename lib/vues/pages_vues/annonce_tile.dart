@@ -6,6 +6,7 @@ import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 class AnnonceTile extends StatefulWidget {
   late Post post;
@@ -94,24 +95,26 @@ class AnnonceTileState extends State<AnnonceTile> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        height: 120,
-                        width: MediaQuery.of(context).size.width / 2,
-                        // Wrap Row with SizedBox to provide a fixed height
-                        // Specify the desired height
-                        child: pathImage != "" &&
-                                pathImage != null &&
-                                pathImage.isNotEmpty
-                            ? Image.network(
-                                pathImage,
-                                fit: BoxFit.cover,
-                              )
-                            : ImageAnnounced(context, 140, 140),
-                      ),
                       Padding(
-                        padding: const EdgeInsets.only(top: 5),
-                        child: MyTextStyle.lotName(title, Colors.black87),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: SizedBox(
+                          height: 120,
+                          width: MediaQuery.of(context).size.width / 2,
+                          // Wrap Row with SizedBox to provide a fixed height
+                          // Specify the desired height
+                          child: pathImage != "" &&
+                                  pathImage != null &&
+                                  pathImage.isNotEmpty
+                              ? Image.network(
+                                  pathImage,
+                                  fit: BoxFit.cover,
+                                )
+                              : ImageAnnounced(context, 140, 140),
+                        ),
                       ),
+                      Container(
+                          height: 30,
+                          child: MyTextStyle.lotName(title, Colors.black87)),
                       MyTextStyle.annonceDesc(subtype, 11, 2),
                       Padding(
                         padding: const EdgeInsets.only(top: 5),

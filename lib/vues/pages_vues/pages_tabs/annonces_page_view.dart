@@ -1,9 +1,12 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/pages_controllers/filter_allannounced_controller..dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/transaction_services.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/transaction.dart';
 import 'package:connect_kasa/vues/pages_vues/annonce_tile.dart';
+import 'package:connect_kasa/vues/pages_vues/sinistre_tile.dart';
 import 'package:connect_kasa/vues/widget_view/transaction_tile.dart';
 import 'package:flutter/material.dart';
 
@@ -57,68 +60,77 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
     });
   }
 
+  void updatePostsList() {
+    setState(() {
+      // Mettez à jour la valeur _allPostsFuture pour récupérer à nouveau la liste mise à jour
+      _allPostsFuture = _databaseServices.getAllPosts(widget.residenceSelected);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final Color color = Theme.of(context).primaryColor;
     final double width = MediaQuery.of(context).size.width;
     return DefaultTabController(
       length: 3,
-      child: Column(
-        children: <Widget>[
-          TabBar.secondary(
-            controller: _tabController,
-            tabs: <Widget>[
-              const Tab(text: 'Tous'),
-              const Tab(text: 'Mes annonces'),
-              const Tab(text: 'Mes transactions'),
-            ],
+      child: Column(children: <Widget>[
+        TabBar.secondary(
+          controller: _tabController,
+          tabs: <Widget>[
+            const Tab(text: 'Tous'),
+            const Tab(text: 'Mes annonces'),
+            const Tab(text: 'Mes transactions'),
+          ],
+        ),
+        if (_showFilters && _selectedTab)
+          FilterAllAnnouncedController(
+            residenceSelected: widget.residenceSelected,
+            uid: widget.uid,
+            onFilterUpdate: ({
+              required List<String?> categorie,
+              required String dateFrom,
+              required String dateTo,
+            }) {
+              setState(() {
+                _allPostsFuture = _databaseServices.getAllAnnoncessWithFilters(
+                  doc: widget.residenceSelected,
+                  categorie: categorie,
+                  dateFrom: dateFrom,
+                  dateTo: dateTo,
+                );
+              });
+            },
           ),
-          if (_showFilters &&
-              _selectedTab) // Affichage conditionnel des filtres
-            Container(
-              width: width,
-              height: 100,
-              color: Colors.white,
-              padding: EdgeInsets.all(10.0),
-              child: Column(
-                children: [
-                  // Ajoutez vos filtres ici
-                  // Par exemple, des dropdowns pour post.type, post.timestamp, etc.
-                ],
-              ),
-            ),
-          if (_selectedTab)
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _showFilters = !_showFilters;
-                }); // Appel de la fonction de participation si elle est définie
-              },
-              child: Container(
-                  width: width,
-                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: color,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.search,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                      SizedBox(width: 5),
-                      MyTextStyle.lotName(
-                          "Ajouter des filtres", Colors.white, 14)
-                    ],
-                  )),
-            ),
-          Expanded(
-              child: TabBarView(controller: _tabController, children: <Widget>[
-            FutureBuilder<List<Post>>(
+        if (_selectedTab)
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showFilters = !_showFilters;
+              }); // Appel de la fonction de participation si elle est définie
+            },
+            child: Container(
+                width: width,
+                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                decoration: BoxDecoration(
+                  color: color,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.search,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                    SizedBox(width: 5),
+                    MyTextStyle.lotName("Ajouter des filtres", Colors.white, 14)
+                  ],
+                )),
+          ),
+        Expanded(
+          child: FutureBuilder<List<Post>>(
               future: _allPostsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -132,88 +144,110 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                 } else {
                   // Les données sont prêtes, vous pouvez maintenant utiliser snapshot.data
                   List<Post> allPosts = snapshot.data!;
-                  return GridView.builder(
-                    itemCount: allPosts.length,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 3 / 4,
-                    ),
-                    itemBuilder: (BuildContext context, int index) {
-                      // Assurez-vous que l'index est valide avant d'accéder à la liste
-                      if (index < allPosts.length) {
-                        Post post = allPosts[index];
-                        // Vérifiez votre condition ici
-                        if (post.user != widget.uid &&
-                            post.type == widget.type) {
-                          return Container(
-                            child: AnnonceTile(
-                                post,
-                                widget.residenceSelected,
-                                widget.uid,
-                                false,
-                                widget.colorStatut,
-                                widget.scrollController),
-                          );
-                        } else {
-                          // Retourner un widget vide ou autre chose si la condition n'est pas remplie
-                          return Container(); // ou tout autre widget approprié
-                        }
-                      } else {
-                        // Gérez le cas où l'index est en dehors de la plage valide
-                        return Container(); // ou tout autre widget approprié
-                      }
-                    },
-                  );
+                  return TabBarView(
+                      controller: _tabController,
+                      children: <Widget>[
+                        GridView.builder(
+                          itemCount: allPosts.length,
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            childAspectRatio: 3 / 4,
+                          ),
+                          itemBuilder: (BuildContext context, int index) {
+                            // Assurez-vous que l'index est valide avant d'accéder à la liste
+                            if (index < allPosts.length) {
+                              Post post = allPosts[index];
+                              // Vérifiez votre condition ici
+                              if (post.type == widget.type) {
+                                return Container(
+                                  child: AnnonceTile(
+                                      post,
+                                      widget.residenceSelected,
+                                      widget.uid,
+                                      false,
+                                      widget.colorStatut,
+                                      widget.scrollController),
+                                );
+                              } else {
+                                // Retourner un widget vide ou autre chose si la condition n'est pas remplie
+                                return Container(); // ou tout autre widget approprié
+                              }
+                            } else {
+                              // Gérez le cas où l'index est en dehors de la plage valide
+                              return Container(); // ou tout autre widget approprié
+                            }
+                          },
+                        ),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const BouncingScrollPhysics(),
+                          itemCount: allPosts.length,
+                          itemBuilder: (context, index) {
+                            Post post = allPosts[index];
+                            return Column(
+                              children: [
+                                if (post.user == widget.uid)
+                                  SinistreTile(post, widget.residenceSelected,
+                                      widget.uid, true, updatePostsList),
+                              ],
+                            );
+                          },
+                          separatorBuilder: (BuildContext context, int index) =>
+                              const SizedBox(height: 0),
+                        ),
+                        FutureBuilder<List<TransactionModel>>(
+                          future: _allTransaction,
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState ==
+                                ConnectionState.waiting) {
+                              // Affichez un indicateur de chargement si les données ne sont pas encore disponibles
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            } else if (snapshot.hasError) {
+                              // Gérez les erreurs ici
+                              return Text('Error: ${snapshot.error}');
+                            } else {
+                              // Les données sont prêtes, vous pouvez maintenant utiliser snapshot.data
+                              List<TransactionModel> transactions =
+                                  snapshot.data!;
+                              return SingleChildScrollView(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 5, vertical: 5),
+                                  child: ListView.separated(
+                                    shrinkWrap: true,
+                                    physics: const BouncingScrollPhysics(),
+                                    itemCount: transactions.length,
+                                    itemBuilder: (context, index) {
+                                      TransactionModel transac =
+                                          transactions[index];
+                                      return Column(
+                                        children: [
+                                          // if (post.user != widget.uid &&
+                                          //     post.type == widget.argument1)
+                                          TransactionTile(
+                                              transac,
+                                              widget.residenceSelected,
+                                              widget.uid),
+                                        ],
+                                      );
+                                    },
+                                    separatorBuilder:
+                                        (BuildContext context, int index) =>
+                                            SizedBox(height: 5),
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        )
+                      ]);
                 }
-              },
-            ),
-            Card(
-              child: Text("Test2"),
-            ),
-            FutureBuilder<List<TransactionModel>>(
-              future: _allTransaction,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  // Affichez un indicateur de chargement si les données ne sont pas encore disponibles
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (snapshot.hasError) {
-                  // Gérez les erreurs ici
-                  return Text('Error: ${snapshot.error}');
-                } else {
-                  // Les données sont prêtes, vous pouvez maintenant utiliser snapshot.data
-                  List<TransactionModel> transactions = snapshot.data!;
-                  return SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 5),
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: transactions.length,
-                        itemBuilder: (context, index) {
-                          TransactionModel transac = transactions[index];
-                          return Column(
-                            children: [
-                              // if (post.user != widget.uid &&
-                              //     post.type == widget.argument1)
-                              TransactionTile(transac, widget.residenceSelected,
-                                  widget.uid),
-                            ],
-                          );
-                        },
-                        separatorBuilder: (BuildContext context, int index) =>
-                            SizedBox(height: 5),
-                      ),
-                    ),
-                  );
-                }
-              },
-            ),
-          ]))
-        ],
-      ),
+              }),
+        )
+      ]),
     );
   }
 }

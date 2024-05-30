@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 class SinistreForm extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => SinistreFormState();
-  final Lot preferedLot;
+  final Lot? preferedLot;
   final String racineFolder;
   final String uid;
   final String idPost;
@@ -38,10 +38,10 @@ class SinistreFormState extends State<SinistreForm> {
 
   final ButtonStyle style =
       ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20));
-  final MaterialStateProperty<Icon?> thumbIcon =
-      MaterialStateProperty.resolveWith<Icon?>(
-    (Set<MaterialState> states) {
-      if (states.contains(MaterialState.selected)) {
+  final WidgetStateProperty<Icon?> thumbIcon =
+      WidgetStateProperty.resolveWith<Icon?>(
+    (Set<WidgetState> states) {
+      if (states.contains(WidgetState.selected)) {
         return const Icon(Icons.check);
       }
       return const Icon(Icons.close);
@@ -55,7 +55,7 @@ class SinistreFormState extends State<SinistreForm> {
   String imagePath = "";
   String fileName = '';
   bool anonymPost = false;
-  Set<String> filters = <String>{};
+  List<String> filters = [];
 
   void updateItem(String updatedElement) {
     String item = "";
@@ -80,13 +80,13 @@ class SinistreFormState extends State<SinistreForm> {
   @override
   Widget build(BuildContext context) {
     List<String> itemsLocalisation =
-        List<String>.from(widget.preferedLot.residenceData["localistation"]);
+        List<String>.from(widget.preferedLot!.residenceData["localistation"]);
 
     List<String> itemsEtage =
-        List<String>.from(widget.preferedLot.residenceData["etage"]);
+        List<String>.from(widget.preferedLot!.residenceData["etage"]);
 
     List<String> itemsElements =
-        List<String>.from(widget.preferedLot.residenceData["elements"]);
+        List<String>.from(widget.preferedLot!.residenceData["elements"]);
 
     final double width = MediaQuery.of(context).size.width;
 
@@ -105,7 +105,7 @@ class SinistreFormState extends State<SinistreForm> {
               width,
               "Localisation",
               "Choisir une localisation",
-              preferedLot: widget.preferedLot,
+              preferedLot: widget.preferedLot!,
               items: itemsLocalisation,
               onValueChanged: (String value) {
                 setState(() {
@@ -121,7 +121,7 @@ class SinistreFormState extends State<SinistreForm> {
               width,
               "Etage",
               "Choisir un étage",
-              preferedLot: widget.preferedLot,
+              preferedLot: widget.preferedLot!,
               items: itemsEtage,
               onValueChanged: (String value) {
                 setState(() {
@@ -176,7 +176,7 @@ class SinistreFormState extends State<SinistreForm> {
             const Divider(),
             Center(
               child: CameraOrFiles(
-                residence: widget.preferedLot.residenceId,
+                residence: widget.preferedLot!.residenceId,
                 racineFolder: widget.racineFolder,
                 folderName: widget.folderName,
                 title: title.text,
@@ -251,6 +251,25 @@ class SinistreFormState extends State<SinistreForm> {
               child: ElevatedButton(
                 style: style,
                 onPressed: () {
+                  // Check if all required fields are not null or empty
+                  if (localisation.isEmpty ||
+                      etage.isEmpty ||
+                      title.text.isEmpty ||
+                      desc.text.isEmpty ||
+                      imagePath.isEmpty) {
+                    // Show an error message or disable the button
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: Colors.red,
+                        content: Text(
+                          'Tous les champs sont requis!',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
                   SubmitPostController.submitForm(
                     widget.uid,
                     widget.idPost,
@@ -259,7 +278,7 @@ class SinistreFormState extends State<SinistreForm> {
                     title,
                     desc,
                     anonymPost,
-                    widget.preferedLot.residenceId,
+                    widget.preferedLot!.residenceId,
                     localisation: localisation,
                     etage: etage,
                     element: filters,

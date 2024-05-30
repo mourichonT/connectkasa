@@ -18,10 +18,9 @@ import 'package:connect_kasa/vues/widget_view/my_bottomnavbar_view.dart';
 
 class MyNavBar extends StatefulWidget {
   final String uid;
-  final double scrollController;
+  final double? scrollController;
 
-  const MyNavBar(
-      {super.key, required this.uid, required this.scrollController});
+  const MyNavBar({super.key, required this.uid, this.scrollController});
 
   @override
   _MyNavBarState createState() => _MyNavBarState();
@@ -111,7 +110,7 @@ class _MyNavBarState extends State<MyNavBar>
           ),
           SinistrePageView(
             key: UniqueKey(),
-            residenceSelected: preferedLot?.residenceId ?? "",
+            residenceId: preferedLot?.residenceId ?? "",
             uid: uid,
             argument1: "sinistres",
             argument2: "incivilites",
@@ -126,7 +125,7 @@ class _MyNavBarState extends State<MyNavBar>
             uid: uid,
             type: "annonces",
             colorStatut: colorStatut,
-            scrollController: widget.scrollController,
+            scrollController: widget.scrollController ?? 00,
           ),
           MydocsPageView(),
         ],

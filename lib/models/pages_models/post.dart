@@ -12,7 +12,7 @@ class Post {
   String title;
   String description;
   String location_element;
-  String location_details;
+  List<String>? location_details;
   String location_floor;
   List<String> like;
   List<Post> signalement;
@@ -32,7 +32,7 @@ class Post {
     required this.title,
     required this.description,
     this.location_element = "",
-    this.location_details = "", // Nouvel attribut
+    this.location_details = const [], // Nouvel attribut
     this.location_floor = "", // Nouvel attribut
     this.like = const [],
     this.signalement = const [],
@@ -124,6 +124,16 @@ class Post {
         }
       }
     }
+    List<dynamic>? detailsList = map['location_details'];
+    List<String> convertLocationDetails = [];
+    if (detailsList != null) {
+      for (var detail in detailsList) {
+        if (detail is String) {
+          convertLocationDetails.add(detail);
+        }
+      }
+    }
+
     List<dynamic>? participantsList = map['participants'];
     List<String> convertedParticipantsList = [];
     if (participantsList != null) {
@@ -139,7 +149,7 @@ class Post {
       description: map['description'] ?? "",
       location_element:
           map['location_element'] ?? "", // Mise à jour du nom de l'attribut
-      location_details: map['location_details'] ?? "", // Nouvel attribut
+      location_details: convertLocationDetails, // Nouvel attribut
       location_floor: map['location_floor'] ?? "", // Nouvel attribut
       subtype: map['subtype'] ?? "",
       pathImage: map['pathImage'] ?? "",

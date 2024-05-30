@@ -11,14 +11,14 @@ import '../../../models/pages_models/post.dart';
 class Homeview extends StatefulWidget {
   String residenceSelected;
   String uid;
-  double upDatescrollController;
+  double? upDatescrollController;
   Color colorStatut;
 
   Homeview(
       {super.key,
       required this.residenceSelected,
       required this.uid,
-      required this.upDatescrollController,
+      this.upDatescrollController,
       required this.colorStatut});
 
   @override
@@ -36,8 +36,8 @@ class _HomeviewState extends State<Homeview> {
   @override
   void initState() {
     super.initState();
-    _scrollController =
-        ScrollController(initialScrollOffset: widget.upDatescrollController);
+    _scrollController = ScrollController(
+        initialScrollOffset: widget.upDatescrollController ?? 00);
     _scrollController.addListener(_scrollListener);
     _allPostsFuture = _databaseServices.getAllPosts(widget.residenceSelected);
   }

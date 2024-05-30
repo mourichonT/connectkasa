@@ -132,16 +132,19 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                           ),
                         ),
                         Divider(),
-                        SizedBox(height: 10),
+                        SizedBox(height: 5),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              MyTextStyle.lotName(
-                                widget.post.title,
-                                Colors.black87,
-                                20,
+                              Container(
+                                height: 30,
+                                child: MyTextStyle.lotName(
+                                  widget.post.title,
+                                  Colors.black87,
+                                  20,
+                                ),
                               ),
                               MyTextStyle.annonceDesc(
                                 MyTextStyle.completDate(widget.post.timeStamp),
@@ -291,83 +294,71 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                               ),
                                             ));
                                           },
-                                          child: Card(
-                                            child: Container(
-                                              width: 200,
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  ClipRRect(
-                                                    // Ajout de ClipRRect pour appliquer le coin arrondi à l'image
-                                                    borderRadius:
-                                                        BorderRadius.only(
-                                                      topLeft:
-                                                          Radius.circular(10),
-                                                      topRight:
-                                                          Radius.circular(10),
-                                                    ),
-                                                    child: annonce.pathImage !=
-                                                            ""
-                                                        ? Container(
-                                                            width: 200,
-                                                            height: 130,
-                                                            child:
-                                                                Image.network(
-                                                              annonce
-                                                                  .pathImage!,
-                                                              fit: BoxFit.cover,
-                                                            ),
-                                                          )
-                                                        : ImageAnnounced(
-                                                            context, 200, 130),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            5.0),
-                                                    child: MyTextStyle.lotName(
-                                                        annonce.title,
-                                                        Colors.black87,
-                                                        14),
-                                                  ),
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                            5.0),
-                                                    child:
-                                                        MyTextStyle.annonceDesc(
-                                                            annonce.description,
-                                                            14,
-                                                            3),
-                                                  ),
-                                                  Padding(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 5),
-                                                    child: Row(
-                                                      children: [
-                                                        MyTextStyle.lotDesc(
-                                                          'Prix :',
+                                          child: Container(
+                                            padding: EdgeInsets.only(left: 10),
+                                            color: Colors.white,
+                                            width: 200,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                ClipRRect(
+                                                  // Ajout de ClipRRect pour appliquer le coin arrondi à l'image
+
+                                                  child: annonce.pathImage != ""
+                                                      ? Container(
+                                                          width: 200,
+                                                          height: 130,
+                                                          child: Image.network(
+                                                            annonce.pathImage!,
+                                                            fit: BoxFit.cover,
+                                                          ),
+                                                        )
+                                                      : ImageAnnounced(
+                                                          context, 200, 130),
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(5.0),
+                                                  child: MyTextStyle.lotName(
+                                                      annonce.title,
+                                                      Colors.black87,
+                                                      14),
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(5.0),
+                                                  child:
+                                                      MyTextStyle.annonceDesc(
+                                                          annonce.description,
                                                           14,
-                                                          FontStyle.italic,
-                                                          FontWeight.w900,
-                                                        ),
-                                                        SizedBox(
-                                                          width: 5,
-                                                        ),
-                                                        MyTextStyle.lotName(
-                                                          widget.post.setPrice(
-                                                              annonce.price),
-                                                          Theme.of(context)
-                                                              .primaryColor,
-                                                          16,
-                                                        ),
-                                                      ],
-                                                    ),
+                                                          3),
+                                                ),
+                                                Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(horizontal: 5),
+                                                  child: Row(
+                                                    children: [
+                                                      MyTextStyle.lotDesc(
+                                                        'Prix :',
+                                                        14,
+                                                        FontStyle.italic,
+                                                        FontWeight.w900,
+                                                      ),
+                                                      SizedBox(
+                                                        width: 5,
+                                                      ),
+                                                      MyTextStyle.lotName(
+                                                        widget.post.setPrice(
+                                                            annonce.price),
+                                                        Theme.of(context)
+                                                            .primaryColor,
+                                                        16,
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
-                                              ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                         ),
