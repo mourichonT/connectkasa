@@ -170,11 +170,13 @@ class PostWidgetState extends State<PostWidget> {
                                                 }
                                               },
                                               child: PostView(
-                                                postUpdated,
-                                                postSelected,
-                                                widget.residence,
-                                                widget.uid,
-                                                widget.scrollController,
+                                                postOrigin: postUpdated,
+                                                residence: widget.residence,
+                                                uid: widget.uid,
+                                                scrollController:
+                                                    widget.scrollController,
+                                                postSelected: postSelected,
+                                                returnHomePage: true,
                                               ),
                                             );
                                           } else {

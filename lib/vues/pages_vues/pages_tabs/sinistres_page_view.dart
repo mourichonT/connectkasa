@@ -1,20 +1,21 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/pages_controllers/sinitres_tile_controller.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/pages_vues/sinistre_card.dart';
-import 'package:connect_kasa/vues/pages_vues/filter_allpost_controller.dart';
+import 'package:connect_kasa/vues/pages_vues/sinistre_tile.dart';
+import 'package:connect_kasa/controllers/pages_controllers/filter_allpost_controller.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 
 class SinistrePageView extends StatefulWidget {
-  final String residenceSelected;
+  final String residenceId;
   final String uid;
   final String? argument1;
   final String? argument2;
 
   SinistrePageView({
     Key? key,
-    required this.residenceSelected,
+    required this.residenceId,
     required this.uid,
     this.argument1,
     this.argument2,
@@ -29,6 +30,7 @@ class SinistrePageViewState extends State<SinistrePageView>
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
   late final TabController _tabController;
   late Future<List<Post>> _allPostsFuture;
+  late Future<List<Post>> _allSignalementFuture;
   bool _showFilters = false;
   bool _selectedTab = false;
 
@@ -36,7 +38,9 @@ class SinistrePageViewState extends State<SinistrePageView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _allPostsFuture = _databaseServices.getAllPosts(widget.residenceSelected);
+    _allPostsFuture = _databaseServices.getAllPosts(widget.residenceId);
+    _allSignalementFuture =
+        _databaseServices.getAllPostsToModify(widget.residenceId);
     _tabController.addListener(_handleTabChange);
     _selectedTab = _tabController.index == 0;
   }
@@ -51,6 +55,12 @@ class SinistrePageViewState extends State<SinistrePageView>
   void _handleTabChange() {
     setState(() {
       _selectedTab = _tabController.index == 0;
+    });
+  }
+
+  void updatePostsList() {
+    setState(() {
+      _allPostsFuture = _databaseServices.getAllPosts(widget.residenceId);
     });
   }
 
@@ -72,9 +82,9 @@ class SinistrePageViewState extends State<SinistrePageView>
               Tab(text: 'Mes déclarations'),
             ],
           ),
-          if (_showFilters && _selectedTab)
+          if (_showFilters)
             FilterAllPostController(
-              residenceSelected: widget.residenceSelected,
+              residenceSelected: widget.residenceId,
               uid: widget.uid,
               onFilterUpdate: ({
                 required List<String?> locationElement,
@@ -85,7 +95,7 @@ class SinistrePageViewState extends State<SinistrePageView>
               }) {
                 setState(() {
                   _allPostsFuture = _databaseServices.getAllPostsWithFilters(
-                    doc: widget.residenceSelected,
+                    doc: widget.residenceId,
                     locationElement: locationElement,
                     type: type,
                     dateFrom: dateFrom,
@@ -119,7 +129,6 @@ class SinistrePageViewState extends State<SinistrePageView>
                       color: Colors.white,
                       size: 16,
                     ),
-                    const SizedBox(width: 5),
                     MyTextStyle.lotName(
                         "Ajouter des filtres", Colors.white, 14),
                   ],
@@ -129,43 +138,56 @@ class SinistrePageViewState extends State<SinistrePageView>
           Expanded(
             child: Container(
               width: width,
-              child: FutureBuilder<List<Post>>(
-                future: _allPostsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else {
-                    List<Post> allPosts = snapshot.data!;
-                    return TabBarView(
-                      controller: _tabController,
-                      children: <Widget>[
-                        ListView.separated(
+              child: TabBarView(
+                controller: _tabController,
+                children: <Widget>[
+                  FutureBuilder<List<Post>>(
+                    future: _allPostsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        List<Post> allPosts = snapshot.data!;
+                        return ListView.separated(
                           padding: const EdgeInsets.symmetric(horizontal: 5),
                           itemCount: allPosts.length,
                           itemBuilder: (context, index) {
                             final post = allPosts[index];
-                            if ((post.user != widget.uid &&
-                                (post.type == widget.argument1 ||
-                                    post.type == widget.argument2))) {
-                              return SinistreTile(
-                                post,
-                                widget.residenceSelected,
-                                widget.uid,
-                                false,
+                            if ((post.type == widget.argument1 ||
+                                post.type == widget.argument2)) {
+                              return SinitresTileController(
+                                post: post,
+                                residenceId: widget.residenceId,
+                                uid: widget.uid,
+                                canModify: false,
+                                updatePostsList: updatePostsList,
                               );
                             } else {
                               return const SizedBox.shrink();
                             }
                           },
                           separatorBuilder: (BuildContext context, int index) =>
-                              const SizedBox(height: 5),
-                        ),
-                        // The second tab's content should be similar or adapted as needed.
-                        ListView.separated(
+                              const SizedBox(height: 0),
+                        );
+                      }
+                    },
+                  ),
+                  FutureBuilder<List<Post>>(
+                    future: _allSignalementFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}');
+                      } else {
+                        List<Post> allPosts = snapshot.data!;
+                        return ListView.separated(
                           shrinkWrap: true,
                           physics: const BouncingScrollPhysics(),
                           itemCount: allPosts.length,
@@ -176,19 +198,23 @@ class SinistrePageViewState extends State<SinistrePageView>
                                 if (post.user == widget.uid &&
                                     (post.type == widget.argument1 ||
                                         post.type == widget.argument2))
-                                  SinistreTile(post, widget.residenceSelected,
-                                      widget.uid, true),
+                                  SinistreTile(
+                                    post,
+                                    widget.residenceId,
+                                    widget.uid,
+                                    true,
+                                    updatePostsList,
+                                  ),
                               ],
                             );
                           },
                           separatorBuilder: (BuildContext context, int index) =>
-                              const SizedBox(height: 5),
-                        ),
-                        // Placeholder for the second tab
-                      ],
-                    );
-                  }
-                },
+                              const SizedBox(height: 0),
+                        );
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
           ),

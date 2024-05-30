@@ -85,4 +85,27 @@ class StorageServices {
       // Gérer l'erreur ici
     }
   }
+
+  Future<void> removeFileFromUrl(String url) async {
+    if (url == null || url.isEmpty) {
+      print('L\'URL fournie est invalide.');
+      return;
+    }
+
+    try {
+      // Extraire le chemin du fichier à partir de l'URL
+      String decodedUrl = Uri.decodeFull(url);
+      String path = decodedUrl.split('/o/').last.split('?').first;
+
+      // Référence au fichier dans Firebase Storage
+      final Reference reference = FirebaseStorage.instance.ref().child(path);
+
+      // Supprimer le fichier
+      await reference.delete();
+      print('Le fichier à l\'URL $url a été supprimé avec succès.');
+    } catch (e) {
+      print('Erreur lors de la suppression du fichier : $e');
+      // Gérer l'erreur ici
+    }
+  }
 }

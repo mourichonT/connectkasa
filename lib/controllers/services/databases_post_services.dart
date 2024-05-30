@@ -4,9 +4,9 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 class DataBasesPostServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
-  Future<Post> getPost(String residenceId, String postId, String userId) async {
+  Future<Post> getPost(String residenceId, String postId) async {
     try {
-      // Obtenez une référence à la publication dans la base de données
+      // Obtenez une référence à la publication dans la collection principale "post"
       QuerySnapshot postQuery = await FirebaseFirestore.instance
           .collection("Residence")
           .doc(residenceId)
@@ -22,6 +22,31 @@ class DataBasesPostServices {
         // Crée une instance de Post à partir du document
         return Post.fromMap(postDoc.data() as Map<String, dynamic>);
       } else {
+        // Si le post n'est pas trouvé dans la collection principale "post",
+        // recherche dans les sous-collections "signalements" de la collection "post"
+        QuerySnapshot postsQuery = await FirebaseFirestore.instance
+            .collection("Residence")
+            .doc(residenceId)
+            .collection("post")
+            .get();
+
+        for (DocumentSnapshot postDoc in postsQuery.docs) {
+          // Vérifie si le document contient une sous-collection "signalements"
+          QuerySnapshot signalementsQuery = await postDoc.reference
+              .collection("signalements")
+              .where("id", isEqualTo: postId)
+              .get();
+
+          // Si des signalements ont été trouvés, retourne le document de signalement
+          if (signalementsQuery.docs.isNotEmpty) {
+            DocumentSnapshot postWithSignalementsDoc =
+                signalementsQuery.docs.first;
+            return Post.fromMap(
+                postWithSignalementsDoc.data() as Map<String, dynamic>);
+          }
+        }
+
+        // Si aucun post n'est trouvé ni dans la collection principale ni dans les signalements
         throw Exception(
             'Aucune publication trouvée avec l\'ID $postId dans la résidence $residenceId');
       }
@@ -29,6 +54,35 @@ class DataBasesPostServices {
       // Gère les erreurs ici
       print(
           'Une erreur s\'est produite lors de la récupération de la publication: $e');
+      // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
+      throw e;
+    }
+  }
+
+  Future<void> removePost(String residenceId, String postId) async {
+    try {
+      // Recherchez le document du post en utilisant l'ID
+      QuerySnapshot<Map<String, dynamic>> postQuery = await FirebaseFirestore
+          .instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("post")
+          .where("id", isEqualTo: postId)
+          .get();
+
+      // Vérifiez si des documents correspondent à la condition
+      if (postQuery.docs.isNotEmpty) {
+        // Supprimez le premier document trouvé (il ne devrait y en avoir qu'un)
+        DocumentSnapshot postDoc = postQuery.docs.first;
+        await postDoc.reference.delete();
+      } else {
+        throw Exception(
+            'Aucune publication trouvée avec l\'ID $postId dans la résidence $residenceId');
+      }
+    } catch (e) {
+      // Gère les erreurs ici
+      print(
+          'Une erreur s\'est produite lors de la suppression de la publication: $e');
       // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
       throw e;
     }
@@ -182,6 +236,40 @@ class DataBasesPostServices {
       for (var docSnapshot in querySnapshot.docs) {
         // Convertir chaque document en objet Post
         posts.add(Post.fromMap(docSnapshot.data()));
+      }
+    } catch (e) {
+      print("Error completing in getAllpos: $e");
+    }
+    return posts;
+  }
+
+  Future<List<Post>> getAllPostsToModify(String doc) async {
+    List<Post> posts = [];
+    try {
+      // Obtenez une référence à tous les documents de la collection principale "post"
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+          .collection("Residence")
+          .doc(doc)
+          .collection("post")
+          .orderBy('timeStamp', descending: true)
+          .get();
+
+      for (var docSnapshot in querySnapshot.docs) {
+        // Convertir chaque document en objet Post
+        Post post = Post.fromMap(docSnapshot.data());
+
+        // Ajouter le post à la liste des posts
+        posts.add(post);
+
+        // Récupérer tous les documents de la sous-collection "signalements" pour ce post
+        QuerySnapshot<Map<String, dynamic>> signalementsQuery =
+            await docSnapshot.reference.collection("signalements").get();
+
+        // Convertir chaque document de signalement en objet Post et les ajouter à la liste des posts
+        for (var signalementSnapshot in signalementsQuery.docs) {
+          Post signalementPost = Post.fromMap(signalementSnapshot.data());
+          posts.add(signalementPost);
+        }
       }
     } catch (e) {
       print("Error completing in getAllpos: $e");
@@ -487,5 +575,207 @@ class DataBasesPostServices {
       print("Error removing Participants for post $postId by user $userId: $e");
       throw e;
     }
+  }
+
+  Future<Post?> updatePost(
+      Post updatedPost, String docRes, String postId) async {
+    try {
+      // Rechercher le document avec le champ id égal à postId dans la collection principale "post"
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(docRes)
+          .collection("post")
+          .where('id', isEqualTo: postId)
+          .get();
+
+      // Si le document est trouvé dans la collection principale, mettez-le à jour
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot documentSnapshot = querySnapshot.docs.first;
+        await FirebaseFirestore.instance
+            .collection("Residence")
+            .doc(docRes)
+            .collection("post")
+            .doc(documentSnapshot.id)
+            .update(updatedPost.toMap());
+
+        print("Post mis à jour avec succès dans la collection principale");
+        return updatedPost;
+      } else {
+        // Si le post n'est pas trouvé dans la collection principale "post",
+        // recherche dans les sous-collections "signalements" de la collection "post"
+        QuerySnapshot postsQuery = await FirebaseFirestore.instance
+            .collection("Residence")
+            .doc(docRes)
+            .collection("post")
+            .get();
+
+        for (DocumentSnapshot postDoc in postsQuery.docs) {
+          // Vérifie si le document contient une sous-collection "signalements"
+          QuerySnapshot signalementsQuery = await postDoc.reference
+              .collection("signalements")
+              .where("id", isEqualTo: postId)
+              .get();
+
+          // Si des signalements ont été trouvés, mettez à jour le document de signalement
+          if (signalementsQuery.docs.isNotEmpty) {
+            DocumentSnapshot postWithSignalementsDoc =
+                signalementsQuery.docs.first;
+            await postWithSignalementsDoc.reference.update(updatedPost.toMap());
+
+            print("Post mis à jour avec succès dans les signalements");
+            return updatedPost;
+          }
+        }
+
+        // Si aucun post n'est trouvé ni dans la collection principale ni dans les signalements
+        print(
+            "Aucun post correspondant trouvé ni dans la collection principale ni dans les signalements");
+        return null;
+      }
+    } catch (e) {
+      print("Impossible de mettre à jour le Post: $e");
+      throw e;
+    }
+  }
+
+  Future<List<Post>> rechercheFirestore(String saisie, String residence) async {
+    List<Post> annonceTrouvees = [];
+
+    // Récupérer une référence à la collection
+    CollectionReference collectionReference = FirebaseFirestore.instance
+        .collection("Residence")
+        .doc(residence)
+        .collection("post");
+
+    // Effectuer la requête de recherche
+    QuerySnapshot querySnapshot = await collectionReference.get();
+
+    // Boucler à travers les documents
+    for (var doc in querySnapshot.docs) {
+      // Convertir les données en un objet Residence
+      Post annonce = Post.fromMap(doc.data()! as Map<String, dynamic>);
+
+      // Vérifier si les champs requis contiennent la saisie
+      if ((annonce.title.toLowerCase().contains(saisie.toLowerCase())) ||
+          (annonce.description.toLowerCase().contains(saisie.toLowerCase()))) {
+        // Ajouter la résidence trouvée à la liste des résidences trouvées
+        annonceTrouvees.add(annonce);
+      }
+    }
+
+    return annonceTrouvees;
+  }
+
+  Future<List<Post>> getAllAnnoncessWithFilters(
+      {required String doc,
+      String? saisie,
+      List<String?>? categorie,
+      String? dateFrom,
+      String? dateTo,
+      String? priceFrom,
+      String? priceTo}) async {
+    List<Post> posts = [];
+    try {
+      Query<Map<String, dynamic>> baseQuery =
+          db.collection("Residence").doc(doc).collection("post");
+
+      // Convert date strings to Timestamps
+      Timestamp? timestampFrom;
+      Timestamp? timestampTo;
+
+      if (dateFrom != null && dateFrom.isNotEmpty) {
+        timestampFrom = Timestamp.fromDate(DateTime.parse(dateFrom));
+      }
+      if (dateTo != null && dateTo.isNotEmpty) {
+        timestampTo = Timestamp.fromDate(DateTime.parse(dateTo));
+      }
+
+      // Generate all combinations of categorie, dateFrom, dateTo, and price
+      List<List<dynamic>> combinations = [];
+      if (categorie != null && categorie.isNotEmpty) {
+        for (var cat in categorie) {
+          combinations
+              .add([cat, timestampFrom, timestampTo, priceFrom, priceTo]);
+        }
+      } else {
+        combinations
+            .add([null, timestampFrom, timestampTo, priceFrom, priceTo]);
+      }
+
+      // Perform queries for each combination
+      for (var combo in combinations) {
+        Query<Map<String, dynamic>> query = baseQuery;
+
+        if (combo[0] != null) {
+          query = query.where('categorie', isEqualTo: combo[0]);
+        }
+        if (combo[1] != null) {
+          query = query.where('timeStamp', isGreaterThanOrEqualTo: combo[1]);
+        }
+        if (combo[2] != null) {
+          query = query.where('timeStamp', isLessThanOrEqualTo: combo[2]);
+        }
+        // Assuming priceFrom and priceTo are numeric values
+        if (combo[3] != null && combo[4] != null) {
+          query = query.where('price',
+              isGreaterThanOrEqualTo: int.parse(combo[3]),
+              isLessThanOrEqualTo: int.parse(combo[4]));
+        } else if (combo[3] != null) {
+          query =
+              query.where('price', isGreaterThanOrEqualTo: int.parse(combo[3]));
+        } else if (combo[4] != null) {
+          query =
+              query.where('price', isLessThanOrEqualTo: int.parse(combo[4]));
+        }
+
+        QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
+        for (var docSnapshot in querySnapshot.docs) {
+          posts.add(Post.fromMap(docSnapshot.data()));
+        }
+      }
+    } catch (e) {
+      // Handle the error appropriately, e.g., return an error object or rethrow
+      print("Error completing in getAllPostsWithFilters: $e");
+    }
+    return posts;
+  }
+
+  Future<List<Post>> getSignalementsList(String docRes, String postId) async {
+    List<Post> signalements = [];
+
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection("Residence")
+              .doc(docRes)
+              .collection("post")
+              .where("id", isEqualTo: postId)
+              .get();
+
+      // Récupérer tous les posts correspondants
+      for (var postSnapshot in querySnapshot.docs) {
+        String postDocId = postSnapshot.id;
+
+        // Récupérer les signalements pour chaque post
+        QuerySnapshot<Map<String, dynamic>> signalementsSnapshot =
+            await FirebaseFirestore.instance
+                .collection("Residence")
+                .doc(docRes)
+                .collection("post")
+                .doc(postDocId)
+                .collection("signalements")
+                .get();
+
+        // Ajouter les signalements à la liste
+        for (var signalementSnapshot in signalementsSnapshot.docs) {
+          Post signalement = Post.fromMap(signalementSnapshot.data());
+          signalements.add(signalement);
+        }
+      }
+    } catch (e) {
+      print('Error fetching signalements: $e');
+    }
+
+    return signalements;
   }
 }

@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class TypeList {
   List<List<String>> typeDeclaration() {
     return [
@@ -6,6 +8,21 @@ class TypeList {
       ["Demande aux voisins", "demandes"],
       ["Petite annonce", "annonces"],
       ["Evénement", "events"],
+    ];
+  }
+
+  List<String> categoryAnnonce() {
+    return [
+      "Appartement",
+      "Electroménager",
+      "Jeux et jouet",
+      "Meubles",
+      "Mode",
+      "Outils",
+      "Parking",
+      "Services",
+      "Sport et plein air",
+      "Véhicule"
     ];
   }
 }

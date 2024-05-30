@@ -70,6 +70,42 @@ class DataBasesResidenceServices {
     return residencesTrouvees;
   }
 
+  Future<Residence> getResidenceByRef(String residence) async {
+    Residence? res = null; // Initialiser res à null
+
+    try {
+      DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+          await FirebaseFirestore.instance
+              .collection("Residence")
+              .doc(residence)
+              .get();
+
+      if (documentSnapshot.exists) {
+        // Si le document existe dans la base de données
+        Map<String, dynamic> data = documentSnapshot
+            .data()!; // Utilisation de l'opérateur de nullabilité pour indiquer que 'data' ne sera pas nul
+
+        // Initialisez les propriétés de l'objet Residence en utilisant toutes les données récupérées
+        res = Residence.fromJson(data);
+        // Utilisez une méthode ou un constructeur pour initialiser l'objet Residence avec toutes les données
+      } else {
+        print("la fonction getResidenceByRef renvoie null");
+
+        // Si le document n'existe pas, vous pouvez choisir de renvoyer une valeur par défaut ou de gérer cela d'une autre manière selon votre logique métier
+        // Ici, nous attribuons null à 'res' car le document n'existe pas
+        res = null;
+      }
+    } catch (e) {
+      // Gérez les erreurs éventuelles ici
+      print("Une erreur s'est produite : $e");
+      // Ici, vous pouvez choisir de renvoyer une valeur par défaut ou de gérer l'erreur d'une autre manière
+      // Par exemple, attribuer null à 'res' en cas d'erreur
+      res = null;
+    }
+
+    return res!;
+  }
+
   Future<List<String>> getAllLocalisation(String residence) async {
     List<String> _allLocalisation = [];
     try {

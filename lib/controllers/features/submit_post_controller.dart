@@ -15,23 +15,25 @@ class SubmitPostController {
       String docRes,
       {String? localisation,
       String? etage,
-      Set<String>? element,
+      List<String>? element,
       List<String>? participants}) {
     // Créer une instance de DataBasesServices
     DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
-    String location = "";
-    if (localisation != null &&
-        etage != null &&
-        element != null &&
-        element.isNotEmpty) {
-      location = "$localisation / $etage / ${element.join('- ')}";
-    }
+    // String location = "";
+    // if (localisation != null &&
+    //     etage != null &&
+    //     element != null &&
+    //     element.isNotEmpty) {
+    //   location = "$localisation / $etage / ${element.join('- ')}";
+    // }
 
     // Créer un nouvel objet Post
     Post newPost = Post(
         id: idPost, // Vous devez générer un ID unique pour chaque post
         description: desc.text,
-        location_element: location,
+        location_element: localisation!,
+        location_details: element!,
+        location_floor: etage!,
         subtype: "",
         pathImage: imagePath,
         refResidence: docRes,
@@ -47,5 +49,44 @@ class SubmitPostController {
 
     // Appeler la méthode addPost pour ajouter le nouveau post
     dataBasesPostServices.addPost(newPost, docRes);
+  }
+
+  static UpdatePost(
+      {required String uid,
+      required String idPost,
+      required String selectedLabel,
+      required String imagePath,
+      required TextEditingController title,
+      required TextEditingController desc,
+      required bool anonymPost,
+      required String docRes,
+      String? localisation,
+      String? etage,
+      List<String>? element,
+      List<String>? participants}) {
+    DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
+
+    // Créer un nouvel objet Post
+    Post updatePost = Post(
+        id: idPost, // Vous devez générer un ID unique pour chaque post
+        description: desc.text,
+        location_element: localisation!,
+        location_details: element!,
+        location_floor: etage!,
+        subtype: "",
+        pathImage: imagePath,
+        refResidence: docRes,
+        statu: selectedLabel == "sinistres" ? "En attente" : "",
+        timeStamp: Timestamp.now(),
+        title: title.text,
+        type: selectedLabel,
+        user: uid, // Remplacer par l'utilisateur actuel
+        like: [], // Vous pouvez initialiser avec une liste vide
+        signalement: [], // Vous pouvez initialiser avec une liste vide
+        hideUser: anonymPost,
+        participants: []);
+
+    // Appeler la méthode addPost pour ajouter le nouveau post
+    dataBasesPostServices.updatePost(updatePost, docRes, idPost);
   }
 }
