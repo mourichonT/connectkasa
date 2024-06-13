@@ -163,14 +163,14 @@ class InciviliteFormState extends State<InciviliteForm> {
                 style: style,
                 onPressed: () {
                   SubmitPostController.submitForm(
-                    widget.uid,
-                    widget.idPost,
-                    widget.folderName,
-                    imagePath,
-                    title,
-                    desc,
-                    anonymPost,
-                    widget.preferedLot.residenceId,
+                    uid: widget.uid,
+                    idPost: widget.idPost,
+                    selectedLabel: widget.folderName,
+                    imagePath: imagePath,
+                    title: title,
+                    desc: desc,
+                    anonymPost: anonymPost,
+                    docRes: widget.preferedLot.residenceId,
                   );
                   Navigator.pop(context);
                 },

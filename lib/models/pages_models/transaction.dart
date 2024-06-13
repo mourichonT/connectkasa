@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TransactionModel {
+  String id; // Unique ID field
   String amount;
+  String fees;
   String uidAcheteur;
   String uidVendeur;
   String statut;
@@ -11,6 +13,8 @@ class TransactionModel {
   Timestamp? paymentDate;
 
   TransactionModel({
+    required this.id, // Include id in the constructor
+    required this.fees,
     required this.amount,
     required this.uidAcheteur,
     required this.uidVendeur,
@@ -23,7 +27,9 @@ class TransactionModel {
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
     return TransactionModel(
+      id: json['id'], // Parse id from JSON
       amount: json['amount'],
+      fees: json['fees'],
       uidAcheteur: json['uidAcheteur'],
       uidVendeur: json['uidVendeur'],
       statut: json['statut'],
@@ -36,7 +42,9 @@ class TransactionModel {
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id, // Include id in the JSON map
       'amount': amount,
+      'fees': fees,
       'uidAcheteur': uidAcheteur,
       'uidVendeur': uidVendeur,
       'statut': statut,

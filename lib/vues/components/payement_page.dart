@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/transaction_services.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:connect_kasa/models/pages_models/transaction.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:flutter/cupertino.dart';
@@ -9,8 +10,13 @@ import 'package:flutter/material.dart';
 class PayementPage extends StatefulWidget {
   final Post post;
   final String uidFrom;
+  final String residenceId;
 
-  const PayementPage({super.key, required this.post, required this.uidFrom});
+  const PayementPage(
+      {super.key,
+      required this.post,
+      required this.uidFrom,
+      required this.residenceId});
 
   @override
   State<StatefulWidget> createState() => PayementPageState();
@@ -28,8 +34,10 @@ class PayementPageState extends State<PayementPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    fees = double.parse(widget.post.price!) * 0.05;
-    amount = double.parse(widget.post.price!) * 0.95;
+    fees = widget.post.price! * 0.05;
+    amount = widget.post.price! * 0.95;
+    // fees = double.parse(widget.post.price!) * 0.05;
+    // amount = double.parse(widget.post.price!) * 0.95;
   }
 
   String currentOption = options[0];
@@ -62,7 +70,7 @@ class PayementPageState extends State<PayementPage> {
                             widget.post.pathImage!,
                             fit: BoxFit.cover,
                           )
-                        : ImageAnnounced(context, width, height / 3),
+                        : ImageAnnounced(context, 120, 120),
                   ),
                   Flexible(
                     child: Column(
@@ -154,7 +162,7 @@ class PayementPageState extends State<PayementPage> {
               Container(
                 padding: EdgeInsets.symmetric(vertical: 10),
                 child: MyTextStyle.lotName(
-                  "Récuprération",
+                  "Récupération",
                   Colors.black87,
                   16,
                 ),
@@ -186,16 +194,21 @@ class PayementPageState extends State<PayementPage> {
               ),
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: 50),
-                  child: ButtonAdd(
+                    padding: const EdgeInsets.only(top: 50),
+                    child: ButtonAdd(
                       function: () async {
-                        bool transactionReussie =
-                            await TransactionServices.effectuerTransaction(
-                                widget.uidFrom,
-                                widget.post.user,
-                                amount.toString());
+                        TransactionModel transaction =
+                            await TransactionServices.createdTransac(
+                          uidFrom: widget.uidFrom,
+                          uidTo: widget.post.user,
+                          amount: amount.toString(),
+                          fees: fees.toString(),
+                          residenceId: widget.residenceId,
+                          post: widget.post,
+                        );
 
-                        if (transactionReussie) {
+                        if (transaction.statut == 'en attente') {
+                          // Assurez-vous que 'statut' est une propriété de votre TransactionModel indiquant le succès de la transaction
                           showSnackBarFun(context);
                           // Gérer d'autres actions à effectuer en cas de succès de la transaction
                           print("La transaction a été effectuée avec succès.");
@@ -213,8 +226,8 @@ class PayementPageState extends State<PayementPage> {
                       text: "Valider le paiement",
                       horizontal: 30,
                       vertical: 10,
-                      size: 15),
-                ),
+                      size: 15,
+                    )),
               ),
             ],
           ),

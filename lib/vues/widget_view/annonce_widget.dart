@@ -99,12 +99,16 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                 },
                 child: Column(
                   children: [
-                    widget.post.pathImage != ""
-                        ? Image.network(
-                            widget.post.pathImage!,
-                            fit: BoxFit.cover,
-                          )
-                        : ImageAnnounced(context, width, 250),
+                    Container(
+                      height: 250,
+                      width: width,
+                      child: widget.post.pathImage != ""
+                          ? Image.network(
+                              widget.post.pathImage!,
+                              fit: BoxFit.cover,
+                            )
+                          : ImageAnnounced(context, width, 250),
+                    ),
                     Container(
                         color: Colors.white,
                         child: Padding(

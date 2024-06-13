@@ -666,20 +666,22 @@ class DataBasesPostServices {
     return annonceTrouvees;
   }
 
-  Future<List<Post>> getAllAnnoncessWithFilters(
+  Future<List<Post>> getAllAnnoncesWithFilters(
       {required String doc,
-      String? saisie,
-      List<String?>? categorie,
+      List<String?>? subtype,
       String? dateFrom,
       String? dateTo,
-      String? priceFrom,
-      String? priceTo}) async {
-    List<Post> posts = [];
+      int? priceMin,
+      int? priceMax}) async {
+    List<Post> annonces = [];
     try {
-      Query<Map<String, dynamic>> baseQuery =
-          db.collection("Residence").doc(doc).collection("post");
+      Query<Map<String, dynamic>> baseQuery = db
+          .collection("Residence")
+          .doc(doc)
+          .collection("post")
+          .where('type', isEqualTo: 'annonces');
 
-      // Convert date strings to Timestamps
+      // Convertir les chaînes de date en Timestamp
       Timestamp? timestampFrom;
       Timestamp? timestampTo;
 
@@ -690,24 +692,24 @@ class DataBasesPostServices {
         timestampTo = Timestamp.fromDate(DateTime.parse(dateTo));
       }
 
-      // Generate all combinations of categorie, dateFrom, dateTo, and price
+      // Générer toutes les combinaisons de subtype, dateFrom, dateTo, priceMin et priceMax
       List<List<dynamic>> combinations = [];
-      if (categorie != null && categorie.isNotEmpty) {
-        for (var cat in categorie) {
+      if (subtype != null && subtype.isNotEmpty) {
+        for (var st in subtype) {
           combinations
-              .add([cat, timestampFrom, timestampTo, priceFrom, priceTo]);
+              .add([st, timestampFrom, timestampTo, priceMin, priceMax]);
         }
       } else {
         combinations
-            .add([null, timestampFrom, timestampTo, priceFrom, priceTo]);
+            .add([null, timestampFrom, timestampTo, priceMin, priceMax]);
       }
 
-      // Perform queries for each combination
+      // Effectuer des requêtes pour chaque combinaison
       for (var combo in combinations) {
         Query<Map<String, dynamic>> query = baseQuery;
 
         if (combo[0] != null) {
-          query = query.where('categorie', isEqualTo: combo[0]);
+          query = query.where('subtype', isEqualTo: combo[0]);
         }
         if (combo[1] != null) {
           query = query.where('timeStamp', isGreaterThanOrEqualTo: combo[1]);
@@ -715,29 +717,23 @@ class DataBasesPostServices {
         if (combo[2] != null) {
           query = query.where('timeStamp', isLessThanOrEqualTo: combo[2]);
         }
-        // Assuming priceFrom and priceTo are numeric values
-        if (combo[3] != null && combo[4] != null) {
-          query = query.where('price',
-              isGreaterThanOrEqualTo: int.parse(combo[3]),
-              isLessThanOrEqualTo: int.parse(combo[4]));
-        } else if (combo[3] != null) {
-          query =
-              query.where('price', isGreaterThanOrEqualTo: int.parse(combo[3]));
-        } else if (combo[4] != null) {
-          query =
-              query.where('price', isLessThanOrEqualTo: int.parse(combo[4]));
+        if (combo[3] != null) {
+          query = query.where('price', isGreaterThanOrEqualTo: combo[3]);
+        }
+        if (combo[4] != null) {
+          query = query.where('price', isLessThanOrEqualTo: combo[4]);
         }
 
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
         for (var docSnapshot in querySnapshot.docs) {
-          posts.add(Post.fromMap(docSnapshot.data()));
+          annonces.add(Post.fromMap(docSnapshot.data()));
         }
       }
     } catch (e) {
-      // Handle the error appropriately, e.g., return an error object or rethrow
-      print("Error completing in getAllPostsWithFilters: $e");
+      // Gérer l'erreur de manière appropriée, par exemple, retourner un objet d'erreur ou relancer l'exception
+      print("Erreur dans getAllAnnoncesWithFilters: $e");
     }
-    return posts;
+    return annonces;
   }
 
   Future<List<Post>> getSignalementsList(String docRes, String postId) async {
@@ -777,5 +773,33 @@ class DataBasesPostServices {
     }
 
     return signalements;
+  }
+
+  Future<Map<String, int>> getMinMaxPrices(String doc) async {
+    int priceMin = 999999999; // Initialisation à une grande valeur positive
+    int priceMax = 0; // Initialisation à une petite valeur négative
+
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+          .collection("Residence")
+          .doc(doc)
+          .collection("post")
+          .where('type', isEqualTo: 'annonces')
+          .get();
+
+      for (var docSnapshot in querySnapshot.docs) {
+        var post = Post.fromMap(docSnapshot.data());
+        if (post.price! < priceMin) {
+          priceMin = post.price!;
+        }
+        if (post.price! > priceMax) {
+          priceMax = post.price!;
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération des annonces: $e");
+    }
+
+    return {'priceMin': priceMin, 'priceMax': priceMax};
   }
 }

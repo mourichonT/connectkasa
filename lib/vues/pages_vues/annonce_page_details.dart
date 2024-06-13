@@ -18,7 +18,7 @@ class AnnoncePageDetails extends StatefulWidget {
   final String uid;
   final String residence;
   final Color colorStatut;
-  final double scrollController;
+  final double? scrollController;
   final bool returnHomePage;
 
   AnnoncePageDetails({
@@ -27,7 +27,7 @@ class AnnoncePageDetails extends StatefulWidget {
     required this.uid,
     required this.residence,
     required this.colorStatut,
-    required this.scrollController,
+    this.scrollController,
     required this.returnHomePage,
   }) : super(key: key);
 
@@ -435,7 +435,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
   }
 
   void _showBottomSheet(
-      BuildContext context, String price, String uidFrom, Post post) {
+      BuildContext context, int price, String uidFrom, Post post) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Pour rendre le contenu scrollable
@@ -444,7 +444,11 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
           heightFactor: 3 / 4, // Définir la fraction de la hauteur de l'écran
           child: Container(
             // Contenu du BottomSheet
-            child: PayementPage(post: post, uidFrom: uidFrom),
+            child: PayementPage(
+              post: post,
+              uidFrom: uidFrom,
+              residenceId: widget.residence,
+            ),
           ),
         );
       },

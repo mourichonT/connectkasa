@@ -37,15 +37,6 @@ class PostWidgetState extends State<PostWidget> {
     //likeCount = widget.post.like.length;
     _signalementFuture = dbService.getSignalements(widget.residence,
         widget.post.id); // Initialisez post à partir des propriétés du widget
-    _loadSignalements();
-  }
-
-  void _loadSignalements() async {
-    final signalements =
-        await dbService.getSignalements(widget.residence, widget.post.id);
-    setState(() {
-      postCount = signalements.length;
-    });
   }
 
   String getType(Post post) {

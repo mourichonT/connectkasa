@@ -15,16 +15,20 @@ typedef FilterCallback = void Function({
   required List<String?> statut,
 });
 
+typedef ShowFilterCallback = void Function({required bool showFilter});
+
 class FilterAllPostController extends StatefulWidget {
   final String residenceSelected;
   final String uid;
   final FilterCallback onFilterUpdate;
+  final ShowFilterCallback updateShowFilter; // Corrigé ici
 
   FilterAllPostController({
     super.key,
     required this.residenceSelected,
     required this.uid,
     required this.onFilterUpdate,
+    required this.updateShowFilter, // Corrigé ici
   });
 
   @override
@@ -45,6 +49,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
   List<String?> _selectedEmplacement = [];
   List<String?> _selectedStatut = [];
   List<String?> labelsType = [];
+  bool _showFilter = true;
   final List<String> listStatu = ["Validé", "En attente", "Refusé"];
 
   @override
@@ -62,6 +67,11 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
       dateTo: _dateToController.text,
       statut: _selectedStatut,
     );
+  }
+
+  void _updateShowfilter() {
+    widget.updateShowFilter(
+        showFilter: _showFilter); // Utilisation corrigée ici
   }
 
   @override
@@ -123,21 +133,30 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                 label: "Type",
                 color: color,
                 items: declarationType
-                    .map((e) => e.last)
-                    .map((item) => MultiSelectItem<String?>(item, item!))
+                    .map((e) => MultiSelectItem<String?>(e[0], e[0]))
+                    .take(3)
                     .toList(),
                 onConfirm: (values) {
                   setState(() {
                     labelsType = values
                         .where((element) => element != null)
-                        .map((element) => element!)
+                        .map((element) => declarationType.firstWhere(
+                              (type) => type[0] == element,
+                              orElse: () => ["", ""],
+                            )[1])
+                        .take(3)
                         .toList();
                     _updateFilters();
                   });
                 },
                 onTap: (item) {
                   setState(() {
-                    labelsType.remove(item);
+                    labelsType.removeWhere((element) =>
+                        declarationType.firstWhere(
+                          (type) => type[1] == element,
+                          orElse: () => ["", ""],
+                        )[0] ==
+                        item);
                   });
                 },
               )
@@ -159,8 +178,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                       ),
                       prefixIcon: const Icon(Icons.calendar_today, size: 14),
                       suffixIcon: const Icon(Icons.arrow_drop_down, size: 23),
-                      label:
-                          MyTextStyle.lotDesc("Depuis", 13, FontStyle.normal),
+                      label: MyTextStyle.lotDesc("De", 13, FontStyle.normal),
                       focusColor: color,
                     ),
                     readOnly: true,
@@ -183,8 +201,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                       ),
                       prefixIcon: const Icon(Icons.calendar_today, size: 14),
                       suffixIcon: const Icon(Icons.arrow_drop_down, size: 23),
-                      label:
-                          MyTextStyle.lotDesc("Jusqu'à", 13, FontStyle.normal),
+                      label: MyTextStyle.lotDesc("à", 13, FontStyle.normal),
                       focusColor: color,
                     ),
                     readOnly: true,
@@ -232,7 +249,9 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                       _dateFromController.clear();
                       _dateToController.clear();
                       _selectedStatut = [];
+                      _showFilter = !_showFilter;
                       _updateFilters();
+                      _updateShowfilter(); // Appel de la mise à jour du filtre d'affichage
                     });
                   },
                   child: MyTextStyle.lotName(

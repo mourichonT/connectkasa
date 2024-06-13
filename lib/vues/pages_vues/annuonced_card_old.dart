@@ -7,19 +7,19 @@ import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:flutter/material.dart';
 
-class AnnuoncedTile extends StatefulWidget {
+class AnnuoncedTile2 extends StatefulWidget {
   late Post post;
   final String uid;
   final String residence;
   final bool canModify;
 
-  AnnuoncedTile(this.post, this.residence, this.uid, this.canModify);
+  AnnuoncedTile2(this.post, this.residence, this.uid, this.canModify);
 
   @override
   State<StatefulWidget> createState() => AnnuoncedTileState();
 }
 
-class AnnuoncedTileState extends State<AnnuoncedTile> {
+class AnnuoncedTileState extends State<AnnuoncedTile2> {
   late Future<List<Post>> _signalementFuture;
   DataBasesPostServices dbService = DataBasesPostServices();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();

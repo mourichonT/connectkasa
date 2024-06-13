@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/my_multiselected_dropdown.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 
-typedef FilterCallback = void Function({
-  required List<String?> categorie,
-  required String dateFrom,
-  required String dateTo,
-});
+typedef FilterCallback = void Function(
+    {required List<String?> categorie,
+    required String dateFrom,
+    required String dateTo,
+    required int priceMin,
+    required int priceMax});
 
 class FilterAllAnnouncedController extends StatefulWidget {
   final String residenceSelected;
@@ -48,8 +48,9 @@ class FilterAllAnnouncedControllerState
 
   @override
   void initState() {
-    annoncesTrouvees = [];
     super.initState();
+    annoncesTrouvees = [];
+    _fetchMinMaxPrices();
   }
 
   void _updateFilters() {
@@ -57,7 +58,19 @@ class FilterAllAnnouncedControllerState
       categorie: labelsCategorie,
       dateFrom: _dateFromController.text,
       dateTo: _dateToController.text,
+      priceMin: _lowerValue,
+      priceMax: _upperValue,
     );
+  }
+
+  void _fetchMinMaxPrices() async {
+    var prices =
+        await _databaseServices.getMinMaxPrices(widget.residenceSelected);
+    setState(() {
+      _lowerValue = prices['priceMin']!;
+      _upperValue = prices['priceMax']!;
+      print(_upperValue);
+    });
   }
 
   @override
@@ -123,8 +136,7 @@ class FilterAllAnnouncedControllerState
                       ),
                       prefixIcon: const Icon(Icons.calendar_today, size: 14),
                       suffixIcon: const Icon(Icons.arrow_drop_down, size: 23),
-                      label:
-                          MyTextStyle.lotDesc("Depuis", 13, FontStyle.normal),
+                      label: MyTextStyle.lotDesc("De", 13, FontStyle.normal),
                       focusColor: color,
                     ),
                     readOnly: true,
@@ -147,8 +159,7 @@ class FilterAllAnnouncedControllerState
                       ),
                       prefixIcon: const Icon(Icons.calendar_today, size: 14),
                       suffixIcon: const Icon(Icons.arrow_drop_down, size: 23),
-                      label:
-                          MyTextStyle.lotDesc("Jusqu'à", 13, FontStyle.normal),
+                      label: MyTextStyle.lotDesc("à", 13, FontStyle.normal),
                       focusColor: color,
                     ),
                     readOnly: true,
@@ -178,8 +189,8 @@ class FilterAllAnnouncedControllerState
                 values:
                     RangeValues(_lowerValue.toDouble(), _upperValue.toDouble()),
                 min: 0,
-                max: 100,
-                divisions: 100,
+                max: _upperValue.toDouble() + 10,
+                divisions: _upperValue + 10,
                 labels: RangeLabels(
                   _lowerValue.toString(),
                   _upperValue.toString(),
@@ -188,6 +199,7 @@ class FilterAllAnnouncedControllerState
                   setState(() {
                     _lowerValue = values.start.round();
                     _upperValue = values.end.round();
+                    _updateFilters();
                   });
                 },
               ),
@@ -204,6 +216,8 @@ class FilterAllAnnouncedControllerState
                       labelsCategorie = [];
                       _dateFromController.clear();
                       _dateToController.clear();
+                      _upperValue = _upperValue;
+                      _lowerValue = _lowerValue;
                       _updateFilters();
                     });
                   },

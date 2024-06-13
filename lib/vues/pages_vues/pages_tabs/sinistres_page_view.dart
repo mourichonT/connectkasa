@@ -10,15 +10,19 @@ import 'package:flutter/material.dart';
 class SinistrePageView extends StatefulWidget {
   final String residenceId;
   final String uid;
+  final Color colorStatut;
   final String? argument1;
   final String? argument2;
+  final String? argument3;
 
   SinistrePageView({
     Key? key,
     required this.residenceId,
     required this.uid,
+    required this.colorStatut,
     this.argument1,
     this.argument2,
+    this.argument3,
   }) : super(key: key);
 
   @override
@@ -61,6 +65,8 @@ class SinistrePageViewState extends State<SinistrePageView>
   void updatePostsList() {
     setState(() {
       _allPostsFuture = _databaseServices.getAllPosts(widget.residenceId);
+      _allSignalementFuture =
+          _databaseServices.getAllPostsToModify(widget.residenceId);
     });
   }
 
@@ -82,29 +88,33 @@ class SinistrePageViewState extends State<SinistrePageView>
               Tab(text: 'Mes déclarations'),
             ],
           ),
-          if (_showFilters)
+          if (_showFilters && _selectedTab)
             FilterAllPostController(
-              residenceSelected: widget.residenceId,
-              uid: widget.uid,
-              onFilterUpdate: ({
-                required List<String?> locationElement,
-                required List<String?> type,
-                required String dateFrom,
-                required String dateTo,
-                required List<String?> statut,
-              }) {
-                setState(() {
-                  _allPostsFuture = _databaseServices.getAllPostsWithFilters(
-                    doc: widget.residenceId,
-                    locationElement: locationElement,
-                    type: type,
-                    dateFrom: dateFrom,
-                    dateTo: dateTo,
-                    statut: statut,
-                  );
-                });
-              },
-            ),
+                residenceSelected: widget.residenceId,
+                uid: widget.uid,
+                onFilterUpdate: ({
+                  required List<String?> locationElement,
+                  required List<String?> type,
+                  required String dateFrom,
+                  required String dateTo,
+                  required List<String?> statut,
+                }) {
+                  setState(() {
+                    _allPostsFuture = _databaseServices.getAllPostsWithFilters(
+                      doc: widget.residenceId,
+                      locationElement: locationElement,
+                      type: type,
+                      dateFrom: dateFrom,
+                      dateTo: dateTo,
+                      statut: statut,
+                    );
+                  });
+                },
+                updateShowFilter: ({required bool showFilter}) {
+                  setState(() {
+                    _showFilters = showFilter;
+                  });
+                }),
           if (_selectedTab)
             GestureDetector(
               onTap: () {
@@ -158,11 +168,13 @@ class SinistrePageViewState extends State<SinistrePageView>
                           itemBuilder: (context, index) {
                             final post = allPosts[index];
                             if ((post.type == widget.argument1 ||
-                                post.type == widget.argument2)) {
+                                post.type == widget.argument2 ||
+                                post.type == widget.argument3)) {
                               return SinitresTileController(
                                 post: post,
                                 residenceId: widget.residenceId,
                                 uid: widget.uid,
+                                colorStatut: widget.colorStatut,
                                 canModify: false,
                                 updatePostsList: updatePostsList,
                               );
@@ -197,12 +209,14 @@ class SinistrePageViewState extends State<SinistrePageView>
                               children: [
                                 if (post.user == widget.uid &&
                                     (post.type == widget.argument1 ||
-                                        post.type == widget.argument2))
+                                        post.type == widget.argument2 ||
+                                        post.type == widget.argument3))
                                   SinistreTile(
                                     post,
                                     widget.residenceId,
                                     widget.uid,
                                     true,
+                                    widget.colorStatut,
                                     updatePostsList,
                                   ),
                               ],

@@ -112,8 +112,10 @@ class _MyNavBarState extends State<MyNavBar>
             key: UniqueKey(),
             residenceId: preferedLot?.residenceId ?? "",
             uid: uid,
+            colorStatut: colorStatut,
             argument1: "sinistres",
             argument2: "incivilites",
+            argument3: "communication",
           ),
           EventPageView(
             residenceSelected: preferedLot?.residenceId ?? "",
