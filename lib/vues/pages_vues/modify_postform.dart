@@ -180,16 +180,18 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                             },
                             items: labelsType
                                 .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(
-                                  value,
-                                  style: TextStyle(
-                                    fontSize: fontSize,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(
+                                      value,
+                                      style: TextStyle(
+                                        fontSize: fontSize,
+                                      ),
+                                    ),
+                                  );
+                                })
+                                .take(2)
+                                .toList(),
                           ),
                         ),
                         Container(
@@ -415,6 +417,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
             ElevatedButton(
               onPressed: () {
                 SubmitPostController.UpdatePost(
+                  like: widget.post.like,
                   uid: widget.uid,
                   idPost: widget.post.id,
                   selectedLabel: type!,

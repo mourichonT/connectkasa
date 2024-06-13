@@ -7,6 +7,9 @@ import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
+import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
+import 'package:connect_kasa/vues/pages_vues/modify_annonceform.dart';
+import 'package:connect_kasa/vues/pages_vues/modify_asking_neighbors_form.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_postform.dart';
 import 'package:connect_kasa/vues/pages_vues/post_view.dart';
 import 'package:flutter/cupertino.dart';
@@ -17,10 +20,11 @@ class SinistreTile extends StatefulWidget {
   final String uid;
   final String residenceId;
   final bool canModify;
+  final Color colorStatut;
   final Function()? updatePostsList;
 
   SinistreTile(this.post, this.residenceId, this.uid, this.canModify,
-      this.updatePostsList);
+      this.colorStatut, this.updatePostsList);
 
   @override
   State<StatefulWidget> createState() => SinistreTileState();
@@ -102,13 +106,21 @@ class SinistreTileState extends State<SinistreTile> {
                             });
                           }
                         },
-                        child: PostView(
-                          postOrigin: widget.post,
-                          residence: widget.residenceId,
-                          uid: widget.uid,
-                          postSelected: widget.post,
-                          returnHomePage: false,
-                        ),
+                        child: widget.post.type != "annonces"
+                            ? PostView(
+                                postOrigin: widget.post,
+                                residence: widget.residenceId,
+                                uid: widget.uid,
+                                postSelected: widget.post,
+                                returnHomePage: false,
+                              )
+                            : AnnoncePageDetails(
+                                returnHomePage: false,
+                                post: widget.post,
+                                uid: widget.uid,
+                                residence: widget.residenceId,
+                                colorStatut: widget.colorStatut,
+                              ),
                       );
                     } else {
                       return const Text('No data available');
@@ -236,16 +248,44 @@ class SinistreTileState extends State<SinistreTile> {
                                 IconButton(
                                     padding: EdgeInsets.zero,
                                     onPressed: () {
-                                      Navigator.push(
-                                          context,
-                                          CupertinoPageRoute(
-                                              builder: (context) =>
-                                                  ModifyPostForm(
-                                                    uid: widget.uid,
-                                                    residence:
-                                                        widget.residenceId,
-                                                    post: _signalement!,
-                                                  )));
+                                      if (widget.post.type == "communication") {
+                                        Navigator.push(
+                                            context,
+                                            CupertinoPageRoute(
+                                                builder: (context) =>
+                                                    ModifyAskingNeighborsForm(
+                                                      uid: widget.uid,
+                                                      residence:
+                                                          widget.residenceId,
+                                                      post: _signalement!,
+                                                    )));
+                                      }
+
+                                      if (widget.post.type == "sinistres" ||
+                                          widget.post.type == "incivilités") {
+                                        Navigator.push(
+                                            context,
+                                            CupertinoPageRoute(
+                                                builder: (context) =>
+                                                    ModifyPostForm(
+                                                      uid: widget.uid,
+                                                      residence:
+                                                          widget.residenceId,
+                                                      post: _signalement!,
+                                                    )));
+                                      }
+                                      if (widget.post.type == "annonces") {
+                                        Navigator.push(
+                                            context,
+                                            CupertinoPageRoute(
+                                                builder: (context) =>
+                                                    ModifyAnnonceForm(
+                                                      uid: widget.uid,
+                                                      residence:
+                                                          widget.residenceId,
+                                                      post: _signalement!,
+                                                    )));
+                                      }
                                     },
                                     icon: Icon(
                                       Icons.edit,
@@ -312,8 +352,10 @@ class SinistreTileState extends State<SinistreTile> {
   }
 
   void _onDeletePost() async {
+    // final DataBasesPostServices _databaseServices = DataBasesPostServices();
     await dbService.removePost(widget.residenceId, widget.post.id);
     await _storageServices.removeFileFromUrl(widget.post.pathImage!);
+    // await _databaseServices.getAllPostsToModify(widget.residenceId);
     widget.updatePostsList!();
     Navigator.pop(context);
   }

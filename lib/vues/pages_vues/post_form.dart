@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
+import 'package:connect_kasa/vues/pages_vues/asking_neighbords_form.dart';
 import 'package:connect_kasa/vues/widget_view/incivilite_form.dart';
 import 'package:connect_kasa/vues/widget_view/sinistre_form.dart';
 import 'package:connect_kasa/vues/components/my_dropdown_menu.dart';
@@ -27,26 +28,30 @@ class PostForm extends StatefulWidget {
 }
 
 class PostFormState extends State<PostForm> {
-  // Initialisé à une chaîne vide
-
   final TypeList _typeList = TypeList();
   late List<String> itemsType;
+  String idPost = const Uuid().v1();
+  String declaration = "";
+  String selectedLabel = "";
+  String? selectedDeclaration;
+  List<String> filters = [];
 
   @override
   void initState() {
     super.initState();
   }
 
-  String idPost = const Uuid().v1();
-  String declaration = "";
-  String selectedLabel = "";
-
   @override
   Widget build(BuildContext context) {
     List<List<String>> declarationType = _typeList.typeDeclaration();
-    List<String> labelsType = declarationType.asMap().entries.map((entry) {
-      return entry.value[0];
-    }).toList();
+    List<String> labelsType = declarationType
+        .asMap()
+        .entries
+        .map((entry) {
+          return entry.value[0];
+        })
+        .take(3)
+        .toList();
 
     final double width = MediaQuery.of(context).size.width;
 
@@ -60,10 +65,6 @@ class PostFormState extends State<PostForm> {
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              child: MyTextStyle.lotName(
-                  "Vous postez dans la residence : ", Colors.black87),
-            ),
             const SizedBox(
               height: 15,
             ),
@@ -113,22 +114,30 @@ class PostFormState extends State<PostForm> {
         const SizedBox(
           height: 15,
         ),
-        MyDropDownMenu(
-          width,
-          "Type d'annonce",
-          "Choisir un type",
-          preferedLot: widget.preferedLot,
-          items: labelsType,
-          onValueChanged: (String value) {
-            setState(() {
-              declaration = value;
-              selectedLabel = declarationType.firstWhere(
-                  (element) => element[0] == declaration,
-                  orElse: () => ["", ""])[1];
-              //updateItem(declaration);
-              widget.updateFolderName(selectedLabel);
-            });
-          },
+        Center(
+          child: Wrap(
+            spacing: 5.0,
+            children: labelsType.map((String itemElement) {
+              return ChoiceChip(
+                label: Text(itemElement),
+                selected: selectedDeclaration == itemElement,
+                onSelected: (bool selected) {
+                  setState(() {
+                    if (selected) {
+                      selectedDeclaration = itemElement;
+                      selectedLabel = declarationType.firstWhere(
+                          (element) => element[0] == selectedDeclaration,
+                          orElse: () => ["", ""])[1];
+                    } else {
+                      selectedDeclaration = null;
+                      selectedLabel = "";
+                    }
+                    widget.updateFolderName(selectedLabel);
+                  });
+                },
+              );
+            }).toList(),
+          ),
         ),
         const SizedBox(
           height: 15,
@@ -147,6 +156,17 @@ class PostFormState extends State<PostForm> {
         Visibility(
           visible: selectedLabel == 'incivilites',
           child: InciviliteForm(
+            racineFolder: widget.racineFolder,
+            preferedLot: widget.preferedLot,
+            uid: widget.uid,
+            idPost: idPost,
+            updateUrl: widget.updateUrl,
+            folderName: selectedLabel,
+          ),
+        ),
+        Visibility(
+          visible: selectedLabel == 'communication',
+          child: AskingNeighbordsForm(
             racineFolder: widget.racineFolder,
             preferedLot: widget.preferedLot,
             uid: widget.uid,

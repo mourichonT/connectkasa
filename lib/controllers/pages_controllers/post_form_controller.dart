@@ -35,7 +35,7 @@ class PostFormController extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-            'Déclarer un nouveau sinistre/incivilité', Colors.black87),
+            'Publier dans votre résidence', Colors.black87, 18),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

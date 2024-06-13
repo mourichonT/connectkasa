@@ -29,7 +29,7 @@ class SignalementTile extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SizedBox(
-          height: width / 1.5,
+          height: 250,
           width: width,
           child: Stack(
             children: [
@@ -43,10 +43,27 @@ class SignalementTile extends StatelessWidget {
                 Positioned(
                   top: 0,
                   left: 5,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child:
-                        ProfilTile(post.user, 22, 19, 22, true, Colors.white),
+                  child: Container(
+                    padding: EdgeInsets.only(top: 8, bottom: 16),
+                    width: width,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black12
+                              .withOpacity(0.5), // Transparent en haut
+                          Colors.black12
+                              .withOpacity(0.2), // Semi-transparent au milieu
+                          Colors.black12.withOpacity(0.0), // Opaque en bas
+                        ],
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child:
+                          ProfilTile(post.user, 22, 19, 22, true, Colors.white),
+                    ),
                   ),
                 ),
             ],
@@ -97,83 +114,3 @@ class SignalementTile extends StatelessWidget {
     );
   }
 }
-
-
-
-// FutureBuilder<User?>(
-//                       future: userPost, // Future<User?> ici
-//                       builder: (context, snapshot) {
-//                         if (snapshot.connectionState ==
-//                             ConnectionState.waiting) {
-//                           // Afficher un indicateur de chargement si le futur est en cours de chargement
-//                           return const CircularProgressIndicator();
-//                         } else {
-//                           // Si le futur est résolu, vous pouvez accéder aux propriétés de l'objet User
-//                           if (snapshot.hasData && snapshot.data != null) {
-//                             var user = snapshot.data!;
-//                             if (user.profilPic != null &&
-//                                 user.profilPic != "") {
-//                               // Retourner le widget avec l'image de profil si disponible
-//                               return Row(
-//                                 children: [
-//                                   CircleAvatar(
-//                                     radius: 20,
-//                                     backgroundColor:
-//                                         Theme.of(context).primaryColor,
-//                                     child: formatProfilPic.ProfilePic(
-//                                         18, userPost),
-//                                   ),
-//                                   SizedBox(
-//                                     width: 10,
-//                                   ),
-//                                   MyTextStyle.lotName(
-//                                     user.pseudo!,
-//                                     Colors.white,
-//                                   ),
-//                                 ],
-//                               );
-//                             } else {
-//                               // Sinon, retourner les initiales
-//                               return Row(
-//                                 children: [
-//                                   CircleAvatar(
-//                                     radius: 20,
-//                                     backgroundColor:
-//                                         Theme.of(context).primaryColor,
-//                                     child: formatProfilPic.getInitiales(
-//                                         35, userPost, 20),
-//                                   ),
-//                                   SizedBox(
-//                                     width: 10,
-//                                   ),
-//                                   MyTextStyle.lotName(
-//                                     user.pseudo!,
-//                                     Colors.white,
-//                                   ),
-//                                 ],
-//                               );
-//                             }
-//                           } else {
-//                             // Gérer le cas où le futur est résolu mais qu'il n'y a pas de données
-//                             return Row(
-//                               children: [
-//                                 CircleAvatar(
-//                                   radius: 20,
-//                                   backgroundColor:
-//                                       Theme.of(context).primaryColor,
-//                                   child: formatProfilPic.getInitiales(
-//                                       65, userPost, 3),
-//                                 ),
-//                                 SizedBox(
-//                                   width: 5,
-//                                 ),
-//                                 MyTextStyle.lotName(
-//                                   "Utilisteur inconnu",
-//                                   Colors.white,
-//                                 ),
-//                               ],
-//                             ); // ou tout autre widget par défaut
-//                           }
-//                         }
-//                       },
-//                     ),

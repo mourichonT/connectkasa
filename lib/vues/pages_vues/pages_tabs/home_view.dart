@@ -2,7 +2,8 @@
 
 import 'dart:async';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
-import 'package:connect_kasa/vues/components/event_widget.dart';
+import 'package:connect_kasa/vues/widget_view/asking_neighbors_widget.dart';
+import 'package:connect_kasa/vues/widget_view/event_widget.dart';
 import 'package:connect_kasa/vues/widget_view/annonce_widget.dart';
 import 'package:connect_kasa/vues/widget_view/post_widget.dart';
 import 'package:flutter/material.dart';
@@ -103,6 +104,14 @@ class _HomeviewState extends State<Homeview> {
                         ),
                       if (post.type == "events")
                         EventWidget(
+                          post: post,
+                          uid: widget.uid,
+                          residenceSelected: widget.residenceSelected,
+                          colorStatut: widget.colorStatut,
+                          scrollController: scrollPosition,
+                        ),
+                      if (post.type == "communication")
+                        AskingNeighborsWidget(
                           post: post,
                           uid: widget.uid,
                           residenceSelected: widget.residenceSelected,

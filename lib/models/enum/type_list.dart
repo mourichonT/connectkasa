@@ -5,7 +5,7 @@ class TypeList {
     return [
       ["Sinistre", "sinistres"],
       ["Incivilité", "incivilites"],
-      ["Demande aux voisins", "demandes"],
+      ["Communication", "communication"],
       ["Petite annonce", "annonces"],
       ["Evénement", "events"],
     ];

@@ -10,6 +10,7 @@ class SinitresTileController extends StatefulWidget {
   final Post post;
   final String residenceId;
   final String uid;
+  final Color colorStatut;
   final Function()? updatePostsList;
   final bool canModify;
 
@@ -18,6 +19,7 @@ class SinitresTileController extends StatefulWidget {
       required this.post,
       required this.residenceId,
       required this.uid,
+      required this.colorStatut,
       required this.updatePostsList,
       required this.canModify});
 
@@ -57,7 +59,7 @@ class SinitresTileControllerState extends State<SinitresTileController> {
       child: Column(
         children: [
           SinistreTile(widget.post, widget.residenceId, widget.uid,
-              widget.canModify, widget.updatePostsList),
+              widget.canModify, widget.colorStatut, widget.updatePostsList),
           if (showSignalement && postCount != 0)
             Padding(
                 padding: const EdgeInsets.only(left: 25),
@@ -85,6 +87,7 @@ class SinitresTileControllerState extends State<SinitresTileController> {
                                   widget.residenceId,
                                   widget.uid,
                                   widget.canModify,
+                                  widget.colorStatut,
                                   widget.updatePostsList);
                             });
                       }

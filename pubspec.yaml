@@ -60,6 +60,7 @@ dependencies:
   geocoding: ^3.0.0
   table_calendar: ^3.1.1
   multi_select_flutter: ^4.1.3
+  flutter_colorpicker: ^1.1.0
  
   
 
@@ -97,6 +98,11 @@ flutter:
      - images/assets/logo_login/google.png
      - images/assets/logo_login/apple-logo.png
      - images/assets/logo_login/microsoft.png
+     - images/fond_posts/fondbulle.png
+     - images/fond_posts/fonddegrade.png
+     - images/fond_posts/fondenfant.png
+     - images/fond_posts/fondlover.png
+
     
 
   # An image asset can refer to one or more resolution-specific "variants", see

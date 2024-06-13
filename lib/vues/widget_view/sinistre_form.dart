@@ -271,14 +271,14 @@ class SinistreFormState extends State<SinistreForm> {
                   }
 
                   SubmitPostController.submitForm(
-                    widget.uid,
-                    widget.idPost,
-                    widget.folderName,
-                    imagePath,
-                    title,
-                    desc,
-                    anonymPost,
-                    widget.preferedLot!.residenceId,
+                    uid: widget.uid,
+                    docRes: widget.preferedLot!.residenceId,
+                    idPost: widget.idPost,
+                    selectedLabel: widget.folderName,
+                    imagePath: imagePath,
+                    title: title,
+                    desc: desc,
+                    anonymPost: anonymPost,
                     localisation: localisation,
                     etage: etage,
                     element: filters,

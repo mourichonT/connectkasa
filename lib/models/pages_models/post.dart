@@ -14,32 +14,43 @@ class Post {
   String location_element;
   List<String>? location_details;
   String location_floor;
-  List<String> like;
+  List<String>? like;
   List<Post> signalement;
   bool hideUser;
   List<String>? participants;
-  String? price;
+  int? price;
+  String? backgroundColor;
+  String? backgroundImage;
+  double? fontSize;
+  String? fontWeight;
+  String? fontColor;
+  String? fontStyle;
 
-  Post({
-    required this.id,
-    required this.refResidence,
-    required this.user,
-    required this.type,
-    String subtype = "",
-    required this.timeStamp,
-    String statu = "",
-    String pathImage = "",
-    required this.title,
-    required this.description,
-    this.location_element = "",
-    this.location_details = const [], // Nouvel attribut
-    this.location_floor = "", // Nouvel attribut
-    this.like = const [],
-    this.signalement = const [],
-    required this.hideUser,
-    this.participants = const [],
-    this.price = "",
-  }) {
+  Post(
+      {required this.id,
+      required this.refResidence,
+      required this.user,
+      required this.type,
+      String subtype = "",
+      required this.timeStamp,
+      String statu = "",
+      String pathImage = "",
+      required this.title,
+      required this.description,
+      this.location_element = "",
+      this.location_details = const [], // Nouvel attribut
+      this.location_floor = "", // Nouvel attribut
+      this.like = const [],
+      this.signalement = const [],
+      required this.hideUser,
+      this.participants = const [],
+      this.price = 0,
+      this.backgroundColor,
+      this.backgroundImage,
+      this.fontSize,
+      this.fontWeight,
+      this.fontColor,
+      this.fontStyle}) {
     _pathImage = pathImage;
     _statu = statu;
     _subtype = subtype;
@@ -97,9 +108,9 @@ class Post {
   }
 
   String setPrice(price) {
-    if (price == "0") {
+    if (price == 0) {
       return "Gratuit";
-    } else if (price == "1") {
+    } else if (price == 1) {
       return "$price Kasa";
     } else {
       return "$price Kasas";
@@ -168,7 +179,13 @@ class Post {
           .toList(),
       hideUser: map['hideUser'],
       participants: convertedParticipantsList,
-      price: map['price'] ?? "",
+      price: map['price'] ?? 0,
+      backgroundColor: map['backgroundColor'],
+      backgroundImage: map['backgroundImage'],
+      fontColor: map['fontColor'],
+      fontSize: map['fontSize'],
+      fontWeight: map['fontWeight'],
+      fontStyle: map['fontStyle'],
     );
   }
 
@@ -191,7 +208,13 @@ class Post {
       'signalement': signalement.map((post) => post.toMap()).toList(),
       'hideUser': hideUser,
       'participants': participants,
-      'price': price
+      'price': price,
+      'backgroundColor': backgroundColor,
+      'backgroundImage': backgroundImage,
+      'fontColor': fontColor,
+      'fontSize': fontSize,
+      'fontWeight': fontWeight,
+      'fontStyle': fontStyle
     };
   }
 }
