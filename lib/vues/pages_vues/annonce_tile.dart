@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
@@ -89,7 +90,8 @@ class AnnonceTileState extends State<AnnonceTile> {
                 ));
               },
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
                 child: Container(
                   height: 200,
                   child: Column(
@@ -114,23 +116,30 @@ class AnnonceTileState extends State<AnnonceTile> {
                       ),
                       Container(
                           height: 30,
-                          child: MyTextStyle.lotName(title, Colors.black87)),
-                      MyTextStyle.annonceDesc(subtype, 11, 2),
+                          child: MyTextStyle.lotName(
+                              title, Colors.black87, SizeFont.h2.size)),
+                      MyTextStyle.annonceDesc(subtype, SizeFont.h3.size, 2),
                       Padding(
                         padding: const EdgeInsets.only(top: 5),
-                        child: MyTextStyle.annonceDesc(desc, 13, 2),
+                        child: Container(
+                            height: 60,
+                            child: MyTextStyle.annonceDesc(
+                                desc, SizeFont.h3.size, 2)),
                       ),
                       Row(
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(top: 5, right: 5),
-                            child: MyTextStyle.lotDesc("Prix :", 13,
-                                FontStyle.italic, FontWeight.w900),
+                            child: MyTextStyle.lotDesc(
+                                "Prix :",
+                                SizeFont.h3.size,
+                                FontStyle.italic,
+                                FontWeight.w900),
                           ),
                           Padding(
                             padding: const EdgeInsets.only(top: 5),
-                            child: MyTextStyle.lotDesc(
-                                price, 13, FontStyle.italic, FontWeight.w900),
+                            child: MyTextStyle.lotDesc(price, SizeFont.h3.size,
+                                FontStyle.italic, FontWeight.w900),
                           ),
                         ],
                       ),

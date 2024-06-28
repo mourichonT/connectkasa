@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/pages_vues/sinistre_tile.dart';
 import 'package:flutter/material.dart';
@@ -119,7 +120,7 @@ class SinitresTileControllerState extends State<SinitresTileController> {
                           ? Row(
                               children: [
                                 MyTextStyle.postDesc("Voir plus ($postCount)",
-                                    12, Colors.black54),
+                                    SizeFont.para.size, Colors.black54),
                                 SizedBox(
                                   width: 5,
                                 ),
@@ -132,8 +133,8 @@ class SinitresTileControllerState extends State<SinitresTileController> {
                             )
                           : Row(
                               children: [
-                                MyTextStyle.postDesc(
-                                    "Réduire", 12, Colors.black54),
+                                MyTextStyle.postDesc("Réduire",
+                                    SizeFont.para.size, Colors.black54),
                                 SizedBox(
                                   width: 5,
                                 ),

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -66,7 +67,8 @@ class MailChatPageState extends State<MailChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: MyTextStyle.lotName(widget.agencyName, Colors.black),
+        title: MyTextStyle.lotName(
+            widget.agencyName, Colors.black, SizeFont.h3.size),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(1.0), // Hauteur du Divider
           child: Divider(

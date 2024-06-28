@@ -11,7 +11,6 @@ class MyTabBarController {
 
   TabBar tabBar(List<Tab> tabs) {
     return TabBar(
-      //physics: NeverScrollableScrollPhysics(),
       controller: tabController,
       padding: const EdgeInsets.symmetric(horizontal: 30),
       dividerColor: Colors.transparent,
@@ -40,8 +39,16 @@ class _MyTabBarWidgetState extends State<MyTabBarWidget>
     with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    final List<IconData> icons = widget.controller.iconTabBar.listIcons();
-    final List<Tab> tabs = icons.map((icon) => Tab(icon: Icon(icon))).toList();
+    final List<Map<String, dynamic>> icons =
+        widget.controller.iconTabBar.listIcons();
+    final List<Tab> tabs = icons
+        .map((iconData) => Tab(
+              icon: Icon(
+                iconData['icon'],
+                size: iconData['size'], // Utilisation de la taille spécifique
+              ),
+            ))
+        .toList();
 
     return widget.controller.tabBar(tabs);
   }

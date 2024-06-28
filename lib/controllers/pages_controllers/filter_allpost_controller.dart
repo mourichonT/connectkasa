@@ -1,3 +1,4 @@
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
@@ -102,6 +103,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                     List<String?> _items =
                         (snapshot.data ?? []).cast<String?>();
                     return MyMultiSelectedDropDown(
+                      fontSize: SizeFont.para.size,
                       myKey: _multiSelectKey,
                       width: sizeDate,
                       label: "Localisation",
@@ -128,6 +130,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                 },
               ),
               MyMultiSelectedDropDown(
+                fontSize: SizeFont.para.size,
                 myKey: _multiTypeKey,
                 width: sizeDate,
                 label: "Type",
@@ -178,7 +181,8 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                       ),
                       prefixIcon: const Icon(Icons.calendar_today, size: 14),
                       suffixIcon: const Icon(Icons.arrow_drop_down, size: 23),
-                      label: MyTextStyle.lotDesc("De", 13, FontStyle.normal),
+                      label: MyTextStyle.lotDesc(
+                          "De", SizeFont.para.size, FontStyle.normal),
                       focusColor: color,
                     ),
                     readOnly: true,
@@ -201,7 +205,8 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                       ),
                       prefixIcon: const Icon(Icons.calendar_today, size: 14),
                       suffixIcon: const Icon(Icons.arrow_drop_down, size: 23),
-                      label: MyTextStyle.lotDesc("à", 13, FontStyle.normal),
+                      label: MyTextStyle.lotDesc(
+                          "à", SizeFont.para.size, FontStyle.normal),
                       focusColor: color,
                     ),
                     readOnly: true,
@@ -217,6 +222,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               MyMultiSelectedDropDown(
+                fontSize: SizeFont.para.size,
                 myKey: _multiStatutKey,
                 width: sizeDate,
                 label: "Statut",
@@ -254,8 +260,8 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                       _updateShowfilter(); // Appel de la mise à jour du filtre d'affichage
                     });
                   },
-                  child: MyTextStyle.lotName(
-                      "Réinitialiser les filtres", Colors.black38, 13),
+                  child: MyTextStyle.lotName("Réinitialiser les filtres",
+                      Colors.black38, SizeFont.h3.size),
                 ),
               ),
             ],

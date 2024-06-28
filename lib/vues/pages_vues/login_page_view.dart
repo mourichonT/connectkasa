@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/authentification_process.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/components/my_text_fied.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -60,8 +61,8 @@ class LoginPageView extends StatelessWidget {
                       Row(mainAxisAlignment: MainAxisAlignment.end, children: [
                     TextButton(
                       onPressed: () {},
-                      child: MyTextStyle.postDesc(
-                          "Mot de passe oublié?", 14, Colors.black54),
+                      child: MyTextStyle.postDesc("Mot de passe oublié?",
+                          SizeFont.h3.size, Colors.black54),
                     ),
                   ]),
                 ),
@@ -81,7 +82,8 @@ class LoginPageView extends StatelessWidget {
                       SignIn(
                           context, _emailController.text, _MdPController.text);
                     },
-                    child: MyTextStyle.lotName("Connexion", Colors.white, 20),
+                    child: MyTextStyle.lotName(
+                        "Connexion", Colors.white, SizeFont.h1.size),
                   ),
                 ),
                 const SizedBox(
@@ -100,8 +102,8 @@ class LoginPageView extends StatelessWidget {
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15),
-                      child: MyTextStyle.postDesc(
-                          "Ou continuer avec", 15, Colors.black54),
+                      child: MyTextStyle.postDesc("Ou continuer avec",
+                          SizeFont.h3.size, Colors.black54),
                     ),
                     Expanded(
                       child: Divider(
@@ -118,7 +120,8 @@ class LoginPageView extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     InkWell(
-                      radius: 35,
+                      radius: 50,
+                      borderRadius: BorderRadius.circular(50),
                       onTap: () {
                         AuthentificationProcess(
                           context: context,
@@ -187,7 +190,8 @@ class LoginPageView extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              MyTextStyle.postDesc("Pas encore membre?", 15, Colors.black54),
+              MyTextStyle.postDesc(
+                  "Pas encore membre?", SizeFont.h3.size, Colors.black54),
               SizedBox(width: 4),
               TextButton(
                 onPressed: () {
@@ -199,7 +203,7 @@ class LoginPageView extends StatelessWidget {
                   //),
                   //);
                 },
-                child: MyTextStyle.login("Enregistrez-vous", 15,
+                child: MyTextStyle.login("Enregistrez-vous", SizeFont.h3.size,
                     Theme.of(context).primaryColor, FontWeight.bold),
               ),
             ],

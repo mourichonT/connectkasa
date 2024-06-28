@@ -1,4 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 
 class CameraWidget extends StatelessWidget {
@@ -15,7 +16,8 @@ class CameraWidget extends StatelessWidget {
             size: 40,
             color: Colors.black45,
           ),
-          MyTextStyle.postDesc("Prendre une photo", 13, Colors.black87)
+          MyTextStyle.postDesc(
+              "Prendre une photo", SizeFont.h3.size, Colors.black87)
         ],
       ),
     );

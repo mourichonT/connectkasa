@@ -9,6 +9,7 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
+import 'package:connect_kasa/vues/pages_vues/event_page_details.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_annonceform.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_asking_neighbors_form.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_postform.dart';
@@ -16,7 +17,7 @@ import 'package:connect_kasa/vues/pages_vues/post_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class SinistreTile extends StatefulWidget {
+class EventTile extends StatefulWidget {
   late Post post;
   final String uid;
   final String residenceId;
@@ -24,20 +25,20 @@ class SinistreTile extends StatefulWidget {
   final Color colorStatut;
   final Function()? updatePostsList;
 
-  SinistreTile(this.post, this.residenceId, this.uid, this.canModify,
+  EventTile(this.post, this.residenceId, this.uid, this.canModify,
       this.colorStatut, this.updatePostsList);
 
   @override
-  State<StatefulWidget> createState() => SinistreTileState();
+  State<StatefulWidget> createState() => EventTileState();
 }
 
-class SinistreTileState extends State<SinistreTile> {
+class EventTileState extends State<EventTile> {
   final StorageServices _storageServices = StorageServices();
   DataBasesPostServices dbService = DataBasesPostServices();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();
   List<List<String>> typeList = TypeList().typeDeclaration();
   String url = "";
-  Post? _signalement;
+  Post? _event;
 
   int postCount = 0;
   bool _isMounted = false;
@@ -56,11 +57,10 @@ class SinistreTileState extends State<SinistreTile> {
   }
 
   Future<void> _fetchPost() async {
-    Post signalement =
-        await dbService.getPost(widget.residenceId, widget.post.id);
+    Post event = await dbService.getPost(widget.residenceId, widget.post.id);
     if (_isMounted) {
       setState(() {
-        _signalement = signalement;
+        _event = event;
       });
     }
   }
@@ -107,21 +107,14 @@ class SinistreTileState extends State<SinistreTile> {
                             });
                           }
                         },
-                        child: widget.post.type != "annonces"
-                            ? PostView(
-                                postOrigin: widget.post,
-                                residence: widget.residenceId,
-                                uid: widget.uid,
-                                postSelected: widget.post,
-                                returnHomePage: false,
-                              )
-                            : AnnoncePageDetails(
-                                returnHomePage: false,
-                                post: widget.post,
-                                uid: widget.uid,
-                                residence: widget.residenceId,
-                                colorStatut: widget.colorStatut,
-                              ),
+                        child: EventPageDetails(
+                          returnHomePage: false,
+                          residence: widget.residenceId,
+                          uid: widget.uid,
+                          post: _event!,
+                          colorStatut: widget.colorStatut,
+                          scrollController: 0.0,
+                        ),
                       );
                     } else {
                       return const Text('No data available');
@@ -138,13 +131,13 @@ class SinistreTileState extends State<SinistreTile> {
               padding:
                   EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 10),
               width: MediaQuery.of(context).size.width * 0.95,
-              child: _signalement == null
+              child: _event == null
                   ? Center(child: CircularProgressIndicator())
                   : Row(
                       children: [
-                        if (_signalement!.pathImage != "" &&
-                            _signalement!.pathImage != null &&
-                            _signalement!.pathImage!.isNotEmpty)
+                        if (_event!.pathImage != "" &&
+                            _event!.pathImage != null &&
+                            _event!.pathImage!.isNotEmpty)
                           ClipRRect(
                             borderRadius: BorderRadius.circular(35.0),
                             child: Container(
@@ -152,7 +145,7 @@ class SinistreTileState extends State<SinistreTile> {
                               width: 120,
                               height: 120,
                               child: Image.network(
-                                _signalement!.pathImage!,
+                                _event!.pathImage!,
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -181,12 +174,11 @@ class SinistreTileState extends State<SinistreTile> {
                                   children: [
                                     MyTextStyle.postDesc(getType(widget.post),
                                         SizeFont.para.size, Colors.black87),
-                                    if (!_signalement!.hideUser)
+                                    if (!_event!.hideUser)
                                       if (!widget.canModify)
                                         FutureBuilder<User?>(
                                             future: databasesUserServices
-                                                .getUserById(
-                                                    _signalement!.user),
+                                                .getUserById(_event!.user),
                                             builder: (context, snapshot) {
                                               if (snapshot.connectionState ==
                                                   ConnectionState.waiting) {
@@ -220,21 +212,19 @@ class SinistreTileState extends State<SinistreTile> {
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  MyTextStyle.lotName(_signalement!.title,
+                                  MyTextStyle.lotName(_event!.title,
                                       Colors.black87, SizeFont.h3.size),
-                                  MyTextStyle.annonceDesc(
-                                      _signalement!.description,
-                                      SizeFont.para.size,
-                                      2),
+                                  MyTextStyle.annonceDesc(_event!.description,
+                                      SizeFont.para.size, 2),
                                   Divider(),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       MyTextStyle.commentDate(
-                                          _signalement!.timeStamp),
-                                      MyTextStyle.lotDesc(_signalement!.statu!,
-                                          SizeFont.para.size),
+                                          _event!.timeStamp),
+                                      MyTextStyle.lotDesc(
+                                          _event!.statu!, SizeFont.para.size),
                                     ],
                                   )
                                 ],
@@ -262,7 +252,7 @@ class SinistreTileState extends State<SinistreTile> {
                                                       uid: widget.uid,
                                                       residence:
                                                           widget.residenceId,
-                                                      post: _signalement!,
+                                                      post: _event!,
                                                     )));
                                       }
 
@@ -276,7 +266,7 @@ class SinistreTileState extends State<SinistreTile> {
                                                       uid: widget.uid,
                                                       residence:
                                                           widget.residenceId,
-                                                      post: _signalement!,
+                                                      post: _event!,
                                                     )));
                                       }
                                       if (widget.post.type == "annonces") {
@@ -288,7 +278,7 @@ class SinistreTileState extends State<SinistreTile> {
                                                       uid: widget.uid,
                                                       residence:
                                                           widget.residenceId,
-                                                      post: _signalement!,
+                                                      post: _event!,
                                                     )));
                                       }
                                     },
@@ -299,8 +289,7 @@ class SinistreTileState extends State<SinistreTile> {
                                 IconButton(
                                     padding: EdgeInsets.zero,
                                     onPressed: () {
-                                      showAlertDialog(
-                                          context, _signalement!.title);
+                                      showAlertDialog(context, _event!.title);
                                     },
                                     icon: Icon(
                                       Icons.delete,

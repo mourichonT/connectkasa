@@ -6,6 +6,7 @@ import 'package:multi_select_flutter/util/multi_select_item.dart';
 
 Widget MyMultiSelectedDropDown(
     {required GlobalKey<FormFieldState<dynamic>>? myKey,
+    required double fontSize,
     required double width,
     required String label,
     required Color color,
@@ -19,10 +20,10 @@ Widget MyMultiSelectedDropDown(
         key: myKey,
         initialChildSize: 0.7,
         maxChildSize: 0.95,
-        title: MyTextStyle.annonceDesc("Recherche", 16, 1),
+        title: MyTextStyle.annonceDesc("Recherche", fontSize, 1),
         buttonText: MyTextStyle.lotDesc(
           label,
-          13,
+          fontSize,
           FontStyle.normal,
         ),
         checkColor: Colors.white,

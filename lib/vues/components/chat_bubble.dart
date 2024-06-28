@@ -1,3 +1,4 @@
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 
 class ChatBubble extends StatelessWidget {
@@ -16,7 +17,7 @@ class ChatBubble extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        constraints: BoxConstraints(maxWidth: 250),
+        constraints: const BoxConstraints(maxWidth: 250),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -24,7 +25,7 @@ class ChatBubble extends StatelessWidget {
         ),
         child: Text(
           message,
-          style: const TextStyle(fontSize: 16, color: Colors.black87),
+          style: TextStyle(fontSize: SizeFont.h3.size, color: Colors.black87),
           softWrap: true,
         ),
       ),

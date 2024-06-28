@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
@@ -61,8 +62,8 @@ class SignalementTile extends StatelessWidget {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.only(left: 10),
-                      child:
-                          ProfilTile(post.user, 22, 19, 22, true, Colors.white),
+                      child: ProfilTile(post.user, 22, 19, 22, true,
+                          Colors.white, SizeFont.h2.size),
                     ),
                   ),
                 ),
@@ -77,31 +78,30 @@ class SignalementTile extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    MyTextStyle.lotName(post.title, Colors.black87),
+                    MyTextStyle.lotName(
+                        post.title, Colors.black87, SizeFont.h2.size),
                     const Spacer(),
-                    SizedBox(
-                      height: 20,
-                      width: 120,
-                      child: MyTextStyle.postDate(post.timeStamp),
-                    ),
+                    MyTextStyle.commentDate(post.timeStamp),
                   ],
                 ),
                 post.location_element == ""
                     ? Container()
                     : Row(
                         children: [
-                          MyTextStyle.lotName(
-                              "Localisation : ", Colors.black54),
+                          MyTextStyle.lotName("Localisation : ", Colors.black54,
+                              SizeFont.h3.size),
                           MyTextStyle.lotName(
                               "${post.location_element} ${post.location_floor} ",
-                              Colors.black54),
+                              Colors.black54,
+                              SizeFont.h3.size),
                         ],
                       ),
                 const SizedBox(
                   height: 15,
                 ),
                 Flexible(
-                    child: MyTextStyle.annonceDesc(post.description, 14, 3)),
+                    child: MyTextStyle.annonceDesc(
+                        post.description, SizeFont.h3.size, 3)),
                 const SizedBox(
                   height: 15,
                 ),

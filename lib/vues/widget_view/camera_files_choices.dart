@@ -3,6 +3,7 @@
 import 'dart:io';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -58,14 +59,14 @@ class CameraOrFilesState extends State<CameraOrFiles> {
                           onPressed: () {
                             _pickImageFromCamera();
                           },
-                          child: MyTextStyle.lotName(
-                              "Prendre une photo", Colors.black54)),
+                          child: MyTextStyle.lotName("Prendre une photo",
+                              Colors.black54, SizeFont.h3.size)),
                       TextButton(
                           onPressed: () {
                             _pickImageFromGallery();
                           },
                           child: MyTextStyle.annonceDesc(
-                              "Choisir une image", 14, 3)),
+                              "Choisir une image", SizeFont.h3.size, 3)),
                     ]),
           if (_selectedImage != null)
             Positioned(

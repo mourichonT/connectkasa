@@ -2,6 +2,7 @@
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:flutter/material.dart';
@@ -48,7 +49,8 @@ class MessageUserTileState extends State<MessageUserTile> {
             Padding(
               padding:
                   const EdgeInsets.only(top: 5, bottom: 5, left: 5, right: 10),
-              child: ProfilTile(widget.uid, 20, 18, 20, true, Colors.black87),
+              child: ProfilTile(widget.uid, 22, 19, 22, true, Colors.black87,
+                  SizeFont.h2.size),
             ),
           ],
         ),

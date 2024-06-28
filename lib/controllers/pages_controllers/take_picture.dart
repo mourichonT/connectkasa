@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 
@@ -47,8 +48,8 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: MyTextStyle.lotName(
-              "Positionner votre ${widget.idType}", Colors.black54)),
+          title: MyTextStyle.lotName("Positionner votre ${widget.idType}",
+              Colors.black54, SizeFont.h3.size)),
       body: Container(
         // Container pour l'arrière-plan
         color: Colors.black, // Noir avec opacité de 0.5

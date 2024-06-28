@@ -1,4 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/vues/pages_vues/asking_neighbords_form.dart';
 import 'package:connect_kasa/vues/widget_view/incivilite_form.dart';
@@ -77,7 +78,8 @@ class PostFormState extends State<PostForm> {
                     children: [
                       MyTextStyle.lotName(
                           "${widget.preferedLot.residenceData["name"]}",
-                          Colors.black87),
+                          Colors.black87,
+                          SizeFont.h2.size),
                       Container(padding: const EdgeInsets.only(left: 2)),
                     ]),
                 Row(
@@ -85,10 +87,12 @@ class PostFormState extends State<PostForm> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceData["numero"], 13),
+                        widget.preferedLot.residenceData["numero"],
+                        SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 2)),
                     MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceData["street"], 13),
+                        widget.preferedLot.residenceData["street"],
+                        SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 2)),
                   ],
                 ),
@@ -97,10 +101,12 @@ class PostFormState extends State<PostForm> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceData["zipCode"], 13),
+                        widget.preferedLot.residenceData["zipCode"],
+                        SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 2)),
                     MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceData["city"], 13),
+                        widget.preferedLot.residenceData["city"],
+                        SizeFont.h3.size),
                   ],
                 ),
                 const SizedBox(

@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/camera_files_choices.dart';
 import 'package:connect_kasa/vues/components/my_dropdown_menu.dart';
@@ -144,7 +145,8 @@ class SinistreFormState extends State<SinistreForm> {
               children: [
                 MyTextStyle.lotName(
                     "Apportez des précisions pour localiser le sinistre:",
-                    Colors.black87),
+                    Colors.black87,
+                    SizeFont.h3.size),
                 const SizedBox(
                   height: 15,
                 ),
@@ -191,7 +193,8 @@ class SinistreFormState extends State<SinistreForm> {
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MyTextStyle.lotName("Titre : ", Colors.black87),
+                MyTextStyle.lotName(
+                    "Titre : ", Colors.black87, SizeFont.h3.size),
                 const SizedBox(
                   height: 15,
                 ),
@@ -212,7 +215,8 @@ class SinistreFormState extends State<SinistreForm> {
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MyTextStyle.lotName("Description : ", Colors.black87),
+                MyTextStyle.lotName(
+                    "Description : ", Colors.black87, SizeFont.h3.size),
                 const SizedBox(
                   height: 15,
                 ),
@@ -231,7 +235,7 @@ class SinistreFormState extends State<SinistreForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                MyTextStyle.lotName("Publier anonymement?  ", Colors.black87),
+                MyTextStyle.lotDesc("Publier anonymement?  ", SizeFont.h3.size),
                 Switch(
                   thumbIcon: thumbIcon,
                   value: anonymPost,
@@ -285,8 +289,8 @@ class SinistreFormState extends State<SinistreForm> {
                   );
                   Navigator.pop(context);
                 },
-                child: MyTextStyle.lotName(
-                    "Soumettre", Theme.of(context).primaryColor),
+                child: MyTextStyle.lotName("Soumettre",
+                    Theme.of(context).primaryColor, SizeFont.h2.size),
               ),
             ),
             const SizedBox(

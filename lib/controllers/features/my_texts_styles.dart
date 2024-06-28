@@ -1,9 +1,11 @@
 import 'dart:ffi';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class MyTextStyle {
   static Color getColor(BuildContext context) {
@@ -108,7 +110,7 @@ class MyTextStyle {
     return Text(
       text,
       style: GoogleFonts.roboto(
-        fontSize: 15,
+        fontSize: SizeFont.h3.size,
         fontStyle: FontStyle.italic,
       ),
     );
@@ -143,7 +145,7 @@ class MyTextStyle {
       formattedDate,
       style: GoogleFonts.roboto(
         fontStyle: FontStyle.italic,
-        fontSize: 11,
+        fontSize: SizeFont.para.size,
       ),
     );
   }
@@ -156,16 +158,29 @@ class MyTextStyle {
       formattedDate,
       style: GoogleFonts.roboto(
         fontStyle: FontStyle.italic,
-        fontSize: 11,
+        fontSize: SizeFont.para.size,
       ),
     );
   }
 
   static String completDate(Timestamp timeStamp) {
-    DateTime tsdate = timeStamp.toDate();
+    tz.TZDateTime tsdate = tz.TZDateTime.from(timeStamp.toDate(), tz.local);
+    tz.Location paris = tz.getLocation('Europe/Paris');
+    tsdate = tz.TZDateTime.from(tsdate, paris);
+
     DateFormat formatter = DateFormat("dd MMM à HH'h'mm", 'fr_FR');
     String formattedDate = formatter.format(tsdate);
     return formattedDate;
+  }
+
+  static String EventHours(Timestamp timestamp) {
+    tz.TZDateTime eventDate = tz.TZDateTime.from(timestamp.toDate(), tz.local);
+    tz.Location paris = tz.getLocation('Europe/Paris');
+    eventDate = tz.TZDateTime.from(eventDate, paris);
+
+    DateFormat formattedDate = DateFormat("HH:mm", 'fr_FR');
+    String date = formattedDate.format(eventDate);
+    return date;
   }
 
   static commentDate(Timestamp timestamp) {
@@ -185,9 +200,16 @@ class MyTextStyle {
       return Text('il y a ${difference.inMinutes} min');
     } else if (difference.inHours < 24) {
       return Text('il y a ${difference.inHours} h');
+    } else if (difference.inDays < 30) {
+      return Text('il y a ${difference.inDays} j');
+    } else if (difference.inDays < 365) {
+      int months =
+          (difference.inDays / 30.44).floor(); // Convertir les jours en mois
+      return Text('il y a $months mois');
     } else {
-      int days = difference.inDays;
-      return Text('il y a $days j');
+      int years = (difference.inDays / 365.25)
+          .floor(); // Convertir les jours en années (compte les années bissextiles)
+      return years > 1 ? Text('il y a $years ans') : Text('il y a $years an');
     }
   }
 
@@ -197,18 +219,6 @@ class MyTextStyle {
     DateTime eventDate = DateTime.fromMillisecondsSinceEpoch(milliseconds);
 
     String formattedDate = DateFormat('dd').format(eventDate);
-    return Text(
-      formattedDate,
-      style: TextStyle(fontSize: size),
-    );
-  }
-
-  static EventHours(Timestamp timestamp, double size) {
-    // Convertir le Timestamp en millisecondes depuis l'époque Unix
-    int milliseconds = timestamp.millisecondsSinceEpoch;
-    DateTime eventDate = DateTime.fromMillisecondsSinceEpoch(milliseconds);
-
-    String formattedDate = DateFormat('HH:mm', 'fr_FR').format(eventDate);
     return Text(
       formattedDate,
       style: TextStyle(fontSize: size),
@@ -262,7 +272,8 @@ class MyTextStyle {
           alignment: Alignment.center,
           child: Text(
             text,
-            style: GoogleFonts.roboto(color: Colors.white, fontSize: 11),
+            style: GoogleFonts.roboto(
+                color: Colors.white, fontSize: SizeFont.para.size),
           ),
         ));
   }
@@ -290,7 +301,7 @@ class MyTextStyle {
     return Text(
       text,
       style: GoogleFonts.roboto(
-        fontSize: 12,
+        fontSize: SizeFont.para.size,
         fontStyle: FontStyle.italic,
         color: color ?? Colors.black87,
       ),

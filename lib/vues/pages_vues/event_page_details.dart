@@ -2,6 +2,7 @@ import 'package:connect_kasa/controllers/features/line_interaction.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/participed_button.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/pages_vues/my_nav_bar.dart';
@@ -13,6 +14,7 @@ class EventPageDetails extends StatefulWidget {
   final String residence;
   final Color colorStatut;
   final double scrollController;
+  final bool returnHomePage;
 
   const EventPageDetails({
     super.key,
@@ -21,6 +23,7 @@ class EventPageDetails extends StatefulWidget {
     required this.residence,
     required this.colorStatut,
     required this.scrollController,
+    required this.returnHomePage,
   });
 
   @override
@@ -29,15 +32,35 @@ class EventPageDetails extends StatefulWidget {
 
 class EventPageDetailsState extends State<EventPageDetails> {
   late Future<List<User?>> participants;
+  late Future<User?> userOrga;
   DataBasesUserServices dbService = DataBasesUserServices();
   bool alreadyParticipated = false;
   int userParticipatedCount = 0;
+
   @override
   void initState() {
     super.initState();
-    setState(() {});
     alreadyParticipated = widget.post.participants!.contains(widget.uid);
     userParticipatedCount = widget.post.participants!.length;
+    userOrga = dbService.getUserById(
+        widget.post.user); // assuming organizerId is a field in Post model
+  }
+
+  Widget buildOrganizerInfo(
+      BuildContext context, AsyncSnapshot<User?> snapshot) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return CircularProgressIndicator();
+    } else if (snapshot.hasError) {
+      return Text("Error: ${snapshot.error}");
+    } else if (!snapshot.hasData || snapshot.data == null) {
+      return Text("No data found");
+    } else {
+      User user = snapshot.data!;
+      return MyTextStyle.lotName(
+          user.pseudo != "" ? "${user.pseudo}" : "${user.surname} ${user.name}",
+          Colors.black54,
+          SizeFont.h2.size);
+    }
   }
 
   @override
@@ -72,14 +95,15 @@ class EventPageDetailsState extends State<EventPageDetails> {
                     children: [
                       IconButton(
                         onPressed: () async {
-                          // Naviguer vers une nouvelle instance de Homeview pour recharger l'application
-                          Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => MyNavBar(
-                                      uid: widget.uid,
-                                      scrollController:
-                                          widget.scrollController)));
+                          widget.returnHomePage
+                              ? Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => MyNavBar(
+                                          uid: widget.uid,
+                                          scrollController:
+                                              widget.scrollController)))
+                              : Navigator.pop(context);
                         },
                         icon: const Icon(
                           Icons.arrow_back_ios,
@@ -101,8 +125,47 @@ class EventPageDetailsState extends State<EventPageDetails> {
                   Container(
                     padding:
                         const EdgeInsets.only(top: 20, left: 20, right: 20),
-                    child: MyTextStyle.lotName(
-                        widget.post.title, Colors.black87, 25),
+                    child: MyTextStyle.lotName(widget.post.title,
+                        Colors.black87, SizeFont.header.size),
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 40),
+                    child: Row(children: [
+                      Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,
+                            shape: BoxShape.circle),
+                        child: const Icon(
+                          Icons.account_tree_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.symmetric(horizontal: 20),
+                        width: 1,
+                        height: 40,
+                        decoration: BoxDecoration(color: Colors.black12),
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                              child: MyTextStyle.lotName(
+                                  "Organisateur",
+                                  Theme.of(context).primaryColor,
+                                  SizeFont.h2.size)),
+                          FutureBuilder<User?>(
+                            future: userOrga,
+                            builder: (context, snapshot) {
+                              return buildOrganizerInfo(context, snapshot);
+                            },
+                          ),
+                        ],
+                      ),
+                    ]),
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
@@ -131,14 +194,14 @@ class EventPageDetailsState extends State<EventPageDetails> {
                           Container(
                               child: MyTextStyle.lotName(
                                   MyTextStyle.completDate(
-                                      widget.post.timeStamp),
+                                      widget.post.eventDate!),
                                   Theme.of(context).primaryColor,
-                                  16)),
+                                  SizeFont.h2.size)),
                           Container(
                               child: MyTextStyle.lotName(
                                   widget.post.location_element,
                                   Colors.black54,
-                                  16)),
+                                  SizeFont.h2.size)),
                         ],
                       ),
                     ]),
@@ -155,6 +218,7 @@ class EventPageDetailsState extends State<EventPageDetails> {
                       uid: widget.uid,
                       space: 1,
                       number: widget.post.participants!.length,
+                      sizeFont: SizeFont.h2.size,
                     ),
                   ),
                   const Divider(
@@ -169,13 +233,13 @@ class EventPageDetailsState extends State<EventPageDetails> {
                         padding:
                             const EdgeInsets.only(top: 0, left: 20, bottom: 20),
                         child: MyTextStyle.lotName(
-                            "Description", Colors.black87, 15),
+                            "Description", Colors.black87, SizeFont.h2.size),
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 0, horizontal: 20),
                         child: MyTextStyle.annonceDesc(
-                            widget.post.description, 14, 15),
+                            widget.post.description, SizeFont.h3.size, 15),
                       ),
                     ],
                   )

@@ -2,6 +2,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/services/transaction_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/transaction.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -76,13 +77,14 @@ class TransactionTileState extends State<TransactionTile> {
                         width: 200,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 5, left: 10),
-                          child: MyTextStyle.lotName(
-                              postTransac!.title, Colors.black87, 13),
+                          child: MyTextStyle.lotName(postTransac!.title,
+                              Colors.black87, SizeFont.h3.size),
                         ),
                       ),
                       Container(
                         padding: const EdgeInsets.only(top: 5, right: 10),
-                        child: MyTextStyle.lotDesc(widget.transac.statut, 13),
+                        child: MyTextStyle.lotDesc(
+                            widget.transac.statut, SizeFont.h3.size),
                       ),
                     ],
                   ),
@@ -123,15 +125,18 @@ class TransactionTileState extends State<TransactionTile> {
                               padding: const EdgeInsets.only(top: 5, right: 10),
                               child: MyTextStyle.annonceDesc(
                                 "Vous avez reçu le service/produit concerné, veuillez validé votre paiement",
-                                13,
+                                SizeFont.h3.size,
                                 3,
                               ),
                             ),
                             Row(
                               children: [
                                 Container(
-                                  child: MyTextStyle.lotDesc("Prix:", 14,
-                                      FontStyle.normal, FontWeight.w900),
+                                  child: MyTextStyle.lotDesc(
+                                      "Prix:",
+                                      SizeFont.h3.size,
+                                      FontStyle.normal,
+                                      FontWeight.w900),
                                 ),
                                 SizedBox(
                                   width: 10,
@@ -139,7 +144,7 @@ class TransactionTileState extends State<TransactionTile> {
                                 Container(
                                   child: MyTextStyle.lotDesc(
                                       "${price.toString()} $unit",
-                                      14,
+                                      SizeFont.h3.size,
                                       FontStyle.normal,
                                       FontWeight.w900),
                                 ),
@@ -231,7 +236,7 @@ class TransactionTileState extends State<TransactionTile> {
                               padding: const EdgeInsets.only(top: 5, right: 10),
                               child: MyTextStyle.annonceDesc(
                                 "Vous avez recu une demande pour un service",
-                                13,
+                                SizeFont.h3.size,
                                 3,
                               ),
                             ),
@@ -250,7 +255,7 @@ class TransactionTileState extends State<TransactionTile> {
                                       color: Colors.black45,
                                       horizontal: 10,
                                       vertical: 5,
-                                      size: 13,
+                                      size: SizeFont.h3.size,
                                       function: () {},
                                       text: "Annuler",
                                     ),
@@ -262,7 +267,7 @@ class TransactionTileState extends State<TransactionTile> {
                                       color: Theme.of(context).primaryColor,
                                       horizontal: 10,
                                       vertical: 5,
-                                      size: 13,
+                                      size: SizeFont.h3.size,
                                       function: () {},
                                       text: "Relancer",
                                     ),

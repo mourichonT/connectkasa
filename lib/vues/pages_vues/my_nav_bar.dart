@@ -51,12 +51,13 @@ class _MyNavBarState extends State<MyNavBar>
   Widget build(BuildContext context) {
     final Color colorStatut = Theme.of(context).primaryColor;
     final double width = MediaQuery.of(context).size.width;
-    final List<IconData> icons = tabController.iconTabBar.listIcons();
-    final List<Tab> tabs = icons.asMap().entries.map((entry) {
-      IconData icon = entry.value;
+    final List<Map<String, dynamic>> icons =
+        tabController.iconTabBar.listIcons();
+    final List<Tab> tabs = icons.map((iconData) {
       return Tab(
         icon: Icon(
-          icon,
+          iconData['icon'],
+          size: iconData['size'],
         ),
       );
     }).toList();
@@ -120,6 +121,8 @@ class _MyNavBarState extends State<MyNavBar>
           EventPageView(
             residenceSelected: preferedLot?.residenceId ?? "",
             uid: uid,
+            type: "events",
+            colorStatut: colorStatut,
           ),
           AnnoncesPageView(
             key: UniqueKey(),
@@ -129,7 +132,12 @@ class _MyNavBarState extends State<MyNavBar>
             colorStatut: colorStatut,
             scrollController: widget.scrollController ?? 00,
           ),
-          MydocsPageView(),
+          MydocsPageView(
+            key: UniqueKey(),
+            residenceSelected: preferedLot?.residenceId ?? "",
+            uid: uid,
+            colorStatut: colorStatut,
+          ),
         ],
       ),
       endDrawer: MyDrawer(

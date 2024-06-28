@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
@@ -26,7 +27,6 @@ class ModifyAnnonceForm extends StatefulWidget {
 }
 
 class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
-  double fontSize = 12;
   final StorageServices _storageServices = StorageServices();
   File? _selectedImage;
   final TypeList _CatList = TypeList();
@@ -87,7 +87,9 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-            "Modification du post '${widget.post.title}'", Colors.black87, 18),
+            "Modification du post '${widget.post.title}'",
+            Colors.black87,
+            SizeFont.h1.size),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -100,12 +102,12 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ProfilTile(
-                          widget.post.user, 22, 19, 22, true, Colors.black87),
+                      ProfilTile(widget.post.user, 22, 19, 22, true,
+                          Colors.black87, SizeFont.h2.size),
                     ],
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 10, bottom: 20),
+                    padding: const EdgeInsets.only(top: 20, bottom: 20),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -133,7 +135,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                                 child: Text(
                                   value,
                                   style: TextStyle(
-                                    fontSize: fontSize,
+                                    fontSize: SizeFont.h3.size,
                                   ),
                                 ),
                               );
@@ -144,7 +146,8 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                           padding: const EdgeInsets.only(top: 15),
                           child: Row(
                             children: [
-                              MyTextStyle.lotName("Titre : ", Colors.black87),
+                              MyTextStyle.lotName(
+                                  "Titre : ", Colors.black87, SizeFont.h3.size),
                               const SizedBox(width: 15),
                               Expanded(
                                 child: TextField(
@@ -164,8 +167,8 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              MyTextStyle.lotName(
-                                  "Description : ", Colors.black87),
+                              MyTextStyle.lotName("Description : ",
+                                  Colors.black87, SizeFont.h3.size),
                               const SizedBox(width: 15),
                               Expanded(
                                 child: TextField(
@@ -184,7 +187,8 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              MyTextStyle.lotName("Prix : ", Colors.black87),
+                              MyTextStyle.lotName(
+                                  "Prix : ", Colors.black87, SizeFont.h3.size),
                               const SizedBox(width: 15),
                               Container(
                                 child: Row(
@@ -226,7 +230,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                                           price.text.isNotEmpty
                                               ? "Kasas"
                                               : "Kasa",
-                                          15,
+                                          SizeFont.h3.size,
                                           FontStyle.normal,
                                           FontWeight.bold),
                                     ),
@@ -287,13 +291,13 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                       children: [
                         ElevatedButton(
                           onPressed: _pickImageFromCamera,
-                          child: MyTextStyle.lotName(
-                              "Prendre une photo", Colors.black54),
+                          child: MyTextStyle.lotName("Prendre une photo",
+                              Colors.black54, SizeFont.h3.size),
                         ),
                         TextButton(
                           onPressed: _pickImageFromGallery,
                           child: MyTextStyle.annonceDesc(
-                              "Choisir une image", 14, 3),
+                              "Choisir une image", SizeFont.h3.size, 3),
                         ),
                       ],
                     ),
@@ -316,8 +320,8 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                           price: int.parse(price.text));
                       Navigator.pop(context);
                     },
-                    child: MyTextStyle.lotName(
-                        "Modifier", Theme.of(context).primaryColor, 13),
+                    child: MyTextStyle.lotName("Modifier",
+                        Theme.of(context).primaryColor, SizeFont.h3.size),
                   ),
                   const SizedBox(height: 15),
                 ],
