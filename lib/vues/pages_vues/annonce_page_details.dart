@@ -1,3 +1,4 @@
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/components/payement_page.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:flutter/cupertino.dart';
@@ -104,8 +105,8 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              ProfilTile(widget.post.user, 20, 18, 20, true,
-                                  Colors.black87),
+                              ProfilTile(widget.post.user, 22, 19, 22, true,
+                                  Colors.black87, SizeFont.h2.size),
                               ButtonAdd(
                                 function: () {
                                   Navigator.push(
@@ -124,9 +125,9 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                 color: Theme.of(context).primaryColor,
                                 icon: Icons.mail,
                                 text: "Contacter",
-                                horizontal: 10,
-                                vertical: 2,
-                                size: 13,
+                                horizontal: 20,
+                                vertical: 5,
+                                size: SizeFont.h3.size,
                               ),
                             ],
                           ),
@@ -143,12 +144,12 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                 child: MyTextStyle.lotName(
                                   widget.post.title,
                                   Colors.black87,
-                                  20,
+                                  SizeFont.h1.size,
                                 ),
                               ),
                               MyTextStyle.annonceDesc(
                                 MyTextStyle.completDate(widget.post.timeStamp),
-                                14,
+                                SizeFont.h3.size,
                                 1,
                               ),
                             ],
@@ -157,7 +158,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: MyTextStyle.lotDesc(
-                              widget.post.subtype ?? 'n/a', 14),
+                              widget.post.subtype ?? 'n/a', SizeFont.h3.size),
                         ),
                         SizedBox(height: 20),
                         Padding(
@@ -169,7 +170,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                 children: [
                                   MyTextStyle.lotDesc(
                                     'Prix :',
-                                    14,
+                                    SizeFont.h3.size,
                                     FontStyle.italic,
                                     FontWeight.w900,
                                   ),
@@ -179,7 +180,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                   MyTextStyle.lotName(
                                     widget.post.setPrice(widget.post.price),
                                     Theme.of(context).primaryColor,
-                                    18,
+                                    SizeFont.h2.size,
                                   ),
                                 ],
                               ),
@@ -187,7 +188,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                 children: [
                                   MyTextStyle.lotDesc(
                                     'Votre solde :',
-                                    14,
+                                    SizeFont.h3.size,
                                     //FontWeight.w300,
                                   ),
                                   SizedBox(
@@ -204,7 +205,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                         if (user != null) {
                                           return MyTextStyle.lotDesc(
                                             user.setSolde(user.solde),
-                                            14,
+                                            SizeFont.h3.size,
                                           );
                                         } else {
                                           return Text('Utilisateur inconnu');
@@ -223,7 +224,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                               horizontal: 20, vertical: 20),
                           child: MyTextStyle.annonceDesc(
                             widget.post.description,
-                            14,
+                            SizeFont.h3.size,
                             15,
                           ),
                         ),
@@ -251,7 +252,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                     ? MyTextStyle.lotName(
                                         "Les annonces de ${owner.pseudo!}",
                                         Colors.black87,
-                                      )
+                                        SizeFont.h2.size)
                                     : Text('Chargement...');
                               }
                             },
@@ -331,7 +332,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                                   child:
                                                       MyTextStyle.annonceDesc(
                                                           annonce.description,
-                                                          14,
+                                                          SizeFont.h3.size,
                                                           3),
                                                 ),
                                                 Padding(
@@ -341,7 +342,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                                     children: [
                                                       MyTextStyle.lotDesc(
                                                         'Prix :',
-                                                        14,
+                                                        SizeFont.h3.size,
                                                         FontStyle.italic,
                                                         FontWeight.w900,
                                                       ),
@@ -353,7 +354,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                                             annonce.price),
                                                         Theme.of(context)
                                                             .primaryColor,
-                                                        16,
+                                                        SizeFont.h2.size,
                                                       ),
                                                     ],
                                                   ),
@@ -415,8 +416,8 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                       color: Theme.of(context).primaryColor,
                       text: "Réservé",
                       horizontal: 20,
-                      vertical: 10,
-                      size: 13)
+                      vertical: 5,
+                      size: SizeFont.h2.size)
                   : ButtonAdd(
                       function: () {
                         _showBottomSheet(context, widget.post.price!,
@@ -425,8 +426,8 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                       color: Theme.of(context).primaryColor,
                       text: "Payer",
                       horizontal: 20,
-                      vertical: 10,
-                      size: 13),
+                      vertical: 5,
+                      size: SizeFont.h2.size),
             ],
           ),
         ),

@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/rendering.dart';
@@ -160,7 +161,8 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            MyTextStyle.lotDesc("Publier anonymement ? ", 14, FontStyle.normal),
+            MyTextStyle.lotDesc(
+                "Publier anonymement ? ", SizeFont.h3.size, FontStyle.normal),
             Transform.scale(
               scale: 0.8,
               child: Switch(
@@ -232,9 +234,12 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                                 size: 16)
                           ],
                           title: MyTextStyle.lotName(
-                              'Choisir une couleur de texte', Colors.black87),
+                              'Choisir une couleur de texte',
+                              Colors.black87,
+                              SizeFont.h2.size),
                           content: SingleChildScrollView(
                             child: ColorPicker(
+                              labelTypes: [],
                               pickerColor: _selectedFontColor,
                               onColorChanged: (color) {
                                 setState(() {
@@ -423,7 +428,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
           ],
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 30),
+          padding: const EdgeInsets.only(top: 30, bottom: 30),
           child: ElevatedButton(
             style: style,
             onPressed: () async {
@@ -482,7 +487,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
               }
             },
             child: MyTextStyle.lotName(
-                "Soumettre", Theme.of(context).primaryColor),
+                "Soumettre", Theme.of(context).primaryColor, SizeFont.h2.size),
           ),
         ),
       ],

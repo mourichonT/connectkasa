@@ -1,6 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/my_nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -120,9 +121,9 @@ class PostViewState extends State<PostView> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 11),
                       child: MyTextStyle.lotName(
-                        "${widget.postSelected!.title} / ${widget.postSelected!.location_element}",
-                        Colors.white,
-                      ),
+                          "${widget.postSelected!.title} / ${widget.postSelected!.location_element}",
+                          Colors.white,
+                          SizeFont.h2.size),
                     ),
                   ],
                 ),
@@ -143,8 +144,8 @@ class PostViewState extends State<PostView> {
                     if (widget.postSelected!.hideUser == false)
                       Padding(
                         padding: const EdgeInsets.all(10.0),
-                        child: ProfilTile(widget.postSelected!.user, 20, 18, 20,
-                            true, Colors.white),
+                        child: ProfilTile(widget.postSelected!.user, 22, 19, 22,
+                            true, Colors.white, SizeFont.h2.size),
                       ),
 
                     Flexible(
@@ -152,7 +153,7 @@ class PostViewState extends State<PostView> {
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: MyTextStyle.postDesc(
                           widget.postSelected!.description,
-                          16,
+                          SizeFont.h2.size,
                           Colors.white,
                         ),
                       ),

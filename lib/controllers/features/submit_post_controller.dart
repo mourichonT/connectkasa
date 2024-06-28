@@ -25,6 +25,7 @@ class SubmitPostController {
     String? fontWeight,
     String? fontColor,
     String? fontStyle,
+    Timestamp? eventDate,
   }) {
     // Créer une instance de DataBasesServices
     DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
@@ -55,6 +56,7 @@ class SubmitPostController {
       fontWeight: fontWeight ?? "",
       fontColor: fontColor ?? "",
       fontStyle: fontStyle ?? "",
+      eventDate: eventDate,
     );
 
     // Appeler la méthode addPost pour ajouter le nouveau post

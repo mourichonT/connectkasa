@@ -1,47 +1,75 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_events_services.dart';
-import 'package:connect_kasa/models/pages_models/event.dart';
+import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:flutter/material.dart';
 
-Widget EventTile(String uid, String residenceSelected) {
-  final DatabasesEventsServices _databaseService = DatabasesEventsServices();
-  return FutureBuilder<List<Event>>(
-    future: _databaseService.getEventFromResidence(uid, residenceSelected),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return CircularProgressIndicator(); // Affichez un indicateur de chargement pendant le chargement des données
-      } else if (snapshot.hasError) {
-        return Text('Erreur: ${snapshot.error}');
-      } else {
-        if (snapshot.data!.isEmpty) {
-          return Text("Aucun événement trouvé");
-        } else {
-          // Affichez vos événements récupérés
-          return Column(
-            children: snapshot.data!.map((event) {
-              return Padding(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                child: Card(
-                  child: ListTile(
-                    leading: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          MyTextStyle.EventDateDay(event.date, 25),
-                          MyTextStyle.EventDateMonth(event.date, 14),
-                        ]),
-                    title: Text(event.title),
-                    subtitle: Text(event.description),
-                    // Autres détails de l'événement
+class EventTile extends StatelessWidget {
+  final Post post;
+  final String uid;
+  final String residence;
+
+  EventTile(
+      {super.key,
+      required this.post,
+      required this.uid,
+      required this.residence});
+
+  DataBasesPostServices dbService = DataBasesPostServices();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 10),
+      width: MediaQuery.of(context).size.width * 0.95,
+      child: Column(
+        children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            if (post.pathImage != "" &&
+                post.pathImage != null &&
+                post.pathImage!.isNotEmpty)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(35.0),
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  width: 120,
+                  height: 120,
+                  child: Image.network(
+                    post.pathImage!,
+                    fit: BoxFit.cover,
                   ),
                 ),
-              );
-            }).toList(),
-          );
-        }
-      }
-    },
-  );
+              )
+            else
+              ClipRRect(
+                borderRadius: BorderRadius.circular(35.0),
+                child: Container(
+                  padding: EdgeInsets.all(8),
+                  width: 120,
+                  height: 120,
+                  child: ImageAnnounced(context, 120, 120),
+                ),
+              ),
+            Container(
+              width: MediaQuery.of(context).size.width / 1.7,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MyTextStyle.lotName(MyTextStyle.completDate(post.eventDate!),
+                      Colors.black87, SizeFont.h3.size),
+                  MyTextStyle.lotDesc(
+                      post.title, SizeFont.h3.size, FontStyle.normal),
+                  MyTextStyle.annonceDesc(
+                      post.description, SizeFont.h3.size, 2),
+                ],
+              ),
+            )
+          ])
+        ],
+      ),
+    );
+  }
 }

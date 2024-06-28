@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/camera_files_choices.dart';
 import 'package:flutter/material.dart';
@@ -102,7 +103,8 @@ class InciviliteFormState extends State<InciviliteForm> {
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MyTextStyle.lotName("Titre : ", Colors.black87),
+                MyTextStyle.lotName(
+                    "Titre : ", Colors.black87, SizeFont.h3.size),
                 const SizedBox(
                   height: 15,
                 ),
@@ -123,7 +125,8 @@ class InciviliteFormState extends State<InciviliteForm> {
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MyTextStyle.lotName("Description : ", Colors.black87),
+                MyTextStyle.lotName(
+                    "Description : ", Colors.black87, SizeFont.h3.size),
                 const SizedBox(
                   height: 15,
                 ),
@@ -142,7 +145,7 @@ class InciviliteFormState extends State<InciviliteForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                MyTextStyle.lotName("Publier anonymement?  ", Colors.black87),
+                MyTextStyle.lotDesc("Publier anonymement?  ", SizeFont.h3.size),
                 Switch(
                   thumbIcon: thumbIcon,
                   value: anonymPost,
@@ -174,8 +177,8 @@ class InciviliteFormState extends State<InciviliteForm> {
                   );
                   Navigator.pop(context);
                 },
-                child: MyTextStyle.lotName(
-                    "Soumettre", Theme.of(context).primaryColor),
+                child: MyTextStyle.lotName("Soumettre",
+                    Theme.of(context).primaryColor, SizeFont.h2.size),
               ),
             ),
             const SizedBox(

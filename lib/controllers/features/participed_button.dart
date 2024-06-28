@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
@@ -10,20 +11,20 @@ import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 
 class PartipedTile extends StatefulWidget {
-  // bool alreadyParticipated;
   final String residenceSelected;
   final Post post;
   final String uid;
   final double space;
   final int number;
+  final double sizeFont;
 
   PartipedTile({
-    //required this.alreadyParticipated,
     required this.residenceSelected,
     required this.post,
     required this.uid,
     required this.space,
     required this.number,
+    required this.sizeFont,
   });
 
   @override
@@ -35,12 +36,10 @@ class _PartipedTileState extends State<PartipedTile> {
   int userParticipatedCount = 0;
   late Future<List<User?>> participants;
   DataBasesUserServices dbService = DataBasesUserServices();
-  //final GlobalKey _participantsListKey = GlobalKey(); // Ajout de la clé
 
   @override
   void initState() {
     super.initState();
-
     alreadyParticipated = widget.post.participants!.contains(widget.uid);
     userParticipatedCount = widget.post.participants!.length;
     participants = getUsersForParticipants(widget.post.participants!);
@@ -57,27 +56,26 @@ class _PartipedTileState extends State<PartipedTile> {
           children: [
             MyTextStyle.lotDesc(
               widget.post.setParticipant(userParticipatedCount),
-              14,
+              widget.sizeFont,
               FontStyle.italic,
               FontWeight.w900,
             ),
             SizedBox(height: 10),
-            buildParticipantsList(1, 5),
+            participants != null ? buildParticipantsList(0, 5) : Container(),
             SizedBox(height: 10),
           ],
         ),
         Row(
           children: [
-            //Spacer(),
             alreadyParticipated
                 ? ButtonAdd(
                     function: participedUser,
                     color: Colors.black38,
                     icon: Icons.cancel_outlined,
-                    text: "Ne plus Participer",
+                    text: "Se désengager",
                     horizontal: 10,
                     vertical: 2,
-                    size: 13,
+                    size: SizeFont.h3.size,
                   )
                 : ButtonAdd(
                     function: participedUser,
@@ -86,7 +84,7 @@ class _PartipedTileState extends State<PartipedTile> {
                     text: "Participer",
                     horizontal: 10,
                     vertical: 2,
-                    size: 13,
+                    size: SizeFont.h3.size,
                   ),
           ],
         ),
@@ -96,7 +94,6 @@ class _PartipedTileState extends State<PartipedTile> {
 
   Widget buildParticipantsList(double space, int number) {
     return FutureBuilder<List<User?>>(
-      //key: _participantsListKey,
       future: participants,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -107,15 +104,22 @@ class _PartipedTileState extends State<PartipedTile> {
           } else {
             List<User?>? users = snapshot.data;
 
+            if (users == null || users.isEmpty) {
+              return MyTextStyle.annonceDesc(
+                  'Aucun participant', SizeFont.h3.size, 1);
+            }
+
             return Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 for (int i = 0;
                     i < min(userParticipatedCount, widget.number);
                     i++)
-                  Container(
+                  if (i < users.length && users[i] != null)
+                    Container(
                       padding: EdgeInsets.all(widget.space),
-                      child: ProfilTile(users![i]!.uid, 12, 11, 12, false)),
+                      child: ProfilTile(users[i]!.uid, 12, 11, 12, false),
+                    ),
               ],
             );
           }
@@ -124,53 +128,7 @@ class _PartipedTileState extends State<PartipedTile> {
     );
   }
 
-  Widget buildAvatar(User? user) {
-    if (user != null && user.profilPic != null && user.profilPic != "") {
-      return CircleAvatar(
-        radius: 12,
-        backgroundImage: NetworkImage(user.profilPic!),
-      );
-    } else {
-      String? initName = user?.name;
-      String? initSurname = user?.surname;
-
-      List<String> lettresNom = [];
-      List<String> lettresPrenom = [];
-      if (initName != null) {
-        for (int i = 0; i < initName.length; i++) {
-          lettresNom.add(initName[i]);
-        }
-      }
-      if (initName != null) {
-        for (int i = 0; i < initSurname!.length; i++) {
-          lettresPrenom.add(initSurname[i]);
-        }
-      }
-
-      String initiale = "";
-      if (lettresNom.isNotEmpty && lettresPrenom.isNotEmpty) {
-        initiale = "${lettresNom.first}${lettresPrenom.first}";
-      } else {
-        // Handle the case where one of the lists is empty
-        // For example, set a default value for initiale
-      }
-
-      return Container(
-        height: 24,
-        width: 24,
-        decoration: BoxDecoration(
-          border: Border.all(color: Theme.of(context).primaryColor, width: 1),
-          color: Colors.white,
-          shape: BoxShape.circle,
-        ),
-        child: Center(
-          child: Text(initiale), // Utilisez votre style ici
-        ),
-      );
-    }
-  }
-
-  void participedUser() async {
+  Future<void> participedUser() async {
     if (!alreadyParticipated) {
       await DataBasesPostServices().updatePostParticipants(
         widget.residenceSelected,
@@ -179,9 +137,10 @@ class _PartipedTileState extends State<PartipedTile> {
       );
       setState(() {
         alreadyParticipated = true;
+        widget.post.participants!
+            .add(widget.uid); // Mise à jour de la liste des participants
         userParticipatedCount++;
         participants = getUsersForParticipants(widget.post.participants!);
-        //buildParticipantsList(widget.space, widget.number);
       });
     } else {
       await DataBasesPostServices().removePostParticipants(
@@ -189,12 +148,12 @@ class _PartipedTileState extends State<PartipedTile> {
         widget.post.id,
         widget.uid,
       );
-
       setState(() {
         alreadyParticipated = false;
+        widget.post.participants!
+            .remove(widget.uid); // Mise à jour de la liste des participants
         userParticipatedCount--;
         participants = getUsersForParticipants(widget.post.participants!);
-        // buildParticipantsList(widget.space, widget.number);
       });
     }
   }

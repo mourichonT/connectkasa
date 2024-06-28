@@ -1,4 +1,6 @@
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
+import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/pages_models/lot.dart';
@@ -29,10 +31,11 @@ class SelectLotComponentState extends State<SelectLotComponent> {
         child: (preferedLot == null)
             ? Container(
                 padding: const EdgeInsets.symmetric(vertical: 21),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text("Sélectionner votre résidence"),
+                    MyTextStyle.lotDesc(
+                        "Sélectionner votre résidence", SizeFont.h2.size),
                     Icon(Icons.arrow_drop_down),
                   ],
                 ),

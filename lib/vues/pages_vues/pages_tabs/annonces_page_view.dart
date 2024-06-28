@@ -2,6 +2,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/pages_controllers/filter_allannounced_controller..dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/transaction_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/transaction.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
@@ -93,7 +94,9 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
         TabBar.secondary(
           controller: _tabController,
           tabs: const <Widget>[
-            Tab(text: 'Tous'),
+            Tab(
+              text: 'Tous',
+            ),
             Tab(text: 'Gérer'),
             Tab(text: 'Transactions'),
           ],
@@ -143,7 +146,8 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                       size: 16,
                     ),
                     SizedBox(width: 5),
-                    MyTextStyle.lotName("Ajouter des filtres", Colors.white, 14)
+                    MyTextStyle.lotName(
+                        "Ajouter des filtres", Colors.white, SizeFont.h3.size)
                   ],
                 )),
           ),
@@ -170,7 +174,7 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
-                            childAspectRatio: 3 / 4,
+                            childAspectRatio: 2 / 3,
                           ),
                           itemBuilder: (BuildContext context, int index) {
                             // Assurez-vous que l'index est valide avant d'accéder à la liste
@@ -218,7 +222,7 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                                   text: 'Ajouter une annonce',
                                   horizontal: 10,
                                   vertical: 10,
-                                  size: 14),
+                                  size: SizeFont.h3.size),
                             ),
                             ListView.separated(
                               shrinkWrap: true,
@@ -275,7 +279,7 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                                             colorSelection
                                                 ? Theme.of(context).primaryColor
                                                 : Colors.white,
-                                            13),
+                                            SizeFont.h3.size),
                                       ),
                                     ),
                                   ),
@@ -299,7 +303,7 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                                                 ? Colors.white
                                                 : Theme.of(context)
                                                     .primaryColor,
-                                            13),
+                                            SizeFont.h3.size),
                                       ),
                                     ),
                                   ),

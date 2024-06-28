@@ -1,3 +1,4 @@
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
@@ -17,7 +18,8 @@ class DetailContactView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: MyTextStyle.lotName("Détails du contact", Colors.black87),
+        title: MyTextStyle.lotName(
+            "Détails du contact", Colors.black87, SizeFont.h1.size),
       ),
       body: FutureBuilder(
         future: DataBasesUserServices().getUserById(uid),
@@ -41,7 +43,8 @@ class DetailContactView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        MyTextStyle.lotName(contact.name, Colors.black87),
+                        MyTextStyle.lotName(
+                            contact.name, Colors.black87, SizeFont.h2.size),
                         const SizedBox(height: 15),
                         if (contact.num != "" &&
                             contact.street != "" &&
@@ -61,10 +64,11 @@ class DetailContactView extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     MyTextStyle.lotDesc(
-                                        "${contact.num} ${contact.street}", 14),
+                                        "${contact.num} ${contact.street}",
+                                        SizeFont.h3.size),
                                     MyTextStyle.lotDesc(
                                         "${contact.zipcode} ${contact.city}",
-                                        14),
+                                        SizeFont.h3.size),
                                   ],
                                 ),
                               ],
@@ -95,7 +99,8 @@ class DetailContactView extends StatelessWidget {
                                           child: const Icon(Icons.call),
                                         ),
                                         const SizedBox(width: 10),
-                                        MyTextStyle.lotDesc(contact.phone, 14),
+                                        MyTextStyle.lotDesc(
+                                            contact.phone, SizeFont.h3.size),
                                       ],
                                     ),
                                     const Divider(),
@@ -119,8 +124,10 @@ class DetailContactView extends StatelessWidget {
                                               Icons.mail_outline_outlined),
                                         ),
                                         const SizedBox(width: 10),
-                                        MyTextStyle.lotDesc(contact.mail!,
-                                            14), // Change to appropriate text
+                                        MyTextStyle.lotDesc(
+                                            contact.mail!,
+                                            SizeFont.h3
+                                                .size), // Change to appropriate text
                                       ],
                                     ),
                                     const Divider(),
@@ -142,8 +149,10 @@ class DetailContactView extends StatelessWidget {
                                           child: const Icon(Icons.language),
                                         ),
                                         const SizedBox(width: 10),
-                                        MyTextStyle.lotDesc(contact.web!,
-                                            14), // Change to appropriate text
+                                        MyTextStyle.lotDesc(
+                                            contact.web!,
+                                            SizeFont.h3
+                                                .size), // Change to appropriate text
                                       ],
                                     ),
                                     const Divider(),

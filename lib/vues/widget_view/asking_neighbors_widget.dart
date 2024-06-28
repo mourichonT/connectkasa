@@ -3,6 +3,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -68,7 +69,8 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  MyTextStyle.lotName(getType(widget.post), Colors.black87),
+                  MyTextStyle.lotName(
+                      getType(widget.post), Colors.black87, SizeFont.h3.size),
                   const SizedBox(width: 15),
                   const Spacer(),
                 ],
@@ -161,13 +163,13 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                                   SizedBox(
                                     width: 10,
                                   ),
-                                  MyTextStyle.lotName(
-                                      "Utilisteur Masqué", Colors.black87)
+                                  MyTextStyle.lotName("Utilisteur Masqué",
+                                      Colors.black87, SizeFont.h2.size)
                                 ],
                               )
                             : ProfilTile(widget.post.user, 22, 19, 22, true,
-                                Colors.black87),
-                        MyTextStyle.postDate(widget.post.timeStamp),
+                                Colors.black87, SizeFont.h2.size),
+                        MyTextStyle.commentDate(widget.post.timeStamp),
                       ],
                     ),
                     SizedBox(
@@ -176,7 +178,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                     Flexible(
                       fit: FlexFit.loose,
                       child: MyTextStyle.annonceDesc(
-                          widget.post.description, 14, 20),
+                          widget.post.description, SizeFont.h3.size, 20),
                     ),
                     SizedBox(
                       height: 20,

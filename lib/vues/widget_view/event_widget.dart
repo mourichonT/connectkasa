@@ -4,6 +4,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/participed_button.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -35,7 +36,7 @@ class _EventWidgetState extends State<EventWidget> {
   //bool value = false;
 
   late Future<List<User?>> participants;
-  late Timestamp _selectedDate;
+  //late Timestamp _selectedDate;
   DataBasesUserServices dbService = DataBasesUserServices();
   DataBasesPostServices postServices = DataBasesPostServices();
   int userParticipatedCount = 0;
@@ -43,11 +44,12 @@ class _EventWidgetState extends State<EventWidget> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = widget.post.timeStamp;
+    //_selectedDate = widget.post.eventDate!.toUtc();
   }
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
     return Container(
       decoration: const BoxDecoration(
         boxShadow: [
@@ -69,7 +71,8 @@ class _EventWidgetState extends State<EventWidget> {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  MyTextStyle.lotName(getType(widget.post), Colors.black87),
+                  MyTextStyle.lotName(
+                      getType(widget.post), Colors.black87, SizeFont.h3.size),
                   const SizedBox(width: 15),
                   const Spacer(),
                 ],
@@ -86,6 +89,7 @@ class _EventWidgetState extends State<EventWidget> {
 
                 Navigator.of(context).push(CupertinoPageRoute(
                   builder: (context) => EventPageDetails(
+                    returnHomePage: true,
                     post: updatedPost!,
                     uid: widget.uid,
                     residence: widget.residenceSelected,
@@ -98,9 +102,13 @@ class _EventWidgetState extends State<EventWidget> {
               },
               child: Column(
                 children: [
-                  Image.network(
-                    widget.post.pathImage!,
-                    fit: BoxFit.cover,
+                  SizedBox(
+                    height: 250,
+                    width: width,
+                    child: Image.network(
+                      widget.post.pathImage!,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                   buildListTile(),
                 ],
@@ -143,14 +151,19 @@ class _EventWidgetState extends State<EventWidget> {
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      MyTextStyle.EventDateDay(_selectedDate, 21),
-                      MyTextStyle.EventDateMonth(_selectedDate, 16),
+                      MyTextStyle.EventDateDay(
+                          widget.post.eventDate!, SizeFont.h1.size),
+                      MyTextStyle.EventDateMonth(
+                          widget.post.eventDate!, SizeFont.h3.size),
                     ]),
               ),
               SizedBox(
                 height: 20,
               ),
-              MyTextStyle.EventHours(_selectedDate, 16),
+              MyTextStyle.lotDesc(
+                  MyTextStyle.EventHours(widget.post.eventDate!),
+                  SizeFont.h3.size,
+                  FontStyle.normal),
               SizedBox(
                 height: 10,
               ),
@@ -164,15 +177,17 @@ class _EventWidgetState extends State<EventWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 10),
-                MyTextStyle.lotName(widget.post.title, Colors.black87),
+                MyTextStyle.lotName(
+                    widget.post.title, Colors.black87, SizeFont.h2.size),
                 const SizedBox(height: 10),
                 SizedBox(
-                  height: 60,
-                  child:
-                      MyTextStyle.annonceDesc(widget.post.description, 14, 3),
+                  height: 70,
+                  child: MyTextStyle.annonceDesc(
+                      widget.post.description, SizeFont.h3.size, 3),
                 ),
                 const SizedBox(height: 10),
                 PartipedTile(
+                  sizeFont: SizeFont.h3.size,
                   post: widget.post,
                   residenceSelected: widget.residenceSelected,
                   uid: widget.uid,

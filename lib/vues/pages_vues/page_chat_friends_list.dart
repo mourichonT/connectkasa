@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/components/subtitle_message.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +32,8 @@ class PageChatFriendsListState extends State<PageChatFriendsList> {
         length: 2,
         child: Scaffold(
             appBar: AppBar(
-              title: MyTextStyle.lotName("Messages", Colors.black),
+              title: MyTextStyle.lotName(
+                  "Messages", Colors.black, SizeFont.h1.size),
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(1.0), // Hauteur du Divider
                 child: Divider(

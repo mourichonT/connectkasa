@@ -4,6 +4,7 @@ import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
@@ -71,7 +72,8 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
-                    MyTextStyle.lotName(getType(widget.post), Colors.black87),
+                    MyTextStyle.lotName(
+                        getType(widget.post), Colors.black87, SizeFont.h3.size),
                     const SizedBox(width: 15),
                     const Spacer(),
                   ],
@@ -139,7 +141,8 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                         Container(
                                           child: MyTextStyle.lotName(
                                               widget.post.title,
-                                              Colors.black87),
+                                              Colors.black87,
+                                              SizeFont.h2.size),
                                         ),
                                         Padding(
                                             padding: const EdgeInsets.only(
@@ -151,17 +154,16 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                                   child: MyTextStyle.lotDesc(
                                                       widget.post.subtype ??
                                                           'n/a',
-                                                      13)),
+                                                      SizeFont.h3.size)),
                                               const Spacer(),
-                                              SizedBox(
-                                                  height: 20,
-                                                  width: 120,
-                                                  child: MyTextStyle.postDate(
-                                                      widget.post.timeStamp))
+                                              MyTextStyle.commentDate(
+                                                  widget.post.timeStamp)
                                             ])),
                                         Flexible(
                                           child: MyTextStyle.annonceDesc(
-                                              widget.post.description, 14, 3),
+                                              widget.post.description,
+                                              SizeFont.h3.size,
+                                              3),
                                         ),
                                         SizedBox(
                                           height: 10,
@@ -178,7 +180,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                                   children: [
                                                     MyTextStyle.lotDesc(
                                                       "Prix:",
-                                                      14,
+                                                      SizeFont.h3.size,
                                                       FontStyle.italic,
                                                       FontWeight.w900,
                                                     ),
@@ -188,7 +190,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                                     MyTextStyle.lotDesc(
                                                       widget.post.setPrice(
                                                           widget.post.price),
-                                                      14,
+                                                      SizeFont.h3.size,
                                                       FontStyle.italic,
                                                       FontWeight.w900,
                                                     ),
@@ -215,8 +217,8 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                                   icon: Icons.mail,
                                                   text: "Contacter",
                                                   horizontal: 10,
-                                                  vertical: 2,
-                                                  size: 13,
+                                                  vertical: 5,
+                                                  size: SizeFont.h3.size,
                                                 ),
                                               ],
                                             ),

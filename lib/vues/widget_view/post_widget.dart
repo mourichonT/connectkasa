@@ -3,6 +3,7 @@
 import 'package:connect_kasa/controllers/features/line_interaction.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/signalement_count_controller.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/vues/widget_view/signalement_tile.dart';
@@ -81,12 +82,13 @@ class PostWidgetState extends State<PostWidget> {
                 crossAxisAlignment: CrossAxisAlignment.baseline,
                 textBaseline: TextBaseline.alphabetic,
                 children: [
-                  MyTextStyle.lotName(getType(widget.post), Colors.black87),
+                  MyTextStyle.lotName(
+                      getType(widget.post), Colors.black87, SizeFont.h3.size),
                   const SizedBox(width: 15),
                   const Spacer(),
                   SizedBox(
                     height: 20,
-                    width: 70,
+                    width: 90,
                     child:
                         MyTextStyle.statuColor(widget.post.statu!, colorStatut),
                   ),

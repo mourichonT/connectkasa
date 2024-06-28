@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/transaction_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/transaction.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
@@ -55,8 +56,8 @@ class PayementPageState extends State<PayementPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: MyTextStyle.lotName(
-                    "Validation de votre payement", Colors.black87, 20),
+                child: MyTextStyle.lotName("Validation de votre payement",
+                    Colors.black87, SizeFont.h1.size),
               ),
               const Divider(),
               Row(
@@ -81,14 +82,14 @@ class PayementPageState extends State<PayementPage> {
                           child: MyTextStyle.lotName(
                             widget.post.title,
                             Colors.black87,
-                            14,
+                            SizeFont.h2.size,
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                           child: MyTextStyle.annonceDesc(
                             widget.post.description,
-                            14,
+                            SizeFont.h3.size,
                             3,
                           ),
                         ),
@@ -105,7 +106,7 @@ class PayementPageState extends State<PayementPage> {
                     child: MyTextStyle.lotName(
                       "Détails",
                       Colors.black87,
-                      16,
+                      SizeFont.h2.size,
                     ),
                   ),
                 ],
@@ -115,12 +116,12 @@ class PayementPageState extends State<PayementPage> {
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   Container(
-                    child: MyTextStyle.lotDesc(
-                        "Commande:", 14, FontStyle.normal, FontWeight.normal),
+                    child: MyTextStyle.lotDesc("Commande:", SizeFont.h3.size,
+                        FontStyle.normal, FontWeight.normal),
                   ),
                   Container(
-                    child: MyTextStyle.lotDesc(widget.post.setPrice(amount), 14,
-                        FontStyle.normal, FontWeight.normal),
+                    child: MyTextStyle.lotDesc(widget.post.setPrice(amount),
+                        SizeFont.h3.size, FontStyle.normal, FontWeight.normal),
                   ),
                 ],
               ),
@@ -129,12 +130,12 @@ class PayementPageState extends State<PayementPage> {
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   Container(
-                    child: MyTextStyle.lotDesc("Frais de fonctionnement:", 14,
-                        FontStyle.normal, FontWeight.normal),
+                    child: MyTextStyle.lotDesc("Frais de fonctionnement:",
+                        SizeFont.h3.size, FontStyle.normal, FontWeight.normal),
                   ),
                   Container(
-                    child: MyTextStyle.lotDesc(widget.post.setPrice(fees), 14,
-                        FontStyle.normal, FontWeight.normal),
+                    child: MyTextStyle.lotDesc(widget.post.setPrice(fees),
+                        SizeFont.h3.size, FontStyle.normal, FontWeight.normal),
                   ),
                 ],
               ),
@@ -145,13 +146,13 @@ class PayementPageState extends State<PayementPage> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     Container(
-                      child: MyTextStyle.lotDesc(
-                          "Total:", 14, FontStyle.normal, FontWeight.w900),
+                      child: MyTextStyle.lotDesc("Total:", SizeFont.h3.size,
+                          FontStyle.normal, FontWeight.w900),
                     ),
                     Container(
                       child: MyTextStyle.lotDesc(
                           widget.post.setPrice(widget.post.price!),
-                          14,
+                          SizeFont.h3.size,
                           FontStyle.normal,
                           FontWeight.w900),
                     ),
@@ -164,7 +165,7 @@ class PayementPageState extends State<PayementPage> {
                 child: MyTextStyle.lotName(
                   "Récupération",
                   Colors.black87,
-                  16,
+                  SizeFont.h2.size,
                 ),
               ),
               Column(
@@ -176,7 +177,8 @@ class PayementPageState extends State<PayementPage> {
                       child: Container(
                         width: 300,
                         child: ListTile(
-                          title: MyTextStyle.annonceDesc(option, 14, 2),
+                          title: MyTextStyle.annonceDesc(
+                              option, SizeFont.h3.size, 2),
                           leading: Radio(
                             value: option,
                             groupValue: currentOption,
@@ -226,7 +228,7 @@ class PayementPageState extends State<PayementPage> {
                       text: "Valider le paiement",
                       horizontal: 30,
                       vertical: 10,
-                      size: 15,
+                      size: SizeFont.h3.size,
                     )),
               ),
             ],

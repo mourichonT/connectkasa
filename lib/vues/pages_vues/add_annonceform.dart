@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
@@ -77,7 +78,8 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
 
     return Scaffold(
       appBar: AppBar(
-        title: MyTextStyle.lotName("Nouvelle Annonce", Colors.black87, 18),
+        title: MyTextStyle.lotName(
+            "Nouvelle Annonce", Colors.black87, SizeFont.h1.size),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -90,7 +92,8 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ProfilTile(widget.uid, 22, 19, 22, true, Colors.black87),
+                      ProfilTile(widget.uid, 22, 19, 22, true, Colors.black87,
+                          SizeFont.h2.size),
                     ],
                   ),
                   Padding(
@@ -133,15 +136,19 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                           padding: const EdgeInsets.only(top: 15),
                           child: Row(
                             children: [
-                              MyTextStyle.lotName("Titre : ", Colors.black87),
+                              MyTextStyle.lotName(
+                                  "Titre : ", Colors.black87, SizeFont.h3.size),
                               const SizedBox(width: 15),
                               Expanded(
                                 child: TextField(
                                   controller: title,
                                   maxLines: 1,
-                                  decoration: const InputDecoration.collapsed(
+                                  decoration: InputDecoration.collapsed(
                                       hintText:
-                                          "Saisissez le titre de votre post"),
+                                          "Saisissez le titre de votre post",
+                                      hintStyle: TextStyle(
+                                          fontSize: SizeFont.h3.size,
+                                          fontStyle: FontStyle.italic)),
                                 ),
                               ),
                             ],
@@ -153,15 +160,18 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              MyTextStyle.lotName(
-                                  "Description : ", Colors.black87),
+                              MyTextStyle.lotName("Description : ",
+                                  Colors.black87, SizeFont.h3.size),
                               const SizedBox(width: 15),
                               Expanded(
                                 child: TextField(
                                   controller: desc,
                                   maxLines: 4,
-                                  decoration: const InputDecoration.collapsed(
-                                      hintText: "Saisissez une description"),
+                                  decoration: InputDecoration.collapsed(
+                                      hintText: "Saisissez une description",
+                                      hintStyle: TextStyle(
+                                          fontSize: SizeFont.h3.size,
+                                          fontStyle: FontStyle.italic)),
                                 ),
                               ),
                             ],
@@ -173,7 +183,8 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              MyTextStyle.lotName("Prix : ", Colors.black87),
+                              MyTextStyle.lotName(
+                                  "Prix : ", Colors.black87, SizeFont.h3.size),
                               const SizedBox(width: 15),
                               Container(
                                 child: Row(
@@ -215,7 +226,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                                           price.text.isNotEmpty
                                               ? "Kasas"
                                               : "Kasa",
-                                          15,
+                                          SizeFont.h3.size,
                                           FontStyle.normal,
                                           FontWeight.bold),
                                     ),
@@ -254,8 +265,8 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                           docRes: widget.residence);
                       Navigator.pop(context);
                     },
-                    child: MyTextStyle.lotName(
-                        "Ajouter", Theme.of(context).primaryColor, 13),
+                    child: MyTextStyle.lotName("Ajouter",
+                        Theme.of(context).primaryColor, SizeFont.h3.size),
                   ),
                   const SizedBox(height: 15),
                 ],

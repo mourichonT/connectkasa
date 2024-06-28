@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:flutter/cupertino.dart';
@@ -229,7 +230,8 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
 
     return Scaffold(
       appBar: AppBar(
-        title: MyTextStyle.lotName("Modification du post", Colors.black87, 18),
+        title: MyTextStyle.lotName(
+            "Modification du post", Colors.black87, SizeFont.h1.size),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -237,12 +239,14 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ProfilTile(widget.post.user, 22, 19, 22, true, Colors.black87),
+                ProfilTile(widget.post.user, 22, 19, 22, true, Colors.black87,
+                    SizeFont.h2.size),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    MyTextStyle.annonceDesc("Rendre anonyme  ", 14, 1),
+                    MyTextStyle.annonceDesc(
+                        "Rendre anonyme  ", SizeFont.h3.size, 1),
                     Transform.scale(
                       scale: 0.8,
                       child: Switch(
@@ -319,9 +323,11 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                               ],
                               title: MyTextStyle.lotName(
                                   'Choisir une couleur de texte',
-                                  Colors.black87),
+                                  Colors.black87,
+                                  SizeFont.h2.size),
                               content: SingleChildScrollView(
                                 child: ColorPicker(
+                                  labelTypes: [],
                                   pickerColor: _selectedFontColor,
                                   onColorChanged: (color) {
                                     setState(() {
@@ -571,8 +577,8 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                     print("Erreur lors de la capture de l'image: $e");
                   }
                 },
-                child: MyTextStyle.lotName(
-                    "Mettre à jour", Theme.of(context).primaryColor),
+                child: MyTextStyle.lotName("Mettre à jour",
+                    Theme.of(context).primaryColor, SizeFont.h2.size),
               ),
             ),
           ],

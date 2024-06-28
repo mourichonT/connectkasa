@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/pages_models/lot.dart';
@@ -100,7 +101,8 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
                     Navigator.pop(context);
                   });
                 },
-                child: MyTextStyle.lotName("Fermer", Colors.white),
+                child: MyTextStyle.lotName(
+                    "Fermer", Colors.white, SizeFont.h3.size),
               ),
             ),
           ],

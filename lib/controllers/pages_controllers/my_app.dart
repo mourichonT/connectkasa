@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    List<IconData> icons = iconTabBar.listIcons();
+    List<Map<String, dynamic>> icons = iconTabBar.listIcons();
 
     return DefaultTabController(
       length: icons.length,

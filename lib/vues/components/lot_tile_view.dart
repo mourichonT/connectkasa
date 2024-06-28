@@ -1,5 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import '../../controllers/features/my_texts_styles.dart';
 import '../../models/pages_models/lot.dart';
@@ -38,7 +39,8 @@ class _LotTileViewState extends State<LotTileView> {
                   widget.lot.name.isNotEmpty
                       ? widget.lot.name
                       : "${widget.lot.residenceData["name"]} ${widget.lot.batiment}${widget.lot.lot} ",
-                  Colors.black87),
+                  Colors.black87,
+                  SizeFont.h2.size),
               Container(padding: const EdgeInsets.only(left: 2)),
             ]),
             Row(

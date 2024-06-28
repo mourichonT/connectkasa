@@ -2,6 +2,7 @@
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/like_button_comment.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
@@ -132,10 +133,11 @@ class CommentTileState extends State<CommentTile> {
                               snapshot.data != null) {
                             var user = snapshot.data!;
                             String? pseudo = user.pseudo;
-                            return MyTextStyle.lotName(pseudo!, Colors.black87);
-                          } else {
                             return MyTextStyle.lotName(
-                                "Utilisteur inconnu", Colors.black87);
+                                pseudo!, Colors.black87, SizeFont.h3.size);
+                          } else {
+                            return MyTextStyle.lotName("Utilisteur inconnu",
+                                Colors.black87, SizeFont.h3.size);
                             ;
                           }
                         },
@@ -152,7 +154,8 @@ class CommentTileState extends State<CommentTile> {
                   Row(
                     children: [
                       TextButton(
-                        child: MyTextStyle.lotName("Répondre", Colors.black54),
+                        child: MyTextStyle.lotName(
+                            "Répondre", Colors.black54, SizeFont.h3.size),
                         onPressed: () {
                           String initComment = "";
 

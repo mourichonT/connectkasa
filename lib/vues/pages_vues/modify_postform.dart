@@ -5,6 +5,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
@@ -28,7 +29,7 @@ class ModifyPostForm extends StatefulWidget {
 }
 
 class ModifyPostFormState extends State<ModifyPostForm> {
-  double fontSize = 12;
+  double fontSize = SizeFont.para.size;
   final StorageServices _storageServices = StorageServices();
   File? _selectedImage;
   final TypeList _typeList = TypeList();
@@ -117,7 +118,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-            "Modification du post '${widget.post.title}'", Colors.black87, 18),
+            "Modification du post", Colors.black87, SizeFont.h1.size),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -130,13 +131,14 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ProfilTile(
-                          widget.post.user, 22, 19, 22, true, Colors.black87),
+                      ProfilTile(widget.post.user, 22, 19, 22, true,
+                          Colors.black87, SizeFont.h2.size),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          MyTextStyle.annonceDesc("Rendre anonyme  ", 14, 1),
+                          MyTextStyle.annonceDesc(
+                              "Rendre anonyme  ", SizeFont.h3.size, 1),
                           Transform.scale(
                             scale: 0.8,
                             child: Switch(
@@ -195,14 +197,14 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                           ),
                         ),
                         Container(
-                          width: 150,
+                          width: 160,
                           //padding: EdgeInsets.symmetric(horizontal: 1),
                           child: DropdownButtonFormField<String>(
                             padding: EdgeInsets.symmetric(horizontal: 5),
                             decoration: InputDecoration(
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 5),
+                              contentPadding: const EdgeInsets.only(
+                                  left: 5, top: 5, bottom: 5),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -324,7 +326,8 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      MyTextStyle.lotName("Titre : ", Colors.black87),
+                      MyTextStyle.lotName(
+                          "Titre : ", Colors.black87, SizeFont.h3.size),
                       const SizedBox(
                         height: 15,
                       ),
@@ -342,7 +345,8 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      MyTextStyle.lotName("Description : ", Colors.black87),
+                      MyTextStyle.lotName(
+                          "Description : ", Colors.black87, SizeFont.h3.size),
                       const SizedBox(
                         height: 15,
                       ),
@@ -402,14 +406,14 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                             onPressed: () {
                               _pickImageFromCamera();
                             },
-                            child: MyTextStyle.lotName(
-                                "Prendre une photo", Colors.black54)),
+                            child: MyTextStyle.lotName("Prendre une photo",
+                                Colors.black54, SizeFont.h3.size)),
                         TextButton(
                             onPressed: () {
                               _pickImageFromGallery();
                             },
                             child: MyTextStyle.annonceDesc(
-                                "Choisir une image", 14, 3)),
+                                "Choisir une image", SizeFont.h3.size, 3)),
                       ]),
             SizedBox(
               height: 30,
@@ -433,7 +437,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                 Navigator.pop(context);
               },
               child: MyTextStyle.lotName(
-                  "Modifier", Theme.of(context).primaryColor, 13),
+                  "Modifier", Theme.of(context).primaryColor, SizeFont.h3.size),
             ),
             SizedBox(
               height: 15,
