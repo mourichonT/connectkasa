@@ -551,7 +551,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                       imageUrl = await StorageServices().uploadFile(
                         XFile(file.path),
                         "residences",
-                        widget.post.id,
+                        widget.residence,
                         widget.post.type,
                         widget.post.id,
                       );

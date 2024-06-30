@@ -7,16 +7,20 @@ class DocumentModel {
   String _documentPathRecto = "";
   String? _documentPathVerso = "";
   String? lotId;
-  String residenceId;
+  String? residenceId;
+  String? extension;
+  List<String>? destinataire;
 
   DocumentModel({
     required this.type,
-    required this.residenceId,
+    this.residenceId,
     required this.timeStamp,
     this.name,
     String documentPathRecto = "",
     String documentPathVerso = "",
     String this.lotId = "",
+    this.extension,
+    this.destinataire,
   }) {
     _documentPathRecto = documentPathRecto;
     _documentPathVerso = documentPathVerso;
@@ -43,14 +47,25 @@ class DocumentModel {
   // }
 
   factory DocumentModel.fromJson(Map<String, dynamic> json) {
+    List<String> destinataireList = [];
+    if (json['destinataire'] is List) {
+      // Itérer sur la liste et ajouter les éléments convertis en chaînes de caractères
+      for (var item in json['destinataire']) {
+        if (item is String) {
+          destinataireList.add(item);
+        }
+      }
+    }
     return DocumentModel(
         documentPathRecto: json['documentPathRecto'],
         documentPathVerso: json['documentPathVerso'] ?? "",
         name: json['name'],
         type: json['type'],
         timeStamp: json['timeStamp'],
-        residenceId: json['residenceId'],
-        lotId: json['lotId']);
+        residenceId: json['residenceId'] ?? "",
+        lotId: json['lotId'] ?? "",
+        extension: json['extension'] ?? "",
+        destinataire: destinataireList);
   }
   Map<String, dynamic> toJson() {
     return {
@@ -61,6 +76,8 @@ class DocumentModel {
       'timeStamp': timeStamp,
       'residenceId': residenceId,
       'lotId': lotId,
+      'extension': extension,
+      'destinataire': destinataire
     };
   }
 }

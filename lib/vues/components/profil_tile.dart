@@ -28,8 +28,8 @@ Widget ProfilTile(
               if (pseudoHidden)
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
-                  child: MyTextStyle.lotName(
-                      userUnique.pseudo!, color!, pseudoFontSize),
+                  child: MyTextStyle.lotName(userUnique.pseudo!,
+                      color ?? Colors.black87, pseudoFontSize),
                 )
             ],
           );
@@ -45,8 +45,8 @@ Widget ProfilTile(
               if (pseudoHidden)
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
-                  child: MyTextStyle.lotName(
-                      userUnique.pseudo!, color!, pseudoFontSize),
+                  child: MyTextStyle.lotName(userUnique.pseudo!,
+                      color ?? Colors.black87, pseudoFontSize),
                 )
             ],
           );
@@ -66,8 +66,8 @@ Widget ProfilTile(
             if (pseudoHidden)
               Padding(
                 padding: const EdgeInsets.only(left: 10),
-                child: MyTextStyle.lotName(
-                    "Utilisteur inconnu", color!, pseudoFontSize),
+                child: MyTextStyle.lotName("Utilisteur inconnu",
+                    color ?? Colors.black87, pseudoFontSize),
               ),
           ],
         ); // ou tout autre widget par défaut

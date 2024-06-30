@@ -1,8 +1,10 @@
 import 'dart:math';
+import 'package:connect_kasa/vues/components/profil_tile.dart';
+import 'package:flutter/material.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/my_docs.dart';
-import 'package:flutter/material.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page.dart';
 import '../../models/pages_models/lot.dart';
 import '../../controllers/pages_controllers/my_tab_bar_controller.dart';
 import '../widget_view/select_lot_component.dart';
@@ -11,7 +13,6 @@ import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/route_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
-import 'package:connect_kasa/vues/components/my_drawer.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/home_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/sinistres_page_view.dart';
 import 'package:connect_kasa/vues/widget_view/my_bottomnavbar_view.dart';
@@ -81,6 +82,20 @@ class _MyNavBarState extends State<MyNavBar>
             color: Colors.white,
           ),
         ),
+        actions: [
+          Builder(
+            builder: (context) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: GestureDetector(
+                    onTap: () {
+                      Scaffold.of(context).openEndDrawer();
+                    },
+                    child: ProfilTile(widget.uid, 30, 14, 30, false)),
+              );
+            },
+          ),
+        ],
         bottom: PreferredSize(
           key: UniqueKey(),
           preferredSize: const Size.fromHeight(kToolbarHeight + kToolbarHeight),
@@ -90,7 +105,6 @@ class _MyNavBarState extends State<MyNavBar>
               InkWell(
                 child: const SelectLotComponent(),
                 onTap: () async {
-                  //_handleGoogleSignIn();
                   _showLotBottomSheet(context, uid);
                 },
               ),
@@ -134,14 +148,15 @@ class _MyNavBarState extends State<MyNavBar>
           ),
           MydocsPageView(
             key: UniqueKey(),
+            lotSelected: preferedLot?.refLot ?? "",
             residenceSelected: preferedLot?.residenceId ?? "",
             uid: uid,
             colorStatut: colorStatut,
           ),
         ],
       ),
-      endDrawer: MyDrawer(
-        uid: uid,
+      endDrawer: ProfilPage(
+        uid: widget.uid,
       ),
       bottomNavigationBar: MyBottomNavBarView(
         residenceSelected: preferedLot?.residenceId ?? "",
@@ -165,7 +180,6 @@ class _MyNavBarState extends State<MyNavBar>
         child: FloatingActionButton(
           backgroundColor: Theme.of(context).colorScheme.background,
           onPressed: () async {
-            // String uid = uid;
             Navigator.of(context).push(
               RouteController().createRoute(
                 PostFormController(

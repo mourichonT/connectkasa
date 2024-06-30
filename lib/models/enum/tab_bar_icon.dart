@@ -4,7 +4,7 @@ class IconTabBar {
   List<Map<String, dynamic>> listIcons() {
     return [
       {'icon': Icons.home_filled, 'size': 24.0},
-      {'icon': Icons.campaign, 'size': 31.0},
+      {'icon': Icons.campaign_rounded, 'size': 31.0},
       {'icon': Icons.event, 'size': 24.0},
       {'icon': Icons.handshake_outlined, 'size': 24.0},
       {'icon': Icons.folder_open, 'size': 24.0},
