@@ -103,6 +103,16 @@ flutter:
      - images/fond_posts/fonddegrade.png
      - images/fond_posts/fondenfant.png
      - images/fond_posts/fondlover.png
+     - images/icon_extension/doc.png
+     - images/icon_extension/pdf.png
+     - images/icon_extension/jpg.png
+     - images/icon_extension/png.png
+     - images/icon_extension/xls.png
+     - images/icon_extension/zip.png
+     - images/icon_extension/mp3.png
+     - images/icon_extension/default.png
+
+
 
     
 
