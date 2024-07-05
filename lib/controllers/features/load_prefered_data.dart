@@ -14,7 +14,7 @@ class LoadPreferedData {
     }
   }
 
-  void clearSharedPreferences() async {
+  static void clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();
   }

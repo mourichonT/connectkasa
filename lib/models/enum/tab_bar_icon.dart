@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 
 class IconTabBar {
-  List<IconData> listIcons() {
+  List<Map<String, dynamic>> listIcons() {
     return [
-      Icons.home_filled,
-      Icons.notifications_active_outlined,
-      Icons.event,
-      Icons.webhook,
-      //Icons.hub_sharp,
-      Icons.folder_open,
-      //Icons.account_circle_outlined
+      {'icon': Icons.home_filled, 'size': 24.0},
+      {'icon': Icons.campaign_rounded, 'size': 31.0},
+      {'icon': Icons.event, 'size': 24.0},
+      {'icon': Icons.handshake_outlined, 'size': 24.0},
+      {'icon': Icons.folder_open, 'size': 24.0},
     ];
   }
 

@@ -42,8 +42,8 @@ class Residence {
       elements:
           json['elements'] != null ? List<String>.from(json['elements']) : null,
       etage: json['etage'] != null ? List<String>.from(json['etage']) : null,
-      localisation: json['localisation'] != null
-          ? List<String>.from(json['localisation'])
+      localisation: json['localistation'] != null
+          ? List<String>.from(json['localistation'])
           : null,
       nombreLot: json['nombreLot'] ?? 0,
     );
@@ -67,8 +67,8 @@ class Residence {
           ? List<String>.from(data?["elements"])
           : null,
       etage: data?["etage"] != null ? List<String>.from(data?["etage"]) : null,
-      localisation: data?["localisation"] != null
-          ? List<String>.from(data?["localisation"])
+      localisation: data?["localistation"] != null
+          ? List<String>.from(data?["localistation"])
           : null,
       nombreLot: data?["nombreLot"] ?? 0,
     );
@@ -87,8 +87,8 @@ class Residence {
       elements:
           map['elements'] != null ? List<String>.from(map['elements']) : null,
       etage: map['etage'] != null ? List<String>.from(map['etage']) : null,
-      localisation: map['localisation'] != null
-          ? List<String>.from(map['localisation'])
+      localisation: map['localistation'] != null
+          ? List<String>.from(map['localistation'])
           : null,
       nombreLot: map['nombreLot'] ?? 0,
     );

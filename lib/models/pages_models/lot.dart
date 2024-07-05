@@ -1,39 +1,53 @@
 class Lot {
-  String _name = "";
+  String _nameProp = "";
+  String _nameLoc = "";
   String refLot;
   String? batiment;
   String? lot;
+  String typeLot;
   //Color colorSelected; // Modifier le type de colorSelected
+  String? refGerance;
   String type;
-  String idProprietaire;
+  List<String>? idProprietaire;
   List<String>? idLocataire;
   String residenceId;
   Map<String, dynamic> residenceData;
 
   Lot({
-    String name = "",
+    String nameProp = "",
+    String nameLoc = "",
     required this.refLot,
     this.batiment,
     this.lot,
+    required this.typeLot,
     // required this.colorSelected,
+    this.refGerance,
     required this.type,
     required this.idProprietaire,
     this.idLocataire,
     required this.residenceId,
     required this.residenceData,
-  }) : _name = name;
+  })  : _nameProp = nameProp,
+        _nameLoc = nameLoc;
 
   factory Lot.fromJson(Map<String, dynamic> json) {
     return Lot(
-      name: json["name"] ?? "",
+      nameProp: json["nameProp"] ?? "",
+      nameLoc: json["nameLoc"] ?? "",
       refLot: json["refLot"] ?? "",
       batiment: json["batiment"] ?? "",
       lot: json["lot"] ?? "",
+      typeLot: json["typeLot"] ?? "",
       type: json["type"] ?? "",
-      idProprietaire: json["idProprietaire"] ?? "",
-      idLocataire: json["idLocataire"] != null
+      refGerance: json["refGerance"] ?? "",
+      idProprietaire:
+          json["idProprietaire"] != null && json["idProprietaire"] is List
+              ? List<String>.from(json["idProprietaire"])
+              : null,
+      idLocataire: json["idLocataire"] != null && json["idLocataire"] is List
           ? List<String>.from(json["idLocataire"])
           : null,
+
       residenceId: json["residenceId"] ?? "",
       residenceData: json["residenceData"] != null
           ? Map<String, dynamic>.from(json["residenceData"])
@@ -43,10 +57,13 @@ class Lot {
 
   Map<String, dynamic> toJson() {
     return {
-      "name": name,
+      "nameProp": nameProp,
+      "nameLoc": nameLoc,
       "refLot": refLot,
+      "refGerance": refGerance,
       "batiment": batiment,
       "lot": lot,
+      "typeLot": typeLot,
       //"colorSelected": colorSelected.value, // Utiliser value pour obtenir la valeur de la couleur
       "type": type,
       "idProprietaire": idProprietaire,
@@ -65,25 +82,46 @@ class Lot {
     idLocataire?.add(newValue);
   }
 
-  String get name {
-    return _name;
+  void setNumProp(String newValue) {
+    _addNumProp(newValue);
   }
 
-  set newName(String newName) {
-    if (name != newName) {
-      _name = newName;
+  void _addNumProp(String newValue) {
+    idProprietaire?.add(newValue);
+  }
+
+  String get nameProp {
+    return _nameProp;
+  }
+
+  String get nameLoc {
+    return _nameLoc;
+  }
+
+  set newNameProp(String newName) {
+    if (nameProp != newName) {
+      _nameProp = newName;
+    }
+  }
+
+  set newNameLoc(String newName) {
+    if (nameLoc != newName) {
+      _nameLoc = newName;
     }
   }
 
   Map<String, dynamic> toFirestore() {
     return {
-      if (_name.isNotEmpty) "name": name,
+      if (_nameProp.isNotEmpty) "nameProp": nameProp,
+      if (_nameLoc.isNotEmpty) "nameLoc": nameLoc,
       if (refLot.isNotEmpty) "refLot": refLot,
+      "refGerance": refGerance,
       if (batiment != null) "batiment": batiment,
       if (lot != null) "lot": lot,
+      "typeLot": typeLot,
       //if (colorSelected != null) "colorSelected": colorSelected.value,
       if (type.isNotEmpty) "type": type,
-      if (idProprietaire.isNotEmpty) "idProprietaire": idProprietaire,
+      if (idProprietaire != null) "idProprietaire": idProprietaire,
       if (idLocataire != null) "idLocataire": idLocataire,
       "residenceId": residenceId,
 
@@ -94,13 +132,16 @@ class Lot {
 
   factory Lot.fromMap(Map<String, dynamic> map) {
     return Lot(
-      name: map['name'] ?? "",
+      nameProp: map['nameProp'] ?? "",
+      nameLoc: map['nameLoc'] ?? "",
       refLot: map['refLot'] ?? "",
       batiment: map['batiment'],
       lot: map['lot'],
+      typeLot: map['typeLot'],
+      refGerance: map["refGerance"],
       //colorSelected: Color(map['colorSelected']), // Utiliser Color au lieu de MaterialColor
       type: map['type'] ?? "",
-      idProprietaire: map['idProprietaire'] ?? "",
+      idProprietaire: List<String>.from(map['idProprietaire'] ?? []),
       idLocataire: List<String>.from(map['idLocataire'] ?? []),
       residenceId: map["residenceId"] ?? "",
       residenceData: {}, // Par défaut, initialiser residenceData avec un objet vide

@@ -1,10 +1,12 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/vues/components/profil_tile.dart';
+import 'package:connect_kasa/vues/pages_vues/my_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/comment_button.dart';
@@ -13,15 +15,21 @@ import 'package:connect_kasa/vues/components/share_button.dart';
 
 class PostView extends StatefulWidget {
   late Post postOrigin;
-  late Post postSelected;
+  late Post? postSelected;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
-  final DataBasesPostServices _databasesPostServices = DataBasesPostServices();
   final String residence;
   final String uid;
+  final double? scrollController;
+  final bool returnHomePage;
 
-  PostView(this.postOrigin, this.postSelected, this.residence, this.uid,
-      {super.key});
+  PostView(
+      {required this.postOrigin,
+      required this.residence,
+      required this.uid,
+      this.scrollController,
+      required this.postSelected,
+      required this.returnHomePage});
 
   @override
   State<StatefulWidget> createState() => PostViewState();
@@ -62,7 +70,7 @@ class PostViewState extends State<PostView> {
     final double width = MediaQuery.of(context).size.width;
     final double height = MediaQuery.of(context).size.height;
     late Future<User?> userPost =
-        widget._databasesUserServices.getUserById(widget.postSelected.user);
+        widget._databasesUserServices.getUserById(widget.postSelected!.user);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -72,7 +80,7 @@ class PostViewState extends State<PostView> {
           children: [
             Positioned.fill(
               child: Image.network(
-                widget.postSelected.pathImage ?? "pas d'image",
+                widget.postSelected!.pathImage ?? "pas d'image",
                 fit: BoxFit.fitWidth,
                 width: width,
                 height: height,
@@ -93,12 +101,17 @@ class PostViewState extends State<PostView> {
                   children: [
                     IconButton(
                       onPressed: () async {
-                        Post? updatedLikeCount =
-                            await widget._databasesPostServices.getUpdatePost(
-                                widget.residence, widget.postSelected.id);
-                        Navigator.pop(
-                          context,
-                        );
+                        widget.returnHomePage
+                            ? Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => MyNavBar(
+                                    uid: widget.uid,
+                                    scrollController: widget.scrollController,
+                                  ),
+                                ),
+                              )
+                            : Navigator.pop(context);
                       },
                       icon: const Icon(
                         Icons.arrow_back_ios,
@@ -108,9 +121,9 @@ class PostViewState extends State<PostView> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 11),
                       child: MyTextStyle.lotName(
-                        "${widget.postSelected.title} / ${widget.postSelected.emplacement}",
-                        Colors.white,
-                      ),
+                          "${widget.postSelected!.title} / ${widget.postSelected!.location_element}",
+                          Colors.white,
+                          SizeFont.h2.size),
                     ),
                   ],
                 ),
@@ -128,80 +141,19 @@ class PostViewState extends State<PostView> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (widget.postSelected.hideUser == false)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              top: 10,
-                              bottom: 10,
-                              left: 10,
-                              right: 10,
-                            ),
-                            child: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: Theme.of(context).primaryColor,
-                              child: FutureBuilder<User?>(
-                                future: userPost,
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                      ConnectionState.waiting) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
-                                  } else {
-                                    if (snapshot.hasData &&
-                                        snapshot.data != null) {
-                                      var user = snapshot.data!;
-                                      if (user.profilPic != null &&
-                                          user.profilPic != "") {
-                                        return widget.formatProfilPic
-                                            .ProfilePic(17, userPost);
-                                      } else {
-                                        return widget.formatProfilPic
-                                            .getInitiales(34, userPost, 17);
-                                      }
-                                    } else {
-                                      return widget.formatProfilPic
-                                          .getInitiales(17, userPost, 3);
-                                    }
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                          FutureBuilder<User?>(
-                            future: userPost,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              } else {
-                                if (snapshot.hasData && snapshot.data != null) {
-                                  var user = snapshot.data!;
-                                  return MyTextStyle.lotName(
-                                    user.pseudo,
-                                    Colors.white,
-                                  );
-                                } else {
-                                  return const Text(
-                                    'Utilisateur inconnue',
-                                    style: TextStyle(color: Colors.white),
-                                  );
-                                }
-                              }
-                            },
-                          ),
-                        ],
+                    if (widget.postSelected!.hideUser == false)
+                      Padding(
+                        padding: const EdgeInsets.all(10.0),
+                        child: ProfilTile(widget.postSelected!.user, 22, 19, 22,
+                            true, Colors.white, SizeFont.h2.size),
                       ),
+
                     Flexible(
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: MyTextStyle.postDesc(
-                          widget.postSelected.description,
-                          16,
+                          widget.postSelected!.description,
+                          SizeFont.h2.size,
                           Colors.white,
                         ),
                       ),

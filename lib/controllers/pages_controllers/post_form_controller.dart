@@ -1,6 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 
@@ -35,7 +36,7 @@ class PostFormController extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-            'Déclarer un nouveau sinistre/incivilité', Colors.black87),
+            'Publier dans votre résidence', Colors.black87, SizeFont.h1.size),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {

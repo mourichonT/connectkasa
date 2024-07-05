@@ -1,11 +1,13 @@
 import 'package:connect_kasa/controllers/services/authentification_service.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class LoadUserController {
   AuthentificationService authService = AuthentificationService();
+  DataBasesUserServices dataBasesUserServices = DataBasesUserServices();
   UserCredential? user;
 
-  Future<String> loadUserData() async {
+  Future<String> loadUserDataGoogle() async {
     user = await authService.signUpWithGoogle();
     String iud = user!.user!.uid;
 

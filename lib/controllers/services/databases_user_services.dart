@@ -1,10 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/models/pages_models/user_temp.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class DataBasesUserServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
+
+  Future<UserTemp> setUserTemp(UserTemp newUser) async {
+    try {
+      // Si aucun post correspondant n'est trouvé, ajouter le nouveau post à la collection
+      await db.collection("UserTemp").add(newUser.toMap());
+    } catch (e) {
+      print("Impossible de poster le nouvel user: $e");
+    }
+
+    return newUser;
+  }
 
   Future<User?> getUserById(String numUser) async {
     User? user;
@@ -12,7 +24,7 @@ class DataBasesUserServices {
       QuerySnapshot<Map<String, dynamic>> querySnapshot =
           await FirebaseFirestore.instance
               .collection("User")
-              .where("UID", isEqualTo: numUser)
+              .where("uid", isEqualTo: numUser)
               .get();
       if (querySnapshot.docs.isNotEmpty) {
         // S'il y a des documents correspondants, prenez le premier
@@ -95,5 +107,53 @@ class DataBasesUserServices {
     }
 
     return lots;
+  }
+
+  Future<List<String>> getNumUsersByResidence(
+      String residenceId, String uid) async {
+    List<String> users = [];
+
+    try {
+      // Récupérer la référence de la collection "Residence" basée sur le nom de la résidence
+      DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
+          await FirebaseFirestore.instance
+              .collection("Residence")
+              .doc(residenceId)
+              .get();
+
+      // Vérifier si une résidence correspondant au nom existe
+      if (documentSnapshot.exists) {
+        // Récupérer la référence de la résidence trouvée
+        DocumentSnapshot<Map<String, dynamic>> residenceDoc = documentSnapshot;
+
+        // Récupérer les lots de la résidence spécifique
+        QuerySnapshot<Map<String, dynamic>> lotQuerySnapshot =
+            await residenceDoc.reference.collection("lot").get();
+
+        // Parcourir chaque document de la collection "lot"
+        for (QueryDocumentSnapshot<Map<String, dynamic>> lotDoc
+            in lotQuerySnapshot.docs) {
+          // Récupérer les idLocataire et idProprietaire de chaque lot
+          List<String> idLocataire = List.from(lotDoc.data()["idLocataire"]);
+          List<String> idProprietaire =
+              List.from(lotDoc.data()["idProprietaire"]);
+
+          // Ajouter chaque élément de idLocataire et idProprietaire à la liste si non nuls
+          if (idLocataire != null) {
+            users.addAll(idLocataire);
+          }
+          if (idProprietaire != null &&
+              (idLocataire == null || !idLocataire.contains(uid))) {
+            users.addAll(idProprietaire);
+          }
+        }
+      } else {
+        print(
+            "Aucune résidence correspondant au nom '$residenceId' n'a été trouvée.");
+      }
+    } catch (e) {
+      print("Impossible de récupérer les lots - erreur : $e");
+    }
+    return users;
   }
 }

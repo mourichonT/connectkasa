@@ -1,32 +1,61 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import '../../models/enum/tab_bar_icon.dart';
 
-class MyTabBarController extends StatefulWidget {
+class MyTabBarController {
   final IconTabBar iconTabBar = IconTabBar();
+  late TabController tabController;
 
-  MyTabBarController({super.key});
+  MyTabBarController({required int length, required vsync}) {
+    tabController = TabController(length: length, vsync: vsync);
+  }
 
   TabBar tabBar(List<Tab> tabs) {
     return TabBar(
+      controller: tabController,
       padding: const EdgeInsets.symmetric(horizontal: 30),
       dividerColor: Colors.transparent,
-      tabs: (tabs),
+      tabs: tabs,
       onTap: (index) {
         print(index);
       },
     );
   }
 
-  @override
-  _MyTabBarControllerState createState() => _MyTabBarControllerState();
+  void dispose() {
+    tabController.dispose();
+  }
 }
 
-class _MyTabBarControllerState extends State<MyTabBarController> {
+class MyTabBarWidget extends StatefulWidget {
+  final MyTabBarController controller;
+
+  MyTabBarWidget({required this.controller});
+
+  @override
+  _MyTabBarWidgetState createState() => _MyTabBarWidgetState();
+}
+
+class _MyTabBarWidgetState extends State<MyTabBarWidget>
+    with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
-    return widget
-        .tabBar(<Tab>[]); // Utilisez la méthode tabBar ici avec une liste vide
+    final List<Map<String, dynamic>> icons =
+        widget.controller.iconTabBar.listIcons();
+    final List<Tab> tabs = icons
+        .map((iconData) => Tab(
+              icon: Icon(
+                iconData['icon'],
+                size: iconData['size'], // Utilisation de la taille spécifique
+              ),
+            ))
+        .toList();
+
+    return widget.controller.tabBar(tabs);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.dispose();
+    super.dispose();
   }
 }

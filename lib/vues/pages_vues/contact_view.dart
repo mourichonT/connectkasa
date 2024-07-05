@@ -2,6 +2,7 @@
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 import 'package:connect_kasa/vues/pages_vues/detail_contact_view.dart';
 import 'package:connect_kasa/vues/pages_vues/emergencies_contact_view.dart';
@@ -9,6 +10,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ContactView extends StatelessWidget {
+  final String uid;
   final String residenceSelected;
   final String residenceName;
   final DataBasesResidenceServices _databaseContactServices =
@@ -18,7 +20,8 @@ class ContactView extends StatelessWidget {
   ContactView(
       {super.key,
       required this.residenceSelected,
-      required this.residenceName});
+      required this.residenceName,
+      required this.uid});
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +45,9 @@ class ContactView extends StatelessWidget {
               appBar: AppBar(
                 title: Container(
                     child: MyTextStyle.lotName(
-                        'Numéros utiles du $residenceName', Colors.black87)),
+                        'Numéros utiles du $residenceName',
+                        Colors.black87,
+                        SizeFont.h1.size)),
               ),
               body: SingleChildScrollView(
                 child: Column(children: [
@@ -58,17 +63,20 @@ class ContactView extends StatelessWidget {
                               Navigator.push(
                                 context,
                                 CupertinoPageRoute(
-                                    builder: (context) =>
-                                        DetailContactView(contact: contact)),
+                                    builder: (context) => DetailContactView(
+                                          contact: contact,
+                                          uid: uid,
+                                        )),
                               );
                             },
                             leading: SizedBox(
                                 width: MediaQuery.of(context).size.width / 4,
-                                child: MyTextStyle.lotName(
-                                    contact.service, Colors.black87)),
+                                child: MyTextStyle.lotName(contact.service,
+                                    Colors.black87, SizeFont.h3.size)),
                             title: MyTextStyle.lotName(
-                                contact.name, Colors.black87),
-                            subtitle: MyTextStyle.lotDesc(contact.phone, 14),
+                                contact.name, Colors.black87, SizeFont.h3.size),
+                            subtitle: MyTextStyle.lotDesc(
+                                contact.phone, SizeFont.h3.size),
                             trailing: const Icon(
                               Icons.arrow_right,
                               size: 35,

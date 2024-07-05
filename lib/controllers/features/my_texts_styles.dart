@@ -1,7 +1,11 @@
+import 'dart:ffi';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class MyTextStyle {
   static Color getColor(BuildContext context) {
@@ -26,12 +30,23 @@ class MyTextStyle {
         padding);
   }
 
-  static Widget logo(BuildContext context, String text, EdgeInsets padding) {
+  static Text symbolKasa(String text, Color color, [double? size]) {
+    return Text(
+      text,
+      style: GoogleFonts.majorMonoDisplay(
+        fontSize: size,
+        fontWeight: FontWeight.w300,
+      ),
+    );
+  }
+
+  static Widget logo(
+      BuildContext context, String text, EdgeInsets padding, double size) {
     return styledText(
       context,
       text,
       GoogleFonts.majorMonoDisplay(
-        fontSize: 20,
+        fontSize: size,
         fontWeight: FontWeight.w300,
       ),
       padding,
@@ -48,21 +63,23 @@ class MyTextStyle {
         padding);
   }
 
-  static Text lotName(String text, Color color) {
+  static Text lotName(String text, Color color, [double? size]) {
     return Text(text,
         style: GoogleFonts.robotoCondensed(
           fontWeight: FontWeight.w600,
-          fontSize: 16,
+          fontSize: size != null ? size : 16,
           color: color,
         ));
   }
 
-  static Text lotDesc(String text, double size) {
+  static Text lotDesc(String text, double size,
+      [FontStyle? fontsize, FontWeight? weight]) {
     return Text(
       text,
       style: GoogleFonts.roboto(
         fontSize: size,
-        fontStyle: FontStyle.italic,
+        fontStyle: fontsize ?? FontStyle.italic,
+        fontWeight: weight ?? FontWeight.normal,
       ),
     );
   }
@@ -77,17 +94,29 @@ class MyTextStyle {
     );
   }
 
+  static Text login(
+      String text, double size, Color color, FontWeight fontWeight) {
+    return Text(
+      text,
+      style: GoogleFonts.roboto(
+        fontSize: size,
+        fontWeight: fontWeight,
+        color: color,
+      ),
+    );
+  }
+
   static Text commentTextFormat(String text) {
     return Text(
       text,
       style: GoogleFonts.roboto(
-        fontSize: 15,
+        fontSize: SizeFont.h3.size,
         fontStyle: FontStyle.italic,
       ),
     );
   }
 
-  static Text annonceDesc(String text, double size) {
+  static Text annonceDesc(String text, double size, int maxLines) {
     return Text(
       text,
       style: GoogleFonts.roboto(
@@ -95,7 +124,7 @@ class MyTextStyle {
         fontStyle: FontStyle.italic,
       ),
       overflow: TextOverflow.ellipsis,
-      maxLines: 3,
+      maxLines: maxLines,
       textAlign: TextAlign.left,
     );
   }
@@ -116,9 +145,42 @@ class MyTextStyle {
       formattedDate,
       style: GoogleFonts.roboto(
         fontStyle: FontStyle.italic,
-        fontSize: 11,
+        fontSize: SizeFont.para.size,
       ),
     );
+  }
+
+  static Widget chatdate(Timestamp timeStamp) {
+    DateTime tsdate = timeStamp.toDate();
+    String formattedDate = DateFormat("dd/MM, HH:mm").format(tsdate);
+
+    return Text(
+      formattedDate,
+      style: GoogleFonts.roboto(
+        fontStyle: FontStyle.italic,
+        fontSize: SizeFont.para.size,
+      ),
+    );
+  }
+
+  static String completDate(Timestamp timeStamp) {
+    tz.TZDateTime tsdate = tz.TZDateTime.from(timeStamp.toDate(), tz.local);
+    tz.Location paris = tz.getLocation('Europe/Paris');
+    tsdate = tz.TZDateTime.from(tsdate, paris);
+
+    DateFormat formatter = DateFormat("dd MMM à HH'h'mm", 'fr_FR');
+    String formattedDate = formatter.format(tsdate);
+    return formattedDate;
+  }
+
+  static String EventHours(Timestamp timestamp) {
+    tz.TZDateTime eventDate = tz.TZDateTime.from(timestamp.toDate(), tz.local);
+    tz.Location paris = tz.getLocation('Europe/Paris');
+    eventDate = tz.TZDateTime.from(eventDate, paris);
+
+    DateFormat formattedDate = DateFormat("HH:mm", 'fr_FR');
+    String date = formattedDate.format(eventDate);
+    return date;
   }
 
   static commentDate(Timestamp timestamp) {
@@ -138,9 +200,64 @@ class MyTextStyle {
       return Text('il y a ${difference.inMinutes} min');
     } else if (difference.inHours < 24) {
       return Text('il y a ${difference.inHours} h');
+    } else if (difference.inDays < 30) {
+      return Text('il y a ${difference.inDays} j');
+    } else if (difference.inDays < 365) {
+      int months =
+          (difference.inDays / 30.44).floor(); // Convertir les jours en mois
+      return Text('il y a $months mois');
     } else {
-      int days = difference.inDays;
-      return Text('il y a $days j');
+      int years = (difference.inDays / 365.25)
+          .floor(); // Convertir les jours en années (compte les années bissextiles)
+      return years > 1 ? Text('il y a $years ans') : Text('il y a $years an');
+    }
+  }
+
+  static EventDateDay(Timestamp timestamp, double size) {
+    // Convertir le Timestamp en millisecondes depuis l'époque Unix
+    int milliseconds = timestamp.millisecondsSinceEpoch;
+    DateTime eventDate = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+
+    String formattedDate = DateFormat('dd').format(eventDate);
+    return Text(
+      formattedDate,
+      style: TextStyle(fontSize: size),
+    );
+  }
+
+  static EventDateMonth(Timestamp timestamp, double size) {
+    // Convertir le Timestamp en millisecondes depuis l'époque Unix
+    int milliseconds = timestamp.millisecondsSinceEpoch;
+    DateTime eventDate = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+
+    String formattedMonth = DateFormat.MMM('fr').format(eventDate);
+    return Text(
+      formattedMonth,
+      style: TextStyle(fontSize: size),
+    );
+  }
+
+  static MailDate(Timestamp timestamp) {
+    // Convertir le Timestamp en millisecondes depuis l'époque Unix
+    int milliseconds = timestamp.millisecondsSinceEpoch;
+
+    // Convertir les millisecondes en objet DateTime
+    DateTime commentTime = DateTime.fromMillisecondsSinceEpoch(milliseconds);
+
+    // Obtenir la durée écoulée depuis le timestamp jusqu'à maintenant
+    Duration difference = DateTime.now().difference(commentTime);
+
+    // Formater la durée écoulée
+    if (difference.inSeconds < 60) {
+      return const Text("à l'instant");
+    } else if (difference.inMinutes < 60) {
+      return Text('il y a ${difference.inMinutes} min');
+    } else if (difference.inHours < 24) {
+      return Text('il y a ${difference.inHours} h');
+    } else {
+      String formattedDate =
+          DateFormat('dd/MM/yyyy à hh:ss').format(commentTime);
+      return Text('Le $formattedDate');
     }
   }
 
@@ -155,7 +272,8 @@ class MyTextStyle {
           alignment: Alignment.center,
           child: Text(
             text,
-            style: GoogleFonts.roboto(color: Colors.white, fontSize: 11),
+            style: GoogleFonts.roboto(
+                color: Colors.white, fontSize: SizeFont.para.size),
           ),
         ));
   }
@@ -183,7 +301,7 @@ class MyTextStyle {
     return Text(
       text,
       style: GoogleFonts.roboto(
-        fontSize: 12,
+        fontSize: SizeFont.para.size,
         fontStyle: FontStyle.italic,
         color: color ?? Colors.black87,
       ),
