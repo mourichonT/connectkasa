@@ -32,13 +32,13 @@ class TransactionTileState extends State<TransactionTile> {
   late Future<User?> userAcheteur;
   late Future<User?> userVendeur;
   late double price;
-  String unit = "";
+  String unit = "€";
 
   @override
   void initState() {
     price =
         double.parse(widget.transac.amount) + double.parse(widget.transac.fees);
-    price > 1 ? unit = "Kasas" : unit = "Kasa";
+    // price > 1 ? unit = "Kasas" : unit = "Kasa";
     post = postData.getPost(
       widget.residence,
       widget.transac.postId,

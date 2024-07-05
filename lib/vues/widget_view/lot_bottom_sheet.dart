@@ -75,7 +75,10 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
                       itemCount: lots.length,
                       itemBuilder: (context, index) {
                         return RadioListTile<int>(
-                          title: LotTileView(lot: lots[index]!),
+                          title: LotTileView(
+                            lot: lots[index]!,
+                            uid: widget.uid,
+                          ),
                           value: index,
                           groupValue: findLotInArray(lots),
                           onChanged: (int? selectedLotIndex) {

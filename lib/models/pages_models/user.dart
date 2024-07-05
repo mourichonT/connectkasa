@@ -60,11 +60,11 @@ class User {
 
   String setSolde(solde) {
     if (solde == 0) {
-      return "0 Kasa";
+      return "0 €";
     } else if (solde == "1") {
-      return "$solde Kasa";
+      return "$solde €";
     } else {
-      return "$solde Kasas";
+      return "$solde €";
     }
   }
 

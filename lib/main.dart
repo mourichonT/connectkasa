@@ -32,8 +32,5 @@ void main() async {
     home: LoginPageView(
       firestore: db,
     ),
-    //     MyApp(
-    //   firestore: db,
-    // ),
   ));
 }

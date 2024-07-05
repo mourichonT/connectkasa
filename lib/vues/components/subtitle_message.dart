@@ -45,22 +45,26 @@ class _SubtitleMessageState extends State<SubtitleMessage>
   }
 
   getNbrTab() {
-    if (widget.selectedLot?.idProprietaire == widget.uid &&
-        widget.selectedLot?.refGerance != "")
+    if (widget.selectedLot!.idProprietaire!.contains(widget.uid) &&
+        widget.selectedLot?.refGerance != "") {
       setState(() {
         nbrTab = 3;
         loca = false;
       });
-    else if (widget.selectedLot?.idProprietaire == widget.uid &&
-        widget.selectedLot?.refGerance == "")
+    } else if (widget.selectedLot!.idProprietaire!.contains(widget.uid) &&
+        widget.selectedLot!.idLocataire != null &&
+        widget.selectedLot!.idLocataire!
+            .isNotEmpty && // Ajout de cette vérification
+        widget.selectedLot?.refGerance == "") {
       setState(() {
         nbrTab = 3;
         loca = true;
       });
-    else
+    } else {
       setState(() {
         nbrTab = 2;
       });
+    }
 
     return nbrTab;
   }
@@ -115,15 +119,15 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                     Tab(text: 'Mes voisins'),
 
                     //condition d'affichage par type de contact
-                    if (widget.selectedLot?.idProprietaire == widget.uid)
+                    if (widget.selectedLot!.idProprietaire!
+                        .contains(widget.uid))
                       Tab(text: 'Mon syndic')
                     else if (widget.selectedLot?.refGerance != "")
                       Tab(text: 'Mon agence')
                     else
-                      const Tab(
-                        text: 'Mon proprio',
-                      ),
-
+                      (widget.selectedLot?.idProprietaire!.length ?? 0) > 1
+                          ? const Tab(text: 'Mes proprios.')
+                          : const Tab(text: 'Mon proprio.'),
                     loca == false
                         ? const Tab(text: 'Mon agence')
                         : widget.selectedLot?.idLocataire == null ||
@@ -135,14 +139,15 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                 : <Widget>[
                     Tab(text: 'Mes voisins'),
                     //condition d'affichage par type de contact
-                    if (widget.selectedLot?.idProprietaire == widget.uid)
+                    if (widget.selectedLot!.idProprietaire!
+                        .contains(widget.uid))
                       Tab(text: 'Mon syndic')
                     else if (widget.selectedLot?.refGerance != "")
                       Tab(text: 'Mon agence')
                     else
-                      Tab(
-                        text: 'Mon proprio',
-                      ),
+                      (widget.selectedLot?.idProprietaire!.length ?? 0) > 1
+                          ? const Tab(text: 'Mes proprios.')
+                          : const Tab(text: 'Mon proprio.'),
                   ]),
         Expanded(
           child: TabBarView(
@@ -190,7 +195,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
               ),
 
               // partie 2
-              if (widget.selectedLot?.idProprietaire == widget.uid)
+              if (widget.selectedLot!.idProprietaire!.contains(widget.uid))
                 CardContactController(
                   widget.selectedLot!,
                   "serviceSyndic",
@@ -210,32 +215,36 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                   child: Padding(
                     padding: const EdgeInsets.only(
                         left: 15, right: 15, top: 10, bottom: 35),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Container(
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ChatPage(
-                                          residence: widget.residence,
-                                          idUserFrom: widget.uid,
-                                          idUserTo: widget
-                                              .selectedLot!.idProprietaire)));
-                            },
-                            child: MessageUserTile(
-                              radius: 23,
-                              uid: widget.selectedLot!.idProprietaire,
-                            ),
+                    child: ListView.separated(
+                      separatorBuilder: (context, index) => const Divider(),
+                      itemCount: widget.selectedLot!.idProprietaire!.length,
+                      itemBuilder: (context, index) {
+                        String uid = widget.selectedLot!.idProprietaire![index];
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatPage(
+                                  residence: widget.residence,
+                                  idUserFrom: widget.uid,
+                                  idUserTo:
+                                      uid, // Utilisation du uid correspondant à cet index
+                                ),
+                              ),
+                            );
+                          },
+                          child: MessageUserTile(
+                            radius: 23,
+                            uid:
+                                uid, // Utilisation du uid correspondant à cet index
                           ),
-                        ),
-                        const Divider(),
-                      ],
+                        );
+                      },
                     ),
                   ),
                 ),
+
               // partie 3
               if (nbrTab == 3 && loca == false)
                 CardContactController(

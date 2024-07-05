@@ -135,7 +135,8 @@ class DataBasesUserServices {
             in lotQuerySnapshot.docs) {
           // Récupérer les idLocataire et idProprietaire de chaque lot
           List<String> idLocataire = List.from(lotDoc.data()["idLocataire"]);
-          String idProprietaire = lotDoc.data()["idProprietaire"];
+          List<String> idProprietaire =
+              List.from(lotDoc.data()["idProprietaire"]);
 
           // Ajouter chaque élément de idLocataire et idProprietaire à la liste si non nuls
           if (idLocataire != null) {
@@ -143,7 +144,7 @@ class DataBasesUserServices {
           }
           if (idProprietaire != null &&
               (idLocataire == null || !idLocataire.contains(uid))) {
-            users.add(idProprietaire);
+            users.addAll(idProprietaire);
           }
         }
       } else {

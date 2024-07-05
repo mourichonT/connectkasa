@@ -267,7 +267,7 @@ class SinistreTileState extends State<SinistreTile> {
                                       }
 
                                       if (widget.post.type == "sinistres" ||
-                                          widget.post.type == "incivilités") {
+                                          widget.post.type == "incivilites") {
                                         Navigator.push(
                                             context,
                                             CupertinoPageRoute(
