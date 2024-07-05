@@ -1,22 +1,35 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import '../../controllers/features/my_texts_styles.dart';
 import '../../models/pages_models/lot.dart';
 
 class LotTileView extends StatefulWidget {
   final Lot lot;
+  final String uid;
 
-  const LotTileView({super.key, required this.lot});
+  const LotTileView({super.key, required this.lot, required this.uid});
 
   @override
   _LotTileViewState createState() => _LotTileViewState();
 }
 
 class _LotTileViewState extends State<LotTileView> {
+  bool isProprietaire = false;
+  String showNameLotProp = "";
+  String showNameLotLoc = "";
   @override
   void initState() {
     super.initState();
+    isProprietaire = widget.lot.idProprietaire?.contains(widget.uid) ?? false;
+    showNameLotProp =
+        widget.lot.nameProp != "" || widget.lot.nameProp.isNotEmpty
+            ? widget.lot.nameProp
+            : "${widget.lot.residenceData["name"]} ${widget.lot.lot} ";
+    showNameLotLoc = widget.lot.nameLoc != "" || widget.lot.nameLoc.isNotEmpty
+        ? widget.lot.nameLoc
+        : "${widget.lot.residenceData["name"]} ${widget.lot.lot} ";
   }
 
   @override
@@ -35,10 +48,9 @@ class _LotTileViewState extends State<LotTileView> {
           children: [
             Row(children: [
               MyTextStyle.lotName(
-                  widget.lot.name.isNotEmpty
-                      ? widget.lot.name
-                      : "${widget.lot.residenceData["name"]} ${widget.lot.batiment}${widget.lot.lot} ",
-                  Colors.black87),
+                  isProprietaire ? showNameLotProp : showNameLotLoc,
+                  Colors.black87,
+                  SizeFont.h2.size),
               Container(padding: const EdgeInsets.only(left: 2)),
             ]),
             Row(

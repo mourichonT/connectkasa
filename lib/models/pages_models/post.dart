@@ -7,31 +7,52 @@ class Post {
   String type;
   String _subtype = "";
   Timestamp timeStamp;
+  Timestamp? eventDate;
   String _statu = "";
   String _pathImage = "";
   String title;
   String description;
-  String emplacement;
-  List<String> like;
+  String location_element;
+  List<String>? location_details;
+  String location_floor;
+  List<String>? like;
   List<Post> signalement;
   bool hideUser;
+  List<String>? participants;
+  int? price;
+  String? backgroundColor;
+  String? backgroundImage;
+  double? fontSize;
+  String? fontWeight;
+  String? fontColor;
+  String? fontStyle;
 
-  Post({
-    required this.id,
-    required this.refResidence,
-    required this.user,
-    required this.type,
-    String subtype = "",
-    required this.timeStamp,
-    String statu = "",
-    String pathImage = "",
-    required this.title,
-    required this.description,
-    this.emplacement = "",
-    this.like = const [],
-    this.signalement = const [],
-    required this.hideUser,
-  }) {
+  Post(
+      {required this.id,
+      required this.refResidence,
+      required this.user,
+      required this.type,
+      String subtype = "",
+      required this.timeStamp,
+      this.eventDate,
+      String statu = "",
+      String pathImage = "",
+      required this.title,
+      required this.description,
+      this.location_element = "",
+      this.location_details = const [], // Nouvel attribut
+      this.location_floor = "", // Nouvel attribut
+      this.like = const [],
+      this.signalement = const [],
+      required this.hideUser,
+      this.participants = const [],
+      this.price = 0,
+      this.backgroundColor,
+      this.backgroundImage,
+      this.fontSize,
+      this.fontWeight,
+      this.fontColor,
+      this.fontStyle}) {
     _pathImage = pathImage;
     _statu = statu;
     _subtype = subtype;
@@ -80,6 +101,24 @@ class Post {
     }
   }
 
+  String setParticipant(participantCount) {
+    if (participantCount > 1) {
+      return "Participants ( $participantCount )";
+    } else {
+      return "Participant ( $participantCount )";
+    }
+  }
+
+  String setPrice(price) {
+    if (price == 0) {
+      return "Gratuit";
+    } else if (price == 1) {
+      return "$price €";
+    } else {
+      return "$price €";
+    }
+  }
+
   String setSignalement(postCount) {
     if (postCount > 1) {
       return "$postCount Signalements";
@@ -98,16 +137,40 @@ class Post {
         }
       }
     }
+    List<dynamic>? detailsList = map['location_details'];
+    List<String> convertLocationDetails = [];
+    if (detailsList != null) {
+      for (var detail in detailsList) {
+        if (detail is String) {
+          convertLocationDetails.add(detail);
+        }
+      }
+    }
+
+    List<dynamic>? participantsList = map['participants'];
+    List<String> convertedParticipantsList = [];
+    if (participantsList != null) {
+      for (var user in participantsList) {
+        if (user is String) {
+          convertedParticipantsList.add(user);
+        }
+      }
+    }
 
     return Post(
       id: map['id'] ?? "",
       description: map['description'] ?? "",
-      emplacement: map['emplacement'] ?? "",
+      location_element:
+          map['location_element'] ?? "", // Mise à jour du nom de l'attribut
+      location_details: convertLocationDetails, // Nouvel attribut
+      location_floor: map['location_floor'] ?? "", // Nouvel attribut
       subtype: map['subtype'] ?? "",
       pathImage: map['pathImage'] ?? "",
       refResidence: map['refResidence'] ?? "",
       statu: map['statu'] ?? "",
       timeStamp: map['timeStamp'] ?? 0,
+      eventDate:
+          map['eventDate'] != null ? map['eventDate'] as Timestamp : null,
       title: map['title'] ?? "",
       type: map['type'] ?? "",
       user: map['user'] ?? "",
@@ -119,6 +182,14 @@ class Post {
           .map((signalementData) => Post.fromMap(signalementData))
           .toList(),
       hideUser: map['hideUser'],
+      participants: convertedParticipantsList,
+      price: map['price'] ?? 0,
+      backgroundColor: map['backgroundColor'],
+      backgroundImage: map['backgroundImage'],
+      fontColor: map['fontColor'],
+      fontSize: map['fontSize'],
+      fontWeight: map['fontWeight'],
+      fontStyle: map['fontStyle'],
     );
   }
 
@@ -126,18 +197,29 @@ class Post {
     return {
       'id': id,
       'description': description,
-      'emplacement': emplacement,
+      'location_element': location_element, // Mise à jour du nom de l'attribut
+      'location_details': location_details, // Nouvel attribut
+      'location_floor': location_floor, // Nouvel attribut
       'subtype': subtype,
       'pathImage': pathImage,
       'refResidence': refResidence,
       'statu': statu,
       'timeStamp': timeStamp,
+      'eventDate': eventDate,
       'title': title,
       'type': type,
       'user': user,
       'like': like,
       'signalement': signalement.map((post) => post.toMap()).toList(),
       'hideUser': hideUser,
+      'participants': participants,
+      'price': price,
+      'backgroundColor': backgroundColor,
+      'backgroundImage': backgroundImage,
+      'fontColor': fontColor,
+      'fontSize': fontSize,
+      'fontWeight': fontWeight,
+      'fontStyle': fontStyle
     };
   }
 }

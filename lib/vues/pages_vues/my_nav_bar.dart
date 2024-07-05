@@ -1,187 +1,240 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'dart:math';
-
-import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
-import 'package:connect_kasa/controllers/features/load_user_controller.dart';
-import 'package:connect_kasa/controllers/features/route_controller.dart';
-import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
-import 'package:connect_kasa/vues/pages_vues/home_view.dart';
-import 'package:connect_kasa/vues/components/my_bottomnavbar_view.dart';
+import 'package:connect_kasa/vues/components/profil_tile.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
+import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
+import 'package:connect_kasa/vues/pages_vues/pages_tabs/my_docs.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page_modify.dart';
 import '../../models/pages_models/lot.dart';
 import '../../controllers/pages_controllers/my_tab_bar_controller.dart';
-import '../components/select_lot_component.dart';
-import '../components/lot_bottom_sheet.dart';
+import '../widget_view/select_lot_component.dart';
+import '../widget_view/lot_bottom_sheet.dart';
+import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
+import 'package:connect_kasa/controllers/features/route_controller.dart';
+import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
+import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/vues/pages_vues/pages_tabs/home_view.dart';
+import 'package:connect_kasa/vues/pages_vues/pages_tabs/sinistres_page_view.dart';
+import 'package:connect_kasa/vues/widget_view/my_bottomnavbar_view.dart';
 
 class MyNavBar extends StatefulWidget {
-  const MyNavBar({super.key});
+  final String uid;
+  final double? scrollController;
+
+  const MyNavBar({super.key, required this.uid, this.scrollController});
 
   @override
   _MyNavBarState createState() => _MyNavBarState();
 }
 
-class _MyNavBarState extends State<MyNavBar> {
+class _MyNavBarState extends State<MyNavBar>
+    with SingleTickerProviderStateMixin {
+  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
   final LoadPreferedData _loadPreferedData = LoadPreferedData();
-  final MyTabBarController tabController = MyTabBarController();
-  final LoadUserController _loadUserController = LoadUserController();
-  Lot? lot;
-  // User? user;
-  double pad = 0;
-  Lot? preferedLot;
-  //AuthentificationService authService = AuthentificationService();
+  late MyTabBarController tabController;
 
-  // Déclaration de la variable user en dehors des méthodes.
-  //UserCredential? user;
+  double pad = 0;
+  List<Lot?>? lot;
+  Lot? preferedLot;
+  late String uid;
+  int nbrTab = 0;
 
   @override
   void initState() {
     super.initState();
+    uid = widget.uid;
+    tabController = MyTabBarController(length: 5, vsync: this);
     _loadPreferedLot();
+    _loadDefaultLot(widget.uid);
   }
 
   @override
   Widget build(BuildContext context) {
+    final Color colorStatut = Theme.of(context).primaryColor;
     final double width = MediaQuery.of(context).size.width;
-    final List<IconData> icons = tabController.iconTabBar.listIcons();
-    final List<Tab> tabs = icons.asMap().entries.map((entry) {
-      IconData icon = entry.value;
+    final List<Map<String, dynamic>> icons =
+        tabController.iconTabBar.listIcons();
+    final List<Tab> tabs = icons.map((iconData) {
       return Tab(
         icon: Icon(
-          icon,
+          iconData['icon'],
+          size: iconData['size'],
         ),
       );
     }).toList();
 
     return Scaffold(
       appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 20,
-          title: Image.asset(
-            width: width / 2.5,
-            "images/logoCK250connectKasa.png",
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        elevation: 20,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 5, bottom: 5),
+          child: Image.asset(
+            "images/assets/logoCK250connectKasa.png",
+            width: width / 2.3,
             fit: BoxFit.fitWidth,
           ),
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.black12)),
-                color: Colors.white),
+        ),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: Colors.black12)),
+            color: Colors.white,
           ),
-          bottom: PreferredSize(
+        ),
+        actions: [
+          Builder(
+            builder: (context) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: GestureDetector(
+                    onTap: () {
+                      Scaffold.of(context).openEndDrawer();
+                    },
+                    child: ProfilTile(widget.uid, 30, 14, 19, false)),
+              );
+            },
+          ),
+        ],
+        bottom: PreferredSize(
+          key: UniqueKey(),
+          preferredSize: const Size.fromHeight(kToolbarHeight + kToolbarHeight),
+          child: Column(
+            children: [
+              tabController.tabBar(tabs),
+              InkWell(
+                child: SelectLotComponent(
+                  uid: uid,
+                ),
+                onTap: () async {
+                  _showLotBottomSheet(context, uid);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+      body: TabBarView(
+        physics: const NeverScrollableScrollPhysics(),
+        controller: tabController.tabController,
+        children: [
+          Homeview(
             key: UniqueKey(),
-            preferredSize:
-                const Size.fromHeight(kToolbarHeight + kToolbarHeight),
-            child: Column(
-              children: [
-                tabController.tabBar(tabs),
-                InkWell(
-                    child: const SelectLotComponent(),
-                    onTap: () async {
-                      _handleGoogleSignIn();
-                    })
-              ],
-            ),
-          )),
-      body: preferedLot != null
-          ? FutureBuilder<String>(
-              future: _loadUserController.loadUserData(),
-              builder: (BuildContext context, AsyncSnapshot<String> snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (snapshot.hasError) {
-                  return Text('Erreur: ${snapshot.error}');
-                } else {
-                  return Homeview(
-                    key: UniqueKey(),
-                    residenceSelected: preferedLot!.residenceId,
-                    uid: snapshot.data!,
-                  );
-                }
-              },
-            )
-          : const Center(
-              child: CircularProgressIndicator(),
-            ),
-      endDrawer: Drawer(
-        child: Column(children: [
-          const SizedBox(
-            height: 500,
+            residenceSelected: preferedLot?.residenceId ?? "",
+            uid: uid,
+            upDatescrollController: widget.scrollController,
+            colorStatut: colorStatut,
           ),
-          ElevatedButton(
-            onPressed: () async {
-              _handleGoogleSignIn();
-            },
-            child: const Text("Google Auth"),
+          SinistrePageView(
+            key: UniqueKey(),
+            residenceId: preferedLot?.residenceId ?? "",
+            uid: uid,
+            colorStatut: colorStatut,
+            argument1: "sinistres",
+            argument2: "incivilites",
+            argument3: "communication",
           ),
-          ElevatedButton(
-            onPressed: () async {
-              _loadUserController.handleGoogleSignOut();
-            },
-            child: const Text("Déconnexion"),
-          )
-        ]),
+          EventPageView(
+            residenceSelected: preferedLot?.residenceId ?? "",
+            uid: uid,
+            type: "events",
+            colorStatut: colorStatut,
+          ),
+          AnnoncesPageView(
+            key: UniqueKey(),
+            residenceSelected: preferedLot?.residenceId ?? "",
+            uid: uid,
+            type: "annonces",
+            colorStatut: colorStatut,
+            scrollController: widget.scrollController ?? 00,
+          ),
+          MydocsPageView(
+            key: UniqueKey(),
+            lotSelected: preferedLot?.refLot ?? "",
+            residenceSelected: preferedLot?.residenceId ?? "",
+            uid: uid,
+            colorStatut: colorStatut,
+          ),
+        ],
+      ),
+      endDrawer: ProfilPage(
+        uid: widget.uid,
+        color: colorStatut,
       ),
       bottomNavigationBar: MyBottomNavBarView(
         residenceSelected: preferedLot?.residenceId ?? "",
         residenceName: preferedLot?.residenceData['name'] ?? "",
+        uid: uid,
+        selectedLot: preferedLot ??
+            lot?.first ??
+            Lot(
+              refLot: "",
+              typeLot: "",
+              type: "",
+              idProprietaire: [],
+              residenceId: "",
+              residenceData: {},
+            ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: SizedBox(
-          height: 65,
-          width: 65,
-          child: FloatingActionButton(
-              backgroundColor: Theme.of(context).colorScheme.background,
-              onPressed: () async {
-                String uid = await _loadUserController.loadUserData();
-                Navigator.of(context).push(RouteController().createRoute(
-                  PostFormController(
-                    racineFolder: "residences",
-                    preferedLot: preferedLot!,
-                    uid: uid,
-                  ),
-                ));
-              },
-              shape: const CircleBorder(
-                  side: BorderSide(color: Colors.black12, width: 0.3)),
-              materialTapTargetSize: MaterialTapTargetSize.padded,
-              child: Transform.rotate(
-                angle: 330 * pi / 180,
-                child: Icon(
-                  Icons.campaign,
-                  size: 50,
-                  color: Theme.of(context).primaryColor,
+        height: 65,
+        width: 65,
+        child: FloatingActionButton(
+          backgroundColor: Theme.of(context).colorScheme.background,
+          onPressed: () async {
+            Navigator.of(context).push(
+              RouteController().createRoute(
+                PostFormController(
+                  racineFolder: "residences",
+                  preferedLot: preferedLot!,
+                  uid: uid,
                 ),
-              ))),
+              ),
+            );
+          },
+          shape: const CircleBorder(
+              side: BorderSide(color: Colors.black12, width: 0.3)),
+          materialTapTargetSize: MaterialTapTargetSize.padded,
+          child: Transform.rotate(
+            angle: 330 * pi / 180,
+            child: Icon(
+              Icons.campaign,
+              size: 50,
+              color: Theme.of(context).primaryColor,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
+  Future<void> _loadDefaultLot(uid) async {
+    if (lot != null) {
+      lot = (await _databasesLotServices.getLotByIdUser(uid));
+      setState(() {});
+    }
+  }
+
   Future<void> _loadPreferedLot() async {
+    if (preferedLot != null) {}
     preferedLot = await _loadPreferedData.loadPreferedLot(preferedLot);
     setState(() {});
   }
 
   void _showLotBottomSheet(BuildContext context, String uid) {
     showModalBottomSheet(
-        context: context,
-        builder: (BuildContext context) {
-          return LotBottomSheet(
-            selectedLot: preferedLot,
-            onRefresh: () {
-              _loadPreferedLot();
-            },
-            uid: uid,
-          );
-        });
-  }
-
-  Future<void> _handleGoogleSignIn() async {
-    try {
-      String uid = await _loadUserController.loadUserData();
-      _showLotBottomSheet(context, uid);
-    } catch (e) {
-      print("Erreur lors de la connexion avec Google: $e");
-    }
+      context: context,
+      builder: (BuildContext context) {
+        return LotBottomSheet(
+          selectedLot: preferedLot,
+          onRefresh: () {
+            _loadPreferedLot();
+          },
+          uid: uid,
+        );
+      },
+    );
   }
 }

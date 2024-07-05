@@ -30,8 +30,8 @@ class LikePostButtonState extends State<LikePostButton> {
   @override
   void initState() {
     super.initState();
-    alreadyLiked = widget.post.like.contains(widget.uid);
-    likeCount = widget.post.like.length;
+    alreadyLiked = widget.post.like!.contains(widget.uid);
+    likeCount = widget.post.like!.length;
   }
 
   @override
