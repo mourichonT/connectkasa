@@ -7,7 +7,8 @@ import '../../models/pages_models/lot.dart';
 import '../components/lot_tile_view.dart';
 
 class SelectLotComponent extends StatefulWidget {
-  const SelectLotComponent({super.key});
+  final String uid;
+  const SelectLotComponent({super.key, required this.uid});
 
   @override
   SelectLotComponentState createState() => SelectLotComponentState();
@@ -45,7 +46,10 @@ class SelectLotComponentState extends State<SelectLotComponent> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    LotTileView(lot: preferedLot!),
+                    LotTileView(
+                      lot: preferedLot!,
+                      uid: widget.uid,
+                    ),
                     const Icon(Icons.arrow_drop_down),
                   ],
                 ),

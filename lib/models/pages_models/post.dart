@@ -113,9 +113,9 @@ class Post {
     if (price == 0) {
       return "Gratuit";
     } else if (price == 1) {
-      return "$price Kasa";
+      return "$price €";
     } else {
-      return "$price Kasas";
+      return "$price €";
     }
   }
 

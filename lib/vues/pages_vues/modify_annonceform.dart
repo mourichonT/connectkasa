@@ -42,6 +42,9 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
   bool removeImage = false;
   late List<String> labelsCat;
 
+  final ValueNotifier<double> priceNotifier = ValueNotifier<double>(0.0);
+  final ValueNotifier<double> feesNotifier = ValueNotifier<double>(0.0);
+
   @override
   void initState() {
     super.initState();
@@ -55,6 +58,18 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
     price = TextEditingController(text: widget.post.price.toString());
     imagePath = widget.post.pathImage ?? "";
     anonymPost = widget.post.hideUser;
+    feesNotifier.value = priceNotifier.value * 0.95;
+
+    price.addListener(() {
+      double? newPrice = double.tryParse(price.text);
+      if (newPrice != null) {
+        priceNotifier.value = newPrice;
+        feesNotifier.value = newPrice * 0.95;
+      } else {
+        priceNotifier.value = 0.0;
+        feesNotifier.value = 0.0;
+      }
+    });
 
     // Ensure initial values are valid
     if (!labelsCat.contains(widget.post.subtype)) {
@@ -68,6 +83,14 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
     setState(() {
       anonymPost = updatedBool;
     });
+  }
+
+  @override
+  void dispose() {
+    price.dispose();
+    priceNotifier.dispose();
+    feesNotifier.dispose();
+    super.dispose();
   }
 
   final WidgetStateProperty<Icon?> thumbIcon =
@@ -195,7 +218,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                                   children: [
                                     Container(
                                       padding:
-                                          EdgeInsets.symmetric(horizontal: 10),
+                                          EdgeInsets.symmetric(horizontal: 0),
                                       width: width / 3,
                                       height: 40,
                                       child: TextField(
@@ -227,9 +250,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                                       padding:
                                           EdgeInsets.symmetric(horizontal: 20),
                                       child: MyTextStyle.lotDesc(
-                                          price.text.isNotEmpty
-                                              ? "Kasas"
-                                              : "Kasa",
+                                          "€",
                                           SizeFont.h3.size,
                                           FontStyle.normal,
                                           FontWeight.bold),
@@ -238,6 +259,24 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          child: ValueListenableBuilder<double>(
+                            valueListenable: feesNotifier,
+                            builder: (context, fees, child) {
+                              if (priceNotifier.value == 0) {
+                                return SizedBox
+                                    .shrink(); // Returns an empty widget if price is 0
+                              }
+                              return MyTextStyle.lotDesc(
+                                "*Pour ${priceNotifier.value.toStringAsFixed(2)}€, vous recevrez sur votre compte Kasa ${fees.toStringAsFixed(2)}€",
+                                SizeFont.para.size,
+                                FontStyle.italic,
+                                FontWeight.normal,
+                              );
+                            },
                           ),
                         ),
                         Divider(),

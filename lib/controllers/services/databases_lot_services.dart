@@ -127,4 +127,30 @@ class DataBasesLotServices {
     }
     return lot;
   }
+
+  Future<int> countLocatairesExcludingUser(String numUser) async {
+    // Récupérer les lots par ID d'utilisateur
+    List<Lot?> lots = await getLotByIdUser(numUser);
+
+    int count = 0; // Compteur de locataires
+
+    // Parcourir chaque lot
+    for (Lot? lot in lots) {
+      if (lot != null) {
+        dynamic idLocataire = lot.idLocataire;
+
+        if (idLocataire is List) {
+          // Si idLocataire est une liste, comptez les locataires en excluant numUser
+          count += idLocataire.where((id) => id != numUser).length;
+        } else if (idLocataire is String) {
+          // Si idLocataire est une chaîne, vérifiez si elle n'est pas égale à numUser
+          if (idLocataire != numUser) {
+            count++;
+          }
+        }
+      }
+    }
+
+    return count; // Retourner le nombre de locataires
+  }
 }

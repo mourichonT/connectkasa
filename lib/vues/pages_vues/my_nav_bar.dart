@@ -1,10 +1,11 @@
 import 'dart:math';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/my_docs.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page_modify.dart';
 import '../../models/pages_models/lot.dart';
 import '../../controllers/pages_controllers/my_tab_bar_controller.dart';
 import '../widget_view/select_lot_component.dart';
@@ -91,7 +92,7 @@ class _MyNavBarState extends State<MyNavBar>
                     onTap: () {
                       Scaffold.of(context).openEndDrawer();
                     },
-                    child: ProfilTile(widget.uid, 30, 14, 30, false)),
+                    child: ProfilTile(widget.uid, 30, 14, 19, false)),
               );
             },
           ),
@@ -103,7 +104,9 @@ class _MyNavBarState extends State<MyNavBar>
             children: [
               tabController.tabBar(tabs),
               InkWell(
-                child: const SelectLotComponent(),
+                child: SelectLotComponent(
+                  uid: uid,
+                ),
                 onTap: () async {
                   _showLotBottomSheet(context, uid);
                 },
@@ -157,6 +160,7 @@ class _MyNavBarState extends State<MyNavBar>
       ),
       endDrawer: ProfilPage(
         uid: widget.uid,
+        color: colorStatut,
       ),
       bottomNavigationBar: MyBottomNavBarView(
         residenceSelected: preferedLot?.residenceId ?? "",
@@ -168,7 +172,7 @@ class _MyNavBarState extends State<MyNavBar>
               refLot: "",
               typeLot: "",
               type: "",
-              idProprietaire: '',
+              idProprietaire: [],
               residenceId: "",
               residenceData: {},
             ),
