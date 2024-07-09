@@ -4,14 +4,20 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
+import 'package:connect_kasa/vues/widget_view/colo_circle.dart';
+import 'package:connect_kasa/vues/widget_view/color_view.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ModifyProperty extends StatefulWidget {
   final Lot lot;
   final String uid;
 
-  const ModifyProperty({Key? key, required this.lot, required this.uid})
-      : super(key: key);
+  const ModifyProperty({
+    Key? key,
+    required this.lot,
+    required this.uid,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => ModifyPropertyState();
@@ -56,6 +62,55 @@ class ModifyPropertyState extends State<ModifyProperty> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           children: <Widget>[
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    CupertinoPageRoute(
+                        builder: (context) => ColorView(
+                              residenceId: widget.lot.residenceId,
+                              refLot: widget.lot.refLot,
+                            )));
+              },
+              child: Padding(
+                padding: const EdgeInsets.only(top: 25, bottom: 1),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Theme.of(context)
+                              .primaryColor, // Utilisation de la couleur primaire du thème
+                          radius: 10, // Rayon du cercle
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape
+                                  .circle, // Définir la forme comme un cercle
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 15),
+                          child: Text(
+                            "Couleur du bien",
+                            style: TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w400,
+                                fontSize: SizeFont.h3.size),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Icon(
+                      Icons.arrow_right_outlined,
+                      size: 30,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Divider(),
             _buildModifyTextField('Nom', name, nameFocusNode),
             _buildReadOnlyTextField('Type', widget.lot.typeLot),
             _buildReadOnlyTextField(

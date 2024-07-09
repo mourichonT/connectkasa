@@ -15,7 +15,8 @@ class ManagementProperty extends StatefulWidget {
       {super.key,
       required this.lotByUser,
       required this.color,
-      required this.uid});
+      required this.uid,
+      d});
   @override
   ManagementPropertyState createState() => ManagementPropertyState();
 }

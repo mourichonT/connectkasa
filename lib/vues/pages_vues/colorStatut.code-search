@@ -1,0 +1,303 @@
+# Query: colorStatut
+# Flags: CaseSensitive WordMatch
+# ContextLines: 1
+
+87 results - 19 files
+
+lib\controllers\features\line_interaction.dart:
+   7  Widget IteractionLine(
+   8:     Post post, String residence, String uid, ColorScheme colorStatut) {
+   9    return Column(
+
+  18              uid: uid,
+  19:             colorIcon: colorStatut,
+  20            ),
+
+  24                uid: uid,
+  25:               colorIcon: colorStatut),
+  26            ShareButton(
+  27              post: post,
+  28:             //colorIcon: colorStatut,
+  29            ),
+
+lib\controllers\pages_controllers\sinitres_tile_controller.dart:
+  13    final String uid;
+  14:   final ColorScheme colorStatut;
+  15    final Function()? updatePostsList;
+
+  22        required this.uid,
+  23:       required this.colorStatut,
+  24        required this.updatePostsList,
+
+  62            SinistreTile(widget.post, widget.residenceId, widget.uid,
+  63:               widget.canModify, widget.colorStatut, widget.updatePostsList),
+  64            if (showSignalement && postCount != 0)
+
+  90                                    widget.canModify,
+  91:                                   widget.colorStatut,
+  92                                    widget.updatePostsList);
+
+lib\vues\pages_vues\annonce_page_details.dart:
+   20    final String residence;
+   21:   final ColorScheme colorStatut;
+   22    final double? scrollController;
+
+   29      required this.residence,
+   30:     required this.colorStatut,
+   31      this.scrollController,
+
+  291                                                  residence: widget.residence,
+  292:                                                 colorStatut: widget.colorStatut,
+  293                                                  scrollController:
+
+lib\vues\pages_vues\annonce_tile.dart:
+  16    final bool canModify;
+  17:   final ColorScheme colorStatut;
+  18    final double scrollController;
+
+  20    AnnonceTile(this.post, this.residence, this.uid, this.canModify,
+  21:       this.colorStatut, this.scrollController);
+  22  
+
+  86                      residence: widget.residence,
+  87:                     colorStatut: widget.colorStatut,
+  88                      scrollController: widget.scrollController,
+
+lib\vues\pages_vues\event_page_details.dart:
+   14    final String residence;
+   15:   final ColorScheme colorStatut;
+   16    final double scrollController;
+
+   23      required this.residence,
+   24:     required this.colorStatut,
+   25      required this.scrollController,
+
+  253                  child: IteractionLine(widget.post, widget.residence, widget.uid,
+  254:                     widget.colorStatut))
+  255            ],
+
+lib\vues\pages_vues\event_tile.dart:
+   24    final bool canModify;
+   25:   final ColorScheme colorStatut;
+   26    final Function()? updatePostsList;
+
+   28    EventTile(this.post, this.residenceId, this.uid, this.canModify,
+   29:       this.colorStatut, this.updatePostsList);
+   30  
+
+  114                            post: _event!,
+  115:                           colorStatut: widget.colorStatut,
+  116                            scrollController: 0.0,
+
+lib\vues\pages_vues\my_nav_bar.dart:
+   55    Widget build(BuildContext context) {
+   56:     final ColorScheme colorStatut = Theme.of(context).colorScheme;
+   57      final double width = MediaQuery.of(context).size.width;
+
+  128              upDatescrollController: widget.scrollController,
+  129:             colorStatut: colorStatut,
+  130            ),
+
+  134              uid: uid,
+  135:             colorStatut: colorStatut,
+  136              argument1: "sinistres",
+
+  143              type: "events",
+  144:             colorStatut: colorStatut,
+  145            ),
+
+  150              type: "annonces",
+  151:             colorStatut: colorStatut,
+  152              scrollController: widget.scrollController ?? 00,
+
+  158              uid: uid,
+  159:             colorStatut: colorStatut,
+  160            ),
+
+  164          uid: widget.uid,
+  165:         color: colorStatut,
+  166        ),
+
+lib\vues\pages_vues\sinistre_tile.dart:
+   23    final bool canModify;
+   24:   final ColorScheme colorStatut;
+   25    final Function()? updatePostsList;
+
+   27    SinistreTile(this.post, this.residenceId, this.uid, this.canModify,
+   28:       this.colorStatut, this.updatePostsList);
+   29  
+
+  122                                  residence: widget.residenceId,
+  123:                                 colorStatut: widget.colorStatut,
+  124                                ),
+
+lib\vues\pages_vues\pages_tabs\annonces_page_view.dart:
+   20    final String? type;
+   21:   final ColorScheme colorStatut;
+   22    final double scrollController;
+
+   28      this.type,
+   29:     required this.colorStatut,
+   30      required this.scrollController,
+
+  190                                        false,
+  191:                                       widget.colorStatut,
+  192                                        widget.scrollController),
+
+  242                                            true,
+  243:                                           widget.colorStatut,
+  244                                            updatePostsList),
+
+lib\vues\pages_vues\pages_tabs\event_page_view.dart:
+   18    final String uid;
+   19:   final ColorScheme colorStatut;
+   20    final String? type;
+
+   25      required this.uid,
+   26:     required this.colorStatut,
+   27      this.type,
+
+  134                                residence: widget.residenceSelected,
+  135:                               colorStatut: widget.colorStatut,
+  136                                scrollController: 0.0,
+
+  216                        fontSize: SizeFont.h3.size,
+  217:                       color: widget.colorStatut),
+  218                    weekdayStyle: TextStyle(
+
+  233                    markerDecoration: BoxDecoration(
+  234:                       color: widget.colorStatut, shape: BoxShape.circle),
+  235                    todayDecoration: BoxDecoration(
+
+  310                                    residence: widget.residenceSelected,
+  311:                                   colorStatut: widget.colorStatut,
+  312                                    scrollController: 0.0,
+
+lib\vues\pages_vues\pages_tabs\home_view.dart:
+   15    double? upDatescrollController;
+   16:   ColorScheme colorStatut;
+   17  
+
+   22        this.upDatescrollController,
+   23:       required this.colorStatut});
+   24  
+
+   32    late Future<List<Post>> _allPostsFuture;
+   33:   //late ColorScheme colorStatut = Theme.of(context).primaryColor;
+   34    final GlobalKey _scrollKey = GlobalKey();
+
+  101                            residenceSelected: widget.residenceSelected,
+  102:                           colorStatut: widget.colorStatut,
+  103                            scrollController: scrollPosition,
+
+  109                            residenceSelected: widget.residenceSelected,
+  110:                           colorStatut: widget.colorStatut,
+  111                            scrollController: scrollPosition,
+
+  117                            residenceSelected: widget.residenceSelected,
+  118:                           colorStatut: widget.colorStatut,
+  119                            scrollController: scrollPosition,
+
+lib\vues\pages_vues\pages_tabs\my_docs.dart:
+  11    final String uid;
+  12:   final ColorScheme colorStatut;
+  13  
+
+  17        required this.uid,
+  18:       required this.colorStatut,
+  19        required this.lotSelected});
+
+lib\vues\pages_vues\pages_tabs\sinistres_page_view.dart:
+   13    final String uid;
+   14:   final ColorScheme colorStatut;
+   15    final String? argument1;
+
+   22      required this.uid,
+   23:     required this.colorStatut,
+   24      this.argument1,
+
+  177                                  uid: widget.uid,
+  178:                                 colorStatut: widget.colorStatut,
+  179                                  canModify: false,
+
+  219                                      true,
+  220:                                     widget.colorStatut,
+  221                                      updatePostsList,
+
+lib\vues\widget_view\annonce_widget.dart:
+  22    final String residenceSelected;
+  23:   final ColorScheme colorStatut;
+  24    final double scrollController;
+
+  29        required this.residenceSelected,
+  30:       required this.colorStatut,
+  31        required this.scrollController,
+
+  96                        residence: widget.residenceSelected,
+  97:                       colorStatut: widget.colorStatut,
+  98                        scrollController: widget.scrollController,
+
+lib\vues\widget_view\asking_neighbors_widget.dart:
+   18    final String residenceSelected;
+   19:   final ColorScheme colorStatut;
+   20    final double scrollController;
+
+   26        required this.residenceSelected,
+   27:       required this.colorStatut,
+   28        required this.scrollController});
+
+  189              IteractionLine(widget.post, widget.residenceSelected, widget.uid,
+  190:                 widget.colorStatut)
+  191            ],
+
+lib\vues\widget_view\comment_tile.dart:
+   62    Widget build(BuildContext context) {
+   63:     //ColorSchemecolorStatut = Theme.of(context).primaryColor;
+   64      return Column(
+
+   97    Widget _buildCommentTile(Comment comment) {
+   98:    ColorScheme colorStatut = Theme.of(context).primaryColor;
+   99      return Padding(
+
+  185              postId: widget.postId,
+  186:             color: colorStatut,
+  187            ),
+
+lib\vues\widget_view\event_widget.dart:
+   18    final String residenceSelected;
+   19:   final ColorScheme colorStatut;
+   20    final double scrollController;
+
+   25      required this.residenceSelected,
+   26:     required this.colorStatut,
+   27      required this.scrollController,
+
+   95                      residence: widget.residenceSelected,
+   96:                     colorStatut: widget.colorStatut,
+   97                      scrollController: widget.scrollController,
+
+  117              IteractionLine(widget.post, widget.residenceSelected, widget.uid,
+  118:                 widget.colorStatut)
+  119            ],
+
+lib\vues\widget_view\message_user_tile.dart:
+  37    Widget build(BuildContext context) {
+  38:     //Color colorStatut = Theme.of(context).primaryColor;
+  39      return Row(
+
+lib\vues\widget_view\post_widget.dart:
+   60    Widget build(BuildContext context) {
+   61:     ColorScheme colorStatut = Theme.of(context).primaryColor;
+   62      double width = MediaQuery.of(context).size.width;
+
+   92                      child:
+   93:                         MyTextStyle.statuColor(widget.post.statu!, colorStatut),
+   94                    ),
+
+  125                                indicatorBackgroundColor: Colors.black12,
+  126:                               currentIndicatorColor: colorStatut,
+  127                              ),
+
+  206              IteractionLine(
+  207:                 widget.post, widget.residence, widget.uid, colorStatut)
+  208            ],

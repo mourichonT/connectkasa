@@ -8,8 +8,10 @@ import '../../models/pages_models/lot.dart';
 class LotTileView extends StatefulWidget {
   final Lot lot;
   final String uid;
+  final bool toShow;
 
-  const LotTileView({super.key, required this.lot, required this.uid});
+  const LotTileView(
+      {super.key, required this.lot, required this.uid, required this.toShow});
 
   @override
   _LotTileViewState createState() => _LotTileViewState();
@@ -35,45 +37,64 @@ class _LotTileViewState extends State<LotTileView> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      //crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.start,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          padding: const EdgeInsets.only(right: 15),
-          child: const Icon(Icons.home_work_outlined, size: 30),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        Row(
+          //crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Row(children: [
-              MyTextStyle.lotName(
-                  isProprietaire ? showNameLotProp : showNameLotLoc,
-                  Colors.black87,
-                  SizeFont.h2.size),
-              Container(padding: const EdgeInsets.only(left: 2)),
-            ]),
-            Row(
-              children: [
-                MyTextStyle.lotDesc(
-                    widget.lot.residenceData["numero"] ?? "N/A", 14),
-                Container(padding: const EdgeInsets.only(left: 2)),
-                MyTextStyle.lotDesc(
-                    widget.lot.residenceData["street"] ?? "N/A", 14),
-                Container(padding: const EdgeInsets.only(left: 2)),
-              ],
+            Container(
+              padding: const EdgeInsets.only(right: 15),
+              child: const Icon(Icons.home_work_outlined, size: 30),
             ),
-            Row(
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MyTextStyle.lotDesc(
-                    widget.lot.residenceData["zipCode"] ?? "N/A", 14),
-                Container(padding: const EdgeInsets.only(left: 2)),
-                MyTextStyle.lotDesc(
-                    widget.lot.residenceData["city"] ?? "N/A", 14),
+                Row(children: [
+                  MyTextStyle.lotName(
+                      isProprietaire ? showNameLotProp : showNameLotLoc,
+                      Colors.black87,
+                      SizeFont.h2.size),
+                  Container(padding: const EdgeInsets.only(left: 2)),
+                ]),
+                Row(
+                  children: [
+                    MyTextStyle.lotDesc(
+                        widget.lot.residenceData["numero"] ?? "N/A", 14),
+                    Container(padding: const EdgeInsets.only(left: 2)),
+                    MyTextStyle.lotDesc(
+                        widget.lot.residenceData["street"] ?? "N/A", 14),
+                    Container(padding: const EdgeInsets.only(left: 2)),
+                  ],
+                ),
+                Row(
+                  children: [
+                    MyTextStyle.lotDesc(
+                        widget.lot.residenceData["zipCode"] ?? "N/A", 14),
+                    Container(padding: const EdgeInsets.only(left: 2)),
+                    MyTextStyle.lotDesc(
+                        widget.lot.residenceData["city"] ?? "N/A", 14),
+                  ],
+                ),
               ],
             ),
           ],
         ),
+        if (widget.toShow)
+          CircleAvatar(
+            backgroundColor: Color(
+                int.parse(widget.lot.colorSelected.substring(2), radix: 16) +
+                    0xFF000000),
+            // Utilisation de la couleur primaire du thème
+            radius: 13, // Rayon du cercle
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle, // Définir la forme comme un cercle
+              ),
+            ),
+          ),
       ],
     );
   }

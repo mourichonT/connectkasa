@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
+import 'package:flutter/material.dart';
 
 class DataBasesLotServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -152,5 +153,44 @@ class DataBasesLotServices {
     }
 
     return count; // Retourner le nombre de locataires
+  }
+
+  Future<void> updateLotColor(
+      String residenceId, String refLot, Color newColor) async {
+    try {
+      // Récupérer la référence du lot à mettre à jour
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("lot")
+          .where('refLot', isEqualTo: refLot)
+          .get();
+
+      // Vérifier si un document correspondant a été trouvé
+      if (querySnapshot.docs.isNotEmpty) {
+        // Récupérer la référence du document du lot
+        DocumentReference lotRef = querySnapshot.docs[0].reference;
+
+        // Extraire le code hexadécimal de la couleur
+        String hexColor = extractHexFromColor(newColor);
+
+        // Mettre à jour le champ colorSelected du document
+        await lotRef.update({
+          'colorSelected': hexColor,
+        });
+
+        print('Couleur $hexColor du lot $refLot mise à jour avec succès.');
+      } else {
+        print(
+            'Aucun lot trouvé avec la référence $refLot dans la résidence $residenceId.');
+      }
+    } catch (e) {
+      print('Erreur lors de la mise à jour de la couleur du lot $refLot : $e');
+      throw e; // Vous pouvez gérer l'erreur comme nécessaire
+    }
+  }
+
+  String extractHexFromColor(Color color) {
+    return color.value.toRadixString(16).padLeft(8, '0');
   }
 }
