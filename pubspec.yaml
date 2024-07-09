@@ -93,6 +93,25 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
+     - images/assets/logo_by_colors/logoRouge204.51.51.png
+     - images/assets/logo_by_colors/logoRouge255.102.102.png
+     - images/assets/logo_by_colors/logoRouge255.153.153.png
+     - images/assets/logo_by_colors/logoOrange255.153.51.png
+     - images/assets/logo_by_colors/logoOrange255.187.102.png
+     - images/assets/logo_by_colors/logoOrange255.204.153.png
+     - images/assets/logo_by_colors/logoVert72.119.91.png
+     - images/assets/logo_by_colors/logoVert102.153.122.png
+     - images/assets/logo_by_colors/logoVert132.170.143.png
+     - images/assets/logo_by_colors/logoVert132.170.143.png
+     - images/assets/logo_by_colors/logoBleue0.51.102.png
+     - images/assets/logo_by_colors/logoBleue51.102.153.png
+     - images/assets/logo_by_colors/logoBleue102.153.204.png
+     - images/assets/logo_by_colors/logoPourpre102.51.102.png
+     - images/assets/logo_by_colors/logoPourpre153.102.153.png
+     - images/assets/logo_by_colors/logoPourpre204.153.204.png
+     - images/assets/logo_by_colors/logoRose255.153.187.png
+     - images/assets/logo_by_colors/logoRose255.102.153.png
+     - images/assets/logo_by_colors/logoRose255.204.229.png
      - images/assets/logoCK.png
      - images/assets/logoCK250connectKasa.png
      - images/assets/logoCKvertconnectKasa.png

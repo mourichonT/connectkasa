@@ -47,6 +47,7 @@ class SelectLotComponentState extends State<SelectLotComponent> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     LotTileView(
+                      toShow: false,
                       lot: preferedLot!,
                       uid: widget.uid,
                     ),

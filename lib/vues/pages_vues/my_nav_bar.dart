@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'package:connect_kasa/controllers/providers/color_provider.dart';
+import 'package:connect_kasa/controllers/widgets_controllers/set_logo_color.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart'
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/my_docs.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page_modify.dart';
+import 'package:provider/provider.dart';
 import '../../models/pages_models/lot.dart';
 import '../../controllers/pages_controllers/my_tab_bar_controller.dart';
 import '../widget_view/select_lot_component.dart';
@@ -72,7 +75,7 @@ class _MyNavBarState extends State<MyNavBar>
         title: Padding(
           padding: const EdgeInsets.only(top: 5, bottom: 5),
           child: Image.asset(
-            "images/assets/logoCK250connectKasa.png",
+            SetLogoColor.getLogoPath(Theme.of(context).primaryColor),
             width: width / 2.3,
             fit: BoxFit.fitWidth,
           ),
@@ -175,6 +178,7 @@ class _MyNavBarState extends State<MyNavBar>
               idProprietaire: [],
               residenceId: "",
               residenceData: {},
+              colorSelected: "",
             ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -218,13 +222,16 @@ class _MyNavBarState extends State<MyNavBar>
   }
 
   Future<void> _loadPreferedLot() async {
-    if (preferedLot != null) {}
     preferedLot = await _loadPreferedData.loadPreferedLot(preferedLot);
-    setState(() {});
+    if (preferedLot != null) {
+      context.read<ColorProvider>().updateColor(preferedLot!.colorSelected);
+      setState(() {});
+    }
   }
 
   void _showLotBottomSheet(BuildContext context, String uid) {
     showModalBottomSheet(
+      backgroundColor: Colors.white,
       context: context,
       builder: (BuildContext context) {
         return LotBottomSheet(

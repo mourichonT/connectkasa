@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class Lot {
   String _nameProp = "";
   String _nameLoc = "";
@@ -5,7 +7,7 @@ class Lot {
   String? batiment;
   String? lot;
   String typeLot;
-  //Color colorSelected; // Modifier le type de colorSelected
+  String colorSelected; // Attribut de type Color
   String? refGerance;
   String type;
   List<String>? idProprietaire;
@@ -20,7 +22,7 @@ class Lot {
     this.batiment,
     this.lot,
     required this.typeLot,
-    // required this.colorSelected,
+    required this.colorSelected,
     this.refGerance,
     required this.type,
     required this.idProprietaire,
@@ -35,23 +37,23 @@ class Lot {
       nameProp: json["nameProp"] ?? "",
       nameLoc: json["nameLoc"] ?? "",
       refLot: json["refLot"] ?? "",
-      batiment: json["batiment"] ?? "",
-      lot: json["lot"] ?? "",
+      batiment: json["batiment"],
+      lot: json["lot"],
       typeLot: json["typeLot"] ?? "",
+      colorSelected: json["colorSelected"], // Convertir en Color
+      refGerance: json["refGerance"],
       type: json["type"] ?? "",
-      refGerance: json["refGerance"] ?? "",
       idProprietaire:
           json["idProprietaire"] != null && json["idProprietaire"] is List
               ? List<String>.from(json["idProprietaire"])
-              : null,
+              : [],
       idLocataire: json["idLocataire"] != null && json["idLocataire"] is List
           ? List<String>.from(json["idLocataire"])
           : null,
-
       residenceId: json["residenceId"] ?? "",
       residenceData: json["residenceData"] != null
           ? Map<String, dynamic>.from(json["residenceData"])
-          : {}, // Par défaut, initialiser residenceData avec un objet vide
+          : {},
     );
   }
 
@@ -60,17 +62,16 @@ class Lot {
       "nameProp": nameProp,
       "nameLoc": nameLoc,
       "refLot": refLot,
-      "refGerance": refGerance,
       "batiment": batiment,
       "lot": lot,
       "typeLot": typeLot,
-      //"colorSelected": colorSelected.value, // Utiliser value pour obtenir la valeur de la couleur
+      "colorSelected": colorSelected, // Convertir en valeur pour le JSON
+      "refGerance": refGerance,
       "type": type,
       "idProprietaire": idProprietaire,
       "idLocataire": idLocataire,
       "residenceId": residenceId,
-      "residenceData":
-          residenceData, // Ajouter residenceData lors de la conversion en JSON
+      "residenceData": residenceData,
     };
   }
 
@@ -119,14 +120,12 @@ class Lot {
       if (batiment != null) "batiment": batiment,
       if (lot != null) "lot": lot,
       "typeLot": typeLot,
-      //if (colorSelected != null) "colorSelected": colorSelected.value,
+      "colorSelected": colorSelected, // Convertir en valeur pour Firestore
       if (type.isNotEmpty) "type": type,
       if (idProprietaire != null) "idProprietaire": idProprietaire,
       if (idLocataire != null) "idLocataire": idLocataire,
       "residenceId": residenceId,
-
-      "residenceData":
-          residenceData, // Ajouter residenceData lors de l'envoi à Firestore
+      "residenceData": residenceData,
     };
   }
 
@@ -137,14 +136,16 @@ class Lot {
       refLot: map['refLot'] ?? "",
       batiment: map['batiment'],
       lot: map['lot'],
-      typeLot: map['typeLot'],
+      typeLot: map['typeLot'] ?? "",
+      colorSelected: map['colorSelected'], // Convertir en Color
       refGerance: map["refGerance"],
-      //colorSelected: Color(map['colorSelected']), // Utiliser Color au lieu de MaterialColor
       type: map['type'] ?? "",
       idProprietaire: List<String>.from(map['idProprietaire'] ?? []),
       idLocataire: List<String>.from(map['idLocataire'] ?? []),
       residenceId: map["residenceId"] ?? "",
-      residenceData: {}, // Par défaut, initialiser residenceData avec un objet vide
+      residenceData: map["residenceData"] != null
+          ? Map<String, dynamic>.from(map["residenceData"])
+          : {},
     );
   }
 }
