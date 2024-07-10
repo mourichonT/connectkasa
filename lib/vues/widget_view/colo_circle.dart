@@ -8,6 +8,8 @@ class ColorCircle extends StatelessWidget {
   final Color color;
   final String residenceId;
   final String refLot;
+  final String refLotSelected;
+  final Function(Color)? onColorSelected;
 
   static int _tagCounter = 0;
 
@@ -15,6 +17,8 @@ class ColorCircle extends StatelessWidget {
     required this.color,
     required this.residenceId,
     required this.refLot,
+    required this.refLotSelected,
+    this.onColorSelected,
   });
 
   @override
@@ -27,9 +31,15 @@ class ColorCircle extends StatelessWidget {
         // Mettre à jour la couleur dans la base de données
         databaseService.updateLotColor(residenceId, refLot, color);
         // Mettre à jour la couleur dans ColorProvider
-        context
-            .read<ColorProvider>()
-            .updateColor(color.value.toRadixString(16).padLeft(8, '0'));
+        if (refLot == refLotSelected) {
+          context
+              .read<ColorProvider>()
+              .updateColor(color.value.toRadixString(16).padLeft(8, '0'));
+        }
+        // Appeler le callback pour notifier le parent
+        if (onColorSelected != null) {
+          onColorSelected!(color);
+        }
       },
       backgroundColor: color,
       heroTag: heroTag,

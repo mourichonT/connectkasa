@@ -60,7 +60,6 @@ class PostFormState extends State<PostForm> {
         child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Column(children: [
-        const Divider(),
         Column(
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.max,
@@ -127,6 +126,11 @@ class PostFormState extends State<PostForm> {
               return ChoiceChip(
                 label: Text(itemElement),
                 selected: selectedDeclaration == itemElement,
+                side: BorderSide(
+                  color: Colors
+                      .black12, // Changez `Colors.blue` et `Colors.grey` selon vos besoins
+                  width: 1.0, // Changez la largeur de la bordure si nécessaire
+                ),
                 onSelected: (bool selected) {
                   setState(() {
                     if (selected) {

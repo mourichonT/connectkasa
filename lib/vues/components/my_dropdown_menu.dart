@@ -46,7 +46,10 @@ class MyDropDownMenuState extends State<MyDropDownMenu> {
             },
             dropdownMenuEntries:
                 widget.items.map<DropdownMenuEntry<String>>((String value) {
-              return DropdownMenuEntry<String>(value: value, label: value);
+              return DropdownMenuEntry<String>(
+                value: value,
+                label: value,
+              );
             }).toList(),
             width: widget.width / 1.8,
           )

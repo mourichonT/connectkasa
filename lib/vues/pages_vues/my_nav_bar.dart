@@ -162,6 +162,7 @@ class _MyNavBarState extends State<MyNavBar>
         ],
       ),
       endDrawer: ProfilPage(
+        refLot: preferedLot?.refLot ?? "",
         uid: widget.uid,
         color: colorStatut,
       ),
