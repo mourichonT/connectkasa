@@ -21,11 +21,13 @@ import 'package:firebase_auth/firebase_auth.dart'
 class ProfilPage extends StatefulWidget {
   final String uid;
   final Color color;
+  final String refLot;
 
   const ProfilPage({
     super.key,
     required this.uid,
     required this.color,
+    required this.refLot,
   });
 
   @override
@@ -212,6 +214,7 @@ class _ProfilPageState extends State<ProfilPage> {
                                   context,
                                   CupertinoPageRoute(
                                       builder: (context) => ManagementProperty(
+                                            refLot: widget.refLot,
                                             uid: widget.uid,
                                             lotByUser: _lotByUser,
                                             color: widget.color,

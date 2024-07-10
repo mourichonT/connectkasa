@@ -4,19 +4,20 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/colo_circle.dart';
 import 'package:connect_kasa/vues/widget_view/color_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ModifyProperty extends StatefulWidget {
   final Lot lot;
+  final String refLotSelected;
   final String uid;
 
   const ModifyProperty({
     Key? key,
     required this.lot,
     required this.uid,
+    required this.refLotSelected,
   }) : super(key: key);
 
   @override
@@ -28,6 +29,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
 
   TextEditingController name = TextEditingController();
   String? selectedStatut;
+  late Color _backgroundColor;
 
   FocusNode nameFocusNode = FocusNode();
 
@@ -69,7 +71,13 @@ class ModifyPropertyState extends State<ModifyProperty> {
                     CupertinoPageRoute(
                         builder: (context) => ColorView(
                               residenceId: widget.lot.residenceId,
-                              refLot: widget.lot.refLot,
+                              lot: widget.lot,
+                              refLotSelected: widget.refLotSelected,
+                              onColorSelected: (color) {
+                                setState(() {
+                                  _backgroundColor = color;
+                                });
+                              },
                             )));
               },
               child: Padding(
@@ -80,8 +88,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                     Row(
                       children: [
                         CircleAvatar(
-                          backgroundColor: Theme.of(context)
-                              .primaryColor, // Utilisation de la couleur primaire du thème
+                          backgroundColor: _backgroundColor,
                           radius: 10, // Rayon du cercle
                           child: Container(
                             decoration: BoxDecoration(
@@ -312,8 +319,11 @@ class ModifyPropertyState extends State<ModifyProperty> {
   _loadProperty() {
     name.text = widget.lot.nameProp == "" || widget.lot.nameProp == null
         ? 'Définissez un nom pour votre bien.'
-        : widget.lot.nameProp!;
+        : widget.lot.nameProp;
     selectedStatut = widget.lot.type;
+    _backgroundColor = Color(
+        int.parse(widget.lot.colorSelected.substring(2), radix: 16) +
+            0xFF000000);
     setState(() {});
   }
 }

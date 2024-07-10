@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/colo_circle.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,10 +8,13 @@ import 'package:connect_kasa/controllers/features/color_controller.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/models/enum/tab_bar_icon.dart';
 
-class ColorView extends StatelessWidget {
-  IconTabBar iconTabBar = IconTabBar();
+class ColorView extends StatefulWidget {
   final String residenceId;
-  final String refLot;
+  final Lot lot;
+  final String refLotSelected;
+  final Function(Color) onColorSelected;
+
+  IconTabBar iconTabBar = IconTabBar();
   final ColorController defaultColor = const ColorController();
   List<Color> customColors = [
     // Rouges
@@ -43,13 +47,41 @@ class ColorView extends StatelessWidget {
     Color.fromRGBO(255, 204, 229, 1), // Rose clair
   ];
 
-  ColorView({super.key, required this.residenceId, required this.refLot});
+  ColorView({
+    super.key,
+    required this.residenceId,
+    required this.lot,
+    required this.refLotSelected,
+    required this.onColorSelected,
+  });
+
+  @override
+  _ColorViewState createState() => _ColorViewState();
+}
+
+class _ColorViewState extends State<ColorView> {
+  late Color _selectedColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedColor = Color(
+        int.parse(widget.lot.colorSelected.substring(2), radix: 16) +
+            0xFF000000);
+  }
+
+  void _updateSelectedColor(Color newColor) {
+    setState(() {
+      _selectedColor = newColor;
+    });
+    widget.onColorSelected(newColor);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: MyTextStyle.lotName('Définir une couloeur pour le lot',
+        title: MyTextStyle.lotName('Définir une couleur pour le lot',
             Colors.black87, SizeFont.h1.size),
         // Ajoute d'autres actions d'app bar si nécessaire
       ),
@@ -66,9 +98,10 @@ class ColorView extends StatelessWidget {
                   width: 40.0, // Ajustez la largeur comme nécessaire
                   height: 40.0, // Ajustez la hauteur comme nécessaire
                   child: ColorCircle(
+                    refLotSelected: widget.refLotSelected,
+                    refLot: widget.lot.refLot,
                     color: const Color.fromRGBO(72, 119, 91, 1),
-                    residenceId: residenceId,
-                    refLot: refLot,
+                    residenceId: widget.residenceId,
                   ),
                 ),
                 const Text("Couleur choisie:"),
@@ -77,9 +110,10 @@ class ColorView extends StatelessWidget {
                   height: 40.0, // Ajustez la hauteur comme nécessaire
                   child: Center(
                     child: ColorCircle(
-                      color: context.watch<ColorProvider>().color,
-                      residenceId: residenceId,
-                      refLot: refLot,
+                      refLotSelected: widget.refLotSelected,
+                      color: _selectedColor,
+                      residenceId: widget.residenceId,
+                      refLot: widget.lot.refLot,
                     ),
                   ),
                 ),
@@ -88,16 +122,18 @@ class ColorView extends StatelessWidget {
             const Divider(),
             Expanded(
               child: GridView.builder(
-                itemCount: customColors.length,
+                itemCount: widget.customColors.length,
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 3,
                 ),
                 itemBuilder: (context, index) {
                   return Center(
                     child: ColorCircle(
-                      residenceId: residenceId,
-                      refLot: refLot,
-                      color: customColors[index],
+                      refLotSelected: widget.refLotSelected,
+                      residenceId: widget.residenceId,
+                      refLot: widget.lot.refLot,
+                      color: widget.customColors[index],
+                      onColorSelected: _updateSelectedColor,
                     ),
                   );
                 },

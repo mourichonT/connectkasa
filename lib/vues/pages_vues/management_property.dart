@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 class ManagementProperty extends StatefulWidget {
   final String uid;
   final Future<List<Lot?>> lotByUser;
+  final String refLot;
   final Color color;
 
   const ManagementProperty(
@@ -16,7 +17,7 @@ class ManagementProperty extends StatefulWidget {
       required this.lotByUser,
       required this.color,
       required this.uid,
-      d});
+      required this.refLot});
   @override
   ManagementPropertyState createState() => ManagementPropertyState();
 }
@@ -53,6 +54,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
                           context,
                           CupertinoPageRoute(
                               builder: (context) => ModifyProperty(
+                                    refLotSelected: widget.refLot,
                                     lot: lot!,
                                     uid: widget.uid,
                                   )));
@@ -97,7 +99,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
           child: ButtonAdd(
               function: () {},
               text: "Rattacher un lot",
-              color: widget.color,
+              color: Theme.of(context).primaryColor,
               horizontal: 30,
               vertical: 10,
               size: SizeFont.h3.size),

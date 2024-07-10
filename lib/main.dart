@@ -3,6 +3,7 @@ import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/rendering.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
@@ -44,14 +45,22 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
+            tabBarTheme:
+                TabBarTheme(dividerColor: Colors.black38, dividerHeight: 0.5),
+            dividerTheme: DividerThemeData(
+              color: Colors.black38, // Couleur principale du diviseur
+              thickness: 0.5, // Épaisseur du diviseur
+              space: 20, // Espace entre les diviseurs
+            ),
             colorScheme: ColorScheme.light(
+              outline: Colors.black26,
               primary: colorProvider.color,
               secondary: colorProvider.color,
-              surface: colorProvider.color.withOpacity(0.1),
+              surface: Colors.white,
               error: Colors.red,
               onPrimary: Colors.white,
               onSecondary: Colors.white,
-              onSurface: Colors.black,
+              onSurface: const Color.fromARGB(221, 52, 52, 52),
               onError: Colors.white,
             ),
             useMaterial3: true,
