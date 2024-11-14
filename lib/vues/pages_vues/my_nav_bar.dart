@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/set_logo_color.dart';
+import 'package:connect_kasa/models/enum/set_logo_color.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page.dart';
 import 'package:flutter/material.dart';

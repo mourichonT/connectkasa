@@ -127,7 +127,7 @@ class LoginPageView extends StatelessWidget {
                           context: context,
                           firestore: firestore,
                           loadUserController: _loadUserController,
-                        ).LogInWithGoogle();
+                        ).fluttLogInWithGoogle();
                       },
                       child: CircleAvatar(
                         backgroundColor: Colors.black12,

@@ -305,7 +305,7 @@ class EventPageViewState extends State<EventPageView>
                               Navigator.of(context).push(CupertinoPageRoute(
                                 builder: (context) => EventPageDetails(
                                   returnHomePage: false,
-                                  post: updatedPost!,
+                                  post: post,
                                   uid: widget.uid,
                                   residence: widget.residenceSelected,
                                   colorStatut: widget.colorStatut,

@@ -4,19 +4,17 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_prop_details.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_prop_info_loc.dart';
 import 'package:connect_kasa/vues/widget_view/color_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class ModifyProperty extends StatefulWidget {
+class ModifyPropDetails extends StatefulWidget {
   final Lot lot;
   final String refLotSelected;
   final String uid;
 
-  const ModifyProperty({
+  const ModifyPropDetails({
     Key? key,
     required this.lot,
     required this.uid,
@@ -24,10 +22,10 @@ class ModifyProperty extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => ModifyPropertyState();
+  State<StatefulWidget> createState() => ModifyPropDetailsState();
 }
 
-class ModifyPropertyState extends State<ModifyProperty> {
+class ModifyPropDetailsState extends State<ModifyPropDetails> {
   DataBasesLotServices lotServices = DataBasesLotServices();
 
   TextEditingController name = TextEditingController();
@@ -81,155 +79,18 @@ class ModifyPropertyState extends State<ModifyProperty> {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
           children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  MyTextStyle.lotDesc(
-                      "Paramètres", SizeFont.h2.size, FontStyle.italic),
-                ],
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                        builder: (context) => ColorView(
-                              residenceId: widget.lot.residenceId,
-                              lot: widget.lot,
-                              refLotSelected: widget.refLotSelected,
-                              onColorSelected: (color) {
-                                setState(() {
-                                  _backgroundColor = color;
-                                });
-                              },
-                            )));
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(top: 25, bottom: 1),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: _backgroundColor,
-                          radius: 10, // Rayon du cercle
-                          child: Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape
-                                  .circle, // Définir la forme comme un cercle
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15),
-                          child: Text(
-                            "Couleur du bien",
-                            style: TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w400,
-                                fontSize: SizeFont.h3.size),
-                          ),
-                        ),
-                      ],
-                    ),
-                    Icon(
-                      Icons.arrow_right_outlined,
-                      size: 30,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Divider(),
-            _buildModifyTextField("Donner un nom à votre bien", 'Nom', name,
-                nameFocusNode, isProprietaire ? 'nameProp' : 'nameLoc'),
-            Padding(
-              padding: const EdgeInsets.only(top: 30, bottom: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  MyTextStyle.lotDesc(
-                      "Informations", SizeFont.h2.size, FontStyle.italic),
-                ],
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                        builder: (context) => ModifyPropDetails(
-                              refLotSelected: widget.refLotSelected,
-                              lot: widget.lot!,
-                              uid: widget.uid,
-                            )));
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(top: 15, bottom: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Fiche du bien",
-                      style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w400,
-                          fontSize: SizeFont.h3.size),
-                    ),
-                    Icon(
-                      Icons.arrow_right_outlined,
-                      size: 30,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Divider(),
-            if (!widget.lot.idLocataire!.contains(widget.uid))
-              Visibility(
-                visible: selectedStatut == "Location longue durée" ||
-                    selectedStatut == "Location courte durée",
-                child: Column(
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                                builder: (context) => ModifyPropInfoLoc(
-                                      refLotSelected: widget.refLotSelected,
-                                      lot: widget.lot!,
-                                      uid: widget.uid,
-                                    )));
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 15, bottom: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Ma gestion locative",
-                              style: TextStyle(
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: SizeFont.h3.size),
-                            ),
-                            Icon(
-                              Icons.arrow_right_outlined,
-                              size: 30,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Divider(),
-                  ],
-                ),
-              ),
+            _buildReadOnlyTextField('Type', widget.lot.typeLot),
+            _buildReadOnlyTextField(
+                'Residence', widget.lot.residenceData['name']),
+            _buildReadOnlyTextField('Référence Lot', widget.lot.refLot),
+            _buildReadOnlyTextField('Bâtiment', widget.lot.batiment),
+            _buildReadOnlyTextField('Référence Lot', widget.lot.refLot),
+            _buildReadOnlyTextField('Lot', widget.lot.lot),
+            _buildReadOnlyTextField('Adresse',
+                "${widget.lot.residenceData["numero"]} ${widget.lot.residenceData["voie"]} ${widget.lot.residenceData["street"]}"),
+            _buildReadOnlyTextField(
+                'Code Postal', widget.lot.residenceData["zipCode"]),
+            _buildReadOnlyTextField('Ville', widget.lot.residenceData["city"]),
             SizedBox(
               height: 80,
             )
@@ -244,7 +105,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
         child: Center(
           child: ButtonAdd(
               function: () {},
-              text: "Supprimer",
+              text: "Demander une modification",
               color: Colors.black26,
               horizontal: 30,
               vertical: 10,

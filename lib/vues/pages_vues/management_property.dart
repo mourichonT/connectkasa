@@ -23,6 +23,14 @@ class ManagementProperty extends StatefulWidget {
 }
 
 class ManagementPropertyState extends State<ManagementProperty> {
+  late Color _backgroundColor;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,7 +55,9 @@ class ManagementPropertyState extends State<ManagementProperty> {
                 itemBuilder: (context, index) {
                   Lot? lot = snapshot.data![index];
                   bool loca = lot!.idLocataire!.contains(widget.uid);
-
+                  _backgroundColor = Color(
+                      int.parse(lot.colorSelected.substring(2), radix: 16) +
+                          0xFF000000);
                   return InkWell(
                     onTap: () {
                       Navigator.push(
@@ -60,6 +70,16 @@ class ManagementPropertyState extends State<ManagementProperty> {
                                   )));
                     },
                     child: ListTile(
+                      leading: CircleAvatar(
+                        backgroundColor: _backgroundColor,
+                        radius: 10, // Rayon du cercle
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape
+                                .circle, // Définir la forme comme un cercle
+                          ),
+                        ),
+                      ),
                       title: loca
                           ? MyTextStyle.lotName(
                               (lot.nameLoc != null && lot?.nameLoc != "")
@@ -75,6 +95,37 @@ class ManagementPropertyState extends State<ManagementProperty> {
                               Colors.black87,
                               SizeFont.h2.size,
                             ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              MyTextStyle.lotDesc(
+                                  lot.residenceData["numero"] ?? "N/A",
+                                  SizeFont.h3.size),
+                              Container(
+                                  padding: const EdgeInsets.only(left: 4)),
+                              MyTextStyle.lotDesc(
+                                  lot.residenceData["street"] ?? "N/A",
+                                  SizeFont.h3.size),
+                              Container(
+                                  padding: const EdgeInsets.only(left: 4)),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              MyTextStyle.lotDesc(
+                                  lot.residenceData["zipCode"] ?? "N/A",
+                                  SizeFont.h3.size),
+                              Container(
+                                  padding: const EdgeInsets.only(left: 4)),
+                              MyTextStyle.lotDesc(
+                                  lot.residenceData["city"] ?? "N/A",
+                                  SizeFont.h3.size),
+                            ],
+                          ),
+                        ],
+                      ),
                       trailing: Icon(
                         Icons.arrow_right_outlined,
                         size: 30,

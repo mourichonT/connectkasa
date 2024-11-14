@@ -114,17 +114,22 @@ class PostWidgetState extends State<PostWidget> {
                       SizedBox(
                         height: width, // Définir une hauteur fixe ou contrainte
                         child: FlutterCarousel(
-                          options: CarouselOptions(
+                          options: FlutterCarouselOptions(
                             viewportFraction: 1.0,
                             pageSnapping: true,
                             showIndicator: true,
                             floatingIndicator: true,
                             slideIndicator: CircularSlideIndicator(
-                              indicatorRadius: 5,
-                              itemSpacing: 11.0,
-                              indicatorBackgroundColor: Colors.black12,
-                              currentIndicatorColor: colorStatut,
-                            ),
+                                slideIndicatorOptions: SlideIndicatorOptions(
+                                    indicatorRadius: 5,
+                                    indicatorBackgroundColor: Colors.black12,
+                                    currentIndicatorColor: colorStatut,
+                                    itemSpacing: 13)
+                                // indicatorRadius: 5,
+                                // itemSpacing: 11.0,
+                                // indicatorBackgroundColor: Colors.black12,
+                                // currentIndicatorColor: colorStatut,
+                                ),
                           ),
                           items: signalements.map((postSelected) {
                             return InkWell(
