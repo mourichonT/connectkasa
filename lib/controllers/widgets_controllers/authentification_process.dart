@@ -20,7 +20,7 @@ class AuthentificationProcess {
 
   final DataBasesUserServices _userDataBases = DataBasesUserServices();
 
-  Future<Firebase.User?> LogInWithGoogle() async {
+  Future<Firebase.User?> fluttLogInWithGoogle() async {
     try {
       // Charger les données utilisateur
       await loadUserController.loadUserDataGoogle();

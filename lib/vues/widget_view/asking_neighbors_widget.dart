@@ -151,20 +151,21 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                             ? Row(
                                 children: [
                                   CircleAvatar(
-                                      radius: 22,
-                                      backgroundColor:
-                                          Theme.of(context).primaryColor,
-                                      child: CircleAvatar(
-                                        radius: 19,
-                                        backgroundColor: Colors.white,
-                                        child:
-                                            Icon(Icons.visibility_off_outlined),
-                                      )),
-                                  SizedBox(
-                                    width: 10,
+                                    radius: 22,
+                                    backgroundColor:
+                                        Theme.of(context).primaryColor,
+                                    child: CircleAvatar(
+                                      radius: 19,
+                                      backgroundColor: Colors.white,
+                                      child: Icon(Icons.visibility_off_outlined,
+                                          color: Colors
+                                              .black54 // Ajoutez la couleur de l'icône si nécessaire
+                                          ),
+                                    ),
                                   ),
-                                  MyTextStyle.lotName("Utilisteur Masqué",
-                                      Colors.black87, SizeFont.h2.size)
+                                  SizedBox(width: 10),
+                                  MyTextStyle.lotName("Utilisateur Masqué",
+                                      Colors.black87, SizeFont.h2.size),
                                 ],
                               )
                             : ProfilTile(widget.post.user, 22, 19, 22, true,

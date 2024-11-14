@@ -71,24 +71,28 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
                   List<Lot?> lots =
                       snapshot.data ?? []; // Accéder à la liste de lots
                   return SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.8,
+                    height: MediaQuery.of(context).size.height * 0.9,
                     child: ListView.builder(
                       itemCount: lots.length,
                       itemBuilder: (context, index) {
-                        return RadioListTile<int>(
-                          title: LotTileView(
-                            toShow: true,
-                            lot: lots[index]!,
-                            uid: widget.uid,
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 20.0, left: 10),
+                          child: RadioListTile<int>(
+                            contentPadding: EdgeInsets.zero,
+                            title: LotTileView(
+                              toShow: true,
+                              lot: lots[index]!,
+                              uid: widget.uid,
+                            ),
+                            value: index,
+                            groupValue: findLotInArray(lots),
+                            onChanged: (int? selectedLotIndex) {
+                              // Changement de type ici
+                              if (selectedLotIndex != null) {
+                                selectLot(selectedLotIndex, context);
+                              }
+                            },
                           ),
-                          value: index,
-                          groupValue: findLotInArray(lots),
-                          onChanged: (int? selectedLotIndex) {
-                            // Changement de type ici
-                            if (selectedLotIndex != null) {
-                              selectLot(selectedLotIndex, context);
-                            }
-                          },
                         );
                       },
                     ),

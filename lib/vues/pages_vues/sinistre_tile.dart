@@ -9,6 +9,7 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
+import 'package:connect_kasa/vues/pages_vues/communication_detail.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_annonceform.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_asking_neighbors_form.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_postform.dart';
@@ -85,51 +86,62 @@ class SinistreTileState extends State<SinistreTile> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => FutureBuilder<Post?>(
-                future:
-                    dbService.getUpdatePost(widget.residenceId, widget.post.id),
-                builder: (BuildContext context, AsyncSnapshot<Post?> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else {
-                    final postUpdated = snapshot.data;
-                    if (postUpdated != null) {
-                      return PopScope(
-                        onPopInvoked: (didPop) async {
-                          Post? postChanges = await dbService.getUpdatePost(
-                              widget.residenceId, widget.post.id);
+                builder: (context) => FutureBuilder<Post?>(
+                      future: dbService.getUpdatePost(
+                          widget.residenceId, widget.post.id),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<Post?> snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const CircularProgressIndicator();
+                        } else if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        } else {
+                          final postUpdated = snapshot.data;
+                          if (postUpdated != null) {
+                            return PopScope(
+                              onPopInvoked: (didPop) async {
+                                Post? postChanges =
+                                    await dbService.getUpdatePost(
+                                        widget.residenceId, widget.post.id);
 
-                          if (postChanges != null) {
-                            setState(() {
-                              widget.post = postChanges;
-                            });
+                                if (postChanges != null && mounted) {
+                                  setState(() {
+                                    widget.post = postChanges;
+                                  });
+                                }
+                              },
+                              child: Builder(builder: (context) {
+                                if (widget.post.type == "sinistres" &&
+                                    widget.post.type == "incivilites") {
+                                  return PostView(
+                                    postOrigin: widget.post,
+                                    residence: widget.residenceId,
+                                    uid: widget.uid,
+                                    postSelected: widget.post,
+                                    returnHomePage: false,
+                                  );
+                                } else if (widget.post.type ==
+                                    "communication") {
+                                  return CommunicationDetails(
+                                      uid: widget.uid, post: widget.post);
+                                } else {
+                                  return AnnoncePageDetails(
+                                    returnHomePage: false,
+                                    post: widget.post,
+                                    uid: widget.uid,
+                                    residence: widget.residenceId,
+                                    colorStatut: widget.colorStatut,
+                                  );
+                                }
+                              }),
+                            );
+                          } else {
+                            return const Text('No data available');
                           }
-                        },
-                        child: widget.post.type != "annonces"
-                            ? PostView(
-                                postOrigin: widget.post,
-                                residence: widget.residenceId,
-                                uid: widget.uid,
-                                postSelected: widget.post,
-                                returnHomePage: false,
-                              )
-                            : AnnoncePageDetails(
-                                returnHomePage: false,
-                                post: widget.post,
-                                uid: widget.uid,
-                                residence: widget.residenceId,
-                                colorStatut: widget.colorStatut,
-                              ),
-                      );
-                    } else {
-                      return const Text('No data available');
-                    }
-                  }
-                },
-              ),
-            ),
+                        }
+                      },
+                    )),
           );
         },
         child: Column(
