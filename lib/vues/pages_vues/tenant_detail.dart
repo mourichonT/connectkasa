@@ -53,16 +53,32 @@ class TenantDetailState extends State<TenantDetail> {
                 Container(
                   padding: EdgeInsets.only(right: 30),
                   child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                 
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                      child: Column(
+                         mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    MyTextStyle.lotName("7", Colors.black87, SizeFont.h1.size),
-                    MyTextStyle.lotDesc("Evaluations", SizeFont.h3.size, FontStyle.normal),
-                    SizedBox(height: 10,),
-                    Divider(color: Colors.red, height: 10,),
-                    Row(children: [MyTextStyle.lotName("4,5", Colors.black87, SizeFont.h1.size), Icon(Icons.star_rate_rounded),],) ,
-                    MyTextStyle.lotDesc("LocaScore", SizeFont.h3.size, FontStyle.normal),
+                        children: [
+                          MyTextStyle.lotName("7", Colors.black87, SizeFont.h1.size),
+                          MyTextStyle.lotDesc("Evaluations", SizeFont.h3.size, FontStyle.normal),
+                        ],
+                      ),
+                    ),
+                    Container(
+                       padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                      child: Column(
+                         mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [MyTextStyle.lotName("4,5", Colors.black87, SizeFont.h1.size), Icon(Icons.star_rate_rounded),],) ,
+                          MyTextStyle.lotDesc("LocaScore", SizeFont.h3.size, FontStyle.normal),
+                        ],
+                      ),
+                    ),
                 ],),)
                     ],
                   ),
@@ -74,7 +90,17 @@ class TenantDetailState extends State<TenantDetail> {
                   padding: const EdgeInsets.symmetric(horizontal:30),
                   child: 
                     Column(
-                      children: [
+                      children: [ 
+                      
+                        Padding(
+                          padding: const EdgeInsets.symmetric( vertical: 20),
+                          child: Row(
+                            children: [
+                              MyTextStyle.lotName("Informations personnelles", Colors.black87, SizeFont.h2.size),
+                            ],
+                          ),
+                        ),
+                       
                         Row(children: [
                           Icon(Icons.numbers),
                           SizedBox(width: 10,),
@@ -90,6 +116,40 @@ class TenantDetailState extends State<TenantDetail> {
                           Spacer(),
                           MyTextStyle.annonceDesc(DateFormat('dd/MM/yyyy').format(widget.tenant.birthday.toDate()),SizeFont.h3.size,1),
                         ],),
+                        SizedBox(height: 10,),
+                         Row(children: [
+                          Icon(Icons.flag),
+                          SizedBox(width: 10,),
+                          MyTextStyle.lotDesc("Nationnalité", SizeFont.h3.size, FontStyle.normal, FontWeight.bold),
+                          Spacer(),
+                          MyTextStyle.annonceDesc(widget.tenant.nationality,SizeFont.h3.size,1),
+                        ],),
+                        SizedBox(height: 10,),
+                         Row(children: [
+                          Icon(Icons.diamond),
+                          SizedBox(width: 10,),
+                          MyTextStyle.lotDesc("Situation", SizeFont.h3.size, FontStyle.normal, FontWeight.bold),
+                          Spacer(),
+                          MyTextStyle.annonceDesc(widget.tenant.familySituation,SizeFont.h3.size,1),
+                        ],),
+
+                        Divider(),
+                          Padding(
+                          padding: const EdgeInsets.symmetric( vertical: 20),
+                          child: Row(
+                            children: [
+                              MyTextStyle.lotName("Profil locataire", Colors.black87, SizeFont.h2.size),
+                            ],
+                          ),
+                        ),
+                         Row(children: [
+                          Icon(Icons.diamond),
+                          SizedBox(width: 10,),
+                          MyTextStyle.lotDesc("Profession", SizeFont.h3.size, FontStyle.normal, FontWeight.bold),
+                          Spacer(),
+                          MyTextStyle.annonceDesc(widget.tenant.profession??"",SizeFont.h3.size,1),
+                        ],),
+
                       ],
                     ),
                     
