@@ -3,7 +3,9 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
+import 'package:connect_kasa/vues/pages_vues/tenant_detail.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -43,7 +45,7 @@ class ManagementTenantState extends State<ManagementTenant> {
             if (idLocataire != widget.uid) {
               // Exclude the current user
               userFutures
-                  .add(userServices.getUserById(idLocataire).then((user) {
+                  .add(userServices.getUserWithInfo(idLocataire).then((user) {
                 return {
                   'user': user,
                   'lotName': lot.nameProp // Assuming Lot has a `nameProp` field
@@ -98,13 +100,19 @@ class ManagementTenantState extends State<ManagementTenant> {
                       itemCount: tenants.length,
                       itemBuilder: (context, index) {
                         var tenantMap = tenants[index];
-                        User? tenant = tenantMap['user'];
+                        UserInfo? tenant = tenantMap['user'];
                         String? lotName = tenantMap['lotName'];
                         if (tenant == null) {
                           return ListTile(title: Text('Locataire non trouvé.'));
                         }
                         return InkWell(
-                          onTap: () {},
+                          onTap: () {
+
+                            Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                      builder: (context) => TenantDetail(tenant: tenant,)));
+                          },
                           child: ListTile(
                             leading: Icon(Icons.person_2_outlined),
                             title: MyTextStyle.lotName(

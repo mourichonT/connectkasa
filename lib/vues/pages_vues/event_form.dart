@@ -345,13 +345,11 @@ class EventFormState extends State<EventForm> {
       lastDate: DateTime(today.year + 1),
     );
 
-    if (_picked != null) {
-      setState(() {
-        selectedDate = _picked;
-        updateEventDate(dateSelected: _picked);
-      });
+    setState(() {
+      selectedDate = _picked;
+      updateEventDate(dateSelected: _picked);
+    });
     }
-  }
 
   Future<void> _selectHour() async {
     TimeOfDay? _pickedTime = await showTimePicker(

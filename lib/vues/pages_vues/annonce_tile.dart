@@ -105,7 +105,6 @@ class AnnonceTileState extends State<AnnonceTile> {
                           // Wrap Row with SizedBox to provide a fixed height
                           // Specify the desired height
                           child: pathImage != "" &&
-                                  pathImage != null &&
                                   pathImage.isNotEmpty
                               ? Image.network(
                                   pathImage,

@@ -132,11 +132,8 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
       // Convertissez ui.Image en ByteData au format png
       ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) {
-        throw Exception("ByteData is null");
-      }
 
-      return byteData.buffer.asUint8List();
+      return byteData!.buffer.asUint8List();
     } catch (e) {
       print(e);
       rethrow;
@@ -461,10 +458,8 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                     widget.idPost,
                   );
 
-                  if (imageUrl != null) {
-                    widget.updateUrl(imageUrl);
-                  }
-                }
+                  widget.updateUrl(imageUrl!);
+                                }
 
                 SubmitPostController.submitForm(
                     uid: widget.uid,
