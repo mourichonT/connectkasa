@@ -149,62 +149,62 @@ class _ProfilPageState extends State<ProfilPage> {
                               )
                             ],
                           ),
-                    Card(
-                      color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    MyTextStyle.lotName("Votre solde",
-                                        Colors.black87, SizeFont.h3.size),
-                                  ],
-                                ),
-                                SizedBox(height: 20),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Row(
-                                    children: [
-                                      MyTextStyle.lotName(user!.solde,
-                                          Colors.black87, SizeFont.header.size),
-                                      MyTextStyle.lotName("€", Colors.black87,
-                                          SizeFont.header.size),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                ButtonAdd(
-                                    color: widget.color,
-                                    text: "Recharger",
-                                    horizontal: 10,
-                                    vertical: 5,
-                                    size: SizeFont.h3.size),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                ButtonAdd(
-                                    color: Colors.teal,
-                                    text: "Retirer",
-                                    horizontal: 20,
-                                    vertical: 5,
-                                    size: SizeFont.h3.size)
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Card(
+                    //   color: Colors.white,
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.all(16.0),
+                    //     child: Row(
+                    //       mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    //       children: [
+                    //         Column(
+                    //           crossAxisAlignment: CrossAxisAlignment.start,
+                    //           children: [
+                    //             Row(
+                    //               mainAxisAlignment:
+                    //                   MainAxisAlignment.spaceBetween,
+                    //               children: [
+                    //                 MyTextStyle.lotName("Votre solde",
+                    //                     Colors.black87, SizeFont.h3.size),
+                    //               ],
+                    //             ),
+                    //             SizedBox(height: 20),
+                    //             Align(
+                    //               alignment: Alignment.centerLeft,
+                    //               child: Row(
+                    //                 children: [
+                    //                   MyTextStyle.lotName(user!.solde,
+                    //                       Colors.black87, SizeFont.header.size),
+                    //                   MyTextStyle.lotName("€", Colors.black87,
+                    //                       SizeFont.header.size),
+                    //                 ],
+                    //               ),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //         Column(
+                    //           crossAxisAlignment: CrossAxisAlignment.center,
+                    //           children: [
+                    //             ButtonAdd(
+                    //                 color: widget.color,
+                    //                 text: "Recharger",
+                    //                 horizontal: 10,
+                    //                 vertical: 5,
+                    //                 size: SizeFont.h3.size),
+                    //             SizedBox(
+                    //               height: 10,
+                    //             ),
+                    //             ButtonAdd(
+                    //                 color: Colors.teal,
+                    //                 text: "Retirer",
+                    //                 horizontal: 20,
+                    //                 vertical: 5,
+                    //                 size: SizeFont.h3.size)
+                    //           ],
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                     Row(
                       children: [
                         Expanded(

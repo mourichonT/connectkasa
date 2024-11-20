@@ -64,7 +64,7 @@ class _CardContactViewState extends State<CardContactView> {
         '${widget.agencyNum} ${widget.agencyVoie} ${widget.agencystreet}, ${widget.agencyZIPCode} ${widget.agencyCity}';
 
     return FutureBuilder<List<Mail>>(
-      future: _mailsFuture!,
+      future: _mailsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Center(

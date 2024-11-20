@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -139,11 +140,8 @@ class DataBasesUserServices {
               List.from(lotDoc.data()["idProprietaire"]);
 
           // Ajouter chaque élément de idLocataire et idProprietaire à la liste si non nuls
-          if (idLocataire != null) {
-            users.addAll(idLocataire);
-          }
-          if (idProprietaire != null &&
-              (idLocataire == null || !idLocataire.contains(uid))) {
+          users.addAll(idLocataire);
+                  if ((!idLocataire.contains(uid))) {
             users.addAll(idProprietaire);
           }
         }
@@ -156,4 +154,87 @@ class DataBasesUserServices {
     }
     return users;
   }
+
+ Future<UserInfo?> getUserWithInfo(String userId) async {
+  try {
+    // Accéder au document dans la collection "User" avec l'uid
+    QuerySnapshot<Map<String, dynamic>> userDocRef = await db
+        .collection("User")
+        .where("uid", isEqualTo: userId)
+        .get();
+
+    if (userDocRef.docs.isNotEmpty) {
+      // Récupérer les données de l'utilisateur depuis la collection "User"
+      DocumentSnapshot<Map<String, dynamic>> userDoc = userDocRef.docs.first;
+      Map<String, dynamic> userMap = userDoc.data()!;
+
+      // Créer un objet User avec les informations récupérées
+      User user = User.fromMap(userMap);
+
+      // Accéder à la sous-collection "informationConf" de cet utilisateur
+      QuerySnapshot<Map<String, dynamic>> userInfoQuerySnapshot =
+          await userDoc.reference.collection("informationConf").get();
+
+      if (userInfoQuerySnapshot.docs.isNotEmpty) {
+        // Récupérer le premier document de la sous-collection "informationConf"
+        Map<String, dynamic> userInfoMap = userInfoQuerySnapshot.docs.first.data();
+
+        // Créer et retourner un objet UserInfo en combinant les données de User et informationConf
+        return UserInfo(
+          name: user.name,
+          surname: user.surname,
+          uid: user.uid,
+          pseudo: user.pseudo,
+          approved: user.approved,
+          birthday: userInfoMap['Birthday'],
+          additionalRevenu: userInfoMap['additionalRevenu'] ?? false,
+          amountFamilyAllowance: userInfoMap['amountFamilyAllowance'] ?? "",
+          amountAdditionalRevenu: userInfoMap['amountAdditionalRevenu'] ?? "",
+          amountHousingAllowance: userInfoMap['amountHousingAllowance'] ?? "",
+          dependent: userInfoMap['dependent'] ?? 0,
+          familyAllowance: userInfoMap['familyAllowance'] ?? false,
+          familySituation: userInfoMap['familySituation'] ?? "",
+          housingAllowance: userInfoMap['housingAllowance'] ?? true,
+          nationality: userInfoMap['nationality'] ?? "",
+          phone: userInfoMap['phone'] ?? "",
+          salary: userInfoMap['salary'] ?? "",
+          typeContract: userInfoMap['typeContract'] ?? "",
+        );
+      } else {
+        print("Aucune information confidentielle trouvée pour cet utilisateur.");
+      }
+
+      // Si la sous-collection "informationConf" est vide ou introuvable,
+      // retourner un objet UserInfo avec seulement les valeurs de User.
+      return UserInfo(
+        name: user.name,
+        surname: user.surname,
+        uid: user.uid,
+        pseudo: user.pseudo,
+        approved: user.approved,
+        birthday: Timestamp.fromDate(DateTime(1900, 1, 1)), // Valeur par défaut pour la date
+        additionalRevenu: false,
+        amountFamilyAllowance: "",
+        amountAdditionalRevenu: "",
+        amountHousingAllowance: "",
+        dependent: 0,
+        familyAllowance: false,
+        familySituation: "",
+        housingAllowance: true,
+        nationality: "",
+        phone: "",
+        salary: "",
+        typeContract: "",
+      );
+    } else {
+      print("Aucun utilisateur ne correspondant à l'ID '$userId'.");
+    }
+  } catch (e) {
+    print("Impossible de récupérer les informations de l'utilisateur - erreur : $e");
+  }
+
+  return null;
+}
+
+
 }

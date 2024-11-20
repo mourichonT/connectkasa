@@ -302,5 +302,6 @@ class _Step3State extends State<Step3> {
     } catch (e) {
       print("Error occurred while fetching lot: $e");
     }
+    return null;
   }
 }

@@ -247,15 +247,13 @@ class FilterAllAnnouncedControllerState
       lastDate: today,
     );
 
-    if (_picked != null) {
-      setState(() {
-        if (choice == "dateFrom") {
-          _dateFromController.text = _picked.toString().split(" ")[0];
-        } else {
-          _dateToController.text = _picked.toString().split(" ")[0];
-        }
-        _updateFilters();
-      });
+    setState(() {
+      if (choice == "dateFrom") {
+        _dateFromController.text = _picked.toString().split(" ")[0];
+      } else {
+        _dateToController.text = _picked.toString().split(" ")[0];
+      }
+      _updateFilters();
+    });
     }
-  }
 }

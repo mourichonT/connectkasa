@@ -107,28 +107,28 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                             children: [
                               ProfilTile(widget.post.user, 22, 19, 22, true,
                                   Colors.black87, SizeFont.h2.size),
-                              ButtonAdd(
-                                function: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => ChatPage(
-                                        message:
-                                            "Je vous contact au sujet de votre annonce \"${widget.post.title}\", est-ce toujours possible?",
-                                        residence: widget.residence,
-                                        idUserFrom: widget.uid,
-                                        idUserTo: widget.post.user,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                color: Theme.of(context).primaryColor,
-                                icon: Icons.mail,
-                                text: "Contacter",
-                                horizontal: 20,
-                                vertical: 5,
-                                size: SizeFont.h3.size,
-                              ),
+                              // ButtonAdd(
+                              //   function: () {
+                              //     Navigator.push(
+                              //       context,
+                              //       MaterialPageRoute(
+                              //         builder: (context) => ChatPage(
+                              //           message:
+                              //               "Je vous contact au sujet de votre annonce \"${widget.post.title}\", est-ce toujours possible?",
+                              //           residence: widget.residence,
+                              //           idUserFrom: widget.uid,
+                              //           idUserTo: widget.post.user,
+                              //         ),
+                              //       ),
+                              //     );
+                              //   },
+                              //   color: Theme.of(context).primaryColor,
+                              //   icon: Icons.mail,
+                              //   text: "Contacter",
+                              //   horizontal: 20,
+                              //   vertical: 5,
+                              //   size: SizeFont.h3.size,
+                              // ),
                             ],
                           ),
                         ),
@@ -164,7 +164,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               Row(
                                 children: [
@@ -184,37 +184,37 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                   ),
                                 ],
                               ),
-                              Row(
-                                children: [
-                                  MyTextStyle.lotDesc(
-                                    'Votre solde :',
-                                    SizeFont.h3.size,
-                                    //FontWeight.w300,
-                                  ),
-                                  SizedBox(
-                                    width: 5,
-                                  ),
-                                  FutureBuilder<User?>(
-                                    future: userCurrent,
-                                    builder: (context, snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return CircularProgressIndicator();
-                                      } else {
-                                        var user = snapshot.data;
-                                        if (user != null) {
-                                          return MyTextStyle.lotDesc(
-                                            user.setSolde(user.solde),
-                                            SizeFont.h3.size,
-                                          );
-                                        } else {
-                                          return Text('Utilisateur inconnu');
-                                        }
-                                      }
-                                    },
-                                  ),
-                                ],
-                              ),
+                              // Row(
+                              //   children: [
+                              //     MyTextStyle.lotDesc(
+                              //       'Votre solde :',
+                              //       SizeFont.h3.size,
+                              //       //FontWeight.w300,
+                              //     ),
+                              //     SizedBox(
+                              //       width: 5,
+                              //     ),
+                              //     FutureBuilder<User?>(
+                              //       future: userCurrent,
+                              //       builder: (context, snapshot) {
+                              //         if (snapshot.connectionState ==
+                              //             ConnectionState.waiting) {
+                              //           return CircularProgressIndicator();
+                              //         } else {
+                              //           var user = snapshot.data;
+                              //           if (user != null) {
+                              //             return MyTextStyle.lotDesc(
+                              //               user.setSolde(user.solde),
+                              //               SizeFont.h3.size,
+                              //             );
+                              //           } else {
+                              //             return Text('Utilisateur inconnu');
+                              //           }
+                              //         }
+                              //       },
+                              //     ),
+                              //   ],
+                              // ),
                             ],
                           ),
                         ),
@@ -250,7 +250,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                 var owner = snapshot.data;
                                 return owner != null
                                     ? MyTextStyle.lotName(
-                                        "Les annonces de ${owner.pseudo!}",
+                                        "Les autres annonces de ${owner.pseudo!}",
                                         Colors.black87,
                                         SizeFont.h2.size)
                                     : Text('Chargement...');
@@ -397,8 +397,9 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              widget.post.price == ""
-                  ? ButtonAdd(
+              // widget.post.price == ""
+              //     ? 
+                  ButtonAdd(
                       function: () {
                         Navigator.push(
                           context,
@@ -418,16 +419,16 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                       horizontal: 20,
                       vertical: 5,
                       size: SizeFont.h2.size)
-                  : ButtonAdd(
-                      function: () {
-                        _showBottomSheet(context, widget.post.price!,
-                            widget.uid, widget.post);
-                      },
-                      color: Theme.of(context).primaryColor,
-                      text: "Payer",
-                      horizontal: 20,
-                      vertical: 5,
-                      size: SizeFont.h2.size),
+                  // : ButtonAdd(
+                  //     function: () {
+                  //       _showBottomSheet(context, widget.post.price!,
+                  //           widget.uid, widget.post);
+                  //     },
+                  //     color: Theme.of(context).primaryColor,
+                  //     text: "Payer",
+                  //     horizontal: 20,
+                  //     vertical: 5,
+                  //     size: SizeFont.h2.size),
             ],
           ),
         ),

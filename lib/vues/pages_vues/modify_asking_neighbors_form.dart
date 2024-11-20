@@ -205,11 +205,8 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
       // Convertissez ui.Image en ByteData au format png
       ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
-      if (byteData == null) {
-        throw Exception("ByteData is null");
-      }
 
-      return byteData.buffer.asUint8List();
+      return byteData!.buffer.asUint8List();
     } catch (e) {
       print(e);
       rethrow;
