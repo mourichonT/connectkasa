@@ -4,6 +4,8 @@ import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+
 
 class DataBasesUserServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -156,6 +158,8 @@ class DataBasesUserServices {
   }
 
  Future<UserInfo?> getUserWithInfo(String userId) async {
+  String? email= "";
+
   try {
     // Accéder au document dans la collection "User" avec l'uid
     QuerySnapshot<Map<String, dynamic>> userDocRef = await db
@@ -171,6 +175,15 @@ class DataBasesUserServices {
       // Créer un objet User avec les informations récupérées
       User user = User.fromMap(userMap);
 
+      auth.User? firebaseUser = auth.FirebaseAuth.instance.currentUser;
+      if (firebaseUser != null && firebaseUser.uid == user.uid) {
+        print("Adresse e-mail associée : ${firebaseUser.email}");
+        // Si besoin, ajoutez l'email dans l'objet utilisateur :
+        email = firebaseUser.email;
+      } else {
+        print("Aucun utilisateur connecté avec cet UID dans Firebase Auth.");
+      }
+
       // Accéder à la sous-collection "informationConf" de cet utilisateur
       QuerySnapshot<Map<String, dynamic>> userInfoQuerySnapshot =
           await userDoc.reference.collection("informationConf").get();
@@ -178,27 +191,29 @@ class DataBasesUserServices {
       if (userInfoQuerySnapshot.docs.isNotEmpty) {
         // Récupérer le premier document de la sous-collection "informationConf"
         Map<String, dynamic> userInfoMap = userInfoQuerySnapshot.docs.first.data();
+       
 
         // Créer et retourner un objet UserInfo en combinant les données de User et informationConf
         return UserInfo(
           name: user.name,
           surname: user.surname,
+          email:email ?? "",
           uid: user.uid,
           pseudo: user.pseudo,
+          profession: user.profession,
+          profilPic: user.profilPic??"",
           approved: user.approved,
           birthday: userInfoMap['Birthday'],
-          additionalRevenu: userInfoMap['additionalRevenu'] ?? false,
-          amountFamilyAllowance: userInfoMap['amountFamilyAllowance'] ?? "",
-          amountAdditionalRevenu: userInfoMap['amountAdditionalRevenu'] ?? "",
-          amountHousingAllowance: userInfoMap['amountHousingAllowance'] ?? "",
+          amountFamilyAllowance: userInfoMap['amount_FamilyAllowance'] ?? "",
+          amountAdditionalRevenu: userInfoMap['amount_additionalRevenu'] ?? "",
+          amountHousingAllowance: userInfoMap['amount_housingAllowance'] ?? "",
           dependent: userInfoMap['dependent'] ?? 0,
-          familyAllowance: userInfoMap['familyAllowance'] ?? false,
           familySituation: userInfoMap['familySituation'] ?? "",
-          housingAllowance: userInfoMap['housingAllowance'] ?? true,
           nationality: userInfoMap['nationality'] ?? "",
           phone: userInfoMap['phone'] ?? "",
           salary: userInfoMap['salary'] ?? "",
           typeContract: userInfoMap['typeContract'] ?? "",
+          entryJobDate : userInfoMap['entryJobDate']??"",
         );
       } else {
         print("Aucune information confidentielle trouvée pour cet utilisateur.");
@@ -211,20 +226,19 @@ class DataBasesUserServices {
         surname: user.surname,
         uid: user.uid,
         pseudo: user.pseudo,
+        email: "N/C",
         approved: user.approved,
         birthday: Timestamp.fromDate(DateTime(1900, 1, 1)), // Valeur par défaut pour la date
-        additionalRevenu: false,
         amountFamilyAllowance: "",
         amountAdditionalRevenu: "",
         amountHousingAllowance: "",
         dependent: 0,
-        familyAllowance: false,
         familySituation: "",
-        housingAllowance: true,
         nationality: "",
         phone: "",
         salary: "",
         typeContract: "",
+        entryJobDate:Timestamp.fromDate(DateTime(1900, 1, 1)),
       );
     } else {
       print("Aucun utilisateur ne correspondant à l'ID '$userId'.");

@@ -17,7 +17,7 @@ import 'package:connect_kasa/vues/pages_vues/post_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class EventTile extends StatefulWidget {
+class EventTilepv extends StatefulWidget {
   late Post post;
   final String uid;
   final String residenceId;
@@ -25,14 +25,14 @@ class EventTile extends StatefulWidget {
   final Color colorStatut;
   final Function()? updatePostsList;
 
-  EventTile(this.post, this.residenceId, this.uid, this.canModify,
+  EventTilepv(this.post, this.residenceId, this.uid, this.canModify,
       this.colorStatut, this.updatePostsList);
 
   @override
   State<StatefulWidget> createState() => EventTileState();
 }
 
-class EventTileState extends State<EventTile> {
+class EventTileState extends State<EventTilepv> {
   final StorageServices _storageServices = StorageServices();
   DataBasesPostServices dbService = DataBasesPostServices();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();

@@ -428,19 +428,19 @@ class _ProfilPageState extends State<ProfilPage> {
         privateAccount = user!.private; // Met à jour l'état du compte privé
       }
       // Récupérer l'adresse e-mail de l'utilisateur depuis Firebase Auth
-      email = await _getUserEmail(uid);
+      email = await LoadUserController.getUserEmail(uid);
       setState(() {});
     }
   }
 
-  Future<String> _getUserEmail(String uid) async {
-    firebase_auth.User? firebaseUser =
-        firebase_auth.FirebaseAuth.instance.currentUser;
-    if (firebaseUser != null && firebaseUser.uid == uid) {
-      return firebaseUser.email ?? "";
-    } else {
-      // Si l'utilisateur actuel ne correspond pas à l'uid, récupérez l'utilisateur via l'API Admin (nécessite un backend)
-      return ""; // Gérer en fonction de votre logique
-    }
-  }
+  // Future<String> _getUserEmail(String uid) async {
+  //   firebase_auth.User? firebaseUser =
+  //       firebase_auth.FirebaseAuth.instance.currentUser;
+  //   if (firebaseUser != null && firebaseUser.uid == uid) {
+  //     return firebaseUser.email ?? "";
+  //   } else {
+  //     // Si l'utilisateur actuel ne correspond pas à l'uid, récupérez l'utilisateur via l'API Admin (nécessite un backend)
+  //     return ""; // Gérer en fonction de votre logique
+  //   }
+  // }
 }

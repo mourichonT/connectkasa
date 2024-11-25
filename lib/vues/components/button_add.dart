@@ -10,6 +10,7 @@ class ButtonAdd extends StatelessWidget {
   final double horizontal;
   final double vertical;
   final double size;
+  final Color? borderColor;
 
   const ButtonAdd(
       {Key? key,
@@ -18,6 +19,7 @@ class ButtonAdd extends StatelessWidget {
       this.icon,
       this.text,
       this.colorText,
+      this.borderColor,
       required this.horizontal,
       required this.vertical,
       required this.size})
@@ -36,6 +38,7 @@ class ButtonAdd extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(5),
+          border:Border.all(color: borderColor??Colors.transparent)
         ),
         child: icon != null
             ? Row(
