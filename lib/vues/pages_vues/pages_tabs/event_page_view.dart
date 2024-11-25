@@ -4,7 +4,7 @@ import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/components/event_tile.dart';
+import 'package:connect_kasa/vues/components/event_tile_comp.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:connect_kasa/vues/pages_vues/event_form.dart';
 import 'package:connect_kasa/vues/pages_vues/event_page_details.dart';
@@ -313,7 +313,7 @@ class EventPageViewState extends State<EventPageView>
                                 ),
                               ));
                             },
-                            child: EventTile(
+                            child: EventTileComp(
                               post: post,
                               residence: widget.residenceSelected,
                               uid: widget.uid,

@@ -5,12 +5,12 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:flutter/material.dart';
 
-class EventTile extends StatelessWidget {
+class EventTileComp extends StatelessWidget {
   final Post post;
   final String uid;
   final String residence;
 
-  EventTile(
+  EventTileComp(
       {super.key,
       required this.post,
       required this.uid,

@@ -48,7 +48,8 @@ class ManagementTenantState extends State<ManagementTenant> {
                   .add(userServices.getUserWithInfo(idLocataire).then((user) {
                 return {
                   'user': user,
-                  'lotName': lot.nameProp // Assuming Lot has a `nameProp` field
+                  'lotName': lot.nameProp,
+                  'residence': lot.residenceId // Assuming Lot has a `nameProp` field
                 };
               }));
             }
@@ -111,7 +112,7 @@ class ManagementTenantState extends State<ManagementTenant> {
                             Navigator.push(
                                   context,
                                   CupertinoPageRoute(
-                                      builder: (context) => TenantDetail(tenant: tenant,)));
+                                      builder: (context) => TenantDetail(residenceId: tenantMap['residence'], senderUid: widget.uid, tenant: tenant, color: widget.color,)));
                           },
                           child: ListTile(
                             leading: Icon(Icons.person_2_outlined),

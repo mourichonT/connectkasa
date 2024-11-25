@@ -7,7 +7,7 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/transaction.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
 import 'package:connect_kasa/vues/pages_vues/add_annonceform.dart';
-import 'package:connect_kasa/vues/pages_vues/annonce_tile.dart';
+import 'package:connect_kasa/vues/components/annonce_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_annonceform.dart';
 import 'package:connect_kasa/vues/pages_vues/sinistre_tile.dart';
 import 'package:connect_kasa/vues/widget_view/transaction_tile.dart';
@@ -52,7 +52,7 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     _allPostsFuture =
         _databaseServices.getAllAnnonces(widget.residenceSelected);
     _allTransaction = _transacServices.getTransactionByUid(
@@ -98,7 +98,7 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
               text: 'Tous',
             ),
             Tab(text: 'Gérer'),
-            Tab(text: 'Transactions'),
+            //Tab(text: 'Transactions'),
           ],
         ),
         if (_showFilters && _selectedTab)
@@ -251,128 +251,128 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                             ),
                           ],
                         ),
-                        Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        colorSelection = !colorSelection;
-                                        visibility = !visibility;
-                                        print(visibility);
-                                      });
-                                    },
-                                    child: Container(
-                                      width: width / 3,
-                                      height: 35,
-                                      color: colorSelection
-                                          ? Colors.white
-                                          : Theme.of(context).primaryColor,
-                                      child: Center(
-                                        child: MyTextStyle.lotName(
-                                            "En cours",
-                                            colorSelection
-                                                ? Theme.of(context).primaryColor
-                                                : Colors.white,
-                                            SizeFont.h3.size),
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        colorSelection = !colorSelection;
-                                        visibility = !visibility;
-                                      });
-                                    },
-                                    child: Container(
-                                      width: width / 3,
-                                      height: 35,
-                                      color: colorSelection
-                                          ? Theme.of(context).primaryColor
-                                          : Colors.white,
-                                      child: Center(
-                                        child: MyTextStyle.lotName(
-                                            "Historique",
-                                            colorSelection
-                                                ? Colors.white
-                                                : Theme.of(context)
-                                                    .primaryColor,
-                                            SizeFont.h3.size),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            FutureBuilder<List<TransactionModel>>(
-                              future: _allTransaction,
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  // Affichez un indicateur de chargement si les données ne sont pas encore disponibles
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                } else if (snapshot.hasError) {
-                                  // Gérez les erreurs ici
-                                  return Text('Error: ${snapshot.error}');
-                                } else {
-                                  // Les données sont prêtes, vous pouvez maintenant utiliser snapshot.data
-                                  List<TransactionModel> transactions =
-                                      snapshot.data!;
-                                  return SingleChildScrollView(
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 5, vertical: 5),
-                                      child: ListView.separated(
-                                        shrinkWrap: true,
-                                        physics: const BouncingScrollPhysics(),
-                                        itemCount: transactions.length,
-                                        itemBuilder: (context, index) {
-                                          TransactionModel transac =
-                                              transactions[index];
-                                          return Column(
-                                            children: [
-                                              if (transac.statut ==
-                                                  "en attente")
-                                                Visibility(
-                                                  visible: !visibility,
-                                                  child: TransactionTile(
-                                                      transac,
-                                                      widget.residenceSelected,
-                                                      widget.uid,
-                                                      refreshTransactions),
-                                                ),
-                                              if (transac.statut == "Terminé" ||
-                                                  transac.statut == "Annulé")
-                                                Visibility(
-                                                  visible: visibility,
-                                                  child: TransactionTile(
-                                                      transac,
-                                                      widget.residenceSelected,
-                                                      widget.uid,
-                                                      refreshTransactions),
-                                                ),
-                                            ],
-                                          );
-                                        },
-                                        separatorBuilder:
-                                            (BuildContext context, int index) =>
-                                                SizedBox(height: 5),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                          ],
-                        )
+                        // Column(
+                        //   children: [
+                        //     Padding(
+                        //       padding: const EdgeInsets.symmetric(vertical: 10),
+                        //       child: Row(
+                        //         crossAxisAlignment: CrossAxisAlignment.center,
+                        //         mainAxisAlignment: MainAxisAlignment.center,
+                        //         children: [
+                        //           GestureDetector(
+                        //             onTap: () {
+                        //               setState(() {
+                        //                 colorSelection = !colorSelection;
+                        //                 visibility = !visibility;
+                        //                 print(visibility);
+                        //               });
+                        //             },
+                        //             child: Container(
+                        //               width: width / 3,
+                        //               height: 35,
+                        //               color: colorSelection
+                        //                   ? Colors.white
+                        //                   : Theme.of(context).primaryColor,
+                        //               child: Center(
+                        //                 child: MyTextStyle.lotName(
+                        //                     "En cours",
+                        //                     colorSelection
+                        //                         ? Theme.of(context).primaryColor
+                        //                         : Colors.white,
+                        //                     SizeFont.h3.size),
+                        //               ),
+                        //             ),
+                        //           ),
+                        //           GestureDetector(
+                        //             onTap: () {
+                        //               setState(() {
+                        //                 colorSelection = !colorSelection;
+                        //                 visibility = !visibility;
+                        //               });
+                        //             },
+                        //             child: Container(
+                        //               width: width / 3,
+                        //               height: 35,
+                        //               color: colorSelection
+                        //                   ? Theme.of(context).primaryColor
+                        //                   : Colors.white,
+                        //               child: Center(
+                        //                 child: MyTextStyle.lotName(
+                        //                     "Historique",
+                        //                     colorSelection
+                        //                         ? Colors.white
+                        //                         : Theme.of(context)
+                        //                             .primaryColor,
+                        //                     SizeFont.h3.size),
+                        //               ),
+                        //             ),
+                        //           ),
+                        //         ],
+                        //       ),
+                        //     ),
+                        //     FutureBuilder<List<TransactionModel>>(
+                        //       future: _allTransaction,
+                        //       builder: (context, snapshot) {
+                        //         if (snapshot.connectionState ==
+                        //             ConnectionState.waiting) {
+                        //           // Affichez un indicateur de chargement si les données ne sont pas encore disponibles
+                        //           return const Center(
+                        //             child: CircularProgressIndicator(),
+                        //           );
+                        //         } else if (snapshot.hasError) {
+                        //           // Gérez les erreurs ici
+                        //           return Text('Error: ${snapshot.error}');
+                        //         } else {
+                        //           // Les données sont prêtes, vous pouvez maintenant utiliser snapshot.data
+                        //           List<TransactionModel> transactions =
+                        //               snapshot.data!;
+                        //           return SingleChildScrollView(
+                        //             child: Padding(
+                        //               padding: const EdgeInsets.symmetric(
+                        //                   horizontal: 5, vertical: 5),
+                        //               child: ListView.separated(
+                        //                 shrinkWrap: true,
+                        //                 physics: const BouncingScrollPhysics(),
+                        //                 itemCount: transactions.length,
+                        //                 itemBuilder: (context, index) {
+                        //                   TransactionModel transac =
+                        //                       transactions[index];
+                        //                   return Column(
+                        //                     children: [
+                        //                       if (transac.statut ==
+                        //                           "en attente")
+                        //                         Visibility(
+                        //                           visible: !visibility,
+                        //                           child: TransactionTile(
+                        //                               transac,
+                        //                               widget.residenceSelected,
+                        //                               widget.uid,
+                        //                               refreshTransactions),
+                        //                         ),
+                        //                       if (transac.statut == "Terminé" ||
+                        //                           transac.statut == "Annulé")
+                        //                         Visibility(
+                        //                           visible: visibility,
+                        //                           child: TransactionTile(
+                        //                               transac,
+                        //                               widget.residenceSelected,
+                        //                               widget.uid,
+                        //                               refreshTransactions),
+                        //                         ),
+                        //                     ],
+                        //                   );
+                        //                 },
+                        //                 separatorBuilder:
+                        //                     (BuildContext context, int index) =>
+                        //                         SizedBox(height: 5),
+                        //               ),
+                        //             ),
+                        //           );
+                        //         }
+                        //       },
+                        //     ),
+                        //   ],
+                        // )
                       ]);
                 }
               }),
