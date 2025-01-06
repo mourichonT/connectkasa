@@ -5,7 +5,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/components/locascore_header.dart';
+//import 'package:connect_kasa/vues/components/locascore_header.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page.dart';
 import 'package:flutter/material.dart';
@@ -75,18 +75,20 @@ class TenantDetailState extends State<TenantDetail> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: const EdgeInsets.only(bottom: 15),
+                padding: const EdgeInsets.only(bottom: 30),
                 child: Card(
+                  shadowColor: Colors.black12.withOpacity(0),
+                  color: widget.color.withOpacity(0.1),
                   elevation: 3,
                   child: Padding(
-                    padding: const EdgeInsets.all(10.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // Profil section
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 50),
+                          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 30),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -111,23 +113,23 @@ class TenantDetailState extends State<TenantDetail> {
                           ),
                         ),
                         // Stats section
-                        Column(
-                          children: [
-                            _buildStatBox("7", "Évaluations"),
-                            const SizedBox(height: 10),
-                            _buildStatBox("4.5", "LocaScore", withStar: true),
-                          ],
-                        ),
+                        // Column(
+                        //   children: [
+                        //     _buildStatBox("7", "Évaluations"),
+                        //     const SizedBox(height: 10),
+                        //     _buildStatBox("4.5", "LocaScore", withStar: true),
+                        //   ],
+                        // ),
                       ],
                     ),
                   ),
                 ),
               ),
 
-               Padding(
-                 padding: const EdgeInsets.only(top: 20, bottom: 10),
-                 child: LocascoreHeader(),
-               ),
+              //  Padding(
+              //    padding: const EdgeInsets.only(top: 20, bottom: 10),
+              //    child: LocascoreHeader(),
+              //  ),
 
 
               // Informations personnelles

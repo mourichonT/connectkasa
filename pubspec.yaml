@@ -62,11 +62,14 @@ dependencies:
   multi_select_flutter: ^4.1.3
   flutter_colorpicker: ^1.1.0
   timezone: ^0.9.3
-  open_file: ^3.5.10
+  #open_file: ^3.5.10
   flutter_pdfview: ^1.3.4
   webview_flutter: ^4.8.0
   path_provider: ^2.1.5
   open_filex: ^4.5.0
+  sign_in_with_apple: ^6.1.4
+  flutter_appauth: ^8.0.3
+  
  
   
 
@@ -118,6 +121,7 @@ flutter:
      - images/assets/logo_by_colors/logoRose255.102.153.png
      - images/assets/logo_by_colors/logoRose255.204.229.png
      - images/assets/logoCK.png
+     - images/assets/CK.png
      - images/assets/logoCK250connectKasa.png
      - images/assets/logoCKvertconnectKasa.png
      - images/assets/logo_login/google.png

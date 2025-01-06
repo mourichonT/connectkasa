@@ -6,7 +6,7 @@ class DocumentModel {
   Timestamp timeStamp;
   String _documentPathRecto = "";
   String? _documentPathVerso = "";
-  String? lotId;
+  String? _lotId;
   String? residenceId;
   String? extension;
   List<String>? destinataire;
@@ -18,12 +18,13 @@ class DocumentModel {
     this.name,
     String documentPathRecto = "",
     String documentPathVerso = "",
-    String this.lotId = "",
+    String lotId = "",
     this.extension,
     this.destinataire,
   }) {
     _documentPathRecto = documentPathRecto;
     _documentPathVerso = documentPathVerso;
+    _lotId= lotId;
   }
 
   String get documentPathRecto {
@@ -35,6 +36,10 @@ class DocumentModel {
   //     _documentPathRecto = newUrl;
   //   }
   // }
+
+String? get lotId {
+    return _lotId;
+  }
 
   String? get documentPathVerso {
     return _documentPathVerso;

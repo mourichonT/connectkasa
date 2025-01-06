@@ -41,7 +41,7 @@ class UserInfo extends User {
     String solde = "0",
     super.profilPic,
   }) : super(
-
+email: email,
         );
 
   /// Méthode pour créer une instance depuis une Map

@@ -8,6 +8,7 @@ import '../../models/pages_models/residence.dart';
 
 class SubmitUser {
   static submitUserTemp({
+    required String emailUser,
     required String name,
     required String surname,
     required String newUserId,
@@ -15,6 +16,7 @@ class SubmitUser {
     required String intendedFor,
     required String typeChoice,
     required bool compagnyBuy,
+    String? companyName,
     String? pseudo,
 
     // pour la class Document
@@ -33,17 +35,18 @@ class SubmitUser {
   }) {
     DataBasesUserServices dataBasesUserServices = DataBasesUserServices();
     UserTemp newUser = UserTemp(
+      email: emailUser,
       name: name,
       surname: surname,
       uid: newUserId,
       pseudo: pseudo,
       approved: false,
-      statutResident: statutResident,
+      //statutResident: statutResident,
       typeLot: typeChoice,
-      compagnyBuy: compagnyBuy,
+      //compagnyBuy: compagnyBuy,
     );
 
-    dataBasesUserServices.setUserTemp(newUser);
+    dataBasesUserServices.setUserTemp(newUser,"${residence.id}-${lotId}", compagnyBuy, companyName);
 
     DataBasesDocsServices dataBasesDocsIdServices = DataBasesDocsServices();
     DocumentModel newDocId = DocumentModel(
@@ -54,7 +57,7 @@ class SubmitUser {
         documentPathVerso: imagepathIDverso!,
         lotId: lotId);
 
-    dataBasesDocsIdServices.setDocument(newDocId, newUserId);
+    dataBasesDocsIdServices.setDocument(newDocId, newUserId, '${residence.id}-${lotId}');
 
     DataBasesDocsServices dataBasesDocsJustifServices = DataBasesDocsServices();
     DocumentModel newDocJustif = DocumentModel(
@@ -64,7 +67,7 @@ class SubmitUser {
         documentPathRecto: imagepathJustif!,
         lotId: lotId);
 
-    dataBasesDocsJustifServices.setDocument(newDocJustif, newUserId);
+    dataBasesDocsJustifServices.setDocument(newDocJustif, newUserId, '${residence.id}-${lotId}');
 
     if (compagnyBuy == true) {
       DataBasesDocsServices dataBasesDocsJustifServices =
@@ -76,7 +79,7 @@ class SubmitUser {
           documentPathRecto: kbisPath!,
           lotId: lotId);
 
-      dataBasesDocsJustifServices.setDocument(newDocJustif, newUserId);
+      dataBasesDocsJustifServices.setDocument(newDocJustif, newUserId, '${residence.id}-${lotId}');
     }
   }
 }

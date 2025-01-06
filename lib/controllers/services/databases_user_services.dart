@@ -9,17 +9,34 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 class DataBasesUserServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
-
-  Future<UserTemp> setUserTemp(UserTemp newUser) async {
-    try {
-      // Si aucun post correspondant n'est trouvé, ajouter le nouveau post à la collection
-      await db.collection("UserTemp").add(newUser.toMap());
-    } catch (e) {
-      print("Impossible de poster le nouvel user: $e");
-    }
-
-    return newUser;
+Future<UserTemp> setUserTemp(UserTemp newUser, String? lotId, bool? compagnyBuy, String? companyName) async {
+  try {
+    // Met à jour l'utilisateur existant ou crée-le s'il n'existe pas
+    await db
+        .collection("User")
+        .doc(newUser.uid) // Utilisez l'UID comme ID du document
+        .set(
+          newUser.toMap(),
+          SetOptions(merge: true),); // Fusionne les champs pour éviter d'écraser tout le document
+          if (lotId!=null ){
+        await db
+          .collection("User")
+          .doc(newUser.uid)
+          .collection("Lots")
+          .doc(lotId) // Utilise `lotId` comme ID du document
+          .set({
+            "lotId": lotId,
+            "compagnyBuy": compagnyBuy,
+            "companyName": companyName,
+                }, 
+            SetOptions(merge: true));
+          }
+  } catch (e) {
+    print("Impossible de mettre à jour l'utilisateur: $e");
   }
+
+  return newUser;
+}
 
   Future<User?> getUserById(String numUser) async {
     User? user;
@@ -158,97 +175,96 @@ class DataBasesUserServices {
   }
 
  Future<UserInfo?> getUserWithInfo(String userId) async {
-  String? email= "";
-
   try {
-    // Accéder au document dans la collection "User" avec l'uid
+    // Rechercher l'utilisateur dans Firestore
     QuerySnapshot<Map<String, dynamic>> userDocRef = await db
         .collection("User")
         .where("uid", isEqualTo: userId)
         .get();
 
     if (userDocRef.docs.isNotEmpty) {
-      // Récupérer les données de l'utilisateur depuis la collection "User"
       DocumentSnapshot<Map<String, dynamic>> userDoc = userDocRef.docs.first;
       Map<String, dynamic> userMap = userDoc.data()!;
 
-      // Créer un objet User avec les informations récupérées
       User user = User.fromMap(userMap);
 
+      // Récupérer l'utilisateur depuis Firebase Auth
+      String? email;
       auth.User? firebaseUser = auth.FirebaseAuth.instance.currentUser;
-      if (firebaseUser != null && firebaseUser.uid == user.uid) {
-        print("Adresse e-mail associée : ${firebaseUser.email}");
-        // Si besoin, ajoutez l'email dans l'objet utilisateur :
+
+      if (firebaseUser != null && firebaseUser.uid == userId) {
         email = firebaseUser.email;
       } else {
-        print("Aucun utilisateur connecté avec cet UID dans Firebase Auth.");
+        print("L'utilisateur courant n'est pas celui recherché. Tentative de récupération directe...");
+        // Tentative de récupération de l'e-mail à partir de Firebase Admin (si autorisé).
+        // Nécessite un contexte serveur ou une configuration spéciale pour accéder à admin.auth().
+        // Exemple à adapter si Firebase Admin est disponible.
       }
 
-      // Accéder à la sous-collection "informationConf" de cet utilisateur
+      // Récupération des informations supplémentaires de la sous-collection
       QuerySnapshot<Map<String, dynamic>> userInfoQuerySnapshot =
           await userDoc.reference.collection("informationConf").get();
 
-      if (userInfoQuerySnapshot.docs.isNotEmpty) {
-        // Récupérer le premier document de la sous-collection "informationConf"
-        Map<String, dynamic> userInfoMap = userInfoQuerySnapshot.docs.first.data();
-       
+      Map<String, dynamic> userInfoMap = userInfoQuerySnapshot.docs.isNotEmpty
+          ? userInfoQuerySnapshot.docs.first.data()
+          : {};
 
-        // Créer et retourner un objet UserInfo en combinant les données de User et informationConf
-        return UserInfo(
-          name: user.name,
-          surname: user.surname,
-          email:email ?? "",
-          uid: user.uid,
-          pseudo: user.pseudo,
-          profession: user.profession,
-          profilPic: user.profilPic??"",
-          approved: user.approved,
-          birthday: userInfoMap['Birthday'],
-          amountFamilyAllowance: userInfoMap['amount_FamilyAllowance'] ?? "",
-          amountAdditionalRevenu: userInfoMap['amount_additionalRevenu'] ?? "",
-          amountHousingAllowance: userInfoMap['amount_housingAllowance'] ?? "",
-          dependent: userInfoMap['dependent'] ?? 0,
-          familySituation: userInfoMap['familySituation'] ?? "",
-          nationality: userInfoMap['nationality'] ?? "",
-          phone: userInfoMap['phone'] ?? "",
-          salary: userInfoMap['salary'] ?? "",
-          typeContract: userInfoMap['typeContract'] ?? "",
-          entryJobDate : userInfoMap['entryJobDate']??"",
-        );
-      } else {
-        print("Aucune information confidentielle trouvée pour cet utilisateur.");
-      }
-
-      // Si la sous-collection "informationConf" est vide ou introuvable,
-      // retourner un objet UserInfo avec seulement les valeurs de User.
       return UserInfo(
         name: user.name,
         surname: user.surname,
+        email: email ?? "Non spécifié",
         uid: user.uid,
         pseudo: user.pseudo,
-        email: "N/C",
+        profession: user.profession,
+        profilPic: user.profilPic ?? "",
         approved: user.approved,
-        birthday: Timestamp.fromDate(DateTime(1900, 1, 1)), // Valeur par défaut pour la date
-        amountFamilyAllowance: "",
-        amountAdditionalRevenu: "",
-        amountHousingAllowance: "",
-        dependent: 0,
-        familySituation: "",
-        nationality: "",
-        phone: "",
-        salary: "",
-        typeContract: "",
-        entryJobDate:Timestamp.fromDate(DateTime(1900, 1, 1)),
+        birthday: userInfoMap['Birthday'] ?? Timestamp.fromDate(DateTime(1900, 1, 1)),
+        amountFamilyAllowance: userInfoMap['amount_FamilyAllowance'] ?? "",
+        amountAdditionalRevenu: userInfoMap['amount_additionalRevenu'] ?? "",
+        amountHousingAllowance: userInfoMap['amount_housingAllowance'] ?? "",
+        dependent: userInfoMap['dependent'] ?? 0,
+        familySituation: userInfoMap['familySituation'] ?? "",
+        nationality: userInfoMap['nationality'] ?? "",
+        phone: userInfoMap['phone'] ?? "",
+        salary: userInfoMap['salary'] ?? "",
+        typeContract: userInfoMap['typeContract'] ?? "",
+        entryJobDate: userInfoMap['entryJobDate'] ?? Timestamp.fromDate(DateTime(1900, 1, 1)),
       );
     } else {
-      print("Aucun utilisateur ne correspondant à l'ID '$userId'.");
+      print("Aucun utilisateur trouvé avec l'ID '$userId'.");
     }
   } catch (e) {
-    print("Impossible de récupérer les informations de l'utilisateur - erreur : $e");
+    print("Erreur lors de la récupération de l'utilisateur : $e");
   }
 
   return null;
 }
 
+static Future<void> removeUserById(String uid) async {
+    try {
+      // Recherchez le document du post en utilisant l'ID
+      DocumentSnapshot<Map<String, dynamic>> userQuery = await FirebaseFirestore
+          .instance
+          .collection("User")
+          .doc(uid)
+          .get();
+
+      // Vérifiez si des documents correspondent à la condition
+      if (userQuery.exists) {
+        // Supprimez le premier document trouvé (il ne devrait y en avoir qu'un)
+      
+        await userQuery.reference.delete();
+      } else {
+        throw Exception(
+            'Aucun utilisateur trouvé avec l\'ID $uid');
+      }
+    } catch (e) {
+      // Gère les erreurs ici
+      print(
+          'Une erreur s\'est produite lors de la suppression de l\'utilisateur: $e');
+      // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
+      throw e;
+    }
+  }
 
 }

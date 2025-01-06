@@ -7,7 +7,8 @@ import 'package:connect_kasa/vues/widget_view/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 
 class Step4 extends StatefulWidget {
-  final String newUser;
+  final String userId;
+  final String emailUser;
   final Residence residence;
   final String residentType;
   final Function(String, String, String, String, String)
@@ -38,8 +39,9 @@ class Step4 extends StatefulWidget {
     required this.kbisPath,
     required this.intendedFor,
     required this.refLot,
-    required this.newUser,
-    required this.typeLot,
+    required this.userId,
+    required this.typeLot, 
+    required this.emailUser,
   }) : super(key: key);
 
   @override
@@ -156,7 +158,7 @@ class _Step4State extends State<Step4> {
                   Divider(),
                   CameraOrFiles(
                     racineFolder: 'user',
-                    residence: 'document',
+                    residence: widget.userId,
                     folderName: 'documentID',
                     title: idChoice!,
                     onImageUploaded: (downloadUrl) =>
@@ -179,7 +181,7 @@ class _Step4State extends State<Step4> {
                   ),
                   CameraOrFiles(
                     racineFolder: 'user',
-                    residence: 'document',
+                    residence: widget.userId,
                     folderName: 'documentID',
                     title: idChoice!,
                     onImageUploaded: (downloadUrl) =>
@@ -245,7 +247,7 @@ class _Step4State extends State<Step4> {
                         Divider(),
                         CameraOrFiles(
                           racineFolder: 'user',
-                          residence: 'document',
+                          residence: widget.userId,
                           folderName: 'justificatifDom',
                           title: idChoice!,
                           onImageUploaded: downloadImagePathJustif,
@@ -286,10 +288,11 @@ class _Step4State extends State<Step4> {
                     String pathJustif = getJustifType();
 
                     SubmitUser.submitUserTemp(
+                      emailUser:widget.emailUser,
                       name: widget.name,
                       surname: widget.surname,
                       pseudo: widget.pseudo,
-                      newUserId: widget.newUser,
+                      newUserId: widget.userId,
                       statutResident: widget.residentType,
                       typeChoice: widget.typeLot,
                       intendedFor: widget.intendedFor,
