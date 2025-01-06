@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class Step0 extends StatefulWidget {
-  final String newUser;
-  final Function(String, String, String) recupererInformationsStep0;
+  final String userId;
+  final  String emailUser;
+  final Function(String, String, String, String) recupererInformationsStep0;
   final int currentPage;
   final PageController progressController;
 
   const Step0({
     Key? key,
-    required this.newUser,
+    required this.emailUser,
+    required this.userId,
     required this.recupererInformationsStep0,
     required this.currentPage,
     required this.progressController,
@@ -39,6 +41,8 @@ class _Step0State extends State<Step0> {
 
   @override
   Widget build(BuildContext context) {
+    print("userId: ${widget.userId}");
+    print("eMail: ${widget.emailUser}");
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -164,7 +168,7 @@ class _Step0State extends State<Step0> {
                       String nom = getNom();
                       String prenom = getPrenom();
                       String pseudo = getPseudo();
-                      widget.recupererInformationsStep0(nom, prenom, pseudo);
+                      widget.recupererInformationsStep0(widget.emailUser, nom, prenom, pseudo);
                       // Action à effectuer lorsque le bouton "Suivant" est pressé
                       if (widget.currentPage < 5) {
                         widget.progressController.nextPage(
