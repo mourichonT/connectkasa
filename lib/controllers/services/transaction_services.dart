@@ -89,20 +89,20 @@ class TransactionServices {
           .get();
 
       // Parcourir chaque document dans le QuerySnapshot pour les acheteurs
-      querySnapshotAcheteur.docs.forEach((doc) {
+      for (var doc in querySnapshotAcheteur.docs) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data['documentReference'] = doc.reference;
         TransactionModel transaction = TransactionModel.fromJson(data);
         transactions.add(transaction);
-      });
+      }
 
       // Parcourir chaque document dans le QuerySnapshot pour les vendeurs
-      querySnapshotVendeur.docs.forEach((doc) {
+      for (var doc in querySnapshotVendeur.docs) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
         data['documentReference'] = doc.reference;
         TransactionModel transaction = TransactionModel.fromJson(data);
         transactions.add(transaction);
-      });
+      }
 
       // Retourner la liste des transactions récupérées
       return transactions;

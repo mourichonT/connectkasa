@@ -13,11 +13,11 @@ class ModifyPropDetails extends StatefulWidget {
   final String uid;
 
   const ModifyPropDetails({
-    Key? key,
+    super.key,
     required this.lot,
     required this.uid,
     required this.refLotSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => ModifyPropDetailsState();
@@ -65,9 +65,9 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-          widget.lot.nameProp != null && widget.lot.nameProp != "" ||
-                  widget.lot.nameLoc != null && widget.lot.nameLoc != ""
-              ? name.text!
+          widget.lot.nameProp != "" ||
+                  widget.lot.nameLoc != ""
+              ? name.text
               : "${widget.lot.residenceData['name']} ${widget.lot.lot}",
           Colors.black87,
           SizeFont.h1.size,
@@ -89,7 +89,7 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
             _buildReadOnlyTextField(
                 'Code Postal', widget.lot.residenceData["zipCode"]),
             _buildReadOnlyTextField('Ville', widget.lot.residenceData["city"]),
-            SizedBox(
+            const SizedBox(
               height: 80,
             )
           ],
@@ -126,7 +126,7 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
               color: Colors.black54,
               fontWeight: FontWeight.w400,
               fontSize: SizeFont.h3.size),
-          border: UnderlineInputBorder(
+          border: const UnderlineInputBorder(
             borderSide: BorderSide(
               color: Colors.grey,
               width: 1.0,
@@ -177,12 +177,12 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
         controller: TextEditingController(text: value ?? ''),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(
+          labelStyle: const TextStyle(
             color: Colors.black54,
             fontWeight: FontWeight.w400,
           ),
           enabled: false,
-          border: UnderlineInputBorder(
+          border: const UnderlineInputBorder(
             borderSide: BorderSide(
               color: Colors.grey,
               width: 1.0,
@@ -217,11 +217,11 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
               decoration: InputDecoration(
                 hintText: hintText,
                 labelText: label,
-                labelStyle: TextStyle(
+                labelStyle: const TextStyle(
                   color: Colors.black54,
                   fontWeight: FontWeight.w400,
                 ),
-                border: UnderlineInputBorder(
+                border: const UnderlineInputBorder(
                   borderSide: BorderSide(
                     color: Colors.grey,
                     width: 1.0,
@@ -241,7 +241,7 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
                   controller.clear();
                 });
               },
-              icon: Icon(Icons.clear),
+              icon: const Icon(Icons.clear),
             ),
           if (focusNode.hasFocus)
             IconButton(
@@ -262,7 +262,7 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
                 });
                 focusNode.unfocus();
               },
-              icon: Icon(Icons.check),
+              icon: const Icon(Icons.check),
             )
         ],
       ),

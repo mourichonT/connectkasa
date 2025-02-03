@@ -29,7 +29,7 @@ class MyTabBarController {
 class MyTabBarWidget extends StatefulWidget {
   final MyTabBarController controller;
 
-  MyTabBarWidget({required this.controller});
+  const MyTabBarWidget({super.key, required this.controller});
 
   @override
   _MyTabBarWidgetState createState() => _MyTabBarWidgetState();

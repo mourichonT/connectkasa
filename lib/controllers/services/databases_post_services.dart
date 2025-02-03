@@ -55,7 +55,7 @@ class DataBasesPostServices {
       print(
           'Une erreur s\'est produite lors de la récupération de la publication: $e');
       // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
-      throw e;
+      rethrow;
     }
   }
 
@@ -84,7 +84,7 @@ class DataBasesPostServices {
       print(
           'Une erreur s\'est produite lors de la suppression de la publication: $e');
       // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
-      throw e;
+      rethrow;
     }
   }
 
@@ -342,7 +342,7 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Error updating likes for post $postId: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -395,7 +395,7 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Error removing like for post $postId by user $userId: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -520,7 +520,7 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Error updating participants for post $postId: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -573,7 +573,7 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Error removing Participants for post $postId by user $userId: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -634,7 +634,7 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Impossible de mettre à jour le Post: $e");
-      throw e;
+      rethrow;
     }
   }
 

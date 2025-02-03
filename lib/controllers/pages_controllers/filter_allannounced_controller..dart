@@ -19,7 +19,7 @@ class FilterAllAnnouncedController extends StatefulWidget {
   final String uid;
   final FilterCallback onFilterUpdate;
 
-  FilterAllAnnouncedController({
+  const FilterAllAnnouncedController({
     super.key,
     required this.residenceSelected,
     required this.uid,
@@ -126,7 +126,7 @@ class FilterAllAnnouncedControllerState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: 50,
                   width: sizeDate,
                   child: TextField(
@@ -150,7 +150,7 @@ class FilterAllAnnouncedControllerState
                 ),
               ),
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: 50,
                   width: sizeDate,
                   child: TextField(
@@ -180,7 +180,7 @@ class FilterAllAnnouncedControllerState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: EdgeInsets.only(top: 10, left: 15, right: 20),
+                padding: const EdgeInsets.only(top: 10, left: 15, right: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -214,7 +214,7 @@ class FilterAllAnnouncedControllerState
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
+              SizedBox(
                 width: sizeDate,
                 child: TextButton(
                   onPressed: () {
@@ -240,7 +240,7 @@ class FilterAllAnnouncedControllerState
 
   Future<void> _selectDate(String choice) async {
     DateTime today = DateTime.now();
-    DateTime? _picked = await showDatePicker(
+    DateTime? picked = await showDatePicker(
       context: context,
       initialDate: today,
       firstDate: DateTime(2022),
@@ -249,9 +249,9 @@ class FilterAllAnnouncedControllerState
 
     setState(() {
       if (choice == "dateFrom") {
-        _dateFromController.text = _picked.toString().split(" ")[0];
+        _dateFromController.text = picked.toString().split(" ")[0];
       } else {
-        _dateToController.text = _picked.toString().split(" ")[0];
+        _dateToController.text = picked.toString().split(" ")[0];
       }
       _updateFilters();
     });

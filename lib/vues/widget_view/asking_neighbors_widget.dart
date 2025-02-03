@@ -110,7 +110,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                           top: 0,
                           left: 5,
                           child: Container(
-                            padding: EdgeInsets.only(top: 8, bottom: 16),
+                            padding: const EdgeInsets.only(top: 8, bottom: 16),
                             width: width,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -154,7 +154,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                                     radius: 22,
                                     backgroundColor:
                                         Theme.of(context).primaryColor,
-                                    child: CircleAvatar(
+                                    child: const CircleAvatar(
                                       radius: 19,
                                       backgroundColor: Colors.white,
                                       child: Icon(Icons.visibility_off_outlined,
@@ -163,7 +163,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                                           ),
                                     ),
                                   ),
-                                  SizedBox(width: 10),
+                                  const SizedBox(width: 10),
                                   MyTextStyle.lotName("Utilisateur Masqué",
                                       Colors.black87, SizeFont.h2.size),
                                 ],
@@ -173,7 +173,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                         MyTextStyle.commentDate(widget.post.timeStamp),
                       ],
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 20,
                     ),
                     Flexible(
@@ -181,7 +181,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                       child: MyTextStyle.annonceDesc(
                           widget.post.description, SizeFont.h3.size, 20),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 20,
                     ),
                   ],

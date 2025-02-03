@@ -35,7 +35,7 @@ class TenantDetailState extends State<TenantDetail> {
   child: Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
     children: [
-      Container(
+      SizedBox(
         width: 150,
         child: ButtonAdd(
           function: () {
@@ -48,7 +48,7 @@ class TenantDetailState extends State<TenantDetail> {
           size: SizeFont.h3.size,
         ),
       ),
-      Container(
+      SizedBox(
         width: 150,
         child: ButtonAdd(
           function: () {
@@ -143,9 +143,9 @@ class TenantDetailState extends State<TenantDetail> {
               if (widget.tenant.dependent != 0)
                 lineToWrite(Icons.diamond, "Personne à charge",
                     widget.tenant.dependent.toString()),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: const Divider(),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10.0),
+                child: Divider(),
               ),
               //contact
               _buildSectionHeader("Contact locataire"),
@@ -187,9 +187,9 @@ class TenantDetailState extends State<TenantDetail> {
                   ],
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: const Divider(),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10.0),
+                child: Divider(),
               ),
 
               // Profil locataire
@@ -207,12 +207,12 @@ class TenantDetailState extends State<TenantDetail> {
               if (widget.tenant.amountFamilyAllowance.isNotEmpty)
                 lineToWrite(Icons.euro, "Allocations familiales",
                     widget.tenant.amountFamilyAllowance),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10.0),
-                child: const Divider(),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 10.0),
+                child: Divider(),
               ),
               _buildGridSection(),
-              SizedBox(height: 50,),
+              const SizedBox(height: 50,),
             ],
           ),
         ),

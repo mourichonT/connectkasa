@@ -6,7 +6,7 @@ class RatingBar extends StatelessWidget {
   final int stars;
   final int percentage;
 
-  RatingBar({required this.stars, required this.percentage});
+  const RatingBar({super.key, required this.stars, required this.percentage});
 
   @override
   Widget build(BuildContext context) {
@@ -14,9 +14,9 @@ class RatingBar extends StatelessWidget {
       children: [
         // Nombre d'étoiles
         MyTextStyle.lotDesc('$stars', SizeFont.para.size),
-        SizedBox(width: 8),
+        const SizedBox(width: 8),
         // Barre de progression
-        Container(
+        SizedBox(
           width: 100,
           child: LinearProgressIndicator(
             value: percentage / 100,

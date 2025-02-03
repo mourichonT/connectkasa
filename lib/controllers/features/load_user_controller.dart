@@ -29,19 +29,19 @@ class LoadUserController {
     return iud;
   }
 
-   Future<String> loadUserDataMicrosoft() async {
-    user = await authService.signInWithMicrosoft();
-    String iud = user!.user!.uid;
+//    Future<String> loadUserDataMicrosoft() async {
+//     user = await authService.signInWithMicrosoft();
+//     String iud = user!.user!.uid;
 
-    return iud;
-  }
- Future<void> handleMicrosoftSignOut() async {
-    try {
-      await authService.signOutWithGoogle();
-    } catch (e) {
-      print('Erreur lors de la déconnexion avec Google: $e');
-    }
-  }
+//     return iud;
+//   }
+//  Future<void> handleMicrosoftSignOut() async {
+//     try {
+//       await authService.signOutWithGoogle();
+//     } catch (e) {
+//       print('Erreur lors de la déconnexion avec Google: $e');
+//     }
+//   }
   // Utilisation de la variable user déclarée au niveau de la classe.
   Future<void> handleGoogleSignOut() async {
     try {

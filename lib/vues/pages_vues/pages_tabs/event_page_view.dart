@@ -20,12 +20,12 @@ class EventPageView extends StatefulWidget {
   final String? type;
 
   const EventPageView({
-    Key? key,
+    super.key,
     required this.residenceSelected,
     required this.uid,
     required this.colorStatut,
     this.type,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => EventPageViewState();
@@ -81,7 +81,7 @@ class EventPageViewState extends State<EventPageView>
           content: _eventsForSelectedDay.isEmpty
               ? MyTextStyle.annonceDesc(
                   "Aucun événement pour ce jour.", SizeFont.h3.size, 1)
-              : Container(
+              : SizedBox(
                   width: double.maxFinite,
                   child: ListView.builder(
                     shrinkWrap: true,
@@ -99,7 +99,7 @@ class EventPageViewState extends State<EventPageView>
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(3.0),
                                 child: Container(
-                                  padding: EdgeInsets.all(8),
+                                  padding: const EdgeInsets.all(8),
                                   width: 70,
                                   height: 70,
                                   child: Image.network(
@@ -111,7 +111,7 @@ class EventPageViewState extends State<EventPageView>
                             : ClipRRect(
                                 borderRadius: BorderRadius.circular(3.0),
                                 child: Container(
-                                  padding: EdgeInsets.all(8),
+                                  padding: const EdgeInsets.all(8),
                                   width: 70,
                                   height: 70,
                                   child: ImageAnnounced(context, 70, 70),
@@ -143,7 +143,7 @@ class EventPageViewState extends State<EventPageView>
                 ),
           actions: <Widget>[
             TextButton(
-              child: Text("Ajouter un évenement"),
+              child: const Text("Ajouter un évenement"),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -164,7 +164,7 @@ class EventPageViewState extends State<EventPageView>
               },
             ),
             TextButton(
-              child: Text("Fermer"),
+              child: const Text("Fermer"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -178,7 +178,7 @@ class EventPageViewState extends State<EventPageView>
   void _loadEventDays() async {
     List<Post> posts = await _allEventsFuture;
     _eventDays.clear(); // Efface les événements précédents
-    posts.forEach((post) {
+    for (var post in posts) {
       if (post.eventDate != null) {
         Timestamp timestamp = post.eventDate!;
         DateTime dateTime = timestamp.toDate();
@@ -187,7 +187,7 @@ class EventPageViewState extends State<EventPageView>
           _eventDays.add(DateTime(dateTime.year, dateTime.month, dateTime.day));
         }
       }
-    });
+    }
     setState(
         () {}); // Met à jour l'interface utilisateur avec les nouveaux événements
   }
@@ -250,7 +250,7 @@ class EventPageViewState extends State<EventPageView>
                 startingDayOfWeek: StartingDayOfWeek.monday,
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.only(top: 15, bottom: 30),
               child: ButtonAdd(
@@ -282,14 +282,14 @@ class EventPageViewState extends State<EventPageView>
               future: _allEventsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
+                  return const Center(
                     child: CircularProgressIndicator(),
                   );
                 } else if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
                 } else {
                   List<Post> allPosts = snapshot.data!;
-                  return Container(
+                  return SizedBox(
                     height: 400, // Hauteur à ajuster selon vos besoins
                     child: ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 5),
@@ -320,7 +320,7 @@ class EventPageViewState extends State<EventPageView>
                             ),
                           );
                         } else {
-                          return SizedBox.shrink();
+                          return const SizedBox.shrink();
                         }
                       },
                     ),

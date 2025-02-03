@@ -19,7 +19,7 @@ class EventWidget extends StatefulWidget {
   final Color colorStatut;
   final double scrollController;
 
-  const EventWidget({
+  const EventWidget({super.key, 
     required this.post,
     required this.uid,
     required this.residenceSelected,
@@ -127,11 +127,11 @@ class _EventWidgetState extends State<EventWidget> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          margin: EdgeInsets.all(12),
+          margin: const EdgeInsets.all(12),
           width: 70,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.black12),
-            borderRadius: BorderRadius.all(Radius.circular(30)),
+            borderRadius: const BorderRadius.all(Radius.circular(30)),
             color: Colors.white,
           ),
           child: Column(
@@ -142,7 +142,7 @@ class _EventWidgetState extends State<EventWidget> {
               Container(
                 width: 75,
                 height: 75,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(30)),
                   color: Colors.black12,
                 ),
@@ -157,14 +157,14 @@ class _EventWidgetState extends State<EventWidget> {
                           widget.post.eventDate!, SizeFont.h3.size),
                     ]),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               MyTextStyle.lotDesc(
                   MyTextStyle.EventHours(widget.post.eventDate!),
                   SizeFont.h3.size,
                   FontStyle.normal),
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
             ],

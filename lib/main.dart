@@ -36,7 +36,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +46,8 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             tabBarTheme:
-                TabBarTheme(dividerColor: Colors.black38, dividerHeight: 0.5),
-            dividerTheme: DividerThemeData(
+                const TabBarTheme(dividerColor: Colors.black38, dividerHeight: 0.5),
+            dividerTheme: const DividerThemeData(
               color: Colors.black38, // Couleur principale du diviseur
               thickness: 0.5, // Épaisseur du diviseur
               space: 20, // Espace entre les diviseurs

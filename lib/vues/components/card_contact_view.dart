@@ -25,7 +25,7 @@ class CardContactView extends StatefulWidget {
   final String uid;
   final String accountantId;
 
-  CardContactView({
+  const CardContactView({super.key, 
     required this.selectedlot,
     required this.accountantName,
     required this.accountantSurname,
@@ -48,7 +48,7 @@ class CardContactView extends StatefulWidget {
 
 class _CardContactViewState extends State<CardContactView> {
   late Future<List<Mail>> _mailsFuture;
-  DatabasesMailServices _databasesMail = DatabasesMailServices();
+  final DatabasesMailServices _databasesMail = DatabasesMailServices();
 
   @override
   void initState() {
@@ -67,7 +67,7 @@ class _CardContactViewState extends State<CardContactView> {
       future: _mailsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
+          return const Center(
             child: CircularProgressIndicator(),
           );
         } else if (snapshot.hasError) {
@@ -87,11 +87,11 @@ class _CardContactViewState extends State<CardContactView> {
                     left: 0,
                     right: 0,
                     child: Container(
-                      padding: EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16),
                       width: MediaQuery.of(context).size.width * 0.9,
                       decoration: BoxDecoration(
                         color: Theme.of(context).primaryColor.withOpacity(0.4),
-                        borderRadius: BorderRadius.only(
+                        borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(10),
                           topRight: Radius.circular(10),
                         ),
@@ -100,16 +100,16 @@ class _CardContactViewState extends State<CardContactView> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "${widget.agencyName}",
-                            style: TextStyle(
+                            widget.agencyName,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.w900,
                             ),
                           ),
                           Text(
-                            "${widget.accountantFonction}",
-                            style: TextStyle(
+                            widget.accountantFonction,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w400,
@@ -138,18 +138,18 @@ class _CardContactViewState extends State<CardContactView> {
                                       )));
                         },
                         child: Container(
-                          padding: EdgeInsets.only(top: 20),
+                          padding: const EdgeInsets.only(top: 20),
                           width: MediaQuery.of(context).size.width * 0.9,
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             color: Colors.white,
                           ),
                           child: Column(
                             children: [
                               ListTile(
-                                leading: Container(
+                                leading: SizedBox(
                                   width: 30, // Set a specific width
                                   child: mails.last.from != null
-                                      ? Icon(Icons
+                                      ? const Icon(Icons
                                           .subdirectory_arrow_right_rounded)
                                       : Container(),
                                 ),
@@ -170,9 +170,9 @@ class _CardContactViewState extends State<CardContactView> {
                     left: 0,
                     right: 0,
                     child: Container(
-                      padding: EdgeInsets.only(top: 20),
+                      padding: const EdgeInsets.only(top: 20),
                       width: MediaQuery.of(context).size.width * 0.9,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.white,
                       ),
                       child: Column(
@@ -180,7 +180,7 @@ class _CardContactViewState extends State<CardContactView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          Divider(
+                          const Divider(
                             thickness: 0.3,
                           ),
                           Padding(
@@ -193,7 +193,7 @@ class _CardContactViewState extends State<CardContactView> {
                                     ContactFeatures.launchPhoneCall(
                                         widget.accountantPhone);
                                   },
-                                  child: Row(
+                                  child: const Row(
                                     children: [
                                       Icon(
                                         Icons.phone,
@@ -220,7 +220,7 @@ class _CardContactViewState extends State<CardContactView> {
                                                   uid: widget.uid,
                                                 )));
                                   },
-                                  child: Row(
+                                  child: const Row(
                                     children: [
                                       Icon(
                                         Icons.mail,
@@ -241,8 +241,8 @@ class _CardContactViewState extends State<CardContactView> {
                             child: Row(
                               children: [
                                 Container(
-                                  padding: EdgeInsets.all(16),
-                                  child: Icon(Icons.location_on),
+                                  padding: const EdgeInsets.all(16),
+                                  child: const Icon(Icons.location_on),
                                 ),
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.start,
@@ -255,7 +255,7 @@ class _CardContactViewState extends State<CardContactView> {
                                       children: [
                                         Text(
                                           "${widget.agencyNum} ",
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.black87,
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
@@ -263,7 +263,7 @@ class _CardContactViewState extends State<CardContactView> {
                                         ),
                                         Text(
                                           "${widget.agencyVoie} ",
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.black87,
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
@@ -271,7 +271,7 @@ class _CardContactViewState extends State<CardContactView> {
                                         ),
                                         Text(
                                           "${widget.agencystreet} ",
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.black87,
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
@@ -283,7 +283,7 @@ class _CardContactViewState extends State<CardContactView> {
                                       children: [
                                         Text(
                                           "${widget.agencyZIPCode} ",
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.black87,
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
@@ -291,7 +291,7 @@ class _CardContactViewState extends State<CardContactView> {
                                         ),
                                         Text(
                                           "${widget.agencyCity} ",
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.black87,
                                             fontSize: 14,
                                             fontWeight: FontWeight.w500,
@@ -304,7 +304,7 @@ class _CardContactViewState extends State<CardContactView> {
                               ],
                             ),
                           ),
-                          Container(
+                          SizedBox(
                             height:
                                 200, // Taille fixe pour la carte Google Maps
                             child: AgencyMapWidget(
@@ -322,7 +322,7 @@ class _CardContactViewState extends State<CardContactView> {
                                   child: RichText(
                                     text: TextSpan(
                                       children: [
-                                        TextSpan(
+                                        const TextSpan(
                                           text:
                                               "Vous constatez un changement de coordonnée, merci de nous le faire savoir en cliquant ",
                                           style: TextStyle(color: Colors.black),

@@ -61,7 +61,7 @@ Widget ProfilTile(
               backgroundColor: Theme.of(context).primaryColor,
               child: formatProfilPic.ProfilePic(radius2, null, size),
             ),
-            SizedBox(
+            const SizedBox(
               width: 5,
             ),
             if (pseudoHidden)

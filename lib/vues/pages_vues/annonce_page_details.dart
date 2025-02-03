@@ -22,15 +22,15 @@ class AnnoncePageDetails extends StatefulWidget {
   final double? scrollController;
   final bool returnHomePage;
 
-  AnnoncePageDetails({
-    Key? key,
+  const AnnoncePageDetails({
+    super.key,
     required this.post,
     required this.uid,
     required this.residence,
     required this.colorStatut,
     this.scrollController,
     required this.returnHomePage,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => AnnoncePageDetailsState();
@@ -132,14 +132,14 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                             ],
                           ),
                         ),
-                        Divider(),
-                        SizedBox(height: 5),
+                        const Divider(),
+                        const SizedBox(height: 5),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Container(
+                              SizedBox(
                                 height: 30,
                                 child: MyTextStyle.lotName(
                                   widget.post.title,
@@ -160,7 +160,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                           child: MyTextStyle.lotDesc(
                               widget.post.subtype ?? 'n/a', SizeFont.h3.size),
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: Row(
@@ -174,7 +174,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                     FontStyle.italic,
                                     FontWeight.w900,
                                   ),
-                                  SizedBox(
+                                  const SizedBox(
                                     width: 5,
                                   ),
                                   MyTextStyle.lotName(
@@ -218,7 +218,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                             ],
                           ),
                         ),
-                        Divider(),
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 20),
@@ -230,7 +230,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                         ),
                       ],
                     ),
-                    Divider(),
+                    const Divider(),
                     Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -245,7 +245,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                             builder: (context, snapshot) {
                               if (snapshot.connectionState ==
                                   ConnectionState.waiting) {
-                                return CircularProgressIndicator();
+                                return const CircularProgressIndicator();
                               } else {
                                 var owner = snapshot.data;
                                 return owner != null
@@ -253,7 +253,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                         "Les autres annonces de ${owner.pseudo!}",
                                         Colors.black87,
                                         SizeFont.h2.size)
-                                    : Text('Chargement...');
+                                    : const Text('Chargement...');
                               }
                             },
                           ),
@@ -263,7 +263,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return Center(child: CircularProgressIndicator());
+                              return const Center(child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else {
@@ -296,7 +296,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                             ));
                                           },
                                           child: Container(
-                                            padding: EdgeInsets.only(left: 10),
+                                            padding: const EdgeInsets.only(left: 10),
                                             color: Colors.white,
                                             width: 200,
                                             child: Column(
@@ -307,7 +307,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                                   // Ajout de ClipRRect pour appliquer le coin arrondi à l'image
 
                                                   child: annonce.pathImage != ""
-                                                      ? Container(
+                                                      ? SizedBox(
                                                           width: 200,
                                                           height: 130,
                                                           child: Image.network(
@@ -346,7 +346,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                                         FontStyle.italic,
                                                         FontWeight.w900,
                                                       ),
-                                                      SizedBox(
+                                                      const SizedBox(
                                                         width: 5,
                                                       ),
                                                       MyTextStyle.lotName(
@@ -366,7 +366,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                       );
                                     } else {
                                       // Retourner un widget vide si c'est l'annonce principale
-                                      return SizedBox.shrink();
+                                      return const SizedBox.shrink();
                                     }
                                   },
                                 ),
@@ -384,7 +384,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
         ],
       ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           border: Border(
             top: BorderSide(
               width: 1,

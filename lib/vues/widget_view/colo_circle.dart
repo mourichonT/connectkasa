@@ -13,7 +13,7 @@ class ColorCircle extends StatelessWidget {
 
   static int _tagCounter = 0;
 
-  ColorCircle({
+  ColorCircle({super.key, 
     required this.color,
     required this.residenceId,
     required this.refLot,

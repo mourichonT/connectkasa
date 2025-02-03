@@ -27,14 +27,14 @@ class AskingNeighbordsForm extends StatefulWidget {
   final String folderName;
 
   const AskingNeighbordsForm({
-    Key? key,
+    super.key,
     this.preferedLot,
     required this.racineFolder,
     required this.uid,
     required this.idPost,
     required this.updateUrl,
     required this.folderName,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => AskingNeighbordsFormState();
@@ -98,14 +98,14 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
   FontWeight _selectedFontWeight = FontWeight.normal;
   FontStyle _selectedFontStyle = FontStyle.normal;
   Color _selectedFontColor = Colors.black87;
-  TextEditingController _textEditingController = TextEditingController();
+  final TextEditingController _textEditingController = TextEditingController();
   bool _fontSize = false;
-  bool _fontColor = false;
+  final bool _fontColor = false;
   bool _fontItalic = false;
   bool _fontBold = false;
   String imagePath = "";
   bool anonymPost = false;
-  GlobalKey _globalKey = GlobalKey();
+  final GlobalKey _globalKey = GlobalKey();
   String _backgroundColor = "";
   String _backgroundImage = "";
 
@@ -117,7 +117,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
 
   Future<Uint8List> _capturePng() async {
     try {
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       RenderRepaintBoundary? boundary = _globalKey.currentContext
           ?.findRenderObject() as RenderRepaintBoundary?;
@@ -154,7 +154,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
 
     return Column(
       children: [
-        Divider(),
+        const Divider(),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -184,7 +184,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
               mainAxisSize: MainAxisSize.max,
               children: [
                 IconButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.format_size_rounded,
                     size: 30,
                   ),
@@ -196,7 +196,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                 ),
                 Visibility(
                   visible: _fontSize,
-                  child: Container(
+                  child: SizedBox(
                     width: width / 2.5,
                     child: Slider(
                       value: _selectedFontSize,
@@ -236,7 +236,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                               SizeFont.h2.size),
                           content: SingleChildScrollView(
                             child: ColorPicker(
-                              labelTypes: [],
+                              labelTypes: const [],
                               pickerColor: _selectedFontColor,
                               onColorChanged: (color) {
                                 setState(() {
@@ -272,12 +272,12 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                 ),
                 IconButton(
                   icon: _fontItalic
-                      ? Icon(
+                      ? const Icon(
                           Icons.format_clear_rounded,
                           size: 30,
                           color: Colors.black38,
                         )
-                      : Icon(
+                      : const Icon(
                           Icons.format_italic_rounded,
                           size: 30,
                         ),
@@ -324,7 +324,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                         _selectedText = value;
                       });
                     },
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       hintText: 'Quoi de neuf?',
                       border: InputBorder.none,
                     ),
@@ -347,7 +347,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
             ),
           ),
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 10),
         Wrap(
           alignment: WrapAlignment.center,
           spacing: 15,
@@ -369,7 +369,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                     decoration: BoxDecoration(
                       color: color,
                       borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Colors.black26,
                           blurRadius: 4,
@@ -386,7 +386,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                   ),
                 ),
               );
-            }).toList(),
+            }),
             ..._imagePaths.map((path) {
               return Padding(
                 padding: const EdgeInsets.only(top: 5),
@@ -403,7 +403,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                     height: 30,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
+                      boxShadow: const [
                         BoxShadow(
                           color: Colors.black26,
                           blurRadius: 4,
@@ -416,12 +416,12 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                       ),
                     ),
                     child: _selectedImagePath == path
-                        ? Icon(Icons.check, color: Colors.black87)
+                        ? const Icon(Icons.check, color: Colors.black87)
                         : null,
                   ),
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
         Padding(

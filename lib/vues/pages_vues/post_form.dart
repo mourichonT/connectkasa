@@ -126,7 +126,7 @@ class PostFormState extends State<PostForm> {
               return ChoiceChip(
                 label: Text(itemElement),
                 selected: selectedDeclaration == itemElement,
-                side: BorderSide(
+                side: const BorderSide(
                   color: Colors
                       .black12, // Changez `Colors.blue` et `Colors.grey` selon vos besoins
                   width: 1.0, // Changez la largeur de la bordure si nécessaire

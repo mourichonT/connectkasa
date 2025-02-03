@@ -11,7 +11,7 @@ class ComponentLsHeader extends StatelessWidget{
   
   @override
   Widget build(BuildContext context) {
-   return Container(
+   return SizedBox(
     width: 120,
     height: 120,
      child: Column(
@@ -24,12 +24,12 @@ class ComponentLsHeader extends StatelessWidget{
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     MyTextStyle.lotDesc(label, SizeFont.para.size, FontStyle.normal, FontWeight.bold),
-                    SizedBox(height: 5,),
+                    const SizedBox(height: 5,),
                     MyTextStyle.lotDesc(note, SizeFont.h3.size, FontStyle.normal, FontWeight.bold),
                   ],
                 ),
-                Spacer(),
-                Container(padding: EdgeInsets.symmetric(vertical: 1), child:  icon)
+                const Spacer(),
+                Container(padding: const EdgeInsets.symmetric(vertical: 1), child:  icon)
               ]
             ),
    );

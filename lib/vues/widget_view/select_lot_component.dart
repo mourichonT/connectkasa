@@ -37,7 +37,7 @@ class SelectLotComponentState extends State<SelectLotComponent> {
                   children: [
                     MyTextStyle.lotDesc(
                         "Sélectionner votre résidence", SizeFont.h2.size),
-                    Icon(Icons.arrow_drop_down),
+                    const Icon(Icons.arrow_drop_down),
                   ],
                 ),
               )

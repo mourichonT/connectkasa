@@ -68,7 +68,7 @@ dependencies:
   path_provider: ^2.1.5
   open_filex: ^4.5.0
   sign_in_with_apple: ^6.1.4
-  flutter_appauth: ^8.0.3
+  #flutter_appauth: ^8.0.3
   
  
   

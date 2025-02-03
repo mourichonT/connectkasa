@@ -44,13 +44,13 @@ class AuthentificationProcess {
                 "Les données utilisateur ne sont pas disponibles dans la base de données.");
             // Gérer le cas où les données utilisateur ne sont pas disponibles dans la base de données
             // Peut-être afficher un message d'erreur ou effectuer une autre action appropriée
-            return null;
+            return;
           }
         } else {
           // Gérer le cas où aucun utilisateur n'est connecté
           // Peut-être afficher un message ou effectuer une autre action appropriée
           print("Aucun utilisateur connecté.");
-          return null;
+          return;
         }
       }, onError: (dynamic error) {
         print(
@@ -63,6 +63,7 @@ class AuthentificationProcess {
       // Afficher un message d'erreur ou effectuer une autre action appropriée
       return null;
     }
+    return null;
   }
 
   // Future<Firebase.User?> fluttLogInWithApple() async {
@@ -123,81 +124,74 @@ class AuthentificationProcess {
   // }
 
     // Méthode de connexion avec Microsoft
-  Future<Firebase.User?> fluttLogInWithMicrosoft() async {
-    try {
-      // Charger les données utilisateur
-      final OAuthProvider provider = OAuthProvider("microsoft.com");
-      provider.setCustomParameters({"tenant":"4c71c353-ccfc-44a4-8933-16fafd42ee8b" });
+  // Future<Firebase.User?> fluttLogInWithMicrosoft() async {
+  //   try {
+  //     // Charger les données utilisateur
+  //     final OAuthProvider provider = OAuthProvider("microsoft.com");
+  //     provider.setCustomParameters({"tenant":"4c71c353-ccfc-44a4-8933-16fafd42ee8b" });
 
-      await  Firebase.FirebaseAuth.instance.signInWithProvider(provider);
-      // Écouter les changements d'état de l'authentification
-      Firebase.FirebaseAuth.instance.authStateChanges().listen(
-          (Firebase.User? user) async {
-        if (user != null) {
-          // Récupérer les données de l'utilisateur à partir de la base de données
-          var userData = await _userDataBases.getUserById(user.uid);
+  //     await  Firebase.FirebaseAuth.instance.signInWithProvider(provider);
+  //     // Écouter les changements d'état de l'authentification
+  //     Firebase.FirebaseAuth.instance.authStateChanges().listen(
+  //         (Firebase.User? user) async {
+  //       if (user != null) {
+  //         // Récupérer les données de l'utilisateur à partir de la base de données
+  //         var userData = await _userDataBases.getUserById(user.uid);
 
-          if (userData?.uid == user.uid) {
-            // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
-            navigateToMyApp(userData!.uid, firestore);
-            return Future.value(user);
-          } else {
-            loadUserController.handleGoogleSignOut();
+  //         if (userData?.uid == user.uid) {
+  //           // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
+  //           navigateToMyApp(userData!.uid, firestore);
+  //           return Future.value(user);
+  //         } else {
+  //           loadUserController.handleGoogleSignOut();
 
-            navigateToStep0(user);
-            print(
-                "Les données utilisateur ne sont pas disponibles dans la base de données.");
-            // Gérer le cas où les données utilisateur ne sont pas disponibles dans la base de données
-            // Peut-être afficher un message d'erreur ou effectuer une autre action appropriée
-            return null;
-          }
-        } else {
-          // Gérer le cas où aucun utilisateur n'est connecté
-          // Peut-être afficher un message ou effectuer une autre action appropriée
-          print("Aucun utilisateur connecté.");
-          return null;
-        }
-      }, onError: (dynamic error) {
-        print(
-            'Erreur lors de l\'écoute des changements d\'état d\'authentification : $error');
-        // Gérer l'erreur
-      });
-    } catch (e) {
-      // Gérer les erreurs éventuelles
-      print("Erreur lors de la connexion : $e");
-      // Afficher un message d'erreur ou effectuer une autre action appropriée
-      return null;
-    }
-  }
+  //           navigateToStep0(user);
+  //           print(
+  //               "Les données utilisateur ne sont pas disponibles dans la base de données.");
+  //           // Gérer le cas où les données utilisateur ne sont pas disponibles dans la base de données
+  //           // Peut-être afficher un message d'erreur ou effectuer une autre action appropriée
+  //           return null;
+  //         }
+  //       } else {
+  //         // Gérer le cas où aucun utilisateur n'est connecté
+  //         // Peut-être afficher un message ou effectuer une autre action appropriée
+  //         print("Aucun utilisateur connecté.");
+  //         return null;
+  //       }
+  //     }, onError: (dynamic error) {
+  //       print(
+  //           'Erreur lors de l\'écoute des changements d\'état d\'authentification : $error');
+  //       // Gérer l'erreur
+  //     });
+  //   } catch (e) {
+  //     // Gérer les erreurs éventuelles
+  //     print("Erreur lors de la connexion : $e");
+  //     // Afficher un message d'erreur ou effectuer une autre action appropriée
+  //     return null;
+  //   }
+  // }
   
   Future SignInWithMail(UserCredential userCredential) async {
     User checkUser = userCredential.user!;
 
-    if (checkUser != null) {
-      // Récupérer les données de l'utilisateur à partir de la base de données
-      var userData = await _userDataBases.getUserById(checkUser.uid);
+    // Récupérer les données de l'utilisateur à partir de la base de données
+    var userData = await _userDataBases.getUserById(checkUser.uid);
 
-      if (userData?.uid == checkUser.uid) {
-        // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
-        navigateToMyApp(userData!.uid, firestore);
-        return Future.value(checkUser);
-      } else {
-        loadUserController.handleGoogleSignOut();
-
-        navigateToStep0(checkUser);
-        print(
-            "Les données utilisateur ne sont pas disponibles dans la base de données.");
-        // Gérer le cas où les données utilisateur ne sont pas disponibles dans la base de données
-        // Peut-être afficher un message d'erreur ou effectuer une autre action appropriée
-        return null;
-      }
+    if (userData?.uid == checkUser.uid) {
+      // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
+      navigateToMyApp(userData!.uid, firestore);
+      return Future.value(checkUser);
     } else {
-      // Gérer le cas où aucun utilisateur n'est connecté
-      // Peut-être afficher un message ou effectuer une autre action appropriée
-      print("Aucun utilisateur connecté.");
+      loadUserController.handleGoogleSignOut();
+
+      navigateToStep0(checkUser);
+      print(
+          "Les données utilisateur ne sont pas disponibles dans la base de données.");
+      // Gérer le cas où les données utilisateur ne sont pas disponibles dans la base de données
+      // Peut-être afficher un message d'erreur ou effectuer une autre action appropriée
       return null;
     }
-  }
+    }
 
   void navigateToMyApp(String userID, FirebaseFirestore firestore) {
     Navigator.push(

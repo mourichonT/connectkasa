@@ -45,7 +45,7 @@ class SignalementTile extends StatelessWidget {
                   top: 0,
                   left: 5,
                   child: Container(
-                    padding: EdgeInsets.only(top: 8, bottom: 16),
+                    padding: const EdgeInsets.only(top: 8, bottom: 16),
                     width: width,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(

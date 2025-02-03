@@ -10,13 +10,13 @@ class Step0 extends StatefulWidget {
   final PageController progressController;
 
   const Step0({
-    Key? key,
+    super.key,
     required this.emailUser,
     required this.userId,
     required this.recupererInformationsStep0,
     required this.currentPage,
     required this.progressController,
-  }) : super(key: key);
+  });
 
   @override
   _Step0State createState() => _Step0State();
@@ -52,18 +52,18 @@ class _Step0State extends State<Step0> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: MyTextStyle.lotName(
                     """Vous venez de vous installer dans une résidence du réseau ConnectKasa. Commençons par renseigner quelques informations. """,
                     Colors.black54),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                 child: Row(
                   children: [
                     Container(
                       width: 150,
-                      padding: EdgeInsets.only(right: 20),
+                      padding: const EdgeInsets.only(right: 20),
                       child: Text(
                         "Nom de famille * :",
                         style: GoogleFonts.robotoCondensed(
@@ -89,12 +89,12 @@ class _Step0State extends State<Step0> {
                   children: [
                     Padding(
                       padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                          const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                       child: Row(
                         children: [
                           Container(
                             width: 150,
-                            padding: EdgeInsets.only(right: 20),
+                            padding: const EdgeInsets.only(right: 20),
                             child: Text(
                               "Prénom * :",
                               style: GoogleFonts.robotoCondensed(
@@ -117,12 +117,12 @@ class _Step0State extends State<Step0> {
                     ),
                     Padding(
                       padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                          const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                       child: Row(
                         children: [
                           Container(
                             width: 150,
-                            padding: EdgeInsets.only(right: 20),
+                            padding: const EdgeInsets.only(right: 20),
                             child: Text(
                               "Pseudo :",
                               style: GoogleFonts.robotoCondensed(
@@ -152,7 +152,7 @@ class _Step0State extends State<Step0> {
         visible: getPrenom().isNotEmpty,
         child: BottomAppBar(
             surfaceTintColor: Colors.white,
-            padding: EdgeInsets.all(2),
+            padding: const EdgeInsets.all(2),
             height: 70,
             child: Container(
                 // decoration: BoxDecoration(color: Colors.amber),
@@ -172,12 +172,12 @@ class _Step0State extends State<Step0> {
                       // Action à effectuer lorsque le bouton "Suivant" est pressé
                       if (widget.currentPage < 5) {
                         widget.progressController.nextPage(
-                          duration: Duration(milliseconds: 500),
+                          duration: const Duration(milliseconds: 500),
                           curve: Curves.ease,
                         );
                       }
                     },
-                    child: Text(
+                    child: const Text(
                       'Suivant',
                     ),
                   ),

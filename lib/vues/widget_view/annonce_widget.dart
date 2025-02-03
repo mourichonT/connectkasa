@@ -23,7 +23,7 @@ class AnnonceWidget extends StatefulWidget {
   final Color colorStatut;
   final double scrollController;
 
-  AnnonceWidget(
+  const AnnonceWidget(
       {super.key,
       required this.uid,
       required this.residenceSelected,
@@ -101,7 +101,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                 },
                 child: Column(
                   children: [
-                    Container(
+                    SizedBox(
                       height: 250,
                       width: width,
                       child: widget.post.pathImage != ""
@@ -165,7 +165,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                               SizeFont.h3.size,
                                               3),
                                         ),
-                                        SizedBox(
+                                        const SizedBox(
                                           height: 10,
                                         ),
                                         Column(
@@ -184,7 +184,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                                       FontStyle.italic,
                                                       FontWeight.w900,
                                                     ),
-                                                    SizedBox(
+                                                    const SizedBox(
                                                       width: 5,
                                                     ),
                                                     MyTextStyle.lotDesc(

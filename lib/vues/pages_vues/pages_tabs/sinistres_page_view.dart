@@ -16,15 +16,15 @@ class SinistrePageView extends StatefulWidget {
   final String? argument2;
   final String? argument3;
 
-  SinistrePageView({
-    Key? key,
+  const SinistrePageView({
+    super.key,
     required this.residenceId,
     required this.uid,
     required this.colorStatut,
     this.argument1,
     this.argument2,
     this.argument3,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => SinistrePageViewState();
@@ -147,7 +147,7 @@ class SinistrePageViewState extends State<SinistrePageView>
               ),
             ),
           Expanded(
-            child: Container(
+            child: SizedBox(
               width: width,
               child: TabBarView(
                 controller: _tabController,

@@ -46,7 +46,6 @@ class _HomeviewState extends State<Homeview> {
   void _scrollListener() {
     setState(() {
       scrollPosition = _scrollController.offset;
-      ;
     });
   }
 

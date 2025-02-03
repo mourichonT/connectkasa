@@ -26,7 +26,7 @@ class EventTilepv extends StatefulWidget {
   final Function()? updatePostsList;
 
   EventTilepv(this.post, this.residenceId, this.uid, this.canModify,
-      this.colorStatut, this.updatePostsList);
+      this.colorStatut, this.updatePostsList, {super.key});
 
   @override
   State<StatefulWidget> createState() => EventTileState();
@@ -129,10 +129,10 @@ class EventTileState extends State<EventTilepv> {
           children: [
             Container(
               padding:
-                  EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 10),
+                  const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 10),
               width: MediaQuery.of(context).size.width * 0.95,
               child: _event == null
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : Row(
                       children: [
                         if (_event!.pathImage != "" &&
@@ -141,7 +141,7 @@ class EventTileState extends State<EventTilepv> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(35.0),
                             child: Container(
-                              padding: EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(8),
                               width: 120,
                               height: 120,
                               child: Image.network(
@@ -154,13 +154,13 @@ class EventTileState extends State<EventTilepv> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(35.0),
                             child: Container(
-                              padding: EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(8),
                               width: 120,
                               height: 120,
                               child: ImageAnnounced(context, 120, 120),
                             ),
                           ),
-                        SizedBox(width: 20),
+                        const SizedBox(width: 20),
                         Expanded(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -216,7 +216,7 @@ class EventTileState extends State<EventTilepv> {
                                       Colors.black87, SizeFont.h3.size),
                                   MyTextStyle.annonceDesc(_event!.description,
                                       SizeFont.para.size, 2),
-                                  Divider(),
+                                  const Divider(),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -234,7 +234,7 @@ class EventTileState extends State<EventTilepv> {
                         ),
                         if (widget.canModify)
                           Container(
-                            padding: EdgeInsets.only(left: 10),
+                            padding: const EdgeInsets.only(left: 10),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.end,
                               mainAxisSize: MainAxisSize.max,
@@ -282,7 +282,7 @@ class EventTileState extends State<EventTilepv> {
                                                     )));
                                       }
                                     },
-                                    icon: Icon(
+                                    icon: const Icon(
                                       Icons.edit,
                                       size: 20,
                                     )),
@@ -291,7 +291,7 @@ class EventTileState extends State<EventTilepv> {
                                     onPressed: () {
                                       showAlertDialog(context, _event!.title);
                                     },
-                                    icon: Icon(
+                                    icon: const Icon(
                                       Icons.delete,
                                       size: 20,
                                     )),

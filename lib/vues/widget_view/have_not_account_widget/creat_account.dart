@@ -30,11 +30,11 @@ class CreatAccount extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.max,
               children: [
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
                 Container(
-                  padding: EdgeInsets.only(bottom: 40),
+                  padding: const EdgeInsets.only(bottom: 40),
                   width: width / 4,
                   child: Image.asset(
                     "images/assets/CK.png",
@@ -73,7 +73,7 @@ class CreatAccount extends StatelessWidget {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       fixedSize: Size(width, 50),
-                      shape: RoundedRectangleBorder(
+                      shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(6)),
                       ),
                       backgroundColor: Theme.of(context).primaryColor,
@@ -135,13 +135,13 @@ class CreatAccount extends StatelessWidget {
                         child: Row(
                           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                          Container(
+                          SizedBox(
                             width: 30,
                             height: 30,
                             child: Image.asset(
                                   "images/assets/logo_login/google.png"),
                           ),
-                          SizedBox(width: 40,),
+                          const SizedBox(width: 40,),
                           
                                 MyTextStyle.postDesc("S'inscrire avec Google",
                           SizeFont.h3.size, Colors.black54)],) )
@@ -163,13 +163,13 @@ class CreatAccount extends StatelessWidget {
                         child: Row(
                           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                          Container(
+                          SizedBox(
                             width: 40,
                             height: 40,
                             child: Image.asset(
                                   "images/assets/logo_login/apple-logo.png"),
                           ),
-                          SizedBox(width: 30,),
+                          const SizedBox(width: 30,),
                                 MyTextStyle.postDesc("S'inscrire avec Apple",
                           SizeFont.h3.size, Colors.black54)],) )
                     ),
@@ -190,13 +190,13 @@ class CreatAccount extends StatelessWidget {
                         child: Row(
                           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                          Container(
+                          SizedBox(
                             width: 40,
                             height: 40,
                             child: Image.asset(
                                   "images/assets/logo_login/microsoft.png"),
                           ),
-                          SizedBox(width: 30,),
+                          const SizedBox(width: 30,),
                                 MyTextStyle.postDesc("S'inscrire avec Microsoft",
                           SizeFont.h3.size, Colors.black54)],) )
                     ),
@@ -204,7 +204,7 @@ class CreatAccount extends StatelessWidget {
                     
                   ],
                 ),
-                SizedBox(
+                const SizedBox(
                   height: 20,
                 ),
               ],

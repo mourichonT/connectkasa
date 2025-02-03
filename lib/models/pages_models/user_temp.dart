@@ -8,26 +8,17 @@ class UserTemp extends User {
 
   UserTemp(
       {
-      required String email,  
-      required String name,
-      required String surname,
-      Timestamp? createdDate,
-      String? pseudo,
-      required String uid,
-      required bool approved,
+      required super.email,  
+      required super.name,
+      required super.surname,
+      super.createdDate,
+      super.pseudo,
+      required super.uid,
+      required super.approved,
       //required this.statutResident,
       required this.typeLot,
      // bool? compagnyBuy
-     })
-      : super(
-          email: email,
-          name: name,
-          surname: surname,
-          pseudo: pseudo,
-          uid: uid,
-          approved: approved,
-          createdDate: createdDate
-        );
+     });
 
   factory UserTemp.fromMap(Map<String, dynamic> map) {
     return UserTemp(

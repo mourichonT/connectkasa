@@ -29,7 +29,7 @@ class CommunicationDetails extends StatelessWidget {
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
+                SizedBox(
                   width: width,
                   child: Image.network(
                     post.pathImage!,
@@ -44,12 +44,12 @@ class CommunicationDetails extends StatelessWidget {
                 mainAxisSize: MainAxisSize.max,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
+                  SizedBox(
                     width: width,
                     child: MyTextStyle.postDesc(
                         post.description, SizeFont.h3.size, Colors.black87),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 20,
                   ),
                   Align(

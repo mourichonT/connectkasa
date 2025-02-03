@@ -12,7 +12,7 @@ class MessageUserTile extends StatefulWidget {
   final String uid;
   final double radius;
 
-  MessageUserTile({
+  const MessageUserTile({
     required this.uid,
     super.key,
     required this.radius,

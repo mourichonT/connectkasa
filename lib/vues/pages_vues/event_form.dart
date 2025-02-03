@@ -18,12 +18,12 @@ class EventForm extends StatefulWidget {
   final VoidCallback onEventAdded;
 
   const EventForm({
-    Key? key,
+    super.key,
     required this.residence,
     required this.uid,
     this.dateSelected,
     required this.onEventAdded,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => EventFormState();
@@ -35,8 +35,8 @@ class EventFormState extends State<EventForm> {
 
   TextEditingController title = TextEditingController();
   TextEditingController desc = TextEditingController();
-  TextEditingController _dateEventController = TextEditingController();
-  TextEditingController _timeEventController = TextEditingController();
+  final TextEditingController _dateEventController = TextEditingController();
+  final TextEditingController _timeEventController = TextEditingController();
   String imagePath = "";
   bool anonymPost = false;
   late List<String> labelsCat;
@@ -129,7 +129,7 @@ class EventFormState extends State<EventForm> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Container(
+                        SizedBox(
                           width: 90,
                           child: MyTextStyle.lotName(
                             "Date : ",
@@ -171,7 +171,7 @@ class EventFormState extends State<EventForm> {
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Container(
+                        SizedBox(
                           width: 90,
                           child: MyTextStyle.lotName(
                             "Heure : ",
@@ -216,7 +216,7 @@ class EventFormState extends State<EventForm> {
                           padding: const EdgeInsets.only(top: 15),
                           child: Row(
                             children: [
-                              Container(
+                              SizedBox(
                                 width: 90,
                                 child: MyTextStyle.lotName(
                                   "Titre : ",
@@ -247,7 +247,7 @@ class EventFormState extends State<EventForm> {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
+                              SizedBox(
                                 width: 90,
                                 child: MyTextStyle.lotName(
                                   "Description : ",
@@ -275,7 +275,7 @@ class EventFormState extends State<EventForm> {
                       ],
                     ),
                   ),
-                  Divider(),
+                  const Divider(),
                 ],
               ),
             ),
@@ -288,7 +288,7 @@ class EventFormState extends State<EventForm> {
               cardOverlay: false,
             ),
             const SizedBox(height: 30),
-            Divider(),
+            const Divider(),
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
@@ -338,7 +338,7 @@ class EventFormState extends State<EventForm> {
   Future<void> _selectDate() async {
     DateTime today = DateTime.now();
 
-    DateTime? _picked = await showDatePicker(
+    DateTime? picked = await showDatePicker(
       context: context,
       initialDate: today,
       firstDate: DateTime(today.year - 1),
@@ -346,20 +346,20 @@ class EventFormState extends State<EventForm> {
     );
 
     setState(() {
-      selectedDate = _picked;
-      updateEventDate(dateSelected: _picked);
+      selectedDate = picked;
+      updateEventDate(dateSelected: picked);
     });
     }
 
   Future<void> _selectHour() async {
-    TimeOfDay? _pickedTime = await showTimePicker(
+    TimeOfDay? pickedTime = await showTimePicker(
       context: context,
       initialTime: selectedTime ?? TimeOfDay.now(),
     );
 
-    if (_pickedTime != null) {
+    if (pickedTime != null) {
       setState(() {
-        selectedTime = _pickedTime;
+        selectedTime = pickedTime;
         updateEventDate();
       });
     }

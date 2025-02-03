@@ -140,7 +140,7 @@ class _SectionCommentState extends State<SectionComment>
           FocusScope.of(context).requestFocus(inputFocusNode);
         },
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 15),
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.5),

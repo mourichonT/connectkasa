@@ -1,40 +1,40 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_appauth/flutter_appauth.dart';
+//import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthentificationService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final FlutterAppAuth _appAuth = FlutterAppAuth();
+// final FlutterAppAuth _appAuth = FlutterAppAuth();
 
-Future<UserCredential> signInWithMicrosoft() async {
-    try {
-      // Paramètres de configuration OAuth Microsoft
-      final AuthorizationTokenRequest request = AuthorizationTokenRequest(
-        'YOUR_CLIENT_ID', // ID de votre application Microsoft
-        'YOUR_REDIRECT_URI', // URI de redirection configurée dans Azure
-        discoveryUrl: 'https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration',
-        scopes: ['openid', 'profile', 'email', 'User.Read'],
-      );
+// Future<UserCredential> signInWithMicrosoft() async {
+//     try {
+//       // Paramètres de configuration OAuth Microsoft
+//       final AuthorizationTokenRequest request = AuthorizationTokenRequest(
+//         'YOUR_CLIENT_ID', // ID de votre application Microsoft
+//         'YOUR_REDIRECT_URI', // URI de redirection configurée dans Azure
+//         discoveryUrl: 'https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration',
+//         scopes: ['openid', 'profile', 'email', 'User.Read'],
+//       );
 
-      // Authentification Microsoft
-      final AuthorizationTokenResponse result = await _appAuth.authorizeAndExchangeCode(request);
+//       // Authentification Microsoft
+//       final AuthorizationTokenResponse result = await _appAuth.authorizeAndExchangeCode(request);
 
-      // Création des informations d'identification Firebase avec le token Microsoft
-      final OAuthCredential microsoftCredential = OAuthProvider("microsoft.com").credential(
-        accessToken: result.accessToken,
-        idToken: result.idToken,
-      );
+//       // Création des informations d'identification Firebase avec le token Microsoft
+//       final OAuthCredential microsoftCredential = OAuthProvider("microsoft.com").credential(
+//         accessToken: result.accessToken,
+//         idToken: result.idToken,
+//       );
 
-      // Connexion à Firebase avec les identifiants Microsoft
-      return await _auth.signInWithCredential(microsoftCredential);
-    } catch (e) {
-      throw FirebaseAuthException(
-        code: 'microsoft-sign-in-error',
-        message: 'Erreur lors de la connexion avec Microsoft: $e',
-      );
-    }
-  }
+//       // Connexion à Firebase avec les identifiants Microsoft
+//       return await _auth.signInWithCredential(microsoftCredential);
+//     } catch (e) {
+//       throw FirebaseAuthException(
+//         code: 'microsoft-sign-in-error',
+//         message: 'Erreur lors de la connexion avec Microsoft: $e',
+//       );
+//     }
+//   }
   // Connexion avec Google
   Future<UserCredential> signInWithGoogle() async {
     // Déclencher le flux d'authentification

@@ -263,7 +263,7 @@ static Future<void> removeUserById(String uid) async {
       print(
           'Une erreur s\'est produite lors de la suppression de l\'utilisateur: $e');
       // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
-      throw e;
+      rethrow;
     }
   }
 

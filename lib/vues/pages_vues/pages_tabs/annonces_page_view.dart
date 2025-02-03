@@ -21,7 +21,7 @@ class AnnoncesPageView extends StatefulWidget {
   final Color colorStatut;
   final double scrollController;
 
-  AnnoncesPageView({
+  const AnnoncesPageView({
     super.key,
     required this.residenceSelected,
     required this.uid,
@@ -46,8 +46,8 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
   bool colorSelection = false;
   Color colorSelected = Colors.white;
   bool visibility = false;
-  int _priceMin = 0;
-  int _priceMax = 0;
+  final int _priceMin = 0;
+  final int _priceMax = 0;
 
   @override
   void initState() {
@@ -131,7 +131,7 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
             },
             child: Container(
                 width: width,
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
                 decoration: BoxDecoration(
                   color: color,
                 ),
@@ -140,12 +140,12 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.search,
                       color: Colors.white,
                       size: 16,
                     ),
-                    SizedBox(width: 5),
+                    const SizedBox(width: 5),
                     MyTextStyle.lotName(
                         "Ajouter des filtres", Colors.white, SizeFont.h3.size)
                   ],
@@ -172,7 +172,7 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                         GridView.builder(
                           itemCount: allPosts.length,
                           gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
+                              const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             childAspectRatio: 2 / 3,
                           ),
@@ -204,7 +204,7 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                         Column(
                           children: [
                             Padding(
-                              padding: EdgeInsets.only(top: 20, bottom: 20),
+                              padding: const EdgeInsets.only(top: 20, bottom: 20),
                               child: ButtonAdd(
                                   function: () {
                                     Navigator.push(

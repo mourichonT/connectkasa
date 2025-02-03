@@ -12,6 +12,8 @@ class LocascoreHeader extends StatelessWidget {
       2: 1,
       1: 1,
     };
+
+  LocascoreHeader({super.key});
   
   
   @override
@@ -22,14 +24,14 @@ class LocascoreHeader extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
             width: 120,
             height: 140,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 MyTextStyle.lotDesc("Note globale", SizeFont.para.size, FontStyle.normal, FontWeight.bold),
-                SizedBox(height: 5,),
+                const SizedBox(height: 5,),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.end,
                   crossAxisAlignment: CrossAxisAlignment.start, // Alignement pour éviter les erreurs de taille
@@ -47,30 +49,30 @@ class LocascoreHeader extends StatelessWidget {
               ],
             ),
           ),
-           Container(
+           SizedBox(
             height: 130, // Ajustez cette hauteur selon votre besoin
-            child: VerticalDivider(width: 40,),
+            child: const VerticalDivider(width: 40,),
           ),
-          ComponentLsHeader(label: "Etat des lieux", note: "4", icon: Icon(Icons.cleaning_services)),
+          const ComponentLsHeader(label: "Etat des lieux", note: "4", icon: Icon(Icons.cleaning_services)),
          
-          Container(
+          SizedBox(
             //padding: EdgeInsets.only(top: 10),
             height: 130, // Ajustez cette hauteur selon votre besoin
-            child: VerticalDivider(width: 40,),
+            child: const VerticalDivider(width: 40,),
           ),
-          ComponentLsHeader(label: "Régularité", note: "5", icon: Icon(Icons.euro)),
-          Container(
+          const ComponentLsHeader(label: "Régularité", note: "5", icon: Icon(Icons.euro)),
+          SizedBox(
             //padding: EdgeInsets.only(top: 10),
             height: 130, // Ajustez cette hauteur selon votre besoin
-            child: VerticalDivider(width: 40,),
+            child: const VerticalDivider(width: 40,),
           ),
-          ComponentLsHeader(label: "Communication", note: "5", icon: Icon(Icons.chat_bubble_outline_outlined)),
-          Container(
+          const ComponentLsHeader(label: "Communication", note: "5", icon: Icon(Icons.chat_bubble_outline_outlined)),
+          SizedBox(
             //padding: EdgeInsets.only(top: 10),
             height: 130, // Ajustez cette hauteur selon votre besoin
-            child: VerticalDivider(width: 40,),
+            child: const VerticalDivider(width: 40,),
           ),
-          ComponentLsHeader(label: "Vie", note: "3", icon: Icon(Icons.group)),
+          const ComponentLsHeader(label: "Vie", note: "3", icon: Icon(Icons.group)),
         ],
       ),
     );
