@@ -17,7 +17,7 @@ class CreateAccount extends StatelessWidget {
   final TextEditingController _confirmPasswordController = TextEditingController();
   final LoadUserController _loadUserController = LoadUserController();
 
-  CreateAccount({Key? key, required this.firestore}) : super(key: key);
+  CreateAccount({super.key, required this.firestore});
 
   @override
   Widget build(BuildContext context) {
@@ -267,7 +267,7 @@ Widget DividerWithText () {
                         child: Row(
                           // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                          Container(
+                          SizedBox(
                             width: radius,
                             height: radius,
                             child: Image.asset(
@@ -275,7 +275,7 @@ Widget DividerWithText () {
                           ),
                           SizedBox(width: space,),
                           
-                                MyTextStyle.postDesc("S'inscrire avec ${provider}",
+                                MyTextStyle.postDesc("S'inscrire avec $provider",
                           SizeFont.h3.size, Colors.black54)],) )
                     );
   }

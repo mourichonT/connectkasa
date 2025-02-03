@@ -38,11 +38,11 @@ class CameraOrFilesState extends State<CameraOrFiles> {
     final double width = MediaQuery.of(context).size.width;
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 20),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: Stack(
         children: [
           _selectedImage != null
-              ? Container(
+              ? SizedBox(
                   width: width / 2.2,
                   height: width / 2.2,
                   child: Image.file(

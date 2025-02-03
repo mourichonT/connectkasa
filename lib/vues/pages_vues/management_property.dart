@@ -44,11 +44,11 @@ class ManagementPropertyState extends State<ManagementProperty> {
           future: widget.lotByUser,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(child: Text('Erreur: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('Aucun bien trouvé.'));
+              return const Center(child: Text('Aucun bien trouvé.'));
             } else {
               return ListView.separated(
                 itemCount: snapshot.data!.length,
@@ -65,7 +65,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
                           CupertinoPageRoute(
                               builder: (context) => ModifyProperty(
                                     refLotSelected: widget.refLot,
-                                    lot: lot!,
+                                    lot: lot,
                                     uid: widget.uid,
                                   )));
                     },
@@ -74,7 +74,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
                         backgroundColor: _backgroundColor,
                         radius: 10, // Rayon du cercle
                         child: Container(
-                          decoration: BoxDecoration(
+                          decoration: const BoxDecoration(
                             shape: BoxShape
                                 .circle, // Définir la forme comme un cercle
                           ),
@@ -82,16 +82,16 @@ class ManagementPropertyState extends State<ManagementProperty> {
                       ),
                       title: loca
                           ? MyTextStyle.lotName(
-                              (lot.nameLoc != null && lot?.nameLoc != "")
-                                  ? lot!.nameLoc
-                                  : "${lot!.residenceData['name']} ${lot.lot!}",
+                              (lot.nameLoc != "")
+                                  ? lot.nameLoc
+                                  : "${lot.residenceData['name']} ${lot.lot!}",
                               Colors.black87,
                               SizeFont.h2.size,
                             )
                           : MyTextStyle.lotName(
-                              (lot?.nameProp != null && lot?.nameProp != "")
-                                  ? lot!.nameProp
-                                  : "${lot!.residenceData['name']} ${lot.lot!}",
+                              (lot.nameProp != null && lot.nameProp != "")
+                                  ? lot.nameProp
+                                  : "${lot.residenceData['name']} ${lot.lot!}",
                               Colors.black87,
                               SizeFont.h2.size,
                             ),
@@ -126,14 +126,14 @@ class ManagementPropertyState extends State<ManagementProperty> {
                           ),
                         ],
                       ),
-                      trailing: Icon(
+                      trailing: const Icon(
                         Icons.arrow_right_outlined,
                         size: 30,
                       ),
                     ),
                   );
                 },
-                separatorBuilder: (BuildContext context, int index) => Divider(
+                separatorBuilder: (BuildContext context, int index) => const Divider(
                   thickness: 0.7,
                 ),
               );

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/pages_models/agency_dept.dart';
 
 class DatabasesAgencyServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;

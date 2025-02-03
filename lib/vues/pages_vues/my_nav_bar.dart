@@ -187,7 +187,7 @@ class _MyNavBarState extends State<MyNavBar>
         height: 65,
         width: 65,
         child: FloatingActionButton(
-          backgroundColor: Theme.of(context).colorScheme.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           onPressed: () async {
             Navigator.of(context).push(
               RouteController().createRoute(

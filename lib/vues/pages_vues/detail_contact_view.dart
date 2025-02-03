@@ -11,8 +11,7 @@ class DetailContactView extends StatelessWidget {
   final Contact contact;
   final String uid;
 
-  const DetailContactView({Key? key, required this.contact, required this.uid})
-      : super(key: key);
+  const DetailContactView({super.key, required this.contact, required this.uid});
 
   @override
   Widget build(BuildContext context) {

@@ -26,7 +26,7 @@ class _MyTextFieldState extends State<MyTextField> {
     super.initState();
     _focusNode = FocusNode();
     // Demander l'ouverture du clavier immédiatement après l'initialisation
-    Future.delayed(Duration(milliseconds: 100), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
       FocusScope.of(context).requestFocus(_focusNode);
     });
   }
@@ -45,7 +45,7 @@ class _MyTextFieldState extends State<MyTextField> {
         focusNode: _focusNode, // Le FocusNode est attaché ici
         obscureText: widget.osbcureText, // Gère le masquage du texte
         decoration: InputDecoration(
-          enabledBorder: OutlineInputBorder(
+          enabledBorder: const OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black12),
           ),
           focusedBorder: OutlineInputBorder(
@@ -54,7 +54,7 @@ class _MyTextFieldState extends State<MyTextField> {
           fillColor: Colors.white,
           filled: true,
           hintText: widget.hintText,
-          hintStyle: TextStyle(color: Colors.black45),
+          hintStyle: const TextStyle(color: Colors.black45),
         ),
         controller: widget.controller,
       ),

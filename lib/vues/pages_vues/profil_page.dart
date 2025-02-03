@@ -98,7 +98,7 @@ class _ProfilPageState extends State<ProfilPage> {
         title: MyTextStyle.lotName("Profil", Colors.black87, SizeFont.h1.size),
       ),
       body: user == null
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -135,7 +135,7 @@ class _ProfilPageState extends State<ProfilPage> {
                                     FontStyle.normal,
                                     FontWeight.bold),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: 5,
                               ),
                               Padding(
@@ -292,7 +292,7 @@ class _ProfilPageState extends State<ProfilPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           height: 30,
                         ),
                         Padding(
@@ -311,7 +311,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           child: MyTextStyle.lotDesc(
                               name, SizeFont.h3.size, FontStyle.normal),
                         ),
-                        Divider(),
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: MyTextStyle.lotDesc(
@@ -323,7 +323,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           child: MyTextStyle.lotDesc(
                               surname, SizeFont.h3.size, FontStyle.normal),
                         ),
-                        Divider(),
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: MyTextStyle.lotDesc(
@@ -335,7 +335,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           child: MyTextStyle.lotDesc(
                               email, SizeFont.h3.size, FontStyle.normal),
                         ),
-                        Divider(),
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: MyTextStyle.lotDesc("Profession",
@@ -347,7 +347,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           child: MyTextStyle.lotDesc(
                               job, SizeFont.h3.size, FontStyle.normal),
                         ),
-                        Divider(),
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: MyTextStyle.lotDesc("Biographie",
@@ -359,10 +359,10 @@ class _ProfilPageState extends State<ProfilPage> {
                           child: MyTextStyle.lotDesc(
                               bio, SizeFont.h3.size, FontStyle.normal),
                         ),
-                        Divider(),
+                        const Divider(),
                       ],
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 30,
                     ),
                     Padding(
@@ -387,7 +387,7 @@ class _ProfilPageState extends State<ProfilPage> {
                               horizontal: 20,
                               vertical: 5,
                               size: SizeFont.h3.size),
-                          SizedBox(
+                          const SizedBox(
                             width: 10,
                           ),
                           ButtonAdd(
@@ -406,7 +406,7 @@ class _ProfilPageState extends State<ProfilPage> {
                         ],
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 50,
                     )
                   ],

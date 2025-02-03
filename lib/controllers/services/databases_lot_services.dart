@@ -186,7 +186,7 @@ class DataBasesLotServices {
       }
     } catch (e) {
       print('Erreur lors de la mise à jour de la couleur du lot $refLot : $e');
-      throw e; // Vous pouvez gérer l'erreur comme nécessaire
+      rethrow; // Vous pouvez gérer l'erreur comme nécessaire
     }
   }
 
@@ -225,7 +225,7 @@ class DataBasesLotServices {
       }
     } catch (e) {
       print('Erreur lors de la mise à jour de la couleur du lot $refLot : $e');
-      throw e; // Vous pouvez gérer l'erreur comme nécessaire
+      rethrow; // Vous pouvez gérer l'erreur comme nécessaire
     }
   }
 }

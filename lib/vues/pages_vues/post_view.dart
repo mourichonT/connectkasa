@@ -24,7 +24,7 @@ class PostView extends StatefulWidget {
   final bool returnHomePage;
 
   PostView(
-      {required this.postOrigin,
+      {super.key, required this.postOrigin,
       required this.residence,
       required this.uid,
       this.scrollController,

@@ -3,6 +3,7 @@ import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:intl/intl.dart';
 
 class UserInfo extends User {
+  @override
   String email;
   Timestamp birthday; // Conversion depuis Timestamp dans Firestore
   String amountFamilyAllowance;

@@ -18,7 +18,7 @@ class AnnonceTile extends StatefulWidget {
   final double scrollController;
 
   AnnonceTile(this.post, this.residence, this.uid, this.canModify,
-      this.colorStatut, this.scrollController);
+      this.colorStatut, this.scrollController, {super.key});
 
   @override
   State<StatefulWidget> createState() => AnnonceTileState();
@@ -92,7 +92,7 @@ class AnnonceTileState extends State<AnnonceTile> {
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                child: Container(
+                child: SizedBox(
                   height: 200,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,14 +113,14 @@ class AnnonceTileState extends State<AnnonceTile> {
                               : ImageAnnounced(context, 140, 140),
                         ),
                       ),
-                      Container(
+                      SizedBox(
                           height: 30,
                           child: MyTextStyle.lotName(
                               title, Colors.black87, SizeFont.h2.size)),
                       MyTextStyle.annonceDesc(subtype, SizeFont.h3.size, 2),
                       Padding(
                         padding: const EdgeInsets.only(top: 5),
-                        child: Container(
+                        child: SizedBox(
                             height: 60,
                             child: MyTextStyle.annonceDesc(
                                 desc, SizeFont.h3.size, 2)),
@@ -149,7 +149,7 @@ class AnnonceTileState extends State<AnnonceTile> {
             );
           }
         } else {
-          return SizedBox(); // Return a widget with no size if the widget is not mounted
+          return const SizedBox(); // Return a widget with no size if the widget is not mounted
         }
       },
     );

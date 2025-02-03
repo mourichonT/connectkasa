@@ -26,7 +26,7 @@ class Step4 extends StatefulWidget {
   final String kbisPath;
 
   const Step4({
-    Key? key,
+    super.key,
     required this.residence,
     required this.residentType,
     required this.recupererInformationsStep4,
@@ -42,7 +42,7 @@ class Step4 extends StatefulWidget {
     required this.userId,
     required this.typeLot, 
     required this.emailUser,
-  }) : super(key: key);
+  });
 
   @override
   _Step4State createState() => _Step4State();
@@ -148,14 +148,14 @@ class _Step4State extends State<Step4> {
                 ],
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 30,
             ),
             Visibility(
               visible: visibleID,
               child: Column(
                 children: [
-                  Divider(),
+                  const Divider(),
                   CameraOrFiles(
                     racineFolder: 'user',
                     residence: widget.userId,
@@ -195,7 +195,7 @@ class _Step4State extends State<Step4> {
               visible: imagePathIDverso != "",
               child: Column(
                 children: [
-                  Divider(),
+                  const Divider(),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: 30, horizontal: 20),
@@ -237,14 +237,14 @@ class _Step4State extends State<Step4> {
                       ],
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 30,
                   ),
                   Visibility(
                     visible: visibleJustif,
                     child: Column(
                       children: [
-                        Divider(),
+                        const Divider(),
                         CameraOrFiles(
                           racineFolder: 'user',
                           residence: widget.userId,
@@ -266,7 +266,7 @@ class _Step4State extends State<Step4> {
         visible: getJustifPath().isNotEmpty,
         child: BottomAppBar(
           surfaceTintColor: Colors.white,
-          padding: EdgeInsets.all(2),
+          padding: const EdgeInsets.all(2),
           height: 70,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -274,10 +274,6 @@ class _Step4State extends State<Step4> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               ElevatedButton(
-                  child: Text('Soumettre',
-                      style: TextStyle(
-                        color: Colors.white,
-                      )),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor),
                   onPressed: () {
@@ -324,13 +320,17 @@ class _Step4State extends State<Step4> {
                                 Navigator.popUntil(
                                     context, ModalRoute.withName('/'));
                               },
-                              child: Text('OK'),
+                              child: const Text('OK'),
                             ),
                           ],
                         );
                       },
                     );
-                  }),
+                  },
+                  child: Text('Soumettre',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ))),
             ],
           ),
         ),

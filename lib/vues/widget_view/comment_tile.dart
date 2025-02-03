@@ -138,7 +138,6 @@ class CommentTileState extends State<CommentTile> {
                           } else {
                             return MyTextStyle.lotName("Utilisteur inconnu",
                                 Colors.black87, SizeFont.h3.size);
-                            ;
                           }
                         },
                       ),

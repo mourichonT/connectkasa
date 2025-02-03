@@ -46,7 +46,7 @@ class SubmitUser {
       //compagnyBuy: compagnyBuy,
     );
 
-    dataBasesUserServices.setUserTemp(newUser,"${residence.id}-${lotId}", compagnyBuy, companyName);
+    dataBasesUserServices.setUserTemp(newUser,"${residence.id}-$lotId", compagnyBuy, companyName);
 
     DataBasesDocsServices dataBasesDocsIdServices = DataBasesDocsServices();
     DocumentModel newDocId = DocumentModel(
@@ -57,7 +57,7 @@ class SubmitUser {
         documentPathVerso: imagepathIDverso!,
         lotId: lotId);
 
-    dataBasesDocsIdServices.setDocument(newDocId, newUserId, '${residence.id}-${lotId}');
+    dataBasesDocsIdServices.setDocument(newDocId, newUserId, '${residence.id}-$lotId');
 
     DataBasesDocsServices dataBasesDocsJustifServices = DataBasesDocsServices();
     DocumentModel newDocJustif = DocumentModel(
@@ -67,7 +67,7 @@ class SubmitUser {
         documentPathRecto: imagepathJustif!,
         lotId: lotId);
 
-    dataBasesDocsJustifServices.setDocument(newDocJustif, newUserId, '${residence.id}-${lotId}');
+    dataBasesDocsJustifServices.setDocument(newDocJustif, newUserId, '${residence.id}-$lotId');
 
     if (compagnyBuy == true) {
       DataBasesDocsServices dataBasesDocsJustifServices =
@@ -79,7 +79,7 @@ class SubmitUser {
           documentPathRecto: kbisPath!,
           lotId: lotId);
 
-      dataBasesDocsJustifServices.setDocument(newDocJustif, newUserId, '${residence.id}-${lotId}');
+      dataBasesDocsJustifServices.setDocument(newDocJustif, newUserId, '${residence.id}-$lotId');
     }
   }
 }

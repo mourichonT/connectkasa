@@ -66,7 +66,7 @@ class MyTextStyle {
     return Text(text,
         style: GoogleFonts.robotoCondensed(
           fontWeight: FontWeight.w600,
-          fontSize: size != null ? size : 16,
+          fontSize: size ?? 16,
           color: color,
         ));
   }

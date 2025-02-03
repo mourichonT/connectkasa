@@ -77,24 +77,24 @@ class ManagementTenantState extends State<ManagementTenant> {
           future: widget.lotByUser,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(child: Text('Erreur: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('Aucun bien trouvé.'));
+              return const Center(child: Text('Aucun bien trouvé.'));
             } else {
               return FutureBuilder<List<Map<String, dynamic>>>(
                 future: tenantsAndLots,
                 builder: (context, tenantsSnapshot) {
                   if (tenantsSnapshot.connectionState ==
                       ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   } else if (tenantsSnapshot.hasError) {
                     return Center(
                         child: Text('Erreur: ${tenantsSnapshot.error}'));
                   } else if (!tenantsSnapshot.hasData ||
                       tenantsSnapshot.data!.isEmpty) {
-                    return Center(child: Text('Aucun locataire trouvé.'));
+                    return const Center(child: Text('Aucun locataire trouvé.'));
                   } else {
                     List<Map<String, dynamic>> tenants = tenantsSnapshot.data!;
                     return ListView.separated(
@@ -104,7 +104,7 @@ class ManagementTenantState extends State<ManagementTenant> {
                         UserInfo? tenant = tenantMap['user'];
                         String? lotName = tenantMap['lotName'];
                         if (tenant == null) {
-                          return ListTile(title: Text('Locataire non trouvé.'));
+                          return const ListTile(title: Text('Locataire non trouvé.'));
                         }
                         return InkWell(
                           onTap: () {
@@ -115,7 +115,7 @@ class ManagementTenantState extends State<ManagementTenant> {
                                       builder: (context) => TenantDetail(residenceId: tenantMap['residence'], senderUid: widget.uid, tenant: tenant, color: widget.color,)));
                           },
                           child: ListTile(
-                            leading: Icon(Icons.person_2_outlined),
+                            leading: const Icon(Icons.person_2_outlined),
                             title: MyTextStyle.lotName(
                                 "${tenant.surname} ${tenant.name}",
                                 Colors.black87,
@@ -123,7 +123,7 @@ class ManagementTenantState extends State<ManagementTenant> {
                                     .size), // Assuming User has a `name` field
                             subtitle:
                                 Text('Lot: $lotName'), // Displaying lot name
-                            trailing: Icon(
+                            trailing: const Icon(
                               Icons.arrow_right_outlined,
                               size: 30,
                             ), // Assuming User has an `id` field
@@ -131,7 +131,7 @@ class ManagementTenantState extends State<ManagementTenant> {
                         );
                       },
                       separatorBuilder: (BuildContext context, int index) =>
-                          Divider(
+                          const Divider(
                         thickness: 0.7,
                       ),
                     );

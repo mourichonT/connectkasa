@@ -18,7 +18,7 @@ class PartipedTile extends StatefulWidget {
   final int number;
   final double sizeFont;
 
-  PartipedTile({
+  const PartipedTile({super.key, 
     required this.residenceSelected,
     required this.post,
     required this.uid,
@@ -60,9 +60,9 @@ class _PartipedTileState extends State<PartipedTile> {
               FontStyle.italic,
               FontWeight.w900,
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             participants != null ? buildParticipantsList(0, 5) : Container(),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
           ],
         ),
         Row(
@@ -97,7 +97,7 @@ class _PartipedTileState extends State<PartipedTile> {
       future: participants,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return CircularProgressIndicator(); // Afficher un indicateur de chargement en attendant les données
+          return const CircularProgressIndicator(); // Afficher un indicateur de chargement en attendant les données
         } else {
           if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');

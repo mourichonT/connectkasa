@@ -122,12 +122,12 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
   FontStyle _selectedFontStyle = FontStyle.normal;
   Color _selectedFontColor = Colors.black87;
   bool _fontSize = false;
-  bool _fontColor = false;
+  final bool _fontColor = false;
   bool _fontItalic = false;
   bool _fontBold = false;
   String imagePath = "";
   bool anonymPost = false;
-  GlobalKey _globalKey = GlobalKey();
+  final GlobalKey _globalKey = GlobalKey();
   // String _backgroundColor = "";
   // String _backgroundImage = "";
 
@@ -190,7 +190,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
 
   Future<Uint8List> _capturePng() async {
     try {
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       RenderRepaintBoundary? boundary = _globalKey.currentContext
           ?.findRenderObject() as RenderRepaintBoundary?;
@@ -261,7 +261,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                 ),
               ],
             ),
-            Divider(),
+            const Divider(),
             Visibility(
               visible: _selectedColor != null &&
                       _selectedColor != Colors.white ||
@@ -272,7 +272,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     IconButton(
-                      icon: Icon(
+                      icon: const Icon(
                         Icons.format_size_rounded,
                         size: 30,
                       ),
@@ -284,7 +284,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                     ),
                     Visibility(
                       visible: _fontSize,
-                      child: Container(
+                      child: SizedBox(
                         width: width / 2.5,
                         child: Slider(
                           value: _selectedFontSize,
@@ -324,7 +324,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                                   SizeFont.h2.size),
                               content: SingleChildScrollView(
                                 child: ColorPicker(
-                                  labelTypes: [],
+                                  labelTypes: const [],
                                   pickerColor: _selectedFontColor,
                                   onColorChanged: (color) {
                                     setState(() {
@@ -361,12 +361,12 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                     ),
                     IconButton(
                       icon: _fontItalic
-                          ? Icon(
+                          ? const Icon(
                               Icons.format_clear_rounded,
                               size: 30,
                               color: Colors.black38,
                             )
-                          : Icon(
+                          : const Icon(
                               Icons.format_italic_rounded,
                               size: 30,
                             ),
@@ -418,7 +418,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                             _selectedText = value;
                           });
                         },
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: 'Quoi de neuf?',
                           border: InputBorder.none,
                         ),
@@ -442,7 +442,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                 ),
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Wrap(
               alignment: WrapAlignment.center,
               spacing: 15,
@@ -463,7 +463,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                         decoration: BoxDecoration(
                           color: color,
                           borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: Colors.black26,
                               blurRadius: 4,
@@ -481,7 +481,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                       ),
                     ),
                   );
-                }).toList(),
+                }),
                 ..._imagePaths.map((path) {
                   return Padding(
                     padding: const EdgeInsets.only(top: 5),
@@ -497,7 +497,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                         height: 30,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
                               color: Colors.black26,
                               blurRadius: 4,
@@ -510,12 +510,12 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                           ),
                         ),
                         child: _selectedImagePath == path
-                            ? Icon(Icons.check, color: Colors.black87)
+                            ? const Icon(Icons.check, color: Colors.black87)
                             : null,
                       ),
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
             Padding(

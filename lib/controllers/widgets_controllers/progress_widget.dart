@@ -15,7 +15,7 @@ class ProgressWidget extends StatefulWidget {
   final String userId;
   final String? emailUser;
 
-  ProgressWidget({required this.userId, this.emailUser, Key? key}) : super(key: key);
+  const ProgressWidget({required this.userId, this.emailUser, super.key});
 
   @override
   State<StatefulWidget> createState() => ProgressWidgetState();
@@ -138,11 +138,11 @@ class ProgressWidgetState extends State<ProgressWidget>  with WidgetsBindingObse
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-    icon: Icon(Icons.arrow_back),
+    icon: const Icon(Icons.arrow_back),
     onPressed: () async {
       if (currentPage > 0) {
         _progressController.previousPage(
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
         );
       } else {
@@ -165,7 +165,7 @@ class ProgressWidgetState extends State<ProgressWidget>  with WidgetsBindingObse
           title: MyTextStyle.lotName(
               "Vous êtes à l'étape ${currentPage + 1} / 5", Colors.black54),
           bottom: PreferredSize(
-            preferredSize: Size.fromHeight(5),
+            preferredSize: const Size.fromHeight(5),
             child: LinearProgressIndicator(
               minHeight: 5.0,
               value: _progress,
@@ -175,7 +175,7 @@ class ProgressWidgetState extends State<ProgressWidget>  with WidgetsBindingObse
           ),
         ),
         body: PageView(
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           controller: _progressController,
           onPageChanged: (int page) {
             setState(() {

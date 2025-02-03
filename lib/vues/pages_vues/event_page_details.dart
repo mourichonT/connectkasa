@@ -50,11 +50,11 @@ class EventPageDetailsState extends State<EventPageDetails> {
   Widget buildOrganizerInfo(
       BuildContext context, AsyncSnapshot<User?> snapshot) {
     if (snapshot.connectionState == ConnectionState.waiting) {
-      return CircularProgressIndicator();
+      return const CircularProgressIndicator();
     } else if (snapshot.hasError) {
       return Text("Error: ${snapshot.error}");
     } else if (!snapshot.hasData || snapshot.data == null) {
-      return Text("No data found");
+      return const Text("No data found");
     } else {
       User user = snapshot.data!;
       return MyTextStyle.lotName(
@@ -87,7 +87,7 @@ class EventPageDetailsState extends State<EventPageDetails> {
               top: 0,
               left: 0,
               right: 0,
-              child: Container(
+              child: SizedBox(
                 height: height / 9,
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -130,7 +130,7 @@ class EventPageDetailsState extends State<EventPageDetails> {
                         Colors.black87, SizeFont.header.size),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 10, horizontal: 40),
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 40),
                     child: Row(children: [
                       Container(
                         height: 40,
@@ -144,10 +144,10 @@ class EventPageDetailsState extends State<EventPageDetails> {
                         ),
                       ),
                       Container(
-                        margin: EdgeInsets.symmetric(horizontal: 20),
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
                         width: 1,
                         height: 40,
-                        decoration: BoxDecoration(color: Colors.black12),
+                        decoration: const BoxDecoration(color: Colors.black12),
                       ),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -169,7 +169,7 @@ class EventPageDetailsState extends State<EventPageDetails> {
                     ]),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+                    padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 40),
                     child: Row(children: [
                       Container(
                         height: 40,
@@ -183,10 +183,10 @@ class EventPageDetailsState extends State<EventPageDetails> {
                         ),
                       ),
                       Container(
-                        margin: EdgeInsets.symmetric(horizontal: 20),
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
                         width: 1,
                         height: 40,
-                        decoration: BoxDecoration(color: Colors.black12),
+                        decoration: const BoxDecoration(color: Colors.black12),
                       ),
                       Column(
                         mainAxisAlignment: MainAxisAlignment.start,

@@ -2,6 +2,8 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
 class CameraPicker extends StatefulWidget {
+  const CameraPicker({super.key});
+
   @override
   _CameraPickerState createState() => _CameraPickerState();
 }
@@ -43,7 +45,7 @@ class _CameraPickerState extends State<CameraPicker> {
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
-      return Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     }
 
     return CameraPreview(_controller);

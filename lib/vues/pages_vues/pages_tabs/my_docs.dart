@@ -98,12 +98,12 @@ class MydocsPageViewState extends State<MydocsPageView>
                                   : Image.asset(
                                       'images/icon_extension/default.png'),
                               title: Text(doc.name!),
-                              trailing: Icon(Icons.download_rounded),
+                              trailing: const Icon(Icons.download_rounded),
                             ),
                           );
                         },
                         separatorBuilder: (BuildContext context, int index) =>
-                            Divider(
+                            const Divider(
                           thickness: 0.4,
                         ),
                       ),
@@ -161,12 +161,12 @@ class MydocsPageViewState extends State<MydocsPageView>
                                   : Image.asset(
                                       'images/icon_extension/default.png'),
                               title: Text(docPerso.name!),
-                              trailing: Icon(Icons.download_rounded),
+                              trailing: const Icon(Icons.download_rounded),
                             ),
                           );
                         },
                         separatorBuilder: (BuildContext context, int index) =>
-                            Divider(
+                            const Divider(
                           thickness: 0.4,
                         ),
                       ),
