@@ -3,9 +3,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/colo_circle.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:connect_kasa/controllers/features/color_controller.dart';
-import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/models/enum/tab_bar_icon.dart';
 
 class ColorView extends StatefulWidget {

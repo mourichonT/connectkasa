@@ -89,7 +89,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
                               SizeFont.h2.size,
                             )
                           : MyTextStyle.lotName(
-                              (lot.nameProp != null && lot.nameProp != "")
+                              (lot.nameProp != "")
                                   ? lot.nameProp
                                   : "${lot.residenceData['name']} ${lot.lot!}",
                               Colors.black87,

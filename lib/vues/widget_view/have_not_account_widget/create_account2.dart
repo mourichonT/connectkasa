@@ -3,10 +3,7 @@ import 'package:connect_kasa/controllers/features/create_account.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/authentification_process.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/progress_widget.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/user_temp.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class CreateAccount extends StatelessWidget {

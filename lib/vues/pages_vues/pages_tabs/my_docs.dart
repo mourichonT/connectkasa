@@ -1,7 +1,6 @@
 import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 

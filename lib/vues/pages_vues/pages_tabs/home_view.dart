@@ -35,18 +35,30 @@ class _HomeviewState extends State<Homeview> {
   double scrollPosition = 0.0;
 
   @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController(
-        initialScrollOffset: widget.upDatescrollController ?? 00);
-    _scrollController.addListener(_scrollListener);
-    _allPostsFuture = _databaseServices.getAllPosts(widget.residenceSelected);
-  }
+void initState() {
+  super.initState();
+  _scrollController = ScrollController(
+      initialScrollOffset: widget.upDatescrollController ?? 00);
+  _scrollController.addListener(_scrollListener);
+
+  _allPostsFuture = _databaseServices.getAllPosts(widget.residenceSelected)
+      .then((posts) {
+    if (mounted) {  // ✅ Vérification de "mounted" AVANT setState()
+      setState(() {
+        _allPostsFuture = Future.value(posts);
+      });
+    }
+    return posts;
+  });
+}
+
 
   void _scrollListener() {
-    setState(() {
-      scrollPosition = _scrollController.offset;
-    });
+    if (mounted) {
+      setState(() {
+        scrollPosition = _scrollController.offset;
+      });
+    }
   }
 
   @override

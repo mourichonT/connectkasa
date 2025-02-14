@@ -3,8 +3,13 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
+import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/models/pages_models/contact.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:connect_kasa/vues/components/my_dropdown_menu.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/widget_view/camera_files_choices.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +21,7 @@ class EventForm extends StatefulWidget {
   final String uid;
   final DateTime? dateSelected;
   final VoidCallback onEventAdded;
+  final Lot? preferedLot;
 
   const EventForm({
     super.key,
@@ -23,13 +29,18 @@ class EventForm extends StatefulWidget {
     required this.uid,
     this.dateSelected,
     required this.onEventAdded,
+    required this.preferedLot,
   });
+
+
 
   @override
   State<StatefulWidget> createState() => EventFormState();
 }
 
 class EventFormState extends State<EventForm> {
+  final DataBasesResidenceServices _databaseContactServices =
+      DataBasesResidenceServices();
   final StorageServices _storageServices = StorageServices();
   File? _selectedImage;
 
@@ -44,25 +55,53 @@ class EventFormState extends State<EventForm> {
   DateTime? selectedDate;
   TimeOfDay? selectedTime;
   late Timestamp eventDate;
+  Set<EventType> _selectedEventTypes = {};
+  List<String> itemsCSMembers=[];
+  late Future<List<Contact>> itemsPresta;
+  String? presta;
+  
+
+  void updateItem(String updatedElement) {
+    
+    setState(() {
+      presta = updatedElement;
+       
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     updateEventDate(dateSelected: widget.dateSelected);
+    itemsCSMembers = List<String>.from(widget.preferedLot!.residenceData['csmembers']);
+    _selectedEventTypes = !itemsCSMembers.contains(widget.uid)? {EventType.evenement}:{};
+    itemsPresta = _databaseContactServices.getContactByResidence(widget.residence);
+
   }
+
+ @override
+ void dispose() {
+  title.dispose();
+  desc.dispose();
+  _dateEventController.dispose();
+  _timeEventController.dispose();
+  super.dispose();
+}
+
+
 
   void updateEventDate({DateTime? dateSelected}) {
     if (dateSelected != null) {
       selectedDate = dateSelected;
-      selectedTime = TimeOfDay.fromDateTime(dateSelected);
+      selectedTime = TimeOfDay.fromDateTime(selectedDate!);
       eventDate = Timestamp.fromMillisecondsSinceEpoch(
-        dateSelected.millisecondsSinceEpoch,
+        selectedDate!.millisecondsSinceEpoch,
       );
 
       setState(() {
-        _timeEventController.text = DateFormat('HH:mm').format(dateSelected);
+        _timeEventController.text = DateFormat('HH:mm').format(selectedDate!);
         _dateEventController.text =
-            DateFormat('dd-MM-yyyy').format(dateSelected);
+            DateFormat('dd-MM-yyyy').format(selectedDate!);
       });
     } else if (selectedDate != null && selectedTime != null) {
       final DateTime combinedDateTime = DateTime(
@@ -93,6 +132,10 @@ class EventFormState extends State<EventForm> {
 
   @override
   Widget build(BuildContext context) {
+    // List<String> itemsPresta =
+    //     ["teste1", "teste2"];
+    
+    
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
@@ -166,7 +209,7 @@ class EventFormState extends State<EventForm> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 15, bottom: 15),
+                    padding: const EdgeInsets.only(top: 15, bottom: 30),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -207,6 +250,97 @@ class EventFormState extends State<EventForm> {
                       ],
                     ),
                   ),
+                    Visibility(
+                      visible:itemsCSMembers.contains(widget.uid),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        decoration: BoxDecoration(color: Colors.black12.withOpacity(0.05)),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            MyTextStyle.lotDesc("-- Vous êtes membre du Conseil Syndical -- ", SizeFont.h3.size, FontStyle.italic),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 10, bottom: 20),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: CheckboxListTile(
+                                      title: const Text("Evénement participatif"),
+                                      value: _selectedEventTypes.contains(EventType.evenement), // Vérifie si l'option est sélectionnée
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          if (value != null && value) {
+                                            // Ajoute EventType.evenement à l'ensemble
+                                            _selectedEventTypes.add(EventType.evenement);
+                                          } else {
+                                            // Retire EventType.evenement de l'ensemble
+                                            _selectedEventTypes.remove(EventType.evenement);
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: CheckboxListTile(
+                                      title: const Text("Prestation externe"),
+                                      value: _selectedEventTypes.contains(EventType.prestation), // Vérifie si l'option est sélectionnée
+                                      onChanged: (bool? value) {
+                                        setState(() {
+                                          if (value != null && value) {
+                                            // Ajoute EventType.prestation à l'ensemble
+                                            _selectedEventTypes.add(EventType.prestation);
+                                          } else {
+                                            // Retire EventType.prestation de l'ensemble
+                                            _selectedEventTypes.remove(EventType.prestation);
+                                          }
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                             Visibility(
+                              visible:_selectedEventTypes.contains(EventType.prestation) ,
+                               child: Padding(
+                                 padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
+                                 child: FutureBuilder<List<Contact>>(
+                                  future: itemsPresta, // Attend la récupération des contacts
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const CircularProgressIndicator(); // Affiche un loader en attendant
+                                    } else if (snapshot.hasError) {
+                                      return Text("Erreur : ${snapshot.error}");
+                                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                      return const Text("Aucun prestataire trouvé.");
+                                    } else {
+                                      List<String> prestataireNoms = snapshot.data!.map((contact) => contact.name).toList();
+
+                                      return MyDropDownMenu(
+                                        MediaQuery.of(context).size.width,
+                                        "Prestataire",
+                                        "Choisir un prestataire",
+                                        items: prestataireNoms,
+                                        onValueChanged: (String value) {
+                                          setState(() {
+                                            presta = value;
+                                            updateItem(presta!);
+                                          });
+                                        },
+                                      );
+                                    }
+                                  },
+                                ),
+
+                               ),
+                             ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                  
                   Padding(
                     padding: const EdgeInsets.only(top: 10, bottom: 20),
                     child: Column(
@@ -313,6 +447,8 @@ class EventFormState extends State<EventForm> {
                 SubmitPostController.submitForm(
                   uid: widget.uid,
                   idPost: idPost,
+                  eventType: _selectedEventTypes.map((e) => e.value).toList(),
+                  prestaName: presta,
                   selectedLabel: "events",
                   imagePath: imagePath,
                   eventDate: eventDate,
@@ -351,6 +487,8 @@ class EventFormState extends State<EventForm> {
     });
     }
 
+  
+
   Future<void> _selectHour() async {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
@@ -364,4 +502,8 @@ class EventFormState extends State<EventForm> {
       });
     }
   }
+
+  
+
+  
 }

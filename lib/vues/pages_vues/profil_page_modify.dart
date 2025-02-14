@@ -2,12 +2,9 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/components/my_text_fied.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class ProfilPageModify extends StatefulWidget {
   final String uid;

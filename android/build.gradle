@@ -1,5 +1,5 @@
 plugins {
-  id 'com.google.gms.google-services' version '4.4.2' apply false
+    id 'com.google.gms.google-services' version '4.4.2' apply false
 }
 
 allprojects {
@@ -7,13 +7,18 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    // Configuration pour la compatibilité Java 17 sur les sous-projets
+    tasks.withType(JavaCompile).configureEach {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }
 
 rootProject.buildDir = '../build'
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(':app')
 }
 

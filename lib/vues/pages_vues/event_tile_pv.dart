@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
@@ -8,12 +7,10 @@ import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
-import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
 import 'package:connect_kasa/vues/pages_vues/event_page_details.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_annonceform.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_asking_neighbors_form.dart';
 import 'package:connect_kasa/vues/pages_vues/modify_postform.dart';
-import 'package:connect_kasa/vues/pages_vues/post_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

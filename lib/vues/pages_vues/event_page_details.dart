@@ -1,8 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/line_interaction.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/participed_button.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -78,7 +78,7 @@ class EventPageDetailsState extends State<EventPageDetails> {
               right: 0,
               child: Image.network(
                 widget.post.pathImage!,
-                fit: BoxFit.cover,
+                fit: BoxFit.fill,
                 width: width,
                 height: height / 3,
               ),
@@ -213,15 +213,35 @@ class EventPageDetailsState extends State<EventPageDetails> {
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: PartipedTile(
-                      post: widget.post,
-                      residenceSelected: widget.residence,
-                      uid: widget.uid,
-                      space: 1,
-                      number: widget.post.participants!.length,
-                      sizeFont: SizeFont.h2.size,
-                    ),
+                    child:  Visibility(
+                  visible: widget.post.eventType!.contains(EventType.evenement.value),
+                  child: PartipedTile(
+                    sizeFont: SizeFont.h3.size,
+                    post: widget.post,
+                    residenceSelected: widget.residence,
+                    uid: widget.uid,
+                    space: 1,
+                    number: 5,
                   ),
+                ),
+                  ),
+
+                   Padding(
+                     padding:  const EdgeInsets.symmetric(horizontal: 20),
+                     child: Visibility(
+                                       visible: widget.post.eventType!.contains(EventType.prestation.value),
+                                       child: Row(
+                      children: [
+                        MyTextStyle.lotName(
+                      "Prestataire :", Colors.black87, SizeFont.h2.size),
+                      const SizedBox(width: 20,),
+                      MyTextStyle.annonceDesc(
+                        widget.post.prestaName??"", SizeFont.h3.size, 3),
+                     
+                      ],
+                                       ),
+                                       ),
+                   ),
                   const Divider(
                     thickness: 0.5,
                     color: Colors.black12,

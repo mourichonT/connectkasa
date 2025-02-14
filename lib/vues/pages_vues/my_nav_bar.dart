@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/my_docs.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page_modify.dart';
 import 'package:provider/provider.dart';
 import '../../models/pages_models/lot.dart';
 import '../../controllers/pages_controllers/my_tab_bar_controller.dart';
@@ -139,6 +138,17 @@ class _MyNavBarState extends State<MyNavBar>
             argument3: "communication",
           ),
           EventPageView(
+            preferedLot: preferedLot ??
+            lot?.first ??
+            Lot(
+              refLot: "",
+              typeLot: "",
+              type: "",
+              idProprietaire: [],
+              residenceId: "",
+              residenceData: {},
+              colorSelected: "",
+            ),
             residenceSelected: preferedLot?.residenceId ?? "",
             uid: uid,
             type: "events",
