@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/line_interaction.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/participed_button.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -181,19 +181,36 @@ class _EventWidgetState extends State<EventWidget> {
                     widget.post.title, Colors.black87, SizeFont.h2.size),
                 const SizedBox(height: 10),
                 SizedBox(
-                  height: 70,
+                  height: 40,
                   child: MyTextStyle.annonceDesc(
                       widget.post.description, SizeFont.h3.size, 3),
                 ),
                 const SizedBox(height: 10),
-                PartipedTile(
-                  sizeFont: SizeFont.h3.size,
-                  post: widget.post,
-                  residenceSelected: widget.residenceSelected,
-                  uid: widget.uid,
-                  space: 1,
-                  number: 5,
+                Visibility(
+                  visible: widget.post.eventType!.contains(EventType.evenement.value),
+                  child: PartipedTile(
+                    sizeFont: SizeFont.h3.size,
+                    post: widget.post,
+                    residenceSelected: widget.residenceSelected,
+                    uid: widget.uid,
+                    space: 1,
+                    number: 5,
+                  ),
                 ),
+                Visibility(
+                  visible: widget.post.eventType!.contains(EventType.prestation.value),
+                  child: Row(
+                    children: [
+                      MyTextStyle.lotName(
+                    "Prestataire :", Colors.black87, SizeFont.h2.size),
+                    const SizedBox(width: 20,),
+                    MyTextStyle.annonceDesc(
+                      widget.post.prestaName??"", SizeFont.h3.size, 3),
+
+                    ],
+                  ),
+                  ),
+                
               ],
             ),
           ),

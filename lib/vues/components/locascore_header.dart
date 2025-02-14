@@ -49,28 +49,28 @@ class LocascoreHeader extends StatelessWidget {
               ],
             ),
           ),
-           SizedBox(
+           const SizedBox(
             height: 130, // Ajustez cette hauteur selon votre besoin
-            child: const VerticalDivider(width: 40,),
+            child: VerticalDivider(width: 40,),
           ),
           const ComponentLsHeader(label: "Etat des lieux", note: "4", icon: Icon(Icons.cleaning_services)),
          
-          SizedBox(
+          const SizedBox(
             //padding: EdgeInsets.only(top: 10),
             height: 130, // Ajustez cette hauteur selon votre besoin
-            child: const VerticalDivider(width: 40,),
+            child: VerticalDivider(width: 40,),
           ),
           const ComponentLsHeader(label: "Régularité", note: "5", icon: Icon(Icons.euro)),
-          SizedBox(
+          const SizedBox(
             //padding: EdgeInsets.only(top: 10),
             height: 130, // Ajustez cette hauteur selon votre besoin
-            child: const VerticalDivider(width: 40,),
+            child: VerticalDivider(width: 40,),
           ),
           const ComponentLsHeader(label: "Communication", note: "5", icon: Icon(Icons.chat_bubble_outline_outlined)),
-          SizedBox(
+          const SizedBox(
             //padding: EdgeInsets.only(top: 10),
             height: 130, // Ajustez cette hauteur selon votre besoin
-            child: const VerticalDivider(width: 40,),
+            child: VerticalDivider(width: 40,),
           ),
           const ComponentLsHeader(label: "Vie", note: "3", icon: Icon(Icons.group)),
         ],

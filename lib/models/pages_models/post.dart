@@ -19,6 +19,7 @@ class Post {
   List<Post> signalement;
   bool hideUser;
   List<String>? participants;
+  List<String>? eventType;
   int? price;
   String? backgroundColor;
   String? backgroundImage;
@@ -26,6 +27,7 @@ class Post {
   String? fontWeight;
   String? fontColor;
   String? fontStyle;
+  String? prestaName;
 
   Post(
       {required this.id,
@@ -46,9 +48,11 @@ class Post {
       this.signalement = const [],
       required this.hideUser,
       this.participants = const [],
+      this.eventType = const [],
       this.price = 0,
       this.backgroundColor,
       this.backgroundImage,
+      this.prestaName,
       this.fontSize,
       this.fontWeight,
       this.fontColor,
@@ -157,6 +161,16 @@ class Post {
       }
     }
 
+     List<dynamic>? eventTypeList = map['eventType'];
+    List<String> convertedEventTyeList = [];
+    if (eventTypeList != null) {
+      for (var eventTypeSelected in eventTypeList) {
+        if (eventTypeSelected is String) {
+          convertedEventTyeList.add(eventTypeSelected);
+        }
+      }
+    }
+
     return Post(
       id: map['id'] ?? "",
       description: map['description'] ?? "",
@@ -183,6 +197,7 @@ class Post {
           .toList(),
       hideUser: map['hideUser'],
       participants: convertedParticipantsList,
+      eventType: convertedEventTyeList,
       price: map['price'] ?? 0,
       backgroundColor: map['backgroundColor'],
       backgroundImage: map['backgroundImage'],
@@ -190,6 +205,7 @@ class Post {
       fontSize: map['fontSize'],
       fontWeight: map['fontWeight'],
       fontStyle: map['fontStyle'],
+      prestaName : map['prestaName'],
     );
   }
 
@@ -204,6 +220,7 @@ class Post {
       'pathImage': pathImage,
       'refResidence': refResidence,
       'statu': statu,
+      'eventType':eventType,
       'timeStamp': timeStamp,
       'eventDate': eventDate,
       'title': title,
@@ -219,7 +236,8 @@ class Post {
       'fontColor': fontColor,
       'fontSize': fontSize,
       'fontWeight': fontWeight,
-      'fontStyle': fontStyle
+      'fontStyle': fontStyle,
+      'prestaName' : prestaName
     };
   }
 }

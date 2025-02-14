@@ -3,7 +3,6 @@ import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/rendering.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';

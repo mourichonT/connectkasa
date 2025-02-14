@@ -7,7 +7,6 @@ import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 class AnnonceTile extends StatefulWidget {
   late Post post;

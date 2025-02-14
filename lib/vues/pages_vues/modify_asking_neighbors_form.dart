@@ -4,9 +4,7 @@ import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +13,6 @@ import 'package:path/path.dart' as p;
 import 'dart:io';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 

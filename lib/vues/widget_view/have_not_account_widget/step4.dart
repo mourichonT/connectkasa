@@ -1,7 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_usertemp.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/camera_files_choices.dart';
 import 'package:flutter/material.dart';
@@ -327,7 +326,7 @@ class _Step4State extends State<Step4> {
                       },
                     );
                   },
-                  child: Text('Soumettre',
+                  child: const Text('Soumettre',
                       style: TextStyle(
                         color: Colors.white,
                       ))),

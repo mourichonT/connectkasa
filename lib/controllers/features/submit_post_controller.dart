@@ -21,11 +21,13 @@ class SubmitPostController {
     int? price,
     List<String>? element,
     List<String>? participants,
+    List<String>? eventType,
     double? fontSize,
     String? fontWeight,
     String? fontColor,
     String? fontStyle,
     Timestamp? eventDate,
+    String? prestaName
   }) {
     // Créer une instance de DataBasesServices
     DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
@@ -49,7 +51,8 @@ class SubmitPostController {
       like: [], // Vous pouvez initialiser avec une liste vide
       signalement: [], // Vous pouvez initialiser avec une liste vide
       hideUser: anonymPost ?? false,
-      participants: [],
+      participants: participants ?? [],
+      eventType: eventType ?? [],
       backgroundColor: backgroundColor ?? "",
       backgroundImage: backgroundImage ?? "",
       fontSize: fontSize ?? 20.0,
@@ -57,6 +60,7 @@ class SubmitPostController {
       fontColor: fontColor ?? "",
       fontStyle: fontStyle ?? "",
       eventDate: eventDate,
+      prestaName: prestaName,
     );
 
     // Appeler la méthode addPost pour ajouter le nouveau post
@@ -79,12 +83,14 @@ class SubmitPostController {
     String? etage,
     List<String>? element,
     List<String>? participants,
+    List<String>? eventType,
     String? backgroundColor,
     String? backgroundImage,
     double? fontSize,
     String? fontWeight,
     String? fontColor,
     String? fontStyle,
+    String? prestaName
   }) {
     DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
 
@@ -107,12 +113,14 @@ class SubmitPostController {
       hideUser: anonymPost,
       price: price ?? 0,
       participants: participants ?? [],
+      eventType: eventType ?? [],
       backgroundColor: backgroundColor ?? "",
       backgroundImage: backgroundImage ?? "",
       fontSize: fontSize ?? 20.0,
       fontWeight: fontWeight ?? "",
       fontColor: fontColor ?? "",
       fontStyle: fontColor ?? "",
+      prestaName : prestaName
     );
 
     // Appeler la méthode addPost pour ajouter le nouveau post

@@ -2,7 +2,6 @@ import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/features/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
 //import 'package:connect_kasa/vues/components/locascore_header.dart';

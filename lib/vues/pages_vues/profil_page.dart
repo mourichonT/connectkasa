@@ -14,9 +14,7 @@ import 'package:connect_kasa/vues/pages_vues/management_tenant.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page_modify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:firebase_auth/firebase_auth.dart'
-    as firebase_auth; // Alias pour la classe User de firebase_auth
+// Alias pour la classe User de firebase_auth
 
 class ProfilPage extends StatefulWidget {
   final String uid;

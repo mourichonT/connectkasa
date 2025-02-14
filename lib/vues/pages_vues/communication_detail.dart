@@ -2,7 +2,6 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/comment_button.dart';
-import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:connect_kasa/vues/components/like_button_post.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/components/share_button.dart';

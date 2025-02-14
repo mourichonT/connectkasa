@@ -8,9 +8,7 @@ import 'package:connect_kasa/models/pages_models/transaction.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
 import 'package:connect_kasa/vues/pages_vues/add_annonceform.dart';
 import 'package:connect_kasa/vues/components/annonce_tile.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_annonceform.dart';
 import 'package:connect_kasa/vues/pages_vues/sinistre_tile.dart';
-import 'package:connect_kasa/vues/widget_view/transaction_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

@@ -4,12 +4,14 @@ class Event {
   String title;
   String description;
   Timestamp date;
+  List<String> eventType ;
   List<String>? participants;
 
   Event({
     required this.title,
     required this.description,
     required this.date,
+    required this.eventType,
     this.participants,
   });
 
@@ -18,6 +20,7 @@ class Event {
       title: json['title'],
       description: json['description'],
       date: json['date'], // Assurez-vous que le formatage Timestamp est correct
+      eventType: List<String>.from(json['eventTyp'] ?? []),
       participants: List<String>.from(json['participants'] ?? []),
     );
   }
@@ -27,6 +30,7 @@ class Event {
       'title': title,
       'description': description,
       'date': date, // Assurez-vous que le formatage Timestamp est correct
+      'eventType':eventType,
       'participants': participants,
     };
   }
