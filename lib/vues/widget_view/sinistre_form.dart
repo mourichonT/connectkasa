@@ -274,7 +274,7 @@ class SinistreFormState extends State<SinistreForm> {
                     return;
                   }
 
-                  SubmitPostController.submitForm(
+                  SubmitPostController.addPostAfterChecking(
                     uid: widget.uid,
                     docRes: widget.preferedLot!.residenceId,
                     idPost: widget.idPost,
