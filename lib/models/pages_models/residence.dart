@@ -13,6 +13,7 @@ class Residence {
   List<String>? etage;
   List<String>? localisation;
   int nombreLot;
+  List<String>? csmembers;
 
   Residence({
     required this.name,
@@ -23,6 +24,7 @@ class Residence {
     required this.city,
     required this.refGerance,
     required this.id,
+    this.csmembers,
     this.elements,
     this.etage,
     this.localisation,
@@ -39,6 +41,8 @@ class Residence {
       city: json['city'] ?? '',
       refGerance: json['refGerance'] ?? '',
       id: json['id'] ?? '',
+      csmembers:
+          json['csmembers'] != null ? List<String>.from(json['csmembers']) : null,
       elements:
           json['elements'] != null ? List<String>.from(json['elements']) : null,
       etage: json['etage'] != null ? List<String>.from(json['etage']) : null,
@@ -63,6 +67,9 @@ class Residence {
       city: data?["city"] ?? '',
       refGerance: data?["refGerance"] ?? '',
       id: data?["id"] ?? '',
+      csmembers: data?["csmembers"] != null
+          ? List<String>.from(data?["csmembers"])
+          : null,
       elements: data?["elements"] != null
           ? List<String>.from(data?["elements"])
           : null,
@@ -84,6 +91,8 @@ class Residence {
       city: map['city'] ?? '',
       refGerance: map['refGerance'] ?? '',
       id: map['id'] ?? '',
+      csmembers:
+          map['csmembers'] != null ? List<String>.from(map['csmembers']) : null,     
       elements:
           map['elements'] != null ? List<String>.from(map['elements']) : null,
       etage: map['etage'] != null ? List<String>.from(map['etage']) : null,

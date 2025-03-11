@@ -1,24 +1,53 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/features/generate_ref_user_app.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
+
 
 class DataBasesUserServices {
-  final FirebaseFirestore db = FirebaseFirestore.instance;
+ final FirebaseFirestore db = FirebaseFirestore.instance;
 
-  Future<UserTemp> setUserTemp(UserTemp newUser) async {
+  Future<UserTemp> setUser(
+      UserTemp newUser, String? lotId, bool? compagnyBuy, String? companyName) async {
     try {
-      // Si aucun post correspondant n'est trouvé, ajouter le nouveau post à la collection
-      await db.collection("UserTemp").add(newUser.toMap());
+      // Génère `refUserApp` unique
+      String refUserApp = await generateUniqueRefUserApp(db, newUser.uid);
+
+      // Ajoute refUserApp à l'objet utilisateur
+      Map<String, dynamic> userData = newUser.toMap();
+      userData['refUserApp'] = refUserApp;  // ✅ Ajout de `refUserApp`
+
+      // Met à jour ou crée l'utilisateur dans Firestore
+      await db.collection("User").doc(newUser.uid).set(
+            userData,
+            SetOptions(merge: true), // Fusionner au lieu d'écraser
+          );
+
+      // Ajoute les informations sur le lot si `lotId` est défini
+      if (lotId != null) {
+        await db
+            .collection("User")
+            .doc(newUser.uid)
+            .collection("Lots")
+            .doc(lotId)
+            .set({
+          "lotId": lotId,
+          "compagnyBuy": compagnyBuy,
+          "companyName": companyName,
+        }, SetOptions(merge: true));
+      }
     } catch (e) {
-      print("Impossible de poster le nouvel user: $e");
+      print("Impossible de mettre à jour l'utilisateur: $e");
     }
 
     return newUser;
   }
 
-  Future<User?> getUserById(String numUser) async {
+  Future<User?>  getUserById(String numUser) async {
     User? user;
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot =
@@ -139,11 +168,8 @@ class DataBasesUserServices {
               List.from(lotDoc.data()["idProprietaire"]);
 
           // Ajouter chaque élément de idLocataire et idProprietaire à la liste si non nuls
-          if (idLocataire != null) {
-            users.addAll(idLocataire);
-          }
-          if (idProprietaire != null &&
-              (idLocataire == null || !idLocataire.contains(uid))) {
+          users.addAll(idLocataire);
+                  if ((!idLocataire.contains(uid))) {
             users.addAll(idProprietaire);
           }
         }
@@ -156,4 +182,98 @@ class DataBasesUserServices {
     }
     return users;
   }
+
+ Future<UserInfo?> getUserWithInfo(String userId) async {
+  try {
+    // Rechercher l'utilisateur dans Firestore
+    QuerySnapshot<Map<String, dynamic>> userDocRef = await db
+        .collection("User")
+        .where("uid", isEqualTo: userId)
+        .get();
+
+    if (userDocRef.docs.isNotEmpty) {
+      DocumentSnapshot<Map<String, dynamic>> userDoc = userDocRef.docs.first;
+      Map<String, dynamic> userMap = userDoc.data()!;
+
+      User user = User.fromMap(userMap);
+
+      // Récupérer l'utilisateur depuis Firebase Auth
+      String? email;
+      auth.User? firebaseUser = auth.FirebaseAuth.instance.currentUser;
+
+      if (firebaseUser != null && firebaseUser.uid == userId) {
+        email = firebaseUser.email;
+      } else {
+        print("L'utilisateur courant n'est pas celui recherché. Tentative de récupération directe...");
+        // Tentative de récupération de l'e-mail à partir de Firebase Admin (si autorisé).
+        // Nécessite un contexte serveur ou une configuration spéciale pour accéder à admin.auth().
+        // Exemple à adapter si Firebase Admin est disponible.
+      }
+
+      // Récupération des informations supplémentaires de la sous-collection
+      QuerySnapshot<Map<String, dynamic>> userInfoQuerySnapshot =
+          await userDoc.reference.collection("informationConf").get();
+
+      Map<String, dynamic> userInfoMap = userInfoQuerySnapshot.docs.isNotEmpty
+          ? userInfoQuerySnapshot.docs.first.data()
+          : {};
+
+      return UserInfo(
+        name: user.name,
+        surname: user.surname,
+        email: email ?? "Non spécifié",
+        uid: user.uid,
+        pseudo: user.pseudo,
+        profession: user.profession,
+        profilPic: user.profilPic ?? "",
+        approved: user.approved,
+        birthday: userInfoMap['Birthday'] ?? Timestamp.fromDate(DateTime(1900, 1, 1)),
+        amountFamilyAllowance: userInfoMap['amount_FamilyAllowance'] ?? "",
+        amountAdditionalRevenu: userInfoMap['amount_additionalRevenu'] ?? "",
+        amountHousingAllowance: userInfoMap['amount_housingAllowance'] ?? "",
+        dependent: userInfoMap['dependent'] ?? 0,
+        familySituation: userInfoMap['familySituation'] ?? "",
+        nationality: userInfoMap['nationality'] ?? "",
+        phone: userInfoMap['phone'] ?? "",
+        salary: userInfoMap['salary'] ?? "",
+        typeContract: userInfoMap['typeContract'] ?? "",
+        entryJobDate: userInfoMap['entryJobDate'] ?? Timestamp.fromDate(DateTime(1900, 1, 1)),
+      );
+    } else {
+      print("Aucun utilisateur trouvé avec l'ID '$userId'.");
+    }
+  } catch (e) {
+    print("Erreur lors de la récupération de l'utilisateur : $e");
+  }
+
+  return null;
+}
+
+static Future<void> removeUserById(String uid) async {
+    try {
+      // Recherchez le document du post en utilisant l'ID
+      DocumentSnapshot<Map<String, dynamic>> userQuery = await FirebaseFirestore
+          .instance
+          .collection("User")
+          .doc(uid)
+          .get();
+
+      // Vérifiez si des documents correspondent à la condition
+      if (userQuery.exists) {
+        // Supprimez le premier document trouvé (il ne devrait y en avoir qu'un)
+      
+        await userQuery.reference.delete();
+      } else {
+        throw Exception(
+            'Aucun utilisateur trouvé avec l\'ID $uid');
+      }
+    } catch (e) {
+      // Gère les erreurs ici
+      print(
+          'Une erreur s\'est produite lors de la suppression de l\'utilisateur: $e');
+      // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
+      rethrow;
+    }
+  }
+
 }

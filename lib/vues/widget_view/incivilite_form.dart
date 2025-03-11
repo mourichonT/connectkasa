@@ -38,10 +38,10 @@ class InciviliteFormState extends State<InciviliteForm> {
 
   final ButtonStyle style =
       ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20));
-  final MaterialStateProperty<Icon?> thumbIcon =
-      MaterialStateProperty.resolveWith<Icon?>(
-    (Set<MaterialState> states) {
-      if (states.contains(MaterialState.selected)) {
+  final WidgetStateProperty<Icon?> thumbIcon =
+      WidgetStateProperty.resolveWith<Icon?>(
+    (Set<WidgetState> states) {
+      if (states.contains(WidgetState.selected)) {
         return const Icon(Icons.check);
       }
       return const Icon(Icons.close);

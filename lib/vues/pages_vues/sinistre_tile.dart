@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
@@ -26,7 +25,7 @@ class SinistreTile extends StatefulWidget {
   final Function()? updatePostsList;
 
   SinistreTile(this.post, this.residenceId, this.uid, this.canModify,
-      this.colorStatut, this.updatePostsList);
+      this.colorStatut, this.updatePostsList, {super.key});
 
   @override
   State<StatefulWidget> createState() => SinistreTileState();
@@ -112,7 +111,8 @@ class SinistreTileState extends State<SinistreTile> {
                                 }
                               },
                               child: Builder(builder: (context) {
-                                if (widget.post.type == "sinistres" &&
+                                print("postType : ${widget.post.type}" );
+                                if (widget.post.type == "sinistres" ||
                                     widget.post.type == "incivilites") {
                                   return PostView(
                                     postOrigin: widget.post,
@@ -137,7 +137,29 @@ class SinistreTileState extends State<SinistreTile> {
                               }),
                             );
                           } else {
-                            return const Text('No data available');
+                            //return const Text('No data');
+                            if (widget.post.type == "sinistres" ||
+                                    widget.post.type == "incivilites") {
+                                  return PostView(
+                                    postOrigin: widget.post,
+                                    residence: widget.residenceId,
+                                    uid: widget.uid,
+                                    postSelected: widget.post,
+                                    returnHomePage: false,
+                                  );
+                                } else if (widget.post.type ==
+                                    "communication") {
+                                  return CommunicationDetails(
+                                      uid: widget.uid, post: widget.post);
+                                } else {
+                                  return AnnoncePageDetails(
+                                    returnHomePage: false,
+                                    post: widget.post,
+                                    uid: widget.uid,
+                                    residence: widget.residenceId,
+                                    colorStatut: widget.colorStatut,
+                                  );
+                                }
                           }
                         }
                       },
@@ -148,10 +170,10 @@ class SinistreTileState extends State<SinistreTile> {
           children: [
             Container(
               padding:
-                  EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 10),
+                  const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 10),
               width: MediaQuery.of(context).size.width * 0.95,
               child: _signalement == null
-                  ? Center(child: CircularProgressIndicator())
+                  ? const Center(child: CircularProgressIndicator())
                   : Row(
                       children: [
                         if (_signalement!.pathImage != "" &&
@@ -160,7 +182,7 @@ class SinistreTileState extends State<SinistreTile> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(35.0),
                             child: Container(
-                              padding: EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(8),
                               width: 120,
                               height: 120,
                               child: Image.network(
@@ -173,13 +195,13 @@ class SinistreTileState extends State<SinistreTile> {
                           ClipRRect(
                             borderRadius: BorderRadius.circular(35.0),
                             child: Container(
-                              padding: EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(8),
                               width: 120,
                               height: 120,
                               child: ImageAnnounced(context, 120, 120),
                             ),
                           ),
-                        SizedBox(width: 20),
+                        const SizedBox(width: 20),
                         Expanded(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -238,7 +260,7 @@ class SinistreTileState extends State<SinistreTile> {
                                       _signalement!.description,
                                       SizeFont.para.size,
                                       2),
-                                  Divider(),
+                                  const Divider(),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -256,7 +278,7 @@ class SinistreTileState extends State<SinistreTile> {
                         ),
                         if (widget.canModify)
                           Container(
-                            padding: EdgeInsets.only(left: 10),
+                            padding: const EdgeInsets.only(left: 10),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.end,
                               mainAxisSize: MainAxisSize.max,
@@ -304,7 +326,7 @@ class SinistreTileState extends State<SinistreTile> {
                                                     )));
                                       }
                                     },
-                                    icon: Icon(
+                                    icon: const Icon(
                                       Icons.edit,
                                       size: 20,
                                     )),
@@ -314,7 +336,7 @@ class SinistreTileState extends State<SinistreTile> {
                                       showAlertDialog(
                                           context, _signalement!.title);
                                     },
-                                    icon: Icon(
+                                    icon: const Icon(
                                       Icons.delete,
                                       size: 20,
                                     )),

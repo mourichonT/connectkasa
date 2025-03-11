@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:flutter/material.dart';
 
 class DataBasesLotServices {
@@ -186,7 +185,7 @@ class DataBasesLotServices {
       }
     } catch (e) {
       print('Erreur lors de la mise à jour de la couleur du lot $refLot : $e');
-      throw e; // Vous pouvez gérer l'erreur comme nécessaire
+      rethrow; // Vous pouvez gérer l'erreur comme nécessaire
     }
   }
 
@@ -225,7 +224,7 @@ class DataBasesLotServices {
       }
     } catch (e) {
       print('Erreur lors de la mise à jour de la couleur du lot $refLot : $e');
-      throw e; // Vous pouvez gérer l'erreur comme nécessaire
+      rethrow; // Vous pouvez gérer l'erreur comme nécessaire
     }
   }
 }

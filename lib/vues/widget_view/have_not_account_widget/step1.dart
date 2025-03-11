@@ -10,11 +10,11 @@ class Step1 extends StatefulWidget {
   final PageController progressController;
 
   const Step1({
-    Key? key,
+    super.key,
     required this.recupererInformationsStep1,
     required this.currentPage,
     required this.progressController,
-  }) : super(key: key);
+  });
 
   @override
   _Step1State createState() => _Step1State();
@@ -103,7 +103,7 @@ class _Step1State extends State<Step1> {
               },
             ),
           ),
-          SizedBox(
+          const SizedBox(
             height: 150,
           ),
         ],
@@ -112,7 +112,7 @@ class _Step1State extends State<Step1> {
         visible: getResidence().toString().isNotEmpty,
         child: BottomAppBar(
             surfaceTintColor: Colors.white,
-            padding: EdgeInsets.all(2),
+            padding: const EdgeInsets.all(2),
             height: 70,
             child: Container(
                 child: Row(
@@ -128,12 +128,12 @@ class _Step1State extends State<Step1> {
                       // Action à effectuer lorsque le bouton "Suivant" est pressé
                       if (widget.currentPage < 5) {
                         widget.progressController.nextPage(
-                          duration: Duration(milliseconds: 500),
+                          duration: const Duration(milliseconds: 500),
                           curve: Curves.ease,
                         );
                       }
                     },
-                    child: Text(
+                    child: const Text(
                       'Suivant',
                     ),
                   ),

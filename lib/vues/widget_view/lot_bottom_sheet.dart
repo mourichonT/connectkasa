@@ -3,7 +3,6 @@
 import 'dart:convert';
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';

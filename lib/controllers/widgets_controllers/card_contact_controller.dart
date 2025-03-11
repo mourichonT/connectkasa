@@ -13,7 +13,7 @@ class CardContactController extends StatelessWidget {
   final String uid;
 
   CardContactController(this.selectedlot, this.dept,
-      {required this.uid, this.refGerance});
+      {super.key, required this.uid, this.refGerance});
 
   final DatabasesAgencyServices _databasesAgency = DatabasesAgencyServices();
   @override
@@ -28,10 +28,10 @@ class CardContactController extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // Retourner un indicateur de chargement pendant la récupération de l'agence
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             // Gérer l'erreur si la récupération de l'agence échoue
-            return Center(
+            return const Center(
                 child: Text('Erreur lors de la récupération de l\'agence'));
           } else {
             // Une fois l'agence récupérée, afficher son nom
@@ -71,7 +71,7 @@ class CardContactController extends StatelessWidget {
               );
             } else {
               // Gérer le cas où l'agence est null ou vide
-              return Center(child: Text('Agence introuvable'));
+              return const Center(child: Text('Agence introuvable'));
             }
           }
         },

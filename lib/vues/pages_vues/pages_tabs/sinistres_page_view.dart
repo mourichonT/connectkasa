@@ -2,7 +2,6 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/pages_controllers/sinitres_tile_controller.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/pages_vues/sinistre_tile.dart';
 import 'package:connect_kasa/controllers/pages_controllers/filter_allpost_controller.dart';
@@ -16,15 +15,15 @@ class SinistrePageView extends StatefulWidget {
   final String? argument2;
   final String? argument3;
 
-  SinistrePageView({
-    Key? key,
+  const SinistrePageView({
+    super.key,
     required this.residenceId,
     required this.uid,
     required this.colorStatut,
     this.argument1,
     this.argument2,
     this.argument3,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => SinistrePageViewState();
@@ -147,7 +146,7 @@ class SinistrePageViewState extends State<SinistrePageView>
               ),
             ),
           Expanded(
-            child: Container(
+            child: SizedBox(
               width: width,
               child: TabBarView(
                 controller: _tabController,

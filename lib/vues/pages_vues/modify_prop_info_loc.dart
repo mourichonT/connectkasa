@@ -3,9 +3,6 @@ import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/color_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -15,11 +12,11 @@ class ModifyPropInfoLoc extends StatefulWidget {
   final String uid;
 
   const ModifyPropInfoLoc({
-    Key? key,
+    super.key,
     required this.lot,
     required this.uid,
     required this.refLotSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => ModifyPropInfoLocState();
@@ -99,7 +96,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
               mainAxisSize: MainAxisSize.max,
               children: [
                 Container(
-                  padding: EdgeInsets.symmetric(vertical: 20),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
                   width: width / 1.5,
                   child: MyTextStyle.annonceDesc(
                       "Souhaitez-vous déléguer la gestion de votre bien ",
@@ -134,7 +131,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
                 ],
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 80,
             )
           ],
@@ -156,7 +153,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
               color: Colors.black54,
               fontWeight: FontWeight.w400,
               fontSize: SizeFont.h3.size),
-          border: UnderlineInputBorder(
+          border: const UnderlineInputBorder(
             borderSide: BorderSide(
               color: Colors.grey,
               width: 1.0,
@@ -207,12 +204,12 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
         controller: TextEditingController(text: value ?? ''),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(
+          labelStyle: const TextStyle(
             color: Colors.black54,
             fontWeight: FontWeight.w400,
           ),
           enabled: false,
-          border: UnderlineInputBorder(
+          border: const UnderlineInputBorder(
             borderSide: BorderSide(
               color: Colors.grey,
               width: 1.0,
@@ -247,11 +244,11 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
               decoration: InputDecoration(
                 hintText: hintText,
                 labelText: label,
-                labelStyle: TextStyle(
+                labelStyle: const TextStyle(
                   color: Colors.black54,
                   fontWeight: FontWeight.w400,
                 ),
-                border: UnderlineInputBorder(
+                border: const UnderlineInputBorder(
                   borderSide: BorderSide(
                     color: Colors.grey,
                     width: 1.0,
@@ -269,7 +266,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
               onPressed: () {
                 focusNode.unfocus();
               },
-              icon: Icon(Icons.search),
+              icon: const Icon(Icons.search),
             )
         ],
       ),

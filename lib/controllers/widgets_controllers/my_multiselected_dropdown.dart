@@ -14,7 +14,7 @@ Widget MyMultiSelectedDropDown(
     required Function(List<String?>) onConfirm,
     required Function(String?)? onTap}) {
   return Expanded(
-    child: Container(
+    child: SizedBox(
       width: width,
       child: MultiSelectBottomSheetField<String?>(
         key: myKey,
@@ -30,7 +30,7 @@ Widget MyMultiSelectedDropDown(
         selectedColor: color,
         items: items,
         searchable: true,
-        buttonIcon: Icon(
+        buttonIcon: const Icon(
           Icons.arrow_drop_down,
           size: 24,
         ),

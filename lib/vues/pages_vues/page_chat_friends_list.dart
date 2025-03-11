@@ -12,11 +12,11 @@ class PageChatFriendsList extends StatefulWidget {
   final Lot selectedLot;
 
   const PageChatFriendsList({
-    Key? key,
+    super.key,
     required this.uid,
     required this.residence,
     required this.selectedLot,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => PageChatFriendsListState();
@@ -34,7 +34,7 @@ class PageChatFriendsListState extends State<PageChatFriendsList> {
             appBar: AppBar(
               title: MyTextStyle.lotName(
                   "Messages", Colors.black, SizeFont.h1.size),
-              bottom: PreferredSize(
+              bottom: const PreferredSize(
                 preferredSize: Size.fromHeight(1.0), // Hauteur du Divider
                 child: Divider(
                   height: 0,

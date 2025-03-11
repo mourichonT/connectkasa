@@ -1,13 +1,13 @@
 import 'package:camera/camera.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_usertemp.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 
 class Step4 extends StatefulWidget {
-  final String newUser;
+  final String userId;
+  final String emailUser;
   final Residence residence;
   final String residentType;
   final Function(String, String, String, String, String)
@@ -25,7 +25,7 @@ class Step4 extends StatefulWidget {
   final String kbisPath;
 
   const Step4({
-    Key? key,
+    super.key,
     required this.residence,
     required this.residentType,
     required this.recupererInformationsStep4,
@@ -38,9 +38,10 @@ class Step4 extends StatefulWidget {
     required this.kbisPath,
     required this.intendedFor,
     required this.refLot,
-    required this.newUser,
-    required this.typeLot,
-  }) : super(key: key);
+    required this.userId,
+    required this.typeLot, 
+    required this.emailUser,
+  });
 
   @override
   _Step4State createState() => _Step4State();
@@ -146,17 +147,17 @@ class _Step4State extends State<Step4> {
                 ],
               ),
             ),
-            SizedBox(
+            const SizedBox(
               height: 30,
             ),
             Visibility(
               visible: visibleID,
               child: Column(
                 children: [
-                  Divider(),
+                  const Divider(),
                   CameraOrFiles(
                     racineFolder: 'user',
-                    residence: 'document',
+                    residence: widget.userId,
                     folderName: 'documentID',
                     title: idChoice!,
                     onImageUploaded: (downloadUrl) =>
@@ -179,7 +180,7 @@ class _Step4State extends State<Step4> {
                   ),
                   CameraOrFiles(
                     racineFolder: 'user',
-                    residence: 'document',
+                    residence: widget.userId,
                     folderName: 'documentID',
                     title: idChoice!,
                     onImageUploaded: (downloadUrl) =>
@@ -193,7 +194,7 @@ class _Step4State extends State<Step4> {
               visible: imagePathIDverso != "",
               child: Column(
                 children: [
-                  Divider(),
+                  const Divider(),
                   Padding(
                     padding: const EdgeInsets.symmetric(
                         vertical: 30, horizontal: 20),
@@ -235,17 +236,17 @@ class _Step4State extends State<Step4> {
                       ],
                     ),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 30,
                   ),
                   Visibility(
                     visible: visibleJustif,
                     child: Column(
                       children: [
-                        Divider(),
+                        const Divider(),
                         CameraOrFiles(
                           racineFolder: 'user',
-                          residence: 'document',
+                          residence: widget.userId,
                           folderName: 'justificatifDom',
                           title: idChoice!,
                           onImageUploaded: downloadImagePathJustif,
@@ -264,7 +265,7 @@ class _Step4State extends State<Step4> {
         visible: getJustifPath().isNotEmpty,
         child: BottomAppBar(
           surfaceTintColor: Colors.white,
-          padding: EdgeInsets.all(2),
+          padding: const EdgeInsets.all(2),
           height: 70,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -272,10 +273,6 @@ class _Step4State extends State<Step4> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               ElevatedButton(
-                  child: Text('Soumettre',
-                      style: TextStyle(
-                        color: Colors.white,
-                      )),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor),
                   onPressed: () {
@@ -285,11 +282,12 @@ class _Step4State extends State<Step4> {
                     String justifChoice = getJustifType();
                     String pathJustif = getJustifType();
 
-                    SubmitUser.submitUserTemp(
+                    SubmitUser.submitUser(
+                      emailUser:widget.emailUser,
                       name: widget.name,
                       surname: widget.surname,
                       pseudo: widget.pseudo,
-                      newUserId: widget.newUser,
+                      newUserId: widget.userId,
                       statutResident: widget.residentType,
                       typeChoice: widget.typeLot,
                       intendedFor: widget.intendedFor,
@@ -321,13 +319,17 @@ class _Step4State extends State<Step4> {
                                 Navigator.popUntil(
                                     context, ModalRoute.withName('/'));
                               },
-                              child: Text('OK'),
+                              child: const Text('OK'),
                             ),
                           ],
                         );
                       },
                     );
-                  }),
+                  },
+                  child: const Text('Soumettre',
+                      style: TextStyle(
+                        color: Colors.white,
+                      ))),
             ],
           ),
         ),

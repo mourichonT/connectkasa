@@ -17,11 +17,11 @@ class ModifyProperty extends StatefulWidget {
   final String uid;
 
   const ModifyProperty({
-    Key? key,
+    super.key,
     required this.lot,
     required this.uid,
     required this.refLotSelected,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => ModifyPropertyState();
@@ -69,9 +69,9 @@ class ModifyPropertyState extends State<ModifyProperty> {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-          widget.lot.nameProp != null && widget.lot.nameProp != "" ||
-                  widget.lot.nameLoc != null && widget.lot.nameLoc != ""
-              ? name.text!
+          widget.lot.nameProp != "" ||
+                  widget.lot.nameLoc != ""
+              ? name.text
               : "${widget.lot.residenceData['name']} ${widget.lot.lot}",
           Colors.black87,
           SizeFont.h1.size,
@@ -118,7 +118,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                           backgroundColor: _backgroundColor,
                           radius: 10, // Rayon du cercle
                           child: Container(
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               shape: BoxShape
                                   .circle, // Définir la forme comme un cercle
                             ),
@@ -136,7 +136,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                         ),
                       ],
                     ),
-                    Icon(
+                    const Icon(
                       Icons.arrow_right_outlined,
                       size: 30,
                     ),
@@ -144,7 +144,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                 ),
               ),
             ),
-            Divider(),
+            const Divider(),
             _buildModifyTextField("Donner un nom à votre bien", 'Nom', name,
                 nameFocusNode, isProprietaire ? 'nameProp' : 'nameLoc'),
             Padding(
@@ -164,7 +164,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                     CupertinoPageRoute(
                         builder: (context) => ModifyPropDetails(
                               refLotSelected: widget.refLotSelected,
-                              lot: widget.lot!,
+                              lot: widget.lot,
                               uid: widget.uid,
                             )));
               },
@@ -180,7 +180,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                           fontWeight: FontWeight.w400,
                           fontSize: SizeFont.h3.size),
                     ),
-                    Icon(
+                    const Icon(
                       Icons.arrow_right_outlined,
                       size: 30,
                     ),
@@ -188,7 +188,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                 ),
               ),
             ),
-            Divider(),
+            const Divider(),
             if (!widget.lot.idLocataire!.contains(widget.uid))
               Visibility(
                 visible: selectedStatut == "Location longue durée" ||
@@ -202,7 +202,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                             CupertinoPageRoute(
                                 builder: (context) => ModifyPropInfoLoc(
                                       refLotSelected: widget.refLotSelected,
-                                      lot: widget.lot!,
+                                      lot: widget.lot,
                                       uid: widget.uid,
                                     )));
                       },
@@ -218,7 +218,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                                   fontWeight: FontWeight.w400,
                                   fontSize: SizeFont.h3.size),
                             ),
-                            Icon(
+                            const Icon(
                               Icons.arrow_right_outlined,
                               size: 30,
                             ),
@@ -226,11 +226,11 @@ class ModifyPropertyState extends State<ModifyProperty> {
                         ),
                       ),
                     ),
-                    Divider(),
+                    const Divider(),
                   ],
                 ),
               ),
-            SizedBox(
+            const SizedBox(
               height: 80,
             )
           ],
@@ -267,7 +267,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
               color: Colors.black54,
               fontWeight: FontWeight.w400,
               fontSize: SizeFont.h3.size),
-          border: UnderlineInputBorder(
+          border: const UnderlineInputBorder(
             borderSide: BorderSide(
               color: Colors.grey,
               width: 1.0,
@@ -318,12 +318,12 @@ class ModifyPropertyState extends State<ModifyProperty> {
         controller: TextEditingController(text: value ?? ''),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(
+          labelStyle: const TextStyle(
             color: Colors.black54,
             fontWeight: FontWeight.w400,
           ),
           enabled: false,
-          border: UnderlineInputBorder(
+          border: const UnderlineInputBorder(
             borderSide: BorderSide(
               color: Colors.grey,
               width: 1.0,
@@ -358,11 +358,11 @@ class ModifyPropertyState extends State<ModifyProperty> {
               decoration: InputDecoration(
                 hintText: hintText,
                 labelText: label,
-                labelStyle: TextStyle(
+                labelStyle: const TextStyle(
                   color: Colors.black54,
                   fontWeight: FontWeight.w400,
                 ),
-                border: UnderlineInputBorder(
+                border: const UnderlineInputBorder(
                   borderSide: BorderSide(
                     color: Colors.grey,
                     width: 1.0,
@@ -382,7 +382,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                   controller.clear();
                 });
               },
-              icon: Icon(Icons.clear),
+              icon: const Icon(Icons.clear),
             ),
           if (focusNode.hasFocus)
             IconButton(
@@ -403,7 +403,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                 });
                 focusNode.unfocus();
               },
-              icon: Icon(Icons.check),
+              icon: const Icon(Icons.check),
             )
         ],
       ),

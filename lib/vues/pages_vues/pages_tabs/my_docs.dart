@@ -1,7 +1,6 @@
 import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -98,12 +97,12 @@ class MydocsPageViewState extends State<MydocsPageView>
                                   : Image.asset(
                                       'images/icon_extension/default.png'),
                               title: Text(doc.name!),
-                              trailing: Icon(Icons.download_rounded),
+                              trailing: const Icon(Icons.download_rounded),
                             ),
                           );
                         },
                         separatorBuilder: (BuildContext context, int index) =>
-                            Divider(
+                            const Divider(
                           thickness: 0.4,
                         ),
                       ),
@@ -161,12 +160,12 @@ class MydocsPageViewState extends State<MydocsPageView>
                                   : Image.asset(
                                       'images/icon_extension/default.png'),
                               title: Text(docPerso.name!),
-                              trailing: Icon(Icons.download_rounded),
+                              trailing: const Icon(Icons.download_rounded),
                             ),
                           );
                         },
                         separatorBuilder: (BuildContext context, int index) =>
-                            Divider(
+                            const Divider(
                           thickness: 0.4,
                         ),
                       ),

@@ -6,7 +6,7 @@ import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 
 class MyDropDownMenu extends StatefulWidget {
-  final Lot preferedLot;
+  final Lot? preferedLot;
   final double width;
   final String label;
   String hintText;
@@ -15,7 +15,7 @@ class MyDropDownMenu extends StatefulWidget {
 
   MyDropDownMenu(this.width, this.label, this.hintText,
       {super.key,
-      required this.preferedLot,
+      this.preferedLot,
       required this.items,
       required this.onValueChanged});
 

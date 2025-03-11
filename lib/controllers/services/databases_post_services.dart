@@ -55,7 +55,7 @@ class DataBasesPostServices {
       print(
           'Une erreur s\'est produite lors de la récupération de la publication: $e');
       // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
-      throw e;
+      rethrow;
     }
   }
 
@@ -84,7 +84,7 @@ class DataBasesPostServices {
       print(
           'Une erreur s\'est produite lors de la suppression de la publication: $e');
       // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
-      throw e;
+      rethrow;
     }
   }
 
@@ -292,6 +292,86 @@ class DataBasesPostServices {
     return newPost;
   }
 
+   Future<Post?> addSignalement(Post newSignalement, String docRes, String idPost) async {
+    try {
+      // Si aucun post correspondant n'est trouvé, ajouter le nouveau post à la collection
+      await db
+          .collection("Residence")
+          .doc(docRes)
+          .collection("post")
+          .doc(idPost)
+          .collection("signalements")
+          .doc(newSignalement.id) // Utiliser l'ID du nouveau post pour l'ajouter dans les signalements
+          .set(newSignalement.toMap());
+    } catch (e) {
+      print("Impossible de poster le nouveau Post: $e");
+    }
+
+    return newSignalement;
+  }
+
+
+//   Future<Post?> addPost(Post newPost, String docRes) async {
+//   try {
+//     // Utiliser l'ID fourni pour le nouveau post
+//     await db
+//         .collection("Residence")
+//         .doc(docRes)
+//         .collection("post")
+//         .doc(newPost.id) // Utiliser l'ID fourni
+//         .set(newPost.toMap());
+
+//     // La Cloud Function sera déclenchée automatiquement par l'événement de création du document
+//     return newPost;
+//   } catch (e) {
+//     print("Impossible de poster le nouveau Post: $e");
+//     return null;
+//   }
+// }
+
+// Future<Post?> addPost(Post newPost, String docRes) async {
+//   try {
+//     // Vérifier si le document avec l'ID du post existe déjà
+//     DocumentSnapshot existingPostSnapshot = await db
+//         .collection("Residence")
+//         .doc(docRes)
+//         .collection("post")
+//         .doc(newPost.id)
+//         .get();
+
+//     if (existingPostSnapshot.exists) {
+//       // Si le post existe déjà, ajouter le newPost dans la sous-collection 'signalements'
+//       await db
+//           .collection("Residence")
+//           .doc(docRes)
+//           .collection("post")
+//           .doc(newPost.id)
+//           .collection("signalements")
+//           .doc(newPost.id) // Utiliser l'ID du nouveau post pour l'ajouter dans les signalements
+//           .set(newPost.toMap());
+
+//       print("Le post existe déjà. Ajouté dans la sous-collection 'signalements'.");
+//     } else {
+//       // Si le post n'existe pas, créer le nouveau post
+//       await db
+//           .collection("Residence")
+//           .doc(docRes)
+//           .collection("post")
+//           .doc(newPost.id) // Utiliser l'ID fourni
+//           .set(newPost.toMap());
+
+//       print("Nouveau post créé.");
+//     }
+
+//     // La Cloud Function sera déclenchée automatiquement par l'événement de création du document
+//     return newPost;
+//   } catch (e) {
+//     print("Impossible de poster le nouveau Post: $e");
+//     return null;
+//   }
+// }
+
+
   Future<void> updatePostLikes(
       String residenceId, String postId, String userId) async {
     try {
@@ -342,7 +422,7 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Error updating likes for post $postId: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -395,7 +475,7 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Error removing like for post $postId by user $userId: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -435,9 +515,6 @@ class DataBasesPostServices {
               Post signalement = Post.fromMap(signalementSnapshot.data());
               posts.add(signalement);
             }
-          } else {
-            print(
-                "Aucun signalement supplémentaire trouvé pour le post avec l'ID: ${querySnapshot.id}");
           }
         }
       }
@@ -520,7 +597,7 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Error updating participants for post $postId: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -573,7 +650,7 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Error removing Participants for post $postId by user $userId: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -634,7 +711,7 @@ class DataBasesPostServices {
       }
     } catch (e) {
       print("Impossible de mettre à jour le Post: $e");
-      throw e;
+      rethrow;
     }
   }
 

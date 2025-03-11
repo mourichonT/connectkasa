@@ -161,12 +161,10 @@ class PostWidgetState extends State<PostWidget> {
                                                             widget.residence,
                                                             widget.post.id);
 
-                                                if (postChanges != null) {
-                                                  setState(() {
-                                                    widget.post = postChanges;
-                                                  });
-                                                }
-                                              },
+                                                setState(() {
+                                                  widget.post = postChanges!;
+                                                });
+                                                                                            },
                                               child: PostView(
                                                 postOrigin: postUpdated,
                                                 residence: widget.residence,

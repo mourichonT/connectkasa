@@ -6,7 +6,7 @@ class AgencyMapWidget extends StatelessWidget {
   final String address;
   final String agencyName;
 
-  AgencyMapWidget({
+  const AgencyMapWidget({super.key, 
     required this.address,
     required this.agencyName,
   });
@@ -17,9 +17,9 @@ class AgencyMapWidget extends StatelessWidget {
       future: locationFromAddress(address),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+          return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(
+          return const Center(
               child: Text('Erreur lors de la récupération de la position'));
         } else {
           final location = snapshot.data!.first;

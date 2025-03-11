@@ -2,12 +2,9 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/components/my_text_fied.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class ProfilPageModify extends StatefulWidget {
   final String uid;
@@ -75,7 +72,7 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
             "Modifier le profil", Colors.black87, SizeFont.h1.size),
       ),
       body: user == null
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -110,7 +107,7 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
                       padding: const EdgeInsets.symmetric(vertical: 20),
                       child: ElevatedButton(
                         onPressed: () => resetPassword(widget.email),
-                        child: Text('Réinitialiser le mot de passe'),
+                        child: const Text('Réinitialiser le mot de passe'),
                       ),
                     ),
                     _buildReadOnlyTextField('Nom', name.text),
@@ -163,11 +160,11 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
               minLines: minLines,
               decoration: InputDecoration(
                 labelText: label,
-                labelStyle: TextStyle(
+                labelStyle: const TextStyle(
                   color: Colors.black54,
                   fontWeight: FontWeight.w400,
                 ),
-                border: UnderlineInputBorder(
+                border: const UnderlineInputBorder(
                   borderSide: BorderSide(
                     color: Colors.grey,
                     width: 1.0,
@@ -185,7 +182,7 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
               onPressed: () {
                 focusNode.unfocus();
               },
-              icon: Icon(Icons.check),
+              icon: const Icon(Icons.check),
             ),
         ],
       ),
@@ -199,12 +196,12 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
         controller: TextEditingController(text: value ?? ''),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(
+          labelStyle: const TextStyle(
             color: Colors.black54,
             fontWeight: FontWeight.w400,
           ),
           enabled: false,
-          border: UnderlineInputBorder(
+          border: const UnderlineInputBorder(
             borderSide: BorderSide(
               color: Colors.grey,
               width: 1.0,
@@ -242,12 +239,12 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Réinitialisation du mot de passe'),
+            title: const Text('Réinitialisation du mot de passe'),
             content: Text(
                 'Un e-mail de réinitialisation du mot de passe a été envoyé à $email.'),
             actions: <Widget>[
               TextButton(
-                child: Text('OK'),
+                child: const Text('OK'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
@@ -262,12 +259,12 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Erreur'),
-            content: Text(
+            title: const Text('Erreur'),
+            content: const Text(
                 'Erreur lors de l\'envoi de l\'e-mail de réinitialisation du mot de passe.'),
             actions: <Widget>[
               TextButton(
-                child: Text('OK'),
+                child: const Text('OK'),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },

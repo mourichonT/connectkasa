@@ -5,7 +5,6 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/transaction.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class PayementPage extends StatefulWidget {
@@ -98,11 +97,11 @@ class PayementPageState extends State<PayementPage> {
                   ),
                 ],
               ),
-              Divider(),
+              const Divider(),
               Column(
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     child: MyTextStyle.lotName(
                       "Détails",
                       Colors.black87,
@@ -159,9 +158,9 @@ class PayementPageState extends State<PayementPage> {
                   ],
                 ),
               ),
-              Divider(),
+              const Divider(),
               Container(
-                padding: EdgeInsets.symmetric(vertical: 10),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: MyTextStyle.lotName(
                   "Récupération",
                   Colors.black87,
@@ -172,9 +171,9 @@ class PayementPageState extends State<PayementPage> {
                 children: options.map((option) {
                   return Center(
                     child: Card(
-                      color: Color.fromARGB(13, 255, 255, 255).withOpacity(0.2),
+                      color: const Color.fromARGB(13, 255, 255, 255).withOpacity(0.2),
                       shadowColor: Colors.black12,
-                      child: Container(
+                      child: SizedBox(
                         width: 300,
                         child: ListTile(
                           title: MyTextStyle.annonceDesc(
@@ -240,8 +239,8 @@ class PayementPageState extends State<PayementPage> {
 
   showSnackBarFun(context) {
     SnackBar snackBar = SnackBar(
-      content: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+      content: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10),
         child:
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Icon(

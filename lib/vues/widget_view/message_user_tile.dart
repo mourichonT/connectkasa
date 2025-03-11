@@ -1,6 +1,5 @@
 // ignore_for_file: must_be_immutable
 
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -12,7 +11,7 @@ class MessageUserTile extends StatefulWidget {
   final String uid;
   final double radius;
 
-  MessageUserTile({
+  const MessageUserTile({
     required this.uid,
     super.key,
     required this.radius,

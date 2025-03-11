@@ -1,16 +1,13 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/widget_view/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 
 class AddAnnonceForm extends StatefulWidget {
@@ -103,7 +100,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                       children: [
                         Container(
                           child: DropdownButtonFormField<String>(
-                            padding: EdgeInsets.symmetric(horizontal: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
                             decoration: InputDecoration(
                               isDense: true,
                               contentPadding: const EdgeInsets.symmetric(
@@ -191,7 +188,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                                   children: [
                                     Container(
                                       padding:
-                                          EdgeInsets.symmetric(horizontal: 10),
+                                          const EdgeInsets.symmetric(horizontal: 10),
                                       width: width / 3,
                                       height: 40,
                                       child: TextField(
@@ -204,24 +201,24 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                                         decoration: InputDecoration(
                                           hintText: "0",
                                           border:
-                                              OutlineInputBorder(), // Adds a border to the TextField
+                                              const OutlineInputBorder(), // Adds a border to the TextField
                                           focusedBorder: OutlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: Theme.of(context)
                                                     .primaryColor),
                                           ),
-                                          enabledBorder: OutlineInputBorder(
+                                          enabledBorder: const OutlineInputBorder(
                                             borderSide:
                                                 BorderSide(color: Colors.grey),
                                           ),
-                                          contentPadding: EdgeInsets.symmetric(
+                                          contentPadding: const EdgeInsets.symmetric(
                                               vertical: 5, horizontal: 10),
                                         ),
                                       ),
                                     ),
                                     Container(
                                       padding:
-                                          EdgeInsets.symmetric(horizontal: 20),
+                                          const EdgeInsets.symmetric(horizontal: 20),
                                       child: MyTextStyle.lotDesc(
                                           price.text.isNotEmpty
                                               ? "Kasas"
@@ -236,7 +233,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                             ],
                           ),
                         ),
-                        Divider(),
+                        const Divider(),
                       ],
                     ),
                   ),
@@ -248,7 +245,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                       onImageUploaded: downloadImagePath,
                       cardOverlay: false),
                   const SizedBox(height: 30),
-                  Divider(),
+                  const Divider(),
                   const SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: () {

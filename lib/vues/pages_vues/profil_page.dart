@@ -14,9 +14,7 @@ import 'package:connect_kasa/vues/pages_vues/management_tenant.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page_modify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:firebase_auth/firebase_auth.dart'
-    as firebase_auth; // Alias pour la classe User de firebase_auth
+// Alias pour la classe User de firebase_auth
 
 class ProfilPage extends StatefulWidget {
   final String uid;
@@ -98,7 +96,7 @@ class _ProfilPageState extends State<ProfilPage> {
         title: MyTextStyle.lotName("Profil", Colors.black87, SizeFont.h1.size),
       ),
       body: user == null
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -135,7 +133,7 @@ class _ProfilPageState extends State<ProfilPage> {
                                     FontStyle.normal,
                                     FontWeight.bold),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: 5,
                               ),
                               Padding(
@@ -149,62 +147,62 @@ class _ProfilPageState extends State<ProfilPage> {
                               )
                             ],
                           ),
-                    Card(
-                      color: Colors.white,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    MyTextStyle.lotName("Votre solde",
-                                        Colors.black87, SizeFont.h3.size),
-                                  ],
-                                ),
-                                SizedBox(height: 20),
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Row(
-                                    children: [
-                                      MyTextStyle.lotName(user!.solde,
-                                          Colors.black87, SizeFont.header.size),
-                                      MyTextStyle.lotName("€", Colors.black87,
-                                          SizeFont.header.size),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                ButtonAdd(
-                                    color: widget.color,
-                                    text: "Recharger",
-                                    horizontal: 10,
-                                    vertical: 5,
-                                    size: SizeFont.h3.size),
-                                SizedBox(
-                                  height: 10,
-                                ),
-                                ButtonAdd(
-                                    color: Colors.teal,
-                                    text: "Retirer",
-                                    horizontal: 20,
-                                    vertical: 5,
-                                    size: SizeFont.h3.size)
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    // Card(
+                    //   color: Colors.white,
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.all(16.0),
+                    //     child: Row(
+                    //       mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    //       children: [
+                    //         Column(
+                    //           crossAxisAlignment: CrossAxisAlignment.start,
+                    //           children: [
+                    //             Row(
+                    //               mainAxisAlignment:
+                    //                   MainAxisAlignment.spaceBetween,
+                    //               children: [
+                    //                 MyTextStyle.lotName("Votre solde",
+                    //                     Colors.black87, SizeFont.h3.size),
+                    //               ],
+                    //             ),
+                    //             SizedBox(height: 20),
+                    //             Align(
+                    //               alignment: Alignment.centerLeft,
+                    //               child: Row(
+                    //                 children: [
+                    //                   MyTextStyle.lotName(user!.solde,
+                    //                       Colors.black87, SizeFont.header.size),
+                    //                   MyTextStyle.lotName("€", Colors.black87,
+                    //                       SizeFont.header.size),
+                    //                 ],
+                    //               ),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //         Column(
+                    //           crossAxisAlignment: CrossAxisAlignment.center,
+                    //           children: [
+                    //             ButtonAdd(
+                    //                 color: widget.color,
+                    //                 text: "Recharger",
+                    //                 horizontal: 10,
+                    //                 vertical: 5,
+                    //                 size: SizeFont.h3.size),
+                    //             SizedBox(
+                    //               height: 10,
+                    //             ),
+                    //             ButtonAdd(
+                    //                 color: Colors.teal,
+                    //                 text: "Retirer",
+                    //                 horizontal: 20,
+                    //                 vertical: 5,
+                    //                 size: SizeFont.h3.size)
+                    //           ],
+                    //         ),
+                    //       ],
+                    //     ),
+                    //   ),
+                    // ),
                     Row(
                       children: [
                         Expanded(
@@ -292,7 +290,7 @@ class _ProfilPageState extends State<ProfilPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           height: 30,
                         ),
                         Padding(
@@ -311,7 +309,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           child: MyTextStyle.lotDesc(
                               name, SizeFont.h3.size, FontStyle.normal),
                         ),
-                        Divider(),
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: MyTextStyle.lotDesc(
@@ -323,7 +321,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           child: MyTextStyle.lotDesc(
                               surname, SizeFont.h3.size, FontStyle.normal),
                         ),
-                        Divider(),
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: MyTextStyle.lotDesc(
@@ -335,7 +333,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           child: MyTextStyle.lotDesc(
                               email, SizeFont.h3.size, FontStyle.normal),
                         ),
-                        Divider(),
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: MyTextStyle.lotDesc("Profession",
@@ -347,7 +345,7 @@ class _ProfilPageState extends State<ProfilPage> {
                           child: MyTextStyle.lotDesc(
                               job, SizeFont.h3.size, FontStyle.normal),
                         ),
-                        Divider(),
+                        const Divider(),
                         Padding(
                           padding: const EdgeInsets.only(bottom: 10),
                           child: MyTextStyle.lotDesc("Biographie",
@@ -359,10 +357,10 @@ class _ProfilPageState extends State<ProfilPage> {
                           child: MyTextStyle.lotDesc(
                               bio, SizeFont.h3.size, FontStyle.normal),
                         ),
-                        Divider(),
+                        const Divider(),
                       ],
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 30,
                     ),
                     Padding(
@@ -387,7 +385,7 @@ class _ProfilPageState extends State<ProfilPage> {
                               horizontal: 20,
                               vertical: 5,
                               size: SizeFont.h3.size),
-                          SizedBox(
+                          const SizedBox(
                             width: 10,
                           ),
                           ButtonAdd(
@@ -406,7 +404,7 @@ class _ProfilPageState extends State<ProfilPage> {
                         ],
                       ),
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 50,
                     )
                   ],
@@ -428,19 +426,19 @@ class _ProfilPageState extends State<ProfilPage> {
         privateAccount = user!.private; // Met à jour l'état du compte privé
       }
       // Récupérer l'adresse e-mail de l'utilisateur depuis Firebase Auth
-      email = await _getUserEmail(uid);
+      email = await LoadUserController.getUserEmail(uid);
       setState(() {});
     }
   }
 
-  Future<String> _getUserEmail(String uid) async {
-    firebase_auth.User? firebaseUser =
-        firebase_auth.FirebaseAuth.instance.currentUser;
-    if (firebaseUser != null && firebaseUser.uid == uid) {
-      return firebaseUser.email ?? "";
-    } else {
-      // Si l'utilisateur actuel ne correspond pas à l'uid, récupérez l'utilisateur via l'API Admin (nécessite un backend)
-      return ""; // Gérer en fonction de votre logique
-    }
-  }
+  // Future<String> _getUserEmail(String uid) async {
+  //   firebase_auth.User? firebaseUser =
+  //       firebase_auth.FirebaseAuth.instance.currentUser;
+  //   if (firebaseUser != null && firebaseUser.uid == uid) {
+  //     return firebaseUser.email ?? "";
+  //   } else {
+  //     // Si l'utilisateur actuel ne correspond pas à l'uid, récupérez l'utilisateur via l'API Admin (nécessite un backend)
+  //     return ""; // Gérer en fonction de votre logique
+  //   }
+  // }
 }

@@ -45,7 +45,7 @@ class SignalementTile extends StatelessWidget {
                   top: 0,
                   left: 5,
                   child: Container(
-                    padding: EdgeInsets.only(top: 8, bottom: 16),
+                    padding: const EdgeInsets.only(top: 8, bottom: 16),
                     width: width,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -102,9 +102,9 @@ class SignalementTile extends StatelessWidget {
                 Flexible(
                     child: MyTextStyle.annonceDesc(
                         post.description, SizeFont.h3.size, 3)),
-                const SizedBox(
-                  height: 15,
-                ),
+                // const SizedBox(
+                //   height: 10,
+                // ),
                 //SignalementsCountController(post: post, postCount: postCount),
               ],
             ),

@@ -24,7 +24,7 @@ class FilterAllPostController extends StatefulWidget {
   final FilterCallback onFilterUpdate;
   final ShowFilterCallback updateShowFilter; // Corrigé ici
 
-  FilterAllPostController({
+  const FilterAllPostController({
     super.key,
     required this.residenceSelected,
     required this.uid,
@@ -100,7 +100,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                   } else if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');
                   } else {
-                    List<String?> _items =
+                    List<String?> items =
                         (snapshot.data ?? []).cast<String?>();
                     return MyMultiSelectedDropDown(
                       fontSize: SizeFont.para.size,
@@ -108,7 +108,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                       width: sizeDate,
                       label: "Localisation",
                       color: color,
-                      items: _items
+                      items: items
                           .map((item) => MultiSelectItem<String?>(item, item!))
                           .toList(),
                       onConfirm: (values) {
@@ -169,7 +169,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: 50,
                   width: sizeDate,
                   child: TextField(
@@ -193,7 +193,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                 ),
               ),
               Expanded(
-                child: Container(
+                child: SizedBox(
                   height: 50,
                   width: sizeDate,
                   child: TextField(
@@ -245,7 +245,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                   });
                 },
               ),
-              Container(
+              SizedBox(
                 width: sizeDate,
                 child: TextButton(
                   onPressed: () {
@@ -273,22 +273,20 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
 
   Future<void> _selectDate(String choice) async {
     DateTime today = DateTime.now();
-    DateTime? _picked = await showDatePicker(
+    DateTime? picked = await showDatePicker(
       context: context,
       initialDate: today,
       firstDate: DateTime(2022),
       lastDate: today,
     );
 
-    if (_picked != null) {
-      setState(() {
-        if (choice == "dateFrom") {
-          _dateFromController.text = _picked.toString().split(" ")[0];
-        } else {
-          _dateToController.text = _picked.toString().split(" ")[0];
-        }
-        _updateFilters();
-      });
+    setState(() {
+      if (choice == "dateFrom") {
+        _dateFromController.text = picked.toString().split(" ")[0];
+      } else {
+        _dateToController.text = picked.toString().split(" ")[0];
+      }
+      _updateFilters();
+    });
     }
-  }
 }

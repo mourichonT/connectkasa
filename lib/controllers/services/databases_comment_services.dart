@@ -132,7 +132,7 @@ class DataBasesCommentServices {
       }
     } catch (e) {
       print("Error updating likes for comment $commentId: $e");
-      throw e;
+      rethrow;
     }
   }
 
@@ -204,7 +204,7 @@ class DataBasesCommentServices {
       }
     } catch (e) {
       print("Error removing like for comment $commentId by user $userId: $e");
-      throw e;
+      rethrow;
     }
   }
 

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 
 class TypeList {
   List<List<String>> typeDeclaration() {
