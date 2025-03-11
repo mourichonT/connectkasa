@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 Widget ProfilTile(
     String uid, double radius1, double radius2, double size, bool pseudoHidden,
     [Color? color, double? pseudoFontSize]) {
+  final double radiusT = radius2;
   late Future<User?> user;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();
@@ -21,9 +22,9 @@ Widget ProfilTile(
           return Row(
             children: [
               CircleAvatar(
-                radius: radius1,
+                radius: radiusT,
                 backgroundColor: Theme.of(context).primaryColor,
-                child: formatProfilPic.ProfilePic(radius2, userUnique, size),
+                child: formatProfilPic.ProfilePic(radiusT, userUnique, size),
               ),
               if (pseudoHidden)
                 Padding(
@@ -60,7 +61,7 @@ Widget ProfilTile(
               backgroundColor: Theme.of(context).primaryColor,
               child: formatProfilPic.ProfilePic(radius2, null, size),
             ),
-            SizedBox(
+            const SizedBox(
               width: 5,
             ),
             if (pseudoHidden)

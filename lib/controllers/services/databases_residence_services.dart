@@ -71,7 +71,7 @@ class DataBasesResidenceServices {
   }
 
   Future<Residence> getResidenceByRef(String residence) async {
-    Residence? res = null; // Initialiser res à null
+    Residence? res; // Initialiser res à null
 
     try {
       DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
@@ -107,7 +107,7 @@ class DataBasesResidenceServices {
   }
 
   Future<List<String>> getAllLocalisation(String residence) async {
-    List<String> _allLocalisation = [];
+    List<String> allLocalisation = [];
     try {
       // Obtenez une référence au document spécifique dans la collection "Residence"
       DocumentReference documentReference =
@@ -131,7 +131,7 @@ class DataBasesResidenceServices {
           // Parcourir la liste et ajouter chaque localisation à la liste _allLocalisation
           for (var loc in localisations) {
             if (loc is String) {
-              _allLocalisation.add(loc);
+              allLocalisation.add(loc);
             }
           }
         } else {
@@ -146,6 +146,6 @@ class DataBasesResidenceServices {
       // Gérer les erreurs ici, si nécessaire
       print("Une erreur s'est produite : $e");
     }
-    return _allLocalisation;
+    return allLocalisation;
   }
 }

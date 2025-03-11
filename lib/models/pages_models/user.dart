@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class User {
+  String email;
   String _profilPic = "";
   String name;
   String surname;
@@ -14,6 +15,7 @@ class User {
   String _solde = "0"; // Nouvel attribut pour le solde
 
   User({
+    required this.email,
     String profilPic = "",
     required this.name,
     required this.surname,
@@ -70,6 +72,7 @@ class User {
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
+      email: map['email']??"",
       profilPic: map['profilPic'] ?? "",
       approved: map['approved'] ?? false,
       createdDate: map['createdDate'] ?? "",
@@ -78,9 +81,9 @@ class User {
       pseudo: map['pseudo'] ?? "",
       uid: map['uid'] ?? "",
       profession: map[
-          'profession'], // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
+          'profession']??"", // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
       bio: map[
-          'bio'], // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
+          'bio']??"", // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
       private: map['private'] ??
           false, // Si 'private' est null, utilisez false par défaut
       solde: map['solde'] ??

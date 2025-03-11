@@ -3,7 +3,6 @@ import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/rendering.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
@@ -36,7 +35,7 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +45,8 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             tabBarTheme:
-                TabBarTheme(dividerColor: Colors.black38, dividerHeight: 0.5),
-            dividerTheme: DividerThemeData(
+                const TabBarTheme(dividerColor: Colors.black38, dividerHeight: 0.5),
+            dividerTheme: const DividerThemeData(
               color: Colors.black38, // Couleur principale du diviseur
               thickness: 0.5, // Épaisseur du diviseur
               space: 20, // Espace entre les diviseurs

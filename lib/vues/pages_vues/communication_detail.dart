@@ -2,7 +2,6 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/comment_button.dart';
-import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:connect_kasa/vues/components/like_button_post.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/components/share_button.dart';
@@ -29,7 +28,7 @@ class CommunicationDetails extends StatelessWidget {
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
+                SizedBox(
                   width: width,
                   child: Image.network(
                     post.pathImage!,
@@ -44,12 +43,12 @@ class CommunicationDetails extends StatelessWidget {
                 mainAxisSize: MainAxisSize.max,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Container(
+                  SizedBox(
                     width: width,
                     child: MyTextStyle.postDesc(
                         post.description, SizeFont.h3.size, Colors.black87),
                   ),
-                  SizedBox(
+                  const SizedBox(
                     height: 20,
                   ),
                   Align(

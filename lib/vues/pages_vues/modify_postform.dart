@@ -165,7 +165,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                       children: [
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            padding: EdgeInsets.symmetric(horizontal: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
                             decoration: InputDecoration(
                               isDense: true,
                               contentPadding: const EdgeInsets.symmetric(
@@ -196,11 +196,11 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                                 .toList(),
                           ),
                         ),
-                        Container(
+                        SizedBox(
                           width: 160,
                           //padding: EdgeInsets.symmetric(horizontal: 1),
                           child: DropdownButtonFormField<String>(
-                            padding: EdgeInsets.symmetric(horizontal: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
                             decoration: InputDecoration(
                               isDense: true,
                               contentPadding: const EdgeInsets.only(
@@ -231,7 +231,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                         ),
                         Expanded(
                           child: DropdownButtonFormField<String>(
-                            padding: EdgeInsets.symmetric(horizontal: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
                             decoration: InputDecoration(
                               isDense: true,
                               contentPadding: const EdgeInsets.symmetric(
@@ -320,7 +320,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                         ? "Réduire"
                         : "Voir plus"), // Texte dynamique en fonction de l'état
                   ),
-                  Divider(),
+                  const Divider(),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.max,
@@ -364,7 +364,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
             !removeImage
                 ? Stack(
                     children: [
-                      Container(
+                      SizedBox(
                         width: width,
                         height: 250,
                         child: Image.network(
@@ -415,7 +415,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                             child: MyTextStyle.annonceDesc(
                                 "Choisir une image", SizeFont.h3.size, 3)),
                       ]),
-            SizedBox(
+            const SizedBox(
               height: 30,
             ),
             ElevatedButton(
@@ -439,7 +439,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
               child: MyTextStyle.lotName(
                   "Modifier", Theme.of(context).primaryColor, SizeFont.h3.size),
             ),
-            SizedBox(
+            const SizedBox(
               height: 15,
             ),
           ],

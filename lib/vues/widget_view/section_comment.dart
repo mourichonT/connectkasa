@@ -140,7 +140,7 @@ class _SectionCommentState extends State<SectionComment>
           FocusScope.of(context).requestFocus(inputFocusNode);
         },
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 15),
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.5),
@@ -201,8 +201,7 @@ class _SectionCommentState extends State<SectionComment>
 
   void _addComment(TextEditingController textEditingController, bool isReply,
       {String? commentId,
-      required String? initialComment,
-      bool? originalCommment}) async {
+      required String? initialComment}) async {
     // String commentFormatted = "";
     var uuid = const Uuid();
     String uniqueId = uuid.v4();

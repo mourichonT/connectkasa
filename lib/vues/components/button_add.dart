@@ -10,25 +10,27 @@ class ButtonAdd extends StatelessWidget {
   final double horizontal;
   final double vertical;
   final double size;
+  final Color? borderColor;
 
   const ButtonAdd(
-      {Key? key,
+      {super.key,
       this.function,
       required this.color,
       this.icon,
       this.text,
       this.colorText,
+      this.borderColor,
       required this.horizontal,
       required this.vertical,
-      required this.size})
-      : super(key: key);
+      required this.size});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        if (function != null)
+        if (function != null) {
           function!(); // Appel de la fonction de participation si elle est définie
+        }
       },
       child: Container(
         padding:
@@ -36,6 +38,7 @@ class ButtonAdd extends StatelessWidget {
         decoration: BoxDecoration(
           color: color,
           borderRadius: BorderRadius.circular(5),
+          border:Border.all(color: borderColor??Colors.transparent)
         ),
         child: icon != null
             ? Row(
@@ -46,7 +49,7 @@ class ButtonAdd extends StatelessWidget {
                     color: colorText ?? Colors.white,
                     size: 16,
                   ),
-                  SizedBox(width: 5),
+                  const SizedBox(width: 5),
                   MyTextStyle.lotName(
                       text ?? "", colorText ?? Colors.white, size)
                 ],

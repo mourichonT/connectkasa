@@ -8,21 +8,21 @@ class Step2 extends StatefulWidget {
   final PageController progressController;
 
   const Step2({
-    Key? key,
+    super.key,
     required this.recupererInformationsStep2,
     required this.currentPage,
     required this.progressController,
-  }) : super(key: key);
+  });
 
   @override
   _Step2State createState() => _Step2State();
 }
 
 class _Step2State extends State<Step2> {
-  final MaterialStateProperty<Icon?> thumbIcon =
-      MaterialStateProperty.resolveWith<Icon?>(
-    (Set<MaterialState> states) {
-      if (states.contains(MaterialState.selected)) {
+  final WidgetStateProperty<Icon?> thumbIcon =
+      WidgetStateProperty.resolveWith<Icon?>(
+    (Set<WidgetState> states) {
+      if (states.contains(WidgetState.selected)) {
         return const Icon(Icons.check);
       }
       return const Icon(Icons.close);
@@ -105,7 +105,7 @@ class _Step2State extends State<Step2> {
                   MyTextStyle.lotName(
                       "Quel est le type de votre Bail?", Colors.black54),
                   Container(
-                    padding: EdgeInsets.only(top: 30),
+                    padding: const EdgeInsets.only(top: 30),
                     child: DropdownMenu<String>(
                       //initialSelection: typeDeclaration,
                       hintText: "Type de bail ",
@@ -184,7 +184,7 @@ class _Step2State extends State<Step2> {
                         Colors.black54),
                   ),
                   Container(
-                    padding: EdgeInsets.only(top: 30),
+                    padding: const EdgeInsets.only(top: 30),
                     child: DropdownMenu<String>(
                       //initialSelection: typeDeclaration,
                       hintText: "Votre objectif ",
@@ -213,7 +213,7 @@ class _Step2State extends State<Step2> {
         visible: getIntendedFor().isNotEmpty,
         child: BottomAppBar(
             surfaceTintColor: Colors.white,
-            padding: EdgeInsets.all(2),
+            padding: const EdgeInsets.all(2),
             height: 70,
             child: Container(
                 child: Row(
@@ -232,12 +232,12 @@ class _Step2State extends State<Step2> {
                       // Action à effectuer lorsque le bouton "Suivant" est pressé
                       if (widget.currentPage < 5) {
                         widget.progressController.nextPage(
-                          duration: Duration(milliseconds: 500),
+                          duration: const Duration(milliseconds: 500),
                           curve: Curves.ease,
                         );
                       }
                     },
-                    child: Text(
+                    child: const Text(
                       'Suivant',
                     ),
                   ),

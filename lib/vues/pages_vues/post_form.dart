@@ -4,7 +4,6 @@ import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/vues/pages_vues/asking_neighbords_form.dart';
 import 'package:connect_kasa/vues/widget_view/incivilite_form.dart';
 import 'package:connect_kasa/vues/widget_view/sinistre_form.dart';
-import 'package:connect_kasa/vues/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../models/pages_models/lot.dart';
@@ -18,13 +17,15 @@ class PostForm extends StatefulWidget {
   final Function(String) updateUrl; // Fonction pour mettre à jour imagePath
   final Function(String)
       updateFolderName; // Fonction pour mettre à jour folderName
+  final Function() onPostAdded;
   const PostForm({
     super.key,
     required this.racineFolder,
     required this.preferedLot,
     required this.uid,
     required this.updateUrl,
-    required this.updateFolderName,
+    required this.updateFolderName, 
+    required this.onPostAdded,
   });
 }
 
@@ -126,7 +127,7 @@ class PostFormState extends State<PostForm> {
               return ChoiceChip(
                 label: Text(itemElement),
                 selected: selectedDeclaration == itemElement,
-                side: BorderSide(
+                side: const BorderSide(
                   color: Colors
                       .black12, // Changez `Colors.blue` et `Colors.grey` selon vos besoins
                   width: 1.0, // Changez la largeur de la bordure si nécessaire
@@ -155,6 +156,7 @@ class PostFormState extends State<PostForm> {
         Visibility(
           visible: selectedLabel == 'sinistres',
           child: SinistreForm(
+            onPostAdded:widget.onPostAdded ,
             racineFolder: widget.racineFolder,
             preferedLot: widget.preferedLot,
             uid: widget.uid,

@@ -74,10 +74,9 @@ class SinitresTileControllerState extends State<SinitresTileController> {
                       } else {
                         List<Post> signalements = snapshot.data!;
                         postCount = signalements.length;
-                        print("POSTCOUNT $postCount");
                         return ListView.builder(
                             shrinkWrap: true,
-                            physics: NeverScrollableScrollPhysics(),
+                            physics: const NeverScrollableScrollPhysics(),
                             padding: const EdgeInsets.symmetric(horizontal: 5),
                             itemCount: signalements.length,
                             itemBuilder: (context, index) {
@@ -121,10 +120,10 @@ class SinitresTileControllerState extends State<SinitresTileController> {
                               children: [
                                 MyTextStyle.postDesc("Voir plus ($postCount)",
                                     SizeFont.para.size, Colors.black54),
-                                SizedBox(
+                                const SizedBox(
                                   width: 5,
                                 ),
-                                Icon(
+                                const Icon(
                                   Icons.keyboard_arrow_down,
                                   size: 18,
                                   color: Colors.black54,
@@ -135,10 +134,10 @@ class SinitresTileControllerState extends State<SinitresTileController> {
                               children: [
                                 MyTextStyle.postDesc("Réduire",
                                     SizeFont.para.size, Colors.black54),
-                                SizedBox(
+                                const SizedBox(
                                   width: 5,
                                 ),
-                                Icon(Icons.keyboard_arrow_up,
+                                const Icon(Icons.keyboard_arrow_up,
                                     size: 18, color: Colors.black54)
                               ],
                             ),

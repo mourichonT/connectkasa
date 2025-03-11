@@ -12,13 +12,13 @@ class Step3 extends StatefulWidget {
   final PageController progressController;
 
   const Step3({
-    Key? key,
+    super.key,
     required this.typeResident,
     required this.residence,
     required this.recupererInformationsStep3,
     required this.currentPage,
     required this.progressController,
-  }) : super(key: key);
+  });
 
   @override
   _Step3State createState() => _Step3State();
@@ -85,7 +85,7 @@ class _Step3State extends State<Step3> {
               } else {
                 return DropdownMenu<String>(
                   label: typeChoice == ""
-                      ? Text("Type de bien")
+                      ? const Text("Type de bien")
                       : Text(typeChoice),
                   //hintText: "Bâtiment ",
                   onSelected: (String? value) {
@@ -125,7 +125,7 @@ class _Step3State extends State<Step3> {
                   } else {
                     return DropdownMenu<String>(
                       label:
-                          batChoice == "" ? Text("Bâtiment") : Text(batChoice!),
+                          batChoice == "" ? const Text("Bâtiment") : Text(batChoice!),
                       //hintText: "Bâtiment ",
                       onSelected: (String? value) {
                         setState(() {
@@ -164,7 +164,7 @@ class _Step3State extends State<Step3> {
                       } else {
                         return DropdownMenu<String>(
                           label: lotChoice == ""
-                              ? Text("Numéro d'appartement ")
+                              ? const Text("Numéro d'appartement ")
                               : Text(lotChoice!),
                           //hintText: "Numéro d'appartement ",
                           onSelected: (String? value) {
@@ -196,7 +196,7 @@ class _Step3State extends State<Step3> {
         visible: getNumLot().isNotEmpty,
         child: BottomAppBar(
             surfaceTintColor: Colors.white,
-            padding: EdgeInsets.all(2),
+            padding: const EdgeInsets.all(2),
             height: 70,
             child: Container(
                 // decoration: BoxDecoration(color: Colors.amber),
@@ -218,12 +218,12 @@ class _Step3State extends State<Step3> {
                       // Action à effectuer lorsque le bouton "Suivant" est pressé
                       if (widget.currentPage < 5) {
                         widget.progressController.nextPage(
-                          duration: Duration(milliseconds: 500),
+                          duration: const Duration(milliseconds: 500),
                           curve: Curves.ease,
                         );
                       }
                     },
-                    child: Text(
+                    child: const Text(
                       'Suivant',
                     ),
                   ),
@@ -237,7 +237,7 @@ class _Step3State extends State<Step3> {
         await DataBasesLotServices().getLotByResidence(residence.id);
 
     Set<String> batimentsUniques =
-        Set(); // Ensemble pour stocker les batiments uniques
+        {}; // Ensemble pour stocker les batiments uniques
 
     // Parcourir chaque lot pour extraire les batiments uniques
     for (Lot lot in lotsTrouves) {
@@ -256,7 +256,7 @@ class _Step3State extends State<Step3> {
         await DataBasesLotServices().getLotByResidence(residence.id);
 
     Set<String> lotsUniques =
-        Set(); // Ensemble pour stocker les batiments uniques
+        {}; // Ensemble pour stocker les batiments uniques
 
     // Parcourir chaque lot pour extraire les batiments uniques
     for (Lot lot in lotsTrouves) {
@@ -274,14 +274,12 @@ class _Step3State extends State<Step3> {
     List<Lot> lotsTrouves =
         await DataBasesLotServices().getLotByResidence(residence.id);
 
-    Set<String> typeLot = Set(); // Ensemble pour stocker les batiments uniques
+    Set<String> typeLot = {}; // Ensemble pour stocker les batiments uniques
 
     // Parcourir chaque lot pour extraire les batiments uniques
     for (Lot lot in lotsTrouves) {
-      if (lot.typeLot != null) {
-        typeLot.add(lot.typeLot);
-      }
-    }
+      typeLot.add(lot.typeLot);
+        }
 
     // Convertir l'ensemble en liste
     List<String> typeLots = typeLot.toList();
@@ -302,5 +300,6 @@ class _Step3State extends State<Step3> {
     } catch (e) {
       print("Error occurred while fetching lot: $e");
     }
+    return null;
   }
 }

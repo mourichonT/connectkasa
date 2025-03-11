@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "325705345982",
+    "project_id": "connectkasa-84f23",
+    "storage_bucket": "connectkasa-84f23.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:325705345982:android:731cd0e4e917d361d7e7ef",
+        "android_client_info": {
+          "package_name": "fr.connectkasa.connect_kasa"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "325705345982-omrhv77a53qvg9qoddrcisaclt0884id.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "fr.connectkasa.connect_kasa",
+            "certificate_hash": "0110fd9cb991564f524b818af26b2eab907ac31f"
+          }
+        },
+        {
+          "client_id": "325705345982-iunq0ds36vl5kd82b2ia9dvataaosvvj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUm-fFBYmMzKBYub-50EMBXPdKW0G-fLc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "325705345982-iunq0ds36vl5kd82b2ia9dvataaosvvj.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "325705345982-m4knrt3v62gn9lirdgl7harttpthhkh1.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "fr.connectkasa.connectKasa.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -6,7 +6,6 @@ import 'package:connect_kasa/controllers/services/databases_residence_services.d
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class EmergenciesContactsView extends StatelessWidget {
   final DataBasesResidenceServices _databaseContactServices =

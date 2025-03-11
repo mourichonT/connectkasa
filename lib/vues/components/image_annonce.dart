@@ -1,4 +1,3 @@
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 
@@ -6,7 +5,7 @@ Widget ImageAnnounced(BuildContext context, double width, double height) {
   return Container(
       height: height,
       width: width,
-      decoration: BoxDecoration(color: Colors.black12),
+      decoration: const BoxDecoration(color: Colors.black12),
       child: Center(
         child: Icon(
           Icons.image_not_supported,

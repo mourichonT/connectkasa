@@ -116,14 +116,14 @@ class _SubtitleMessageState extends State<SubtitleMessage>
             controller: _tabController,
             tabs: (nbrTab == 3)
                 ? <Widget>[
-                    Tab(text: 'Mes voisins'),
+                    const Tab(text: 'Mes voisins'),
 
                     //condition d'affichage par type de contact
                     if (widget.selectedLot!.idProprietaire!
                         .contains(widget.uid))
-                      Tab(text: 'Mon syndic')
+                      const Tab(text: 'Mon syndic')
                     else if (widget.selectedLot?.refGerance != "")
-                      Tab(text: 'Mon agence')
+                      const Tab(text: 'Mon agence')
                     else
                       (widget.selectedLot?.idProprietaire!.length ?? 0) > 1
                           ? const Tab(text: 'Mes proprios.')
@@ -137,13 +137,13 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                             : const Tab(text: 'Mon locataire')
                   ]
                 : <Widget>[
-                    Tab(text: 'Mes voisins'),
+                    const Tab(text: 'Mes voisins'),
                     //condition d'affichage par type de contact
                     if (widget.selectedLot!.idProprietaire!
                         .contains(widget.uid))
-                      Tab(text: 'Mon syndic')
+                      const Tab(text: 'Mon syndic')
                     else if (widget.selectedLot?.refGerance != "")
-                      Tab(text: 'Mon agence')
+                      const Tab(text: 'Mon agence')
                     else
                       (widget.selectedLot?.idProprietaire!.length ?? 0) > 1
                           ? const Tab(text: 'Mes proprios.')
@@ -154,12 +154,12 @@ class _SubtitleMessageState extends State<SubtitleMessage>
             controller: _tabController,
             children: <Widget>[
               Card(
-                margin: EdgeInsets.all(16),
+                margin: const EdgeInsets.all(16),
                 child: FutureBuilder(
                   future: _allUsersInResidence,
                   builder: (context, AsyncSnapshot<List<User>> snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(
+                      return const Center(
                         child: CircularProgressIndicator(),
                       );
                     } else if (snapshot.hasError) {
@@ -170,7 +170,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                         padding: const EdgeInsets.only(
                             left: 15, right: 15, top: 10, bottom: 35),
                         child: ListView.separated(
-                          separatorBuilder: (context, index) => Divider(),
+                          separatorBuilder: (context, index) => const Divider(),
                           itemCount: allUsers.length,
                           itemBuilder: (context, index) {
                             User user = allUsers[index];
@@ -211,7 +211,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                 )
               else
                 Card(
-                  margin: EdgeInsets.all(16),
+                  margin: const EdgeInsets.all(16),
                   child: Padding(
                     padding: const EdgeInsets.only(
                         left: 15, right: 15, top: 10, bottom: 35),
@@ -255,9 +255,9 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                 )
               else if (nbrTab == 3 && loca == true)
                 Card(
-                  margin: EdgeInsets.all(16),
+                  margin: const EdgeInsets.all(16),
                   child: ListView.separated(
-                    separatorBuilder: (context, index) => Divider(),
+                    separatorBuilder: (context, index) => const Divider(),
                     itemCount: widget.selectedLot!.idLocataire!.length,
                     itemBuilder: (context, index) {
                       String locataires =

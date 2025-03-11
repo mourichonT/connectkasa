@@ -16,8 +16,8 @@ class MyDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DataBasesUserServices _dataBasesUserServices = DataBasesUserServices();
-    late Future<User?> userProfil = _dataBasesUserServices.getUserById(uid);
+    DataBasesUserServices dataBasesUserServices = DataBasesUserServices();
+    late Future<User?> userProfil = dataBasesUserServices.getUserById(uid);
     return Drawer(
       child: Column(
           //mainAxisAlignment: MainAxisAlignment.center,

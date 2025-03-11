@@ -136,7 +136,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                       children: [
                         Container(
                           child: DropdownButtonFormField<String>(
-                            padding: EdgeInsets.symmetric(horizontal: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 5),
                             decoration: InputDecoration(
                               isDense: true,
                               contentPadding: const EdgeInsets.symmetric(
@@ -218,7 +218,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                                   children: [
                                     Container(
                                       padding:
-                                          EdgeInsets.symmetric(horizontal: 0),
+                                          const EdgeInsets.symmetric(horizontal: 0),
                                       width: width / 3,
                                       height: 40,
                                       child: TextField(
@@ -231,24 +231,24 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                                         decoration: InputDecoration(
                                           hintText: "0",
                                           border:
-                                              OutlineInputBorder(), // Adds a border to the TextField
+                                              const OutlineInputBorder(), // Adds a border to the TextField
                                           focusedBorder: OutlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: Theme.of(context)
                                                     .primaryColor),
                                           ),
-                                          enabledBorder: OutlineInputBorder(
+                                          enabledBorder: const OutlineInputBorder(
                                             borderSide:
                                                 BorderSide(color: Colors.grey),
                                           ),
-                                          contentPadding: EdgeInsets.symmetric(
+                                          contentPadding: const EdgeInsets.symmetric(
                                               vertical: 5, horizontal: 10),
                                         ),
                                       ),
                                     ),
                                     Container(
                                       padding:
-                                          EdgeInsets.symmetric(horizontal: 20),
+                                          const EdgeInsets.symmetric(horizontal: 20),
                                       child: MyTextStyle.lotDesc(
                                           "€",
                                           SizeFont.h3.size,
@@ -262,12 +262,12 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                           ),
                         ),
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
                           child: ValueListenableBuilder<double>(
                             valueListenable: feesNotifier,
                             builder: (context, fees, child) {
                               if (priceNotifier.value == 0) {
-                                return SizedBox
+                                return const SizedBox
                                     .shrink(); // Returns an empty widget if price is 0
                               }
                               return MyTextStyle.lotDesc(
@@ -279,7 +279,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                             },
                           ),
                         ),
-                        Divider(),
+                        const Divider(),
                       ],
                     ),
                   ),
@@ -288,7 +288,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                       !removeImage)
                     Stack(
                       children: [
-                        Container(
+                        SizedBox(
                           width: width,
                           height: 250,
                           child: Image.network(
@@ -341,7 +341,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                       ],
                     ),
                   const SizedBox(height: 30),
-                  Divider(),
+                  const Divider(),
                   const SizedBox(height: 30),
                   ElevatedButton(
                     onPressed: () {

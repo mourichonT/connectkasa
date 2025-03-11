@@ -87,7 +87,7 @@ class StorageServices {
   }
 
   Future<void> removeFileFromUrl(String url) async {
-    if (url == null || url.isEmpty) {
+    if (url.isEmpty) {
       print('L\'URL fournie est invalide.');
       return;
     }

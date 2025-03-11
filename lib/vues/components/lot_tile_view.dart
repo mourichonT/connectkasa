@@ -90,7 +90,7 @@ class _LotTileViewState extends State<LotTileView> {
             // Utilisation de la couleur primaire du thème
             radius: 13, // Rayon du cercle
             child: Container(
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle, // Définir la forme comme un cercle
               ),
             ),

@@ -5,12 +5,12 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:flutter/material.dart';
 
-class EventTile extends StatelessWidget {
+class EventTileComp extends StatelessWidget {
   final Post post;
   final String uid;
   final String residence;
 
-  EventTile(
+  EventTileComp(
       {super.key,
       required this.post,
       required this.uid,
@@ -21,7 +21,7 @@ class EventTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 10),
+      padding: const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 10),
       width: MediaQuery.of(context).size.width * 0.95,
       child: Column(
         children: [
@@ -32,7 +32,7 @@ class EventTile extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(35.0),
                 child: Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   width: 120,
                   height: 120,
                   child: Image.network(
@@ -45,13 +45,13 @@ class EventTile extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.circular(35.0),
                 child: Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   width: 120,
                   height: 120,
                   child: ImageAnnounced(context, 120, 120),
                 ),
               ),
-            Container(
+            SizedBox(
               width: MediaQuery.of(context).size.width / 1.7,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,

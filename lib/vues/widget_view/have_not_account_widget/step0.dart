@@ -1,29 +1,36 @@
+import 'dart:async';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter/widgets.dart';
 
 class Step0 extends StatefulWidget {
-  final String newUser;
-  final Function(String, String, String) recupererInformationsStep0;
+  final String userId;
+  final String emailUser;
+  final Function(String, String, String, String) recupererInformationsStep0;
   final int currentPage;
   final PageController progressController;
 
   const Step0({
-    Key? key,
-    required this.newUser,
+    super.key,
+    required this.emailUser,
+    required this.userId,
     required this.recupererInformationsStep0,
     required this.currentPage,
     required this.progressController,
-  }) : super(key: key);
+  });
 
   @override
   _Step0State createState() => _Step0State();
 }
 
-class _Step0State extends State<Step0> {
+class _Step0State extends State<Step0> with WidgetsBindingObserver {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _surnameController = TextEditingController();
   final TextEditingController _pseudoController = TextEditingController();
+  Timer? _deleteTimer;
 
   String getNom() {
     return _nameController.text;
@@ -37,6 +44,54 @@ class _Step0State extends State<Step0> {
     return _pseudoController.text;
   }
 
+  // Méthode pour démarrer le timer de suppression
+  void _startDeletionTimer() {
+    _deleteTimer = Timer(Duration(minutes: 30), () {
+      DataBasesUserServices.removeUserById(widget.userId);
+    });
+  }
+
+  // Observateur du cycle de vie de l'application pour détecter si l'app est en arrière-plan ou au premier plan
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      // Application fermée ou mise en arrière-plan : suppression de l'utilisateur
+      _deleteUser();
+    }
+  }
+
+// Supprimer l'utilisateur si l'inscription n'est pas terminée
+Future<void> _deleteUser() async {
+  // Créez une instance de DataBasesUserServices
+  DataBasesUserServices databaseService = DataBasesUserServices();
+
+  // Utilisez cette instance pour appeler la méthode getUserById
+  User? user = await databaseService.getUserById(widget.userId);
+
+  // Vérifiez si l'utilisateur n'existe pas
+  if (user != null) {
+    // Si l'utilisateur n'est pas trouvé, supprimez-le
+    await DataBasesUserServices.removeUserById(widget.userId);
+  } 
+}
+
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _startDeletionTimer();
+  }
+
+  @override
+  void dispose() {
+    _deleteTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    // Vérifie si l'utilisateur a complété son inscription avant de le supprimer
+    _deleteUser();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,22 +99,20 @@ class _Step0State extends State<Step0> {
         child: SingleChildScrollView(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: MyTextStyle.lotName(
                     """Vous venez de vous installer dans une résidence du réseau ConnectKasa. Commençons par renseigner quelques informations. """,
                     Colors.black54),
               ),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                 child: Row(
                   children: [
                     Container(
                       width: 150,
-                      padding: EdgeInsets.only(right: 20),
+                      padding: const EdgeInsets.only(right: 20),
                       child: Text(
                         "Nom de famille * :",
                         style: GoogleFonts.robotoCondensed(
@@ -85,12 +138,12 @@ class _Step0State extends State<Step0> {
                   children: [
                     Padding(
                       padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                          const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                       child: Row(
                         children: [
                           Container(
                             width: 150,
-                            padding: EdgeInsets.only(right: 20),
+                            padding: const EdgeInsets.only(right: 20),
                             child: Text(
                               "Prénom * :",
                               style: GoogleFonts.robotoCondensed(
@@ -101,7 +154,7 @@ class _Step0State extends State<Step0> {
                             child: TextField(
                               controller: _surnameController,
                               onEditingComplete: () =>
-                                  setState(() {}), // Ajoutez cette ligne
+                                  setState(() {}),
                               decoration: InputDecoration(
                                   hintText: 'Prénom',
                                   hintStyle: GoogleFonts.robotoCondensed(
@@ -113,12 +166,12 @@ class _Step0State extends State<Step0> {
                     ),
                     Padding(
                       padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+                          const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
                       child: Row(
                         children: [
                           Container(
                             width: 150,
-                            padding: EdgeInsets.only(right: 20),
+                            padding: const EdgeInsets.only(right: 20),
                             child: Text(
                               "Pseudo :",
                               style: GoogleFonts.robotoCondensed(
@@ -148,32 +201,27 @@ class _Step0State extends State<Step0> {
         visible: getPrenom().isNotEmpty,
         child: BottomAppBar(
             surfaceTintColor: Colors.white,
-            padding: EdgeInsets.all(2),
+            padding: const EdgeInsets.all(2),
             height: 70,
             child: Container(
-                // decoration: BoxDecoration(color: Colors.amber),
-                //height: 30,
-                //padding: EdgeInsets.only(bottom: 10),
                 child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                   TextButton(
                     onPressed: () {
                       String nom = getNom();
                       String prenom = getPrenom();
                       String pseudo = getPseudo();
-                      widget.recupererInformationsStep0(nom, prenom, pseudo);
-                      // Action à effectuer lorsque le bouton "Suivant" est pressé
+                      widget.recupererInformationsStep0(
+                          widget.emailUser, nom, prenom, pseudo);
                       if (widget.currentPage < 5) {
                         widget.progressController.nextPage(
-                          duration: Duration(milliseconds: 500),
+                          duration: const Duration(milliseconds: 500),
                           curve: Curves.ease,
                         );
                       }
                     },
-                    child: Text(
+                    child: const Text(
                       'Suivant',
                     ),
                   ),

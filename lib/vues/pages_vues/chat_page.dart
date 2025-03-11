@@ -60,7 +60,7 @@ class ChatPageState extends State<ChatPage> {
     return Scaffold(
       appBar: AppBar(
         title: MessageUserTile(radius: 16, uid: widget.idUserTo),
-        bottom: PreferredSize(
+        bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1.0), // Hauteur du Divider
           child: Divider(
             height: 0,
@@ -71,14 +71,14 @@ class ChatPageState extends State<ChatPage> {
       ),
       body: Container(
         child: Padding(
-          padding: EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
               Expanded(
                 child: _buildMessageList(),
               ),
               _buildInputMessage(),
-              SizedBox(
+              const SizedBox(
                 height: 25,
               ),
               //TextField
@@ -98,7 +98,7 @@ class ChatPageState extends State<ChatPage> {
             return Text("Error ${snapshot.error}");
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
+            return const CircularProgressIndicator();
           }
 
           return ListView(
@@ -125,7 +125,7 @@ class ChatPageState extends State<ChatPage> {
       child: Column(
         crossAxisAlignment: crossAlignement,
         children: [
-          SizedBox(
+          const SizedBox(
             height: 10,
           ),
           ChatBubble(
@@ -163,9 +163,9 @@ class ChatPageState extends State<ChatPage> {
 
   Widget _buildInputMessage() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 15),
       width: MediaQuery.of(context).size.width,
-      decoration: BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(color: Colors.white),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         mainAxisSize: MainAxisSize.max,
@@ -182,13 +182,13 @@ class ChatPageState extends State<ChatPage> {
                   ? TextEditingController(text: widget.message)
                   : chatController,
               enableInteractiveSelection: true,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: "Votre message",
                 hintMaxLines: 15,
               ),
             ),
           ),
-          IconButton(onPressed: sendMessage, icon: Icon(Icons.send)),
+          IconButton(onPressed: sendMessage, icon: const Icon(Icons.send)),
         ],
       ),
     );

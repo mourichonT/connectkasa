@@ -52,8 +52,8 @@ class TransactionTileState extends State<TransactionTile> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return Container(
-      margin: EdgeInsets.symmetric(vertical: 0.5),
-      child: Container(
+      margin: const EdgeInsets.symmetric(vertical: 0.5),
+      child: SizedBox(
         width: MediaQuery.of(context).size.width * 0.9,
         child: FutureBuilder<Post>(
           future: post,
@@ -73,7 +73,7 @@ class TransactionTileState extends State<TransactionTile> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Container(
+                      SizedBox(
                         width: 200,
                         child: Padding(
                           padding: const EdgeInsets.only(top: 5, left: 10),
@@ -88,8 +88,8 @@ class TransactionTileState extends State<TransactionTile> {
                       ),
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
                     child: Divider(
                       thickness: 1,
                       color: Colors.black12,
@@ -102,7 +102,7 @@ class TransactionTileState extends State<TransactionTile> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(35.0),
                           child: Container(
-                            padding: EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(8),
                             width: 140,
                             height: 140,
                             child: postTransac.pathImage != ""
@@ -138,7 +138,7 @@ class TransactionTileState extends State<TransactionTile> {
                                       FontStyle.normal,
                                       FontWeight.w900),
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   width: 10,
                                 ),
                                 Container(
@@ -162,7 +162,7 @@ class TransactionTileState extends State<TransactionTile> {
                                           CrossAxisAlignment.center,
                                       children: [
                                         Container(
-                                          padding: EdgeInsets.only(
+                                          padding: const EdgeInsets.only(
                                               left: 10, right: 10),
                                           child: ButtonAdd(
                                             color: Colors.black45,
@@ -181,7 +181,7 @@ class TransactionTileState extends State<TransactionTile> {
                                           ),
                                         ),
                                         Container(
-                                          padding: EdgeInsets.only(
+                                          padding: const EdgeInsets.only(
                                               left: 10, right: 10),
                                           child: ButtonAdd(
                                             color:
@@ -250,7 +250,7 @@ class TransactionTileState extends State<TransactionTile> {
                                 children: [
                                   Container(
                                     padding:
-                                        EdgeInsets.only(left: 10, right: 10),
+                                        const EdgeInsets.only(left: 10, right: 10),
                                     child: ButtonAdd(
                                       color: Colors.black45,
                                       horizontal: 10,
@@ -262,7 +262,7 @@ class TransactionTileState extends State<TransactionTile> {
                                   ),
                                   Container(
                                     padding:
-                                        EdgeInsets.only(left: 10, right: 10),
+                                        const EdgeInsets.only(left: 10, right: 10),
                                     child: ButtonAdd(
                                       color: Theme.of(context).primaryColor,
                                       horizontal: 10,
@@ -290,8 +290,8 @@ class TransactionTileState extends State<TransactionTile> {
 
   showSnackBarFun(context) {
     SnackBar snackBar = SnackBar(
-      content: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
+      content: const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 10),
         child:
             Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Icon(

@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/my_docs.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page_modify.dart';
 import 'package:provider/provider.dart';
 import '../../models/pages_models/lot.dart';
 import '../../controllers/pages_controllers/my_tab_bar_controller.dart';
@@ -42,6 +41,11 @@ class _MyNavBarState extends State<MyNavBar>
   Lot? preferedLot;
   late String uid;
   int nbrTab = 0;
+
+  void refreshHomeView() {
+     print("Rafraîchissement de Homeview demandé"); 
+    setState(() {});  //  Rafraîchir toute la page, y compris Homeview
+  }
 
   @override
   void initState() {
@@ -123,6 +127,7 @@ class _MyNavBarState extends State<MyNavBar>
         controller: tabController.tabController,
         children: [
           Homeview(
+            onPostAdded: refreshHomeView,
             key: UniqueKey(),
             residenceSelected: preferedLot?.residenceId ?? "",
             uid: uid,
@@ -139,6 +144,17 @@ class _MyNavBarState extends State<MyNavBar>
             argument3: "communication",
           ),
           EventPageView(
+            preferedLot: preferedLot ??
+            lot?.first ??
+            Lot(
+              refLot: "",
+              typeLot: "",
+              type: "",
+              idProprietaire: [],
+              residenceId: "",
+              residenceData: {},
+              colorSelected: "",
+            ),
             residenceSelected: preferedLot?.residenceId ?? "",
             uid: uid,
             type: "events",
@@ -187,11 +203,12 @@ class _MyNavBarState extends State<MyNavBar>
         height: 65,
         width: 65,
         child: FloatingActionButton(
-          backgroundColor: Theme.of(context).colorScheme.background,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           onPressed: () async {
             Navigator.of(context).push(
               RouteController().createRoute(
                 PostFormController(
+                  onPostAdded: refreshHomeView,
                   racineFolder: "residences",
                   preferedLot: preferedLot!,
                   uid: uid,

@@ -3,12 +3,27 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <!-- Permission to access coarse (network-based) location -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
 
 
     <application
         android:label="connect_kasa"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+       
+        <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="fr.connectkasa.connect_kasa.fileprovider"
+        android:exported="false"
+        android:grantUriPermissions="true"
+        android:permission="android.permission.MANAGE_EXTERNAL_STORAGE">
+        <meta-data
+            android:name="android.support.FILE_PROVIDER_PATHS"
+            android:resource="@xml/file_provider" />
+    </provider>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

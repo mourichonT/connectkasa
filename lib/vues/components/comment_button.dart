@@ -34,23 +34,30 @@ class CommentButtonState extends State<CommentButton> {
   late Post post;
   late String idPost;
   late Future<List<Comment>> comment;
+  bool _isDisposed = false;
+
 
   @override
   void initState() {
     super.initState();
-    // Récupérer la future de commentaires
     comment = _databaseCommentServices.getComments(
         widget.residenceSelected, widget.post.id);
     post = widget.post;
-    idPost =
-        widget.post.id; // Initialisez post à partir des propriétés du widget
+    idPost = widget.post.id;
 
-    // Utiliser 'await' pour attendre que la future se résolve
     comment.then((commentList) {
-      setState(() {
-        processComments(commentList);
-      });
+      if (mounted) {  // ✅ Vérification avant setState()
+        setState(() {
+          processComments(commentList);
+        });
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 
   @override
@@ -114,32 +121,37 @@ class CommentButtonState extends State<CommentButton> {
     );
   }
 
-// Callback function to be called when a comment is added
   // Callback function to be called when a comment is added
   void _onCommentAdded() {
-    if (mounted) {
-      setState(() {
-        // Mettez à jour le nombre de commentaires
-        comment = _databaseCommentServices.getComments(
-            widget.residenceSelected, widget.post.id);
-      });
-      // Recalculer le nombre de commentaires après l'ajout d'un commentaire
-      comment.then((commentList) {
-        if (mounted) {
-          setState(() {
-            processComments(commentList);
-          });
-        }
-      });
-    }
-  }
+  if (_isDisposed) return;
 
-  void processComments(List<Comment> comments) async {
-    int totalCount = await getTotalComment(comments, 0);
+  if (mounted) {
+    setState(() {
+      comment = _databaseCommentServices.getComments(
+          widget.residenceSelected, widget.post.id);
+    });
+
+  if (_isDisposed) return;
+    comment.then((commentList) {
+      if (mounted) {  // ✅ Vérification avant setState()
+        setState(() {
+          processComments(commentList);
+        });
+      }
+    });
+  }
+}
+
+
+ void processComments(List<Comment> comments) async {
+  int totalCount = await getTotalComment(comments, 0);
+  if (mounted) {  // ✅ Vérification avant setState()
     setState(() {
       commentCount = totalCount;
     });
   }
+}
+
 
   Future<int> getTotalComment(List<Comment> comments, int count) async {
     for (var comment in comments) {

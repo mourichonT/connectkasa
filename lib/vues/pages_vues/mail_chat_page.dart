@@ -16,13 +16,13 @@ class MailChatPage extends StatefulWidget {
   final String uid;
 
   const MailChatPage({
-    Key? key,
+    super.key,
     required this.selectedLot,
     required this.agencyName,
     required this.mails,
     required this.uid,
     required this.to,
-  }) : super(key: key);
+  });
 
   @override
   State<StatefulWidget> createState() => MailChatPageState();
@@ -69,7 +69,7 @@ class MailChatPageState extends State<MailChatPage> {
       appBar: AppBar(
         title: MyTextStyle.lotName(
             widget.agencyName, Colors.black, SizeFont.h3.size),
-        bottom: PreferredSize(
+        bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1.0), // Hauteur du Divider
           child: Divider(
             height: 0,
@@ -80,12 +80,12 @@ class MailChatPageState extends State<MailChatPage> {
       ),
       body: Container(
         child: Padding(
-          padding: EdgeInsets.all(8.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
               _buildMessageList(),
               _buildInputMessage(),
-              SizedBox(
+              const SizedBox(
                 height: 25,
               ),
               //TextField
@@ -105,7 +105,7 @@ class MailChatPageState extends State<MailChatPage> {
             return Text("Error ${snapshot.error}");
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
+            return const CircularProgressIndicator();
           }
 
           return Expanded(
@@ -133,7 +133,7 @@ class MailChatPageState extends State<MailChatPage> {
       child: Column(
         crossAxisAlignment: crossAlignement,
         children: [
-          SizedBox(
+          const SizedBox(
             height: 10,
           ),
           ChatBubble(
@@ -156,9 +156,9 @@ class MailChatPageState extends State<MailChatPage> {
 
   Widget _buildInputMessage() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15),
+      padding: const EdgeInsets.symmetric(horizontal: 15),
       width: MediaQuery.of(context).size.width,
-      decoration: BoxDecoration(color: Colors.white),
+      decoration: const BoxDecoration(color: Colors.white),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         mainAxisSize: MainAxisSize.max,
@@ -170,13 +170,13 @@ class MailChatPageState extends State<MailChatPage> {
               focusNode: _focusNode, // Attachez le FocusNode
               controller: mailChatController,
               enableInteractiveSelection: true,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: "Votre message",
                 hintMaxLines: 15,
               ),
             ),
           ),
-          IconButton(onPressed: sendMail, icon: Icon(Icons.send)),
+          IconButton(onPressed: sendMail, icon: const Icon(Icons.send)),
         ],
       ),
     );

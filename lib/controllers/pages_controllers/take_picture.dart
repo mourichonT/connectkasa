@@ -11,8 +11,7 @@ class TakePictureScreen extends StatefulWidget {
   final String idType;
 
   const TakePictureScreen(
-      {Key? key, required this.camera, required this.idType})
-      : super(key: key);
+      {super.key, required this.camera, required this.idType});
 
   final CameraDescription camera;
 
@@ -77,7 +76,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                       width: 5,
                       // Adjust as needed
                     ),
-                    borderRadius: BorderRadius.all(Radius.circular(20))),
+                    borderRadius: const BorderRadius.all(Radius.circular(20))),
               ),
             ),
           ],
@@ -85,7 +84,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: SizedBox(
           height: 65,
           width: 65,
@@ -123,9 +122,9 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                 print(
                     'Dimensions de l\'image capturée : ${image.width} x ${image.height}');
                 print(
-                    'Position de l\'image capturée : ${overlayY} x ${overlayX}');
+                    'Position de l\'image capturée : $overlayY x $overlayX');
                 print(
-                    'Position de l\'image recadrée : ${overlayWidth} x ${overlayHeight}');
+                    'Position de l\'image recadrée : $overlayWidth x $overlayHeight');
                 print(
                     'Dimensions de l\'image recadrée : ${croppedImage.width} x ${croppedImage.height}');
 
@@ -165,7 +164,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                   child: Container(
                     width: 50, // Ajustez la taille selon vos besoins
                     height: 50, // Ajustez la taille selon vos besoins
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.white,
                     ),
@@ -183,8 +182,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
 class DisplayPictureScreen extends StatelessWidget {
   final String imagePath;
 
-  const DisplayPictureScreen({Key? key, required this.imagePath})
-      : super(key: key);
+  const DisplayPictureScreen({super.key, required this.imagePath});
 
   @override
   Widget build(BuildContext context) {

@@ -12,11 +12,13 @@ class PostFormController extends StatelessWidget {
   final Lot preferedLot;
   final String uid;
   final String racineFolder;
+  final Function() onPostAdded;
   PostFormController(
       {super.key,
       required this.preferedLot,
       required this.uid,
-      required this.racineFolder});
+      required this.racineFolder, 
+      required this.onPostAdded});
 
   final StorageServices _storageServices = StorageServices();
   String url = "";
@@ -48,6 +50,7 @@ class PostFormController extends StatelessWidget {
         ),
       ),
       body: PostForm(
+        onPostAdded: onPostAdded,
         racineFolder: racineFolder,
         preferedLot: preferedLot,
         uid: uid,
