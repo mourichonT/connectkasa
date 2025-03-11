@@ -4,6 +4,7 @@ import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/authentification_process.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/vues/components/my_text_fied.dart';
 import 'package:flutter/material.dart';
 
 class CreateAccount extends StatelessWidget {
@@ -40,26 +41,32 @@ class CreateAccount extends StatelessWidget {
                  MyTextStyle.lotName(
                         "Créer votre compte ", Colors.black54, SizeFont.header.size),
                 const SizedBox(height: 10),
-                _buildTextField(
-                  controller: _emailController,
-                  hintText: "Email",
-                  obscureText: false,
-                ),
+               MyTextField(
+                autofocus: false,
+                hintText: "Email",
+                osbcureText: false,
+                controller: _emailController,
+                padding: 0,
+              ),
                 const SizedBox(height: 10),
-                _buildTextField(
-                  controller: _passwordController,
-                  hintText: "Mot de passe",
-                  obscureText: true,
-                ),
+                MyTextField(
+                autofocus: false,
+                hintText: "Mot de passe",
+                osbcureText: true,
+                controller: _passwordController,
+                padding: 0,
+              ),
                 const SizedBox(height: 15),
                  Visibility(
-                  visible: _passwordController.text!=null,
+                  visible: _passwordController.text!="",
                   child: 
-                  _buildTextField(
-                    controller: _confirmPasswordController,
-                    hintText: "Confirmez votre mot de passe",
-                    obscureText: true,
-                  )
+                  MyTextField(
+                autofocus: false,
+                hintText: "Confirmez le Mot de passe",
+                osbcureText: true,
+                controller: _confirmPasswordController,
+                padding: 0,
+              ),
                 ),
                 const SizedBox(height: 15),
                 Center(
@@ -89,8 +96,8 @@ class CreateAccount extends StatelessWidget {
                 DividerWithText(),
                 const SizedBox(height: 20),
                 WidgetConnectionTiers (context,28,42, firestore, _loadUserController, width, "images/assets/logo_login/google.png", "Google"),
-                WidgetConnectionTiers (context,40,30, firestore, _loadUserController, width, "images/assets/logo_login/apple-logo.png", "Apple"),
-                WidgetConnectionTiers (context,40,30, firestore, _loadUserController, width, "images/assets/logo_login/microsoft.png", "Microsoft")
+                //WidgetConnectionTiers (context,40,30, firestore, _loadUserController, width, "images/assets/logo_login/apple-logo.png", "Apple"),
+                //WidgetConnectionTiers (context,40,30, firestore, _loadUserController, width, "images/assets/logo_login/microsoft.png", "Microsoft")
 
                 // Add other sign-in options here
               ],
@@ -100,122 +107,6 @@ class CreateAccount extends StatelessWidget {
       ),
     );
   }
-
-  /// Widget Helper for Text Fields
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hintText,
-    required bool obscureText,
-  }) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      decoration: InputDecoration(
-        hintText: hintText,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
-  }
-
-//   Future<void> _createAccount(
-//     BuildContext context, String email, String password) async {
-//   if (email.isEmpty || password.isEmpty) {
-//     _showSnackbar(context, "Veuillez remplir tous les champs.");
-//     return;
-//   }
-
-//   // Check password complexity
-//   if (!_isPasswordStrong(password)) {
-//     _showSnackbar(context,
-//         "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre, et un caractère spécial.");
-//     return;
-//   }
-
-//   try {
-//     // Create user with email and password
-//     UserCredential userCredential = await FirebaseAuth.instance
-//         .createUserWithEmailAndPassword(email: email, password: password);
-
-//     // Initialize UserTemp object
-//     UserTemp newUser = UserTemp(
-//       email: email,
-//       createdDate: Timestamp.now(),
-//       name: "", // Replace with actual input from a form
-//       surname: "", // Replace with actual input
-//       pseudo: "", // Replace with actual input
-//       uid: userCredential.user!.uid,
-//       approved: false,
-//       //statutResident: "", // Replace with actual logic
-//       typeLot: "", // Replace with actual logic
-//       //compagnyBuy: false, // Replace with actual logic
-//     );
-
-//     // Add UserTemp data to Firestore
-//     await firestore.collection('User').doc(userCredential.user!.uid).set(
-//           newUser.toMap(),
-//         );
-
-//     // Navigate to next screen or display success message
-//     _showSnackbar(context, "Compte créé avec succès !");
-//     Navigator.push(
-//       context,
-//       MaterialPageRoute(
-//         builder: (context) => ProgressWidget(
-//           userId: userCredential.user!.uid,
-//           emailUser: email,
-//         ),
-//       ),
-//     );
-//   } on FirebaseAuthException catch (e) {
-//     String errorMessage;
-//     switch (e.code) {
-//       case 'email-already-in-use':
-//         errorMessage = "Cet email est déjà utilisé.";
-//         break;
-//       case 'invalid-email':
-//         errorMessage = "L'adresse email est invalide.";
-//         break;
-//       case 'weak-password':
-//         errorMessage = "Le mot de passe est trop faible.";
-//         break;
-//       default:
-//         errorMessage = "Une erreur est survenue. Veuillez réessayer.";
-//     }
-//     _showSnackbar(context, errorMessage);
-//   } catch (e) {
-//     _showSnackbar(context, "Erreur inattendue : ${e.toString()}");
-//   }
-// }
-
-// /// Validate password strength
-// bool _isPasswordStrong(String password) {
-//   // Regular expression for strong password
-//   final regex = RegExp(
-//     r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$',
-//   );
-
-//   return regex.hasMatch(password);
-// }
-
-// bool _confirmPaswword(String password, String confirmPaswword){
-
-//   if (password == confirmPaswword){
-//     return true;
-//   }
-// return false;
-// }
-//   /// Helper method to show snackbars
-//   void _showSnackbar(BuildContext context, String message) {
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(
-//         content: Text(message),
-//         duration: const Duration(seconds: 3),
-//       ),
-//     );
-//   }
-// }
 
 /// Widget for Divider with Text
 Widget DividerWithText () {

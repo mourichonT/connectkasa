@@ -42,6 +42,11 @@ class _MyNavBarState extends State<MyNavBar>
   late String uid;
   int nbrTab = 0;
 
+  void refreshHomeView() {
+     print("Rafraîchissement de Homeview demandé"); 
+    setState(() {});  //  Rafraîchir toute la page, y compris Homeview
+  }
+
   @override
   void initState() {
     super.initState();
@@ -122,6 +127,7 @@ class _MyNavBarState extends State<MyNavBar>
         controller: tabController.tabController,
         children: [
           Homeview(
+            onPostAdded: refreshHomeView,
             key: UniqueKey(),
             residenceSelected: preferedLot?.residenceId ?? "",
             uid: uid,
@@ -202,6 +208,7 @@ class _MyNavBarState extends State<MyNavBar>
             Navigator.of(context).push(
               RouteController().createRoute(
                 PostFormController(
+                  onPostAdded: refreshHomeView,
                   racineFolder: "residences",
                   preferedLot: preferedLot!,
                   uid: uid,

@@ -47,7 +47,7 @@ class EventPageViewState extends State<EventPageView>
   bool _isPastDate = false; // Variable pour suivre si la date sélectionnée est passée
 
   late TabController _tabController;
-
+  
  @override
 void initState() {
   super.initState();
@@ -104,6 +104,7 @@ void _filterEventsForSelectedDay(DateTime day) async {
   List<Post> allEvents = await _allEventsFuture;
 
   DateTime today = DateTime.now();
+  
 
  List<Post> selectedEvents = allEvents.where((event) {
   if (event.eventDate == null) return false; // Ignore les événements sans date
@@ -127,6 +128,8 @@ void _filterEventsForSelectedDay(DateTime day) async {
 }
 
   void _showEventsDialog(DateTime day) {
+    DateTime now = DateTime.now();
+    DateTime selectedDate = DateTime(day.year, day.month, day.day, now.hour, now.minute).subtract(Duration(seconds: 10));
     if (!mounted) return; 
     showDialog(
       context: context,
@@ -136,16 +139,17 @@ void _filterEventsForSelectedDay(DateTime day) async {
               "Événements pour le ${day.day}/${day.month}/${day.year}",
               Colors.black87,
               SizeFont.h1.size),
-          content: _futureEvents.isEmpty
+          content: (selectedDate.isBefore(DateTime.now()) ? _pastEvents.isEmpty : _futureEvents.isEmpty)
               ? MyTextStyle.annonceDesc(
                   "Aucun événement pour ce jour.", SizeFont.h3.size, 1)
               : SizedBox(
                   width: double.maxFinite,
-                  child: ListView.builder(
+                  child: 
+                  ListView.builder(
                     shrinkWrap: true,
-                    itemCount: _futureEvents.length,
+                    itemCount: selectedDate.isBefore(DateTime.now())?_pastEvents.length:_futureEvents.length,
                     itemBuilder: (context, index) {
-                      Post event = _futureEvents[index];
+                      Post event = selectedDate.isBefore(DateTime.now())?_pastEvents[index]:_futureEvents[index] ;
                       return ListTile(
                         trailing: MyTextStyle.lotDesc(
                             MyTextStyle.EventHours(event.eventDate!),
@@ -176,8 +180,8 @@ void _filterEventsForSelectedDay(DateTime day) async {
                                 ),
                               ),
                         title: Text(event.title),
-                        subtitle: MyTextStyle.annonceDesc(
-                            event.description ?? "", SizeFont.h3.size, 3),
+                        // subtitle: MyTextStyle.annonceDesc(
+                        //     event.description ?? "", SizeFont.h3.size, 3),
                         onTap: () async {
                           selectedPost = await _databaseServices.getUpdatePost(
                               widget.residenceSelected, event.id);
@@ -200,29 +204,35 @@ void _filterEventsForSelectedDay(DateTime day) async {
                 ),
           actions: <Widget>[
             TextButton(
-              onPressed: day.isBefore(DateTime.now())
-                  ? null // Désactive le bouton si la date est passée
-                  : () {
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => EventForm(
-                            dateSelected: day,
-                            preferedLot: widget.preferedLot,
-                            residence: widget.residenceSelected,
-                            uid: widget.uid,
-                            onEventAdded: () {
-                              _refreshEventList();
-                              Navigator.of(context).pop();
-                            },
-                          ),
-                        ),
-                      );
-                    },
+              onPressed: () {
+                
+                
+                if (selectedDate.isBefore(now)) {
+                  return; // Désactive le bouton si la date et l'heure sont passées
+                }
+                
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (context) => EventForm(
+                      dateSelected: day,
+                      preferedLot: widget.preferedLot,
+                      residence: widget.residenceSelected,
+                      uid: widget.uid,
+                      onEventAdded: () {
+                        _refreshEventList();
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ),
+                );
+              },
               child: Text(
                 "Ajouter un événement",
                 style: TextStyle(
-                  color: day.isBefore(DateTime.now()) ? Colors.grey : Colors.blue, // Change la couleur si désactivé
+                  color: selectedDate.isBefore(now)
+                      ? Colors.grey
+                      : Colors.black87, // Change la couleur si désactivé
                 ),
               ),
             ),

@@ -7,7 +7,7 @@ import 'package:connect_kasa/models/pages_models/user_temp.dart';
 import '../../models/pages_models/residence.dart';
 
 class SubmitUser {
-  static submitUserTemp({
+  static submitUser({
     required String emailUser,
     required String name,
     required String surname,
@@ -33,6 +33,7 @@ class SubmitUser {
     String? imagepathJustif,
     String? kbisPath,
   }) {
+    
     DataBasesUserServices dataBasesUserServices = DataBasesUserServices();
     UserTemp newUser = UserTemp(
       email: emailUser,
@@ -46,7 +47,7 @@ class SubmitUser {
       //compagnyBuy: compagnyBuy,
     );
 
-    dataBasesUserServices.setUserTemp(newUser,"${residence.id}-$lotId", compagnyBuy, companyName);
+    dataBasesUserServices.setUser(newUser,"${residence.id}-$lotId", compagnyBuy, companyName);
 
     DataBasesDocsServices dataBasesDocsIdServices = DataBasesDocsServices();
     DocumentModel newDocId = DocumentModel(

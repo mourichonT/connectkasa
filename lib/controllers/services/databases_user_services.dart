@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/features/generate_ref_user_app.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
@@ -8,37 +9,45 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 
 class DataBasesUserServices {
-  final FirebaseFirestore db = FirebaseFirestore.instance;
-Future<UserTemp> setUserTemp(UserTemp newUser, String? lotId, bool? compagnyBuy, String? companyName) async {
-  try {
-    // Met à jour l'utilisateur existant ou crée-le s'il n'existe pas
-    await db
-        .collection("User")
-        .doc(newUser.uid) // Utilisez l'UID comme ID du document
-        .set(
-          newUser.toMap(),
-          SetOptions(merge: true),); // Fusionne les champs pour éviter d'écraser tout le document
-          if (lotId!=null ){
+ final FirebaseFirestore db = FirebaseFirestore.instance;
+
+  Future<UserTemp> setUser(
+      UserTemp newUser, String? lotId, bool? compagnyBuy, String? companyName) async {
+    try {
+      // Génère `refUserApp` unique
+      String refUserApp = await generateUniqueRefUserApp(db, newUser.uid);
+
+      // Ajoute refUserApp à l'objet utilisateur
+      Map<String, dynamic> userData = newUser.toMap();
+      userData['refUserApp'] = refUserApp;  // ✅ Ajout de `refUserApp`
+
+      // Met à jour ou crée l'utilisateur dans Firestore
+      await db.collection("User").doc(newUser.uid).set(
+            userData,
+            SetOptions(merge: true), // Fusionner au lieu d'écraser
+          );
+
+      // Ajoute les informations sur le lot si `lotId` est défini
+      if (lotId != null) {
         await db
-          .collection("User")
-          .doc(newUser.uid)
-          .collection("Lots")
-          .doc(lotId) // Utilise `lotId` comme ID du document
-          .set({
-            "lotId": lotId,
-            "compagnyBuy": compagnyBuy,
-            "companyName": companyName,
-                }, 
-            SetOptions(merge: true));
-          }
-  } catch (e) {
-    print("Impossible de mettre à jour l'utilisateur: $e");
+            .collection("User")
+            .doc(newUser.uid)
+            .collection("Lots")
+            .doc(lotId)
+            .set({
+          "lotId": lotId,
+          "compagnyBuy": compagnyBuy,
+          "companyName": companyName,
+        }, SetOptions(merge: true));
+      }
+    } catch (e) {
+      print("Impossible de mettre à jour l'utilisateur: $e");
+    }
+
+    return newUser;
   }
 
-  return newUser;
-}
-
-  Future<User?> getUserById(String numUser) async {
+  Future<User?>  getUserById(String numUser) async {
     User? user;
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot =
