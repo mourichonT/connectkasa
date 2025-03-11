@@ -5,7 +5,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/authentification_process.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/components/my_text_fied.dart';
-import 'package:connect_kasa/vues/widget_view/have_not_account_widget/create_account2.dart';
+import 'package:connect_kasa/vues/widget_view/have_not_account_widget/create_account.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -116,6 +116,7 @@ Widget build(BuildContext context) {
                 height: 30,
               ),
               MyTextField(
+                autofocus: false,
                 hintText: "Email",
                 osbcureText: false,
                 controller: _emailController,
@@ -125,6 +126,7 @@ Widget build(BuildContext context) {
                 height: 15,
               ),
               MyTextField(
+                autofocus: false,
                 hintText: "Mot de passe",
                 osbcureText: true,
                 controller: _MdPController,

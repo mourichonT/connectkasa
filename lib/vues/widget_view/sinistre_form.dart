@@ -15,6 +15,7 @@ class SinistreForm extends StatefulWidget {
   final String idPost;
   final Function(String) updateUrl; // Fonction pour mettre à jour imagePath
   final String folderName;
+  final VoidCallback onPostAdded; 
 
   const SinistreForm({
     super.key,
@@ -24,6 +25,7 @@ class SinistreForm extends StatefulWidget {
     required this.idPost,
     required this.updateUrl,
     required this.folderName,
+    required this.onPostAdded, // Initialisation de la fonction de rappel
   });
 }
 
@@ -287,6 +289,7 @@ class SinistreFormState extends State<SinistreForm> {
                     etage: etage,
                     element: filters,
                   );
+                  widget.onPostAdded(); // Appeler la fonction pour rafraîchir la Homeview
                   Navigator.pop(context);
                 },
                 child: MyTextStyle.lotName("Soumettre",

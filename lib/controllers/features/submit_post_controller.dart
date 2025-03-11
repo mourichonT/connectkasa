@@ -142,7 +142,10 @@ final duplicateResponse = await checkDuplicatePost(
     );
      dataBasesPostServices.addSignalement(newSignalement, docRes,duplicateResponse['post_id']);
     print("Post est un doublon, signalement ajouté.");
-
+    
+  } else if (duplicateResponse['status'] == "post_not_found") {
+    print("Post non trouvé. ID du post : ${duplicateResponse['post_id']}");
+    // Ne pas procéder si le post n'est pas trouvé
   } else {
     print("Aucun doublon trouvé, création du nouveau post.");
     // Ajouter le post seulement si aucun doublon n'a été trouvé

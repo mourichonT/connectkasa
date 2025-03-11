@@ -5,6 +5,7 @@ class MyTextField extends StatefulWidget {
   final bool osbcureText;
   final TextEditingController controller;
   final double padding;
+  final bool autofocus;
 
   const MyTextField({
     super.key,
@@ -12,6 +13,7 @@ class MyTextField extends StatefulWidget {
     required this.osbcureText,
     required this.controller,
     required this.padding,
+    required this.autofocus,
   });
 
   @override
@@ -20,15 +22,19 @@ class MyTextField extends StatefulWidget {
 
 class _MyTextFieldState extends State<MyTextField> {
   late FocusNode _focusNode;
+  late bool _isObscure; // ✅ Ajout d'un état pour gérer la visibilité
 
   @override
   void initState() {
     super.initState();
     _focusNode = FocusNode();
-    // Demander l'ouverture du clavier immédiatement après l'initialisation
-    Future.delayed(const Duration(milliseconds: 100), () {
-      FocusScope.of(context).requestFocus(_focusNode);
-    });
+    _isObscure = widget.osbcureText; // ✅ Initialisation de l'état
+
+    if (widget.autofocus) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        FocusScope.of(context).requestFocus(_focusNode);
+      });
+    }
   }
 
   @override
@@ -42,8 +48,8 @@ class _MyTextFieldState extends State<MyTextField> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: widget.padding),
       child: TextField(
-        focusNode: _focusNode, // Le FocusNode est attaché ici
-        obscureText: widget.osbcureText, // Gère le masquage du texte
+        focusNode: _focusNode,
+        obscureText: _isObscure, // ✅ Utilisation de _isObscure
         decoration: InputDecoration(
           enabledBorder: const OutlineInputBorder(
             borderSide: BorderSide(color: Colors.black12),
@@ -55,6 +61,19 @@ class _MyTextFieldState extends State<MyTextField> {
           filled: true,
           hintText: widget.hintText,
           hintStyle: const TextStyle(color: Colors.black45),
+          suffixIcon: widget.osbcureText // ✅ Affiche l'icône seulement si c'est un champ mot de passe
+              ? IconButton(
+                  icon: Icon(
+                    _isObscure ? Icons.visibility_off : Icons.visibility, // ✅ Change d'icône
+                    color: Colors.grey,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _isObscure = !_isObscure; // ✅ Inverse la valeur
+                    });
+                  },
+                )
+              : null,
         ),
         controller: widget.controller,
       ),
