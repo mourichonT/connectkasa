@@ -557,7 +557,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                         idPost: widget.post.id,
                         selectedLabel: widget.post.type,
                         imagePath: imageUrl,
-                        desc: desc,
+                        desc: desc.text,
                         anonymPost: anonymPost,
                         docRes: widget.residence,
                         backgroundColor: _selectedColor.toString(),

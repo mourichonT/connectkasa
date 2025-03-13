@@ -39,12 +39,24 @@ class _MyNavBarState extends State<MyNavBar>
   double pad = 0;
   List<Lot?>? lot;
   Lot? preferedLot;
+  late Lot defaultLot = Lot(
+    nameLoc: "",
+    nameProp: "",
+    refLot: "",
+    typeLot: "",
+    type: "",
+    idProprietaire: [],
+    idLocataire: [],
+    residenceId: "",
+    residenceData: {},
+    colorSelected: "",
+  );
   late String uid;
   int nbrTab = 0;
 
   void refreshHomeView() {
-     print("Rafraîchissement de Homeview demandé"); 
-    setState(() {});  //  Rafraîchir toute la page, y compris Homeview
+    print("Rafraîchissement de Homeview demandé");
+    setState(() {}); //  Rafraîchir toute la page, y compris Homeview
   }
 
   @override
@@ -53,7 +65,10 @@ class _MyNavBarState extends State<MyNavBar>
     uid = widget.uid;
     tabController = MyTabBarController(length: 5, vsync: this);
     _loadPreferedLot();
-    _loadDefaultLot(widget.uid);
+    if (preferedLot == null) {
+      _loadDefaultLot(widget.uid);
+    }
+    _loadLot(widget.uid);
   }
 
   @override
@@ -70,6 +85,14 @@ class _MyNavBarState extends State<MyNavBar>
         ),
       );
     }).toList();
+    if (defaultLot == null) {
+      return Scaffold(
+        body: Center(
+          child:
+              CircularProgressIndicator(), // Indicateur de chargement en attendant l'initialisation
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -113,6 +136,7 @@ class _MyNavBarState extends State<MyNavBar>
               InkWell(
                 child: SelectLotComponent(
                   uid: uid,
+                  defaultLot: defaultLot,
                 ),
                 onTap: () async {
                   _showLotBottomSheet(context, uid);
@@ -129,14 +153,16 @@ class _MyNavBarState extends State<MyNavBar>
           Homeview(
             onPostAdded: refreshHomeView,
             key: UniqueKey(),
-            residenceSelected: preferedLot?.residenceId ?? "",
+            residenceSelected:
+                preferedLot?.residenceId ?? defaultLot.residenceId,
             uid: uid,
             upDatescrollController: widget.scrollController,
             colorStatut: colorStatut,
+            preferedLot: preferedLot ?? defaultLot,
           ),
           SinistrePageView(
             key: UniqueKey(),
-            residenceId: preferedLot?.residenceId ?? "",
+            residenceId: preferedLot?.residenceId ?? defaultLot.residenceId,
             uid: uid,
             colorStatut: colorStatut,
             argument1: "sinistres",
@@ -144,25 +170,17 @@ class _MyNavBarState extends State<MyNavBar>
             argument3: "communication",
           ),
           EventPageView(
-            preferedLot: preferedLot ??
-            lot?.first ??
-            Lot(
-              refLot: "",
-              typeLot: "",
-              type: "",
-              idProprietaire: [],
-              residenceId: "",
-              residenceData: {},
-              colorSelected: "",
-            ),
-            residenceSelected: preferedLot?.residenceId ?? "",
+            preferedLot: preferedLot ?? defaultLot,
+            residenceSelected:
+                preferedLot?.residenceId ?? defaultLot.residenceId,
             uid: uid,
             type: "events",
             colorStatut: colorStatut,
           ),
           AnnoncesPageView(
             key: UniqueKey(),
-            residenceSelected: preferedLot?.residenceId ?? "",
+            residenceSelected:
+                preferedLot?.residenceId ?? defaultLot.residenceId,
             uid: uid,
             type: "annonces",
             colorStatut: colorStatut,
@@ -171,33 +189,25 @@ class _MyNavBarState extends State<MyNavBar>
           MydocsPageView(
             key: UniqueKey(),
             lotSelected: preferedLot?.refLot ?? "",
-            residenceSelected: preferedLot?.residenceId ?? "",
+            residenceSelected:
+                preferedLot?.residenceId ?? defaultLot.residenceId,
             uid: uid,
             colorStatut: colorStatut,
           ),
         ],
       ),
       endDrawer: ProfilPage(
-        refLot: preferedLot?.refLot ?? "",
+        refLot: preferedLot?.refLot ?? defaultLot.refLot,
         uid: widget.uid,
         color: colorStatut,
       ),
       bottomNavigationBar: MyBottomNavBarView(
-        residenceSelected: preferedLot?.residenceId ?? "",
-        residenceName: preferedLot?.residenceData['name'] ?? "",
-        uid: uid,
-        selectedLot: preferedLot ??
-            lot?.first ??
-            Lot(
-              refLot: "",
-              typeLot: "",
-              type: "",
-              idProprietaire: [],
-              residenceId: "",
-              residenceData: {},
-              colorSelected: "",
-            ),
-      ),
+          residenceSelected: preferedLot?.residenceId ?? defaultLot.residenceId,
+          residenceName: preferedLot?.residenceData['name'] ??
+              defaultLot.residenceData['name'] ??
+              "",
+          uid: uid,
+          selectedLot: preferedLot ?? defaultLot),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: SizedBox(
         height: 65,
@@ -232,9 +242,17 @@ class _MyNavBarState extends State<MyNavBar>
     );
   }
 
-  Future<void> _loadDefaultLot(uid) async {
+  Future<void> _loadLot(uid) async {
     if (lot != null) {
       lot = (await _databasesLotServices.getLotByIdUser(uid));
+      setState(() {});
+    }
+  }
+
+  Future<void> _loadDefaultLot(uid) async {
+    if (preferedLot == null) {
+      defaultLot = (await _databasesLotServices.getFirstLotByUserId(uid));
+      context.read<ColorProvider>().updateColor(defaultLot!.colorSelected);
       setState(() {});
     }
   }
@@ -253,7 +271,7 @@ class _MyNavBarState extends State<MyNavBar>
       context: context,
       builder: (BuildContext context) {
         return LotBottomSheet(
-          selectedLot: preferedLot,
+          selectedLot: preferedLot ?? defaultLot,
           onRefresh: () {
             _loadPreferedLot();
           },

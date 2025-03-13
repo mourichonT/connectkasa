@@ -2,6 +2,7 @@
 
 import 'dart:async';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/asking_neighbors_widget.dart';
 import 'package:connect_kasa/vues/widget_view/event_widget.dart';
 import 'package:connect_kasa/vues/widget_view/annonce_widget.dart';
@@ -15,15 +16,16 @@ class Homeview extends StatefulWidget {
   double? upDatescrollController;
   Color colorStatut;
   final Function onPostAdded;
+  final Lot preferedLot;
 
-  Homeview({
-    super.key,
-    required this.residenceSelected,
-    required this.uid,
-    this.upDatescrollController,
-    required this.colorStatut,
-    required this.onPostAdded,
-  });
+  Homeview(
+      {super.key,
+      required this.residenceSelected,
+      required this.uid,
+      this.upDatescrollController,
+      required this.colorStatut,
+      required this.onPostAdded,
+      required this.preferedLot});
 
   @override
   _HomeviewState createState() => _HomeviewState();
@@ -32,16 +34,22 @@ class Homeview extends StatefulWidget {
 class _HomeviewState extends State<Homeview> {
   late ScrollController _scrollController;
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
-  late Future<List<Post>> _allPostsFuture = Future.value([]);   
+  late Future<List<Post>> _allPostsFuture = Future.value([]);
   final GlobalKey _scrollKey = GlobalKey();
   double scrollPosition = 0.0;
+  List<String> itemsCSMembers = [];
+  late bool _isCsMember;
 
   @override
   void initState() {
     super.initState();
-    _scrollController = ScrollController(initialScrollOffset: widget.upDatescrollController ?? 0);
+    _scrollController = ScrollController(
+        initialScrollOffset: widget.upDatescrollController ?? 0);
     _scrollController.addListener(_scrollListener);
-    
+    itemsCSMembers = widget.preferedLot.residenceData['csmembers'] != null
+        ? List<String>.from(widget.preferedLot.residenceData['csmembers'])
+        : [];
+    _isCsMember = itemsCSMembers.contains(widget.uid);
     // Initial loading of posts
     _loadPosts();
   }
@@ -51,7 +59,8 @@ class _HomeviewState extends State<Homeview> {
     _databaseServices.getAllPosts(widget.residenceSelected).then((posts) {
       if (mounted) {
         setState(() {
-          _allPostsFuture = Future.value(posts);  // Mettre à jour _allPostsFuture
+          _allPostsFuture =
+              Future.value(posts); // Mettre à jour _allPostsFuture
         });
       }
     }).catchError((error) {
@@ -61,8 +70,8 @@ class _HomeviewState extends State<Homeview> {
 
   // Appel à _loadPosts lorsque le post est ajouté
   void _handlePostAdded() {
-    widget.onPostAdded();  // Appel du callback pour notifier du rafraîchissement
-    _loadPosts();  // Rafraîchissement des posts
+    widget.onPostAdded(); // Appel du callback pour notifier du rafraîchissement
+    _loadPosts(); // Rafraîchissement des posts
   }
 
   void _scrollListener() {
@@ -93,7 +102,8 @@ class _HomeviewState extends State<Homeview> {
           return Text('Erreur: ${snapshot.error}');
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           // Aucun post à afficher
-          return const Center(child: Text('Aucun post disponible.'));
+          return const Center(
+              child: Text('Veuillez selectionner votre résidence'));
         } else {
           // Affichage des posts
           List<Post> allPosts = snapshot.data!;
@@ -111,18 +121,42 @@ class _HomeviewState extends State<Homeview> {
                   // Affichage des différents types de posts
                   return Column(
                     children: [
-                      if (post.type == "sinistres" || post.type == "incivilites")
-                        PostWidget(post, widget.residenceSelected, widget.uid, scrollPosition),
+                      if (post.type == "sinistres" ||
+                          post.type == "incivilites")
+                        PostWidget(post, widget.residenceSelected, widget.uid,
+                            scrollPosition, _isCsMember),
                       if (post.type == "annonces")
-                        AnnonceWidget(post: post, uid: widget.uid, residenceSelected: widget.residenceSelected, colorStatut: widget.colorStatut, scrollController: scrollPosition),
+                        AnnonceWidget(
+                          post: post,
+                          uid: widget.uid,
+                          residenceSelected: widget.residenceSelected,
+                          colorStatut: widget.colorStatut,
+                          scrollController: scrollPosition,
+                          isCsMember: _isCsMember,
+                        ),
                       if (post.type == "events")
-                        EventWidget(post: post, uid: widget.uid, residenceSelected: widget.residenceSelected, colorStatut: widget.colorStatut, scrollController: scrollPosition),
+                        EventWidget(
+                          post: post,
+                          uid: widget.uid,
+                          residenceSelected: widget.residenceSelected,
+                          colorStatut: widget.colorStatut,
+                          scrollController: scrollPosition,
+                          isCsMember: _isCsMember,
+                        ),
                       if (post.type == "communication")
-                        AskingNeighborsWidget(post: post, uid: widget.uid, residenceSelected: widget.residenceSelected, colorStatut: widget.colorStatut, scrollController: scrollPosition),
+                        AskingNeighborsWidget(
+                          post: post,
+                          uid: widget.uid,
+                          residenceSelected: widget.residenceSelected,
+                          colorStatut: widget.colorStatut,
+                          scrollController: scrollPosition,
+                          isCsMember: _isCsMember,
+                        ),
                     ],
                   );
                 },
-                separatorBuilder: (BuildContext context, int index) => const SizedBox(height: 10),
+                separatorBuilder: (BuildContext context, int index) =>
+                    const SizedBox(height: 10),
               ),
             ),
           );

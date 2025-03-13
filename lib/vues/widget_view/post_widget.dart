@@ -6,6 +6,7 @@ import 'package:connect_kasa/controllers/widgets_controllers/signalement_count_c
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/vues/widget_view/header_row.dart';
 import 'package:connect_kasa/vues/widget_view/signalement_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/post_view.dart';
 import 'package:flutter/material.dart';
@@ -18,8 +19,10 @@ class PostWidget extends StatefulWidget {
   final String uid;
   final String residence;
   final double scrollController;
+  final bool isCsMember;
 
   PostWidget(this.post, this.residence, this.uid, this.scrollController,
+      this.isCsMember,
       {super.key});
   @override
   State<StatefulWidget> createState() => PostWidgetState();
@@ -40,22 +43,6 @@ class PostWidgetState extends State<PostWidget> {
         widget.post.id); // Initialisez post à partir des propriétés du widget
   }
 
-  String getType(Post post) {
-    for (var type in typeList) {
-      // Vous pouvez accéder à chaque type avec type[0] pour le nom et type[1] pour la valeur
-      var typeName = type[0];
-      var typeValue = type[1];
-      // Vous devez probablement utiliser le post ici pour récupérer la valeur de type
-      // Par exemple :
-      if (widget.post.type == typeValue) {
-        return typeName;
-      }
-    }
-    // Vous devez décider de ce que vous voulez retourner si aucun type ne correspond à post.type
-    // Dans cet exemple, je retourne une chaîne vide.
-    return '';
-  }
-
   @override
   Widget build(BuildContext context) {
     Color colorStatut = Theme.of(context).primaryColor;
@@ -74,26 +61,10 @@ class PostWidgetState extends State<PostWidget> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                  top: 10, bottom: 1, left: 10, right: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  MyTextStyle.lotName(
-                      getType(widget.post), Colors.black87, SizeFont.h3.size),
-                  const SizedBox(width: 15),
-                  const Spacer(),
-                  SizedBox(
-                    height: 20,
-                    width: 90,
-                    child:
-                        MyTextStyle.statuColor(widget.post.statu!, colorStatut),
-                  ),
-                ],
-              ),
+            CustomHeaderRow(
+              post: widget.post,
+              colorStatut: colorStatut,
+              isCsMember: widget.isCsMember,
             ),
             const Divider(
               height: 20,
@@ -164,7 +135,7 @@ class PostWidgetState extends State<PostWidget> {
                                                 setState(() {
                                                   widget.post = postChanges!;
                                                 });
-                                                                                            },
+                                              },
                                               child: PostView(
                                                 postOrigin: postUpdated,
                                                 residence: widget.residence,
