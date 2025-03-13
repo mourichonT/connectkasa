@@ -9,6 +9,7 @@ import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/pages_vues/event_page_details.dart';
+import 'package:connect_kasa/vues/widget_view/header_row.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -18,14 +19,16 @@ class EventWidget extends StatefulWidget {
   final String residenceSelected;
   final Color colorStatut;
   final double scrollController;
+  final bool isCsMember;
 
-  const EventWidget({super.key, 
-    required this.post,
-    required this.uid,
-    required this.residenceSelected,
-    required this.colorStatut,
-    required this.scrollController,
-  });
+  const EventWidget(
+      {super.key,
+      required this.post,
+      required this.uid,
+      required this.residenceSelected,
+      required this.colorStatut,
+      required this.scrollController,
+      required this.isCsMember});
 
   @override
   _EventWidgetState createState() => _EventWidgetState();
@@ -63,20 +66,9 @@ class _EventWidgetState extends State<EventWidget> {
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(
-                  top: 10, bottom: 1, left: 10, right: 10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  MyTextStyle.lotName(
-                      getType(widget.post), Colors.black87, SizeFont.h3.size),
-                  const SizedBox(width: 15),
-                  const Spacer(),
-                ],
-              ),
+            CustomHeaderRow(
+              post: widget.post,
+              isCsMember: widget.isCsMember,
             ),
             const Divider(
               height: 20,
@@ -187,7 +179,8 @@ class _EventWidgetState extends State<EventWidget> {
                 ),
                 const SizedBox(height: 10),
                 Visibility(
-                  visible: widget.post.eventType!.contains(EventType.evenement.value),
+                  visible: widget.post.eventType!
+                      .contains(EventType.evenement.value),
                   child: PartipedTile(
                     sizeFont: SizeFont.h3.size,
                     post: widget.post,
@@ -198,19 +191,20 @@ class _EventWidgetState extends State<EventWidget> {
                   ),
                 ),
                 Visibility(
-                  visible: widget.post.eventType!.contains(EventType.prestation.value),
+                  visible: widget.post.eventType!
+                      .contains(EventType.prestation.value),
                   child: Row(
                     children: [
                       MyTextStyle.lotName(
-                    "Prestataire :", Colors.black87, SizeFont.h2.size),
-                    const SizedBox(width: 20,),
-                    MyTextStyle.annonceDesc(
-                      widget.post.prestaName??"", SizeFont.h3.size, 3),
-
+                          "Prestataire :", Colors.black87, SizeFont.h2.size),
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      MyTextStyle.annonceDesc(
+                          widget.post.prestaName ?? "", SizeFont.h3.size, 3),
                     ],
                   ),
-                  ),
-                
+                ),
               ],
             ),
           ),

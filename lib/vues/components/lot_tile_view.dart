@@ -23,7 +23,12 @@ class _LotTileViewState extends State<LotTileView> {
   String showNameLotLoc = "";
   @override
   void initState() {
+    print(widget.lot.nameProp);
     super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     isProprietaire = widget.lot.idProprietaire?.contains(widget.uid) ?? false;
     showNameLotProp =
         widget.lot.nameProp != "" || widget.lot.nameProp.isNotEmpty
@@ -32,10 +37,7 @@ class _LotTileViewState extends State<LotTileView> {
     showNameLotLoc = widget.lot.nameLoc != "" || widget.lot.nameLoc.isNotEmpty
         ? widget.lot.nameLoc
         : "${widget.lot.residenceData["name"]} ${widget.lot.lot} ";
-  }
 
-  @override
-  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       mainAxisSize: MainAxisSize.min,

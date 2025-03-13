@@ -1,6 +1,6 @@
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/models/enum/statut_post_list.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -260,28 +260,34 @@ class MyTextStyle {
     }
   }
 
-  static statuColor(String text, colorTheme) {
+  static Widget statuColor(String statusString, colorTheme) {
+    // Conversion de la chaîne de caractères en énumération StatutPostList
+    StatutPostList status = StatutPostList.fromString(statusString);
+
     return Container(
-        //padding: EdgeInsets.symmetric(vertical: 3, horizontal:0),
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(20.0)),
-          color: _getColorForStatus(text, colorTheme),
+      padding: EdgeInsets.symmetric(vertical: 3, horizontal: 20),
+      decoration: BoxDecoration(
+        borderRadius: const BorderRadius.all(Radius.circular(20.0)),
+        color: _getColorForStatus(status, colorTheme),
+      ),
+      child: Align(
+        alignment: Alignment.center,
+        child: Text(
+          status.label, // Utilisation de la propriété `label` de l'énumération
+          style: GoogleFonts.roboto(
+              color: Colors.white, fontSize: SizeFont.para.size),
         ),
-        child: Align(
-          alignment: Alignment.center,
-          child: Text(
-            text,
-            style: GoogleFonts.roboto(
-                color: Colors.white, fontSize: SizeFont.para.size),
-          ),
-        ));
+      ),
+    );
   }
 
-  static Color _getColorForStatus(String text, colorTheme) {
-    switch (text) {
-      case "En attente":
+  static Color _getColorForStatus(StatutPostList status, colorTheme) {
+    switch (status) {
+      case StatutPostList.enAttente:
         return Colors.grey;
-      case "Validé":
+      case StatutPostList.priseEnCompte:
+        return Colors.orange;
+      case StatutPostList.termine:
         return colorTheme;
       default:
         return Colors.transparent;

@@ -12,6 +12,7 @@ import 'package:connect_kasa/vues/components/image_annonce.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page.dart';
+import 'package:connect_kasa/vues/widget_view/header_row.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../models/pages_models/post.dart';
@@ -22,6 +23,7 @@ class AnnonceWidget extends StatefulWidget {
   final String residenceSelected;
   final Color colorStatut;
   final double scrollController;
+  final bool isCsMember;
 
   const AnnonceWidget(
       {super.key,
@@ -29,7 +31,8 @@ class AnnonceWidget extends StatefulWidget {
       required this.residenceSelected,
       required this.colorStatut,
       required this.scrollController,
-      required this.post});
+      required this.post,
+      required this.isCsMember});
   @override
   State<StatefulWidget> createState() => AnnonceWidgetState();
 }
@@ -64,21 +67,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(
-                    top: 10, bottom: 1, left: 10, right: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    MyTextStyle.lotName(
-                        getType(widget.post), Colors.black87, SizeFont.h3.size),
-                    const SizedBox(width: 15),
-                    const Spacer(),
-                  ],
-                ),
-              ),
+              CustomHeaderRow(post: widget.post, isCsMember: widget.isCsMember),
               const Divider(
                 height: 20,
                 thickness: 0.5,

@@ -217,8 +217,8 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding:
-                                          const EdgeInsets.symmetric(horizontal: 0),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 0),
                                       width: width / 3,
                                       height: 40,
                                       child: TextField(
@@ -237,18 +237,20 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                                                 color: Theme.of(context)
                                                     .primaryColor),
                                           ),
-                                          enabledBorder: const OutlineInputBorder(
+                                          enabledBorder:
+                                              const OutlineInputBorder(
                                             borderSide:
                                                 BorderSide(color: Colors.grey),
                                           ),
-                                          contentPadding: const EdgeInsets.symmetric(
-                                              vertical: 5, horizontal: 10),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  vertical: 5, horizontal: 10),
                                         ),
                                       ),
                                     ),
                                     Container(
-                                      padding:
-                                          const EdgeInsets.symmetric(horizontal: 20),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20),
                                       child: MyTextStyle.lotDesc(
                                           "€",
                                           SizeFont.h3.size,
@@ -352,8 +354,8 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                           selectedLabel: widget.post.type,
                           idPost: widget.post.id,
                           imagePath: imagePath!,
-                          title: title,
-                          desc: desc,
+                          title: title.text,
+                          desc: desc.text,
                           anonymPost: anonymPost,
                           docRes: widget.post.refResidence,
                           price: int.parse(price.text));

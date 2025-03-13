@@ -1,5 +1,13 @@
-plugins {
-    id 'com.google.gms.google-services' version '4.4.2' apply false
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Ajoutez la version AGP ici
+        classpath 'com.android.tools.build:gradle:8.1.0'  // Utilisez la version compatible avec SDK 35
+        classpath 'com.google.gms:google-services:4.4.2'  // Si ce plugin est nécessaire pour votre projet
+    }
 }
 
 allprojects {

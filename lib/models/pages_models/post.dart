@@ -76,8 +76,9 @@ class Post {
     return _subtype;
   }
 
-  String? get statu {
-    return _statu;
+  String? get statu => _statu;
+  set statu(String? value) {
+    _statu = value ?? ""; // Valeur par défaut si null
   }
 
   set newStatu(String? newStatu) {
@@ -161,7 +162,7 @@ class Post {
       }
     }
 
-     List<dynamic>? eventTypeList = map['eventType'];
+    List<dynamic>? eventTypeList = map['eventType'];
     List<String> convertedEventTyeList = [];
     if (eventTypeList != null) {
       for (var eventTypeSelected in eventTypeList) {
@@ -205,7 +206,7 @@ class Post {
       fontSize: map['fontSize'],
       fontWeight: map['fontWeight'],
       fontStyle: map['fontStyle'],
-      prestaName : map['prestaName'],
+      prestaName: map['prestaName'],
     );
   }
 
@@ -220,7 +221,7 @@ class Post {
       'pathImage': pathImage,
       'refResidence': refResidence,
       'statu': statu,
-      'eventType':eventType,
+      'eventType': eventType,
       'timeStamp': timeStamp,
       'eventDate': eventDate,
       'title': title,
@@ -237,7 +238,7 @@ class Post {
       'fontSize': fontSize,
       'fontWeight': fontWeight,
       'fontStyle': fontStyle,
-      'prestaName' : prestaName
+      'prestaName': prestaName
     };
   }
 }

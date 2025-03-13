@@ -1,0 +1,1 @@
+C:\Dev\connect_kasa\build\app\intermediates\cxx\Debug\et6j3u3f\obj\arm64-v8a

@@ -227,4 +227,58 @@ class DataBasesLotServices {
       rethrow; // Vous pouvez gérer l'erreur comme nécessaire
     }
   }
+
+  Future<Lot> getFirstLotByUserId(String numUser) async {
+    try {
+      // Commencer une transaction Firestore
+      return await FirebaseFirestore.instance
+          .runTransaction((transaction) async {
+        // Récupérer la référence de la collection "Residence"
+        CollectionReference residenceRef =
+            FirebaseFirestore.instance.collection("Residence");
+
+        // Récupérer les documents de la collection "Residence"
+        QuerySnapshot<Map<String, dynamic>> querySnapshot =
+            await residenceRef.get() as QuerySnapshot<Map<String, dynamic>>;
+
+        // Parcourir chaque document de la collection "Residence"
+        for (QueryDocumentSnapshot<Map<String, dynamic>> residenceDoc
+            in querySnapshot.docs) {
+          String residenceId = residenceDoc.id; // Identifiant du document
+
+          // Récupérer les lots de chaque résidence
+          QuerySnapshot<Map<String, dynamic>> lotQuerySnapshot =
+              await residenceDoc.reference.collection("lot").get();
+
+          // Récupérer les données du document de la résidence
+          Map<String, dynamic> residenceData = residenceDoc.data();
+
+          // Vérifier si idProprietaire ou idLocataire contient numUser
+          // et récupérer le premier lot correspondant
+          for (QueryDocumentSnapshot<Map<String, dynamic>> doc
+              in lotQuerySnapshot.docs) {
+            dynamic idProprietaire = doc.data()["idProprietaire"];
+            dynamic idLocataire = doc.data()["idLocataire"];
+
+            if ((idProprietaire is List && idProprietaire.contains(numUser)) ||
+                (idLocataire is List && idLocataire.contains(numUser)) ||
+                (idProprietaire is String && idProprietaire == numUser) ||
+                (idLocataire is String && idLocataire == numUser)) {
+              Lot lot = Lot.fromMap(doc.data());
+              // Ajouter les données de la résidence au lot
+              lot.residenceData = residenceData;
+              lot.residenceId = residenceId;
+              return lot; // Retourne le premier lot trouvé
+            }
+          }
+        }
+        throw Exception(
+            "Aucun lot trouvé pour l'utilisateur $numUser"); // Lancer une exception si aucun lot n'est trouvé
+      });
+    } catch (e) {
+      print("Erreur dans getFirstLotByUserId: $e");
+      throw Exception(
+          "Erreur lors de la récupération du lot : $e"); // Gérer l'erreur proprement
+    }
+  }
 }
