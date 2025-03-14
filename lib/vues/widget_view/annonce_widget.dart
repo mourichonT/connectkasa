@@ -24,15 +24,18 @@ class AnnonceWidget extends StatefulWidget {
   final Color colorStatut;
   final double scrollController;
   final bool isCsMember;
+  final Function updatePostsList;
 
-  const AnnonceWidget(
-      {super.key,
-      required this.uid,
-      required this.residenceSelected,
-      required this.colorStatut,
-      required this.scrollController,
-      required this.post,
-      required this.isCsMember});
+  const AnnonceWidget({
+    super.key,
+    required this.uid,
+    required this.residenceSelected,
+    required this.colorStatut,
+    required this.scrollController,
+    required this.post,
+    required this.isCsMember,
+    required this.updatePostsList,
+  });
   @override
   State<StatefulWidget> createState() => AnnonceWidgetState();
 }
@@ -67,7 +70,11 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              CustomHeaderRow(post: widget.post, isCsMember: widget.isCsMember),
+              CustomHeaderRow(
+                post: widget.post,
+                isCsMember: widget.isCsMember,
+                updatePostsList: widget.updatePostsList,
+              ),
               const Divider(
                 height: 20,
                 thickness: 0.5,

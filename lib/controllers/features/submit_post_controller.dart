@@ -136,6 +136,7 @@ class SubmitPostController {
         eventDate: eventDate,
         prestaName: prestaName,
       );
+
       dataBasesPostServices.addSignalement(
           newSignalement, docRes, duplicateResponse['post_id']);
       print("Post est un doublon, signalement ajouté.");

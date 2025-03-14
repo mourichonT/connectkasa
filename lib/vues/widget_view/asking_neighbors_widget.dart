@@ -20,6 +20,7 @@ class AskingNeighborsWidget extends StatefulWidget {
   final Color colorStatut;
   final double scrollController;
   final bool isCsMember;
+  final Function updatePostsList;
 
   const AskingNeighborsWidget(
       {super.key,
@@ -28,7 +29,8 @@ class AskingNeighborsWidget extends StatefulWidget {
       required this.residenceSelected,
       required this.colorStatut,
       required this.scrollController,
-      required this.isCsMember});
+      required this.isCsMember,
+      required this.updatePostsList});
 
   @override
   State<StatefulWidget> createState() => AskingNeighborsState();
@@ -67,6 +69,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
             CustomHeaderRow(
               post: widget.post,
               isCsMember: widget.isCsMember,
+              updatePostsList: widget.updatePostsList,
             ),
             const Divider(
               height: 20,
