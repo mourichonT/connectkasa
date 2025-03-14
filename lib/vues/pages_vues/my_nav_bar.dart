@@ -10,7 +10,7 @@ import 'package:connect_kasa/vues/pages_vues/pages_tabs/my_docs.dart';
 import 'package:provider/provider.dart';
 import '../../models/pages_models/lot.dart';
 import '../../controllers/pages_controllers/my_tab_bar_controller.dart';
-import '../widget_view/select_lot_component.dart';
+import '../../controllers/pages_controllers/select_lot_component_controller.dart';
 import '../widget_view/lot_bottom_sheet.dart';
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/route_controller.dart';
@@ -54,21 +54,22 @@ class _MyNavBarState extends State<MyNavBar>
   late String uid;
   int nbrTab = 0;
 
-  void refreshHomeView() {
-    print("Rafraîchissement de Homeview demandé");
-    setState(() {}); //  Rafraîchir toute la page, y compris Homeview
-  }
-
   @override
   void initState() {
     super.initState();
     uid = widget.uid;
     tabController = MyTabBarController(length: 5, vsync: this);
-    _loadPreferedLot();
-    if (preferedLot == null) {
-      _loadDefaultLot(widget.uid);
-    }
-    _loadLot(widget.uid);
+
+    _loadPreferedLot().then((_) {
+      if (preferedLot == null) {
+        _loadDefaultLot(widget.uid);
+      }
+    });
+  }
+
+  void updatePostsList() {
+    print("je teste la fonction de rafraichissement depuis navbar");
+    setState(() {}); // Recharge l'interface, HomeView mettra à jour ses posts
   }
 
   @override
@@ -134,7 +135,7 @@ class _MyNavBarState extends State<MyNavBar>
             children: [
               tabController.tabBar(tabs),
               InkWell(
-                child: SelectLotComponent(
+                child: SelectLotComponentController(
                   uid: uid,
                   defaultLot: defaultLot,
                 ),
@@ -151,7 +152,7 @@ class _MyNavBarState extends State<MyNavBar>
         controller: tabController.tabController,
         children: [
           Homeview(
-            onPostAdded: refreshHomeView,
+            updatePostsList: updatePostsList,
             key: UniqueKey(),
             residenceSelected:
                 preferedLot?.residenceId ?? defaultLot.residenceId,
@@ -218,7 +219,6 @@ class _MyNavBarState extends State<MyNavBar>
             Navigator.of(context).push(
               RouteController().createRoute(
                 PostFormController(
-                  onPostAdded: refreshHomeView,
                   racineFolder: "residences",
                   preferedLot: preferedLot!,
                   uid: uid,
@@ -242,17 +242,10 @@ class _MyNavBarState extends State<MyNavBar>
     );
   }
 
-  Future<void> _loadLot(uid) async {
-    if (lot != null) {
-      lot = (await _databasesLotServices.getLotByIdUser(uid));
-      setState(() {});
-    }
-  }
-
   Future<void> _loadDefaultLot(uid) async {
     if (preferedLot == null) {
       defaultLot = (await _databasesLotServices.getFirstLotByUserId(uid));
-      context.read<ColorProvider>().updateColor(defaultLot!.colorSelected);
+      context.read<ColorProvider>().updateColor(defaultLot.colorSelected);
       setState(() {});
     }
   }

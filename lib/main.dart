@@ -44,8 +44,8 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
-            tabBarTheme:
-                const TabBarTheme(dividerColor: Colors.black38, dividerHeight: 0.5),
+            tabBarTheme: const TabBarTheme(
+                dividerColor: Colors.black38, dividerHeight: 0.5),
             dividerTheme: const DividerThemeData(
               color: Colors.black38, // Couleur principale du diviseur
               thickness: 0.5, // Épaisseur du diviseur

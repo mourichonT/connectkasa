@@ -12,12 +12,14 @@ class CustomHeaderRow extends StatelessWidget {
   final Post post;
   List<List<String>> typeList = TypeList().typeDeclaration();
   final bool isCsMember;
+  final Function updatePostsList;
 
   CustomHeaderRow(
       {super.key,
       this.colorStatut,
       required this.post,
-      required this.isCsMember});
+      required this.isCsMember,
+      required this.updatePostsList});
 
   String getType(Post post) {
     for (var type in typeList) {
@@ -46,7 +48,8 @@ class CustomHeaderRow extends StatelessWidget {
           Spacer(),
           MyTextStyle.statuColor(post.statu!, colorStatut),
           Visibility(
-              visible: isCsMember, child: IconModifyOrDelette(post, context))
+              visible: isCsMember,
+              child: IconModifyOrDelette(post, context, updatePostsList))
         ],
       ),
     );

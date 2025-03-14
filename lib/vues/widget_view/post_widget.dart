@@ -20,9 +20,10 @@ class PostWidget extends StatefulWidget {
   final String residence;
   final double scrollController;
   final bool isCsMember;
+  final Function updatePostsList;
 
   PostWidget(this.post, this.residence, this.uid, this.scrollController,
-      this.isCsMember,
+      this.isCsMember, this.updatePostsList,
       {super.key});
   @override
   State<StatefulWidget> createState() => PostWidgetState();
@@ -62,10 +63,10 @@ class PostWidgetState extends State<PostWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomHeaderRow(
-              post: widget.post,
-              colorStatut: colorStatut,
-              isCsMember: widget.isCsMember,
-            ),
+                post: widget.post,
+                colorStatut: colorStatut,
+                isCsMember: widget.isCsMember,
+                updatePostsList: widget.updatePostsList),
             const Divider(
               height: 20,
               thickness: 0.5,

@@ -17,15 +17,13 @@ class PostForm extends StatefulWidget {
   final Function(String) updateUrl; // Fonction pour mettre à jour imagePath
   final Function(String)
       updateFolderName; // Fonction pour mettre à jour folderName
-  final Function() onPostAdded;
   const PostForm({
     super.key,
     required this.racineFolder,
     required this.preferedLot,
     required this.uid,
     required this.updateUrl,
-    required this.updateFolderName, 
-    required this.onPostAdded,
+    required this.updateFolderName,
   });
 }
 
@@ -156,7 +154,6 @@ class PostFormState extends State<PostForm> {
         Visibility(
           visible: selectedLabel == 'sinistres',
           child: SinistreForm(
-            onPostAdded:widget.onPostAdded ,
             racineFolder: widget.racineFolder,
             preferedLot: widget.preferedLot,
             uid: widget.uid,

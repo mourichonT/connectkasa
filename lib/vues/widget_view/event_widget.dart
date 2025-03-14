@@ -20,6 +20,7 @@ class EventWidget extends StatefulWidget {
   final Color colorStatut;
   final double scrollController;
   final bool isCsMember;
+  final Function updatePostsList;
 
   const EventWidget(
       {super.key,
@@ -28,7 +29,8 @@ class EventWidget extends StatefulWidget {
       required this.residenceSelected,
       required this.colorStatut,
       required this.scrollController,
-      required this.isCsMember});
+      required this.isCsMember,
+      required this.updatePostsList});
 
   @override
   _EventWidgetState createState() => _EventWidgetState();
@@ -69,6 +71,7 @@ class _EventWidgetState extends State<EventWidget> {
             CustomHeaderRow(
               post: widget.post,
               isCsMember: widget.isCsMember,
+              updatePostsList: widget.updatePostsList,
             ),
             const Divider(
               height: 20,

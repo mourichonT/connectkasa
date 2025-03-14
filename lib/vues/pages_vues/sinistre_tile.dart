@@ -25,7 +25,8 @@ class SinistreTile extends StatefulWidget {
   final Function()? updatePostsList;
 
   SinistreTile(this.post, this.residenceId, this.uid, this.canModify,
-      this.colorStatut, this.updatePostsList, {super.key});
+      this.colorStatut, this.updatePostsList,
+      {super.key});
 
   @override
   State<StatefulWidget> createState() => SinistreTileState();
@@ -111,7 +112,6 @@ class SinistreTileState extends State<SinistreTile> {
                                 }
                               },
                               child: Builder(builder: (context) {
-                                print("postType : ${widget.post.type}" );
                                 if (widget.post.type == "sinistres" ||
                                     widget.post.type == "incivilites") {
                                   return PostView(
@@ -139,27 +139,26 @@ class SinistreTileState extends State<SinistreTile> {
                           } else {
                             //return const Text('No data');
                             if (widget.post.type == "sinistres" ||
-                                    widget.post.type == "incivilites") {
-                                  return PostView(
-                                    postOrigin: widget.post,
-                                    residence: widget.residenceId,
-                                    uid: widget.uid,
-                                    postSelected: widget.post,
-                                    returnHomePage: false,
-                                  );
-                                } else if (widget.post.type ==
-                                    "communication") {
-                                  return CommunicationDetails(
-                                      uid: widget.uid, post: widget.post);
-                                } else {
-                                  return AnnoncePageDetails(
-                                    returnHomePage: false,
-                                    post: widget.post,
-                                    uid: widget.uid,
-                                    residence: widget.residenceId,
-                                    colorStatut: widget.colorStatut,
-                                  );
-                                }
+                                widget.post.type == "incivilites") {
+                              return PostView(
+                                postOrigin: widget.post,
+                                residence: widget.residenceId,
+                                uid: widget.uid,
+                                postSelected: widget.post,
+                                returnHomePage: false,
+                              );
+                            } else if (widget.post.type == "communication") {
+                              return CommunicationDetails(
+                                  uid: widget.uid, post: widget.post);
+                            } else {
+                              return AnnoncePageDetails(
+                                returnHomePage: false,
+                                post: widget.post,
+                                uid: widget.uid,
+                                residence: widget.residenceId,
+                                colorStatut: widget.colorStatut,
+                              );
+                            }
                           }
                         }
                       },
@@ -169,8 +168,8 @@ class SinistreTileState extends State<SinistreTile> {
         child: Column(
           children: [
             Container(
-              padding:
-                  const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 10),
+              padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: 10, vertical: 10),
               width: MediaQuery.of(context).size.width * 0.95,
               child: _signalement == null
                   ? const Center(child: CircularProgressIndicator())
@@ -377,7 +376,7 @@ class SinistreTileState extends State<SinistreTile> {
       title: MyTextStyle.lotName(
           "Confirmation ", Colors.black87, SizeFont.h1.size),
       content: MyTextStyle.annonceDesc(
-          "Etes-vous sûr de vouloir supprimer '$title' ", SizeFont.h3.size, 3),
+          "Etes-vous sûr de vouloir supprimer $title", SizeFont.h3.size, 3),
       actions: [
         cancelButton,
         continueButton,
