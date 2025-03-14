@@ -1,4 +1,5 @@
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/models/enum/statut_post_list.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
@@ -51,7 +52,10 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
   List<String?> _selectedStatut = [];
   List<String?> labelsType = [];
   bool _showFilter = true;
-  final List<String> listStatu = ["Validé", "En attente", "Refusé"];
+  final List<String> listStatu = StatutPostList.values
+      .where((e) => e != StatutPostList.empty)
+      .map((e) => e.label)
+      .toList();
 
   @override
   void initState() {
@@ -100,8 +104,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                   } else if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');
                   } else {
-                    List<String?> items =
-                        (snapshot.data ?? []).cast<String?>();
+                    List<String?> items = (snapshot.data ?? []).cast<String?>();
                     return MyMultiSelectedDropDown(
                       fontSize: SizeFont.para.size,
                       myKey: _multiSelectKey,
@@ -220,6 +223,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
             children: [
               MyMultiSelectedDropDown(
                 fontSize: SizeFont.para.size,
@@ -288,5 +292,5 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
       }
       _updateFilters();
     });
-    }
+  }
 }
