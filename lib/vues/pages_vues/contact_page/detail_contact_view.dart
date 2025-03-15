@@ -5,13 +5,14 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 
-import '../../models/pages_models/user.dart';
+import '../../../models/pages_models/user.dart';
 
 class DetailContactView extends StatelessWidget {
   final Contact contact;
   final String uid;
 
-  const DetailContactView({super.key, required this.contact, required this.uid});
+  const DetailContactView(
+      {super.key, required this.contact, required this.uid});
 
   @override
   Widget build(BuildContext context) {

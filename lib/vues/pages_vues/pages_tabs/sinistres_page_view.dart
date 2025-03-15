@@ -3,7 +3,7 @@ import 'package:connect_kasa/controllers/pages_controllers/sinitres_tile_control
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/pages_vues/sinistre_tile.dart';
+import 'package:connect_kasa/vues/pages_vues/post_page/sinistre_tile.dart';
 import 'package:connect_kasa/controllers/pages_controllers/filter_allpost_controller.dart';
 import 'package:flutter/material.dart';
 

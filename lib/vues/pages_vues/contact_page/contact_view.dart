@@ -4,8 +4,8 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
-import 'package:connect_kasa/vues/pages_vues/detail_contact_view.dart';
-import 'package:connect_kasa/vues/pages_vues/emergencies_contact_view.dart';
+import 'package:connect_kasa/vues/pages_vues/contact_page/detail_contact_view.dart';
+import 'package:connect_kasa/vues/pages_vues/contact_page/emergencies_contact_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

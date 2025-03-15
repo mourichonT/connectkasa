@@ -5,7 +5,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 
-import '../../vues/pages_vues/post_form.dart';
+import '../../vues/pages_vues/post_page/post_form.dart';
 import '../services/storage_services.dart';
 
 class PostFormController extends StatelessWidget {

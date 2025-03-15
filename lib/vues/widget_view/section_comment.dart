@@ -200,8 +200,7 @@ class _SectionCommentState extends State<SectionComment>
   }
 
   void _addComment(TextEditingController textEditingController, bool isReply,
-      {String? commentId,
-      required String? initialComment}) async {
+      {String? commentId, required String? initialComment}) async {
     // String commentFormatted = "";
     var uuid = const Uuid();
     String uniqueId = uuid.v4();

@@ -11,7 +11,7 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
-import 'package:connect_kasa/vues/pages_vues/chat_page.dart';
+import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:connect_kasa/vues/pages_vues/my_nav_bar.dart';
 
 class AnnoncePageDetails extends StatefulWidget {
@@ -263,7 +263,8 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator());
+                              return const Center(
+                                  child: CircularProgressIndicator());
                             } else if (snapshot.hasError) {
                               return Text('Error: ${snapshot.error}');
                             } else {
@@ -296,7 +297,8 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                             ));
                                           },
                                           child: Container(
-                                            padding: const EdgeInsets.only(left: 10),
+                                            padding:
+                                                const EdgeInsets.only(left: 10),
                                             color: Colors.white,
                                             width: 200,
                                             child: Column(
@@ -398,37 +400,37 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // widget.post.price == ""
-              //     ? 
-                  ButtonAdd(
-                      function: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ChatPage(
-                              message:
-                                  "Bonjour, je souhaiterais réservé \"${widget.post.title}\", est-ce toujours possible?",
-                              residence: widget.residence,
-                              idUserFrom: widget.uid,
-                              idUserTo: widget.post.user,
-                            ),
-                          ),
-                        );
-                      },
-                      color: Theme.of(context).primaryColor,
-                      text: "Réservé",
-                      horizontal: 20,
-                      vertical: 5,
-                      size: SizeFont.h2.size)
-                  // : ButtonAdd(
-                  //     function: () {
-                  //       _showBottomSheet(context, widget.post.price!,
-                  //           widget.uid, widget.post);
-                  //     },
-                  //     color: Theme.of(context).primaryColor,
-                  //     text: "Payer",
-                  //     horizontal: 20,
-                  //     vertical: 5,
-                  //     size: SizeFont.h2.size),
+              //     ?
+              ButtonAdd(
+                  function: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatPage(
+                          message:
+                              "Bonjour, je souhaiterais réservé \"${widget.post.title}\", est-ce toujours possible?",
+                          residence: widget.residence,
+                          idUserFrom: widget.uid,
+                          idUserTo: widget.post.user,
+                        ),
+                      ),
+                    );
+                  },
+                  color: Theme.of(context).primaryColor,
+                  text: "Réservé",
+                  horizontal: 20,
+                  vertical: 5,
+                  size: SizeFont.h2.size)
+              // : ButtonAdd(
+              //     function: () {
+              //       _showBottomSheet(context, widget.post.price!,
+              //           widget.uid, widget.post);
+              //     },
+              //     color: Theme.of(context).primaryColor,
+              //     text: "Payer",
+              //     horizontal: 20,
+              //     vertical: 5,
+              //     size: SizeFont.h2.size),
             ],
           ),
         ),

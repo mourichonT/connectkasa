@@ -39,7 +39,7 @@ class Step4 extends StatefulWidget {
     required this.intendedFor,
     required this.refLot,
     required this.userId,
-    required this.typeLot, 
+    required this.typeLot,
     required this.emailUser,
   });
 
@@ -283,7 +283,7 @@ class _Step4State extends State<Step4> {
                     String pathJustif = getJustifType();
 
                     SubmitUser.submitUser(
-                      emailUser:widget.emailUser,
+                      emailUser: widget.emailUser,
                       name: widget.name,
                       surname: widget.surname,
                       pseudo: widget.pseudo,

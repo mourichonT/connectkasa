@@ -4,7 +4,7 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
-import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
+import 'package:connect_kasa/vues/pages_vues/annonces_page/annonce_page_details.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -17,7 +17,8 @@ class AnnonceTile extends StatefulWidget {
   final double scrollController;
 
   AnnonceTile(this.post, this.residence, this.uid, this.canModify,
-      this.colorStatut, this.scrollController, {super.key});
+      this.colorStatut, this.scrollController,
+      {super.key});
 
   @override
   State<StatefulWidget> createState() => AnnonceTileState();
@@ -103,8 +104,7 @@ class AnnonceTileState extends State<AnnonceTile> {
                           width: MediaQuery.of(context).size.width / 2,
                           // Wrap Row with SizedBox to provide a fixed height
                           // Specify the desired height
-                          child: pathImage != "" &&
-                                  pathImage.isNotEmpty
+                          child: pathImage != "" && pathImage.isNotEmpty
                               ? Image.network(
                                   pathImage,
                                   fit: BoxFit.cover,

@@ -17,16 +17,17 @@ class Homeview extends StatefulWidget {
   Color colorStatut;
   final Function updatePostsList;
   final Lot preferedLot;
+  final bool isCsMember;
 
-  Homeview({
-    super.key,
-    required this.residenceSelected,
-    required this.uid,
-    this.upDatescrollController,
-    required this.colorStatut,
-    required this.updatePostsList,
-    required this.preferedLot,
-  });
+  Homeview(
+      {super.key,
+      required this.residenceSelected,
+      required this.uid,
+      this.upDatescrollController,
+      required this.colorStatut,
+      required this.updatePostsList,
+      required this.preferedLot,
+      required this.isCsMember});
 
   @override
   _HomeviewState createState() => _HomeviewState();
@@ -39,7 +40,7 @@ class _HomeviewState extends State<Homeview> {
   final GlobalKey _scrollKey = GlobalKey();
   double scrollPosition = 0.0;
   List<String> itemsCSMembers = [];
-  late bool _isCsMember;
+  // late bool _isCsMember;
 
   @override
   void initState() {
@@ -47,10 +48,10 @@ class _HomeviewState extends State<Homeview> {
     _scrollController = ScrollController(
         initialScrollOffset: widget.upDatescrollController ?? 0);
     _scrollController.addListener(_scrollListener);
-    itemsCSMembers = widget.preferedLot.residenceData['csmembers'] != null
-        ? List<String>.from(widget.preferedLot.residenceData['csmembers'])
-        : [];
-    _isCsMember = itemsCSMembers.contains(widget.uid);
+    // itemsCSMembers = widget.preferedLot.residenceData['csmembers'] != null
+    //     ? List<String>.from(widget.preferedLot.residenceData['csmembers'])
+    //     : [];
+    // _isCsMember = itemsCSMembers.contains(widget.uid);
 
     _loadPosts();
   }
@@ -121,7 +122,7 @@ class _HomeviewState extends State<Homeview> {
                             widget.residenceSelected,
                             widget.uid,
                             scrollPosition,
-                            _isCsMember,
+                            widget.isCsMember,
                             widget.updatePostsList,
                           ),
                         if (post.type == "annonces")
@@ -131,7 +132,7 @@ class _HomeviewState extends State<Homeview> {
                             residenceSelected: widget.residenceSelected,
                             colorStatut: widget.colorStatut,
                             scrollController: scrollPosition,
-                            isCsMember: _isCsMember,
+                            isCsMember: widget.isCsMember,
                             updatePostsList: widget.updatePostsList,
                           ),
                         if (post.type == "events")
@@ -141,7 +142,7 @@ class _HomeviewState extends State<Homeview> {
                             residenceSelected: widget.residenceSelected,
                             colorStatut: widget.colorStatut,
                             scrollController: scrollPosition,
-                            isCsMember: _isCsMember,
+                            isCsMember: widget.isCsMember,
                             updatePostsList: widget.updatePostsList,
                           ),
                         if (post.type == "communication")
@@ -151,7 +152,7 @@ class _HomeviewState extends State<Homeview> {
                             residenceSelected: widget.residenceSelected,
                             colorStatut: widget.colorStatut,
                             scrollController: scrollPosition,
-                            isCsMember: _isCsMember,
+                            isCsMember: widget.isCsMember,
                             updatePostsList: widget.updatePostsList,
                           ),
                       ],

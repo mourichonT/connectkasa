@@ -2,7 +2,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_propoerty.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/modify_propoerty.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -133,7 +133,8 @@ class ManagementPropertyState extends State<ManagementProperty> {
                     ),
                   );
                 },
-                separatorBuilder: (BuildContext context, int index) => const Divider(
+                separatorBuilder: (BuildContext context, int index) =>
+                    const Divider(
                   thickness: 0.7,
                 ),
               );
