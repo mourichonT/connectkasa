@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/models/enum/set_logo_color.dart';
 import 'package:connect_kasa/vues/components/profil_tile.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/profil_page.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
@@ -35,6 +35,8 @@ class _MyNavBarState extends State<MyNavBar>
   final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
   final LoadPreferedData _loadPreferedData = LoadPreferedData();
   late MyTabBarController tabController;
+  List<String> itemsCSMembers = [];
+  late bool _isCsMember = false;
 
   double pad = 0;
   List<Lot?>? lot;
@@ -160,6 +162,7 @@ class _MyNavBarState extends State<MyNavBar>
             upDatescrollController: widget.scrollController,
             colorStatut: colorStatut,
             preferedLot: preferedLot ?? defaultLot,
+            isCsMember: _isCsMember,
           ),
           SinistrePageView(
             key: UniqueKey(),
@@ -194,6 +197,7 @@ class _MyNavBarState extends State<MyNavBar>
                 preferedLot?.residenceId ?? defaultLot.residenceId,
             uid: uid,
             colorStatut: colorStatut,
+            isCsMember: _isCsMember,
           ),
         ],
       ),
@@ -245,6 +249,7 @@ class _MyNavBarState extends State<MyNavBar>
   Future<void> _loadDefaultLot(uid) async {
     if (preferedLot == null) {
       defaultLot = (await _databasesLotServices.getFirstLotByUserId(uid));
+      updateCsMemberStatus(defaultLot);
       context.read<ColorProvider>().updateColor(defaultLot.colorSelected);
       setState(() {});
     }
@@ -254,8 +259,22 @@ class _MyNavBarState extends State<MyNavBar>
     preferedLot = await _loadPreferedData.loadPreferedLot(preferedLot);
     if (preferedLot != null) {
       context.read<ColorProvider>().updateColor(preferedLot!.colorSelected);
+      updateCsMemberStatus(preferedLot!);
       setState(() {});
     }
+  }
+
+  void updateCsMemberStatus(Lot lotSelected) {
+    itemsCSMembers = [];
+    if (lotSelected.residenceData.containsKey('csmembers') &&
+        lotSelected.residenceData['csmembers'] != null) {
+      itemsCSMembers =
+          List<String>.from(lotSelected.residenceData['csmembers']);
+    }
+
+    setState(() {
+      _isCsMember = itemsCSMembers.contains(widget.uid);
+    });
   }
 
   void _showLotBottomSheet(BuildContext context, String uid) {

@@ -4,8 +4,8 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_prop_details.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_prop_info_loc.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/modify_prop_details.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/modify_prop_info_loc.dart';
 import 'package:connect_kasa/vues/widget_view/color_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -69,8 +69,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-          widget.lot.nameProp != "" ||
-                  widget.lot.nameLoc != ""
+          widget.lot.nameProp != "" || widget.lot.nameLoc != ""
               ? name.text
               : "${widget.lot.residenceData['name']} ${widget.lot.lot}",
           Colors.black87,

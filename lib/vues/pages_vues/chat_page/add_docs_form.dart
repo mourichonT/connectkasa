@@ -10,17 +10,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
 
-class AddAnnonceForm extends StatefulWidget {
+class AddDocsForm extends StatefulWidget {
   final String residence;
   final String uid;
 
-  const AddAnnonceForm({super.key, required this.residence, required this.uid});
+  const AddDocsForm({super.key, required this.residence, required this.uid});
 
   @override
-  State<StatefulWidget> createState() => AddAnnonceFormState();
+  State<StatefulWidget> createState() => AddDocsFormState();
 }
 
-class AddAnnonceFormState extends State<AddAnnonceForm> {
+class AddDocsFormState extends State<AddDocsForm> {
   double fontSize = 12;
   final StorageServices _storageServices = StorageServices();
   File? _selectedImage;
@@ -94,7 +94,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                     ],
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 10, bottom: 20),
+                    padding: const EdgeInsets.only(top: 40, bottom: 20),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -104,7 +104,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                             decoration: InputDecoration(
                               isDense: true,
                               contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
+                                  horizontal: 10, vertical: 10),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -130,7 +130,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(top: 15),
+                          padding: const EdgeInsets.only(top: 50),
                           child: Row(
                             children: [
                               MyTextStyle.lotName(
@@ -187,8 +187,8 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                                 child: Row(
                                   children: [
                                     Container(
-                                      padding:
-                                          const EdgeInsets.symmetric(horizontal: 10),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10),
                                       width: width / 3,
                                       height: 40,
                                       child: TextField(
@@ -207,23 +207,23 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                                                 color: Theme.of(context)
                                                     .primaryColor),
                                           ),
-                                          enabledBorder: const OutlineInputBorder(
+                                          enabledBorder:
+                                              const OutlineInputBorder(
                                             borderSide:
                                                 BorderSide(color: Colors.grey),
                                           ),
-                                          contentPadding: const EdgeInsets.symmetric(
-                                              vertical: 5, horizontal: 10),
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  vertical: 5, horizontal: 10),
                                         ),
                                       ),
                                     ),
                                     Container(
-                                      padding:
-                                          const EdgeInsets.symmetric(horizontal: 20),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20),
                                       child: MyTextStyle.lotDesc(
-                                          price.text.isNotEmpty
-                                              ? "Kasas"
-                                              : "Kasa",
-                                          SizeFont.h3.size,
+                                          "€",
+                                          SizeFont.header.size,
                                           FontStyle.normal,
                                           FontWeight.bold),
                                     ),

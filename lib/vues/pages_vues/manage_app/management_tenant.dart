@@ -4,7 +4,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/tenant_detail.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -48,7 +48,8 @@ class ManagementTenantState extends State<ManagementTenant> {
                 return {
                   'user': user,
                   'lotName': lot.nameProp,
-                  'residence': lot.residenceId // Assuming Lot has a `nameProp` field
+                  'residence':
+                      lot.residenceId // Assuming Lot has a `nameProp` field
                 };
               }));
             }
@@ -103,15 +104,20 @@ class ManagementTenantState extends State<ManagementTenant> {
                         UserInfo? tenant = tenantMap['user'];
                         String? lotName = tenantMap['lotName'];
                         if (tenant == null) {
-                          return const ListTile(title: Text('Locataire non trouvé.'));
+                          return const ListTile(
+                              title: Text('Locataire non trouvé.'));
                         }
                         return InkWell(
                           onTap: () {
-
                             Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(
-                                      builder: (context) => TenantDetail(residenceId: tenantMap['residence'], senderUid: widget.uid, tenant: tenant, color: widget.color,)));
+                                context,
+                                CupertinoPageRoute(
+                                    builder: (context) => TenantDetail(
+                                          residenceId: tenantMap['residence'],
+                                          senderUid: widget.uid,
+                                          tenant: tenant,
+                                          color: widget.color,
+                                        )));
                           },
                           child: ListTile(
                             leading: const Icon(Icons.person_2_outlined),

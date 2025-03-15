@@ -8,7 +8,7 @@ import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/vues/widget_view/header_row.dart';
 import 'package:connect_kasa/vues/widget_view/signalement_tile.dart';
-import 'package:connect_kasa/vues/pages_vues/post_view.dart';
+import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 

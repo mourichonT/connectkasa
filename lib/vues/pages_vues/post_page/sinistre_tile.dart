@@ -7,12 +7,12 @@ import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
-import 'package:connect_kasa/vues/pages_vues/annonce_page_details.dart';
-import 'package:connect_kasa/vues/pages_vues/communication_detail.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_annonceform.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_asking_neighbors_form.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_postform.dart';
-import 'package:connect_kasa/vues/pages_vues/post_view.dart';
+import 'package:connect_kasa/vues/pages_vues/annonces_page/annonce_page_details.dart';
+import 'package:connect_kasa/vues/pages_vues/post_page/communication_detail.dart';
+import 'package:connect_kasa/vues/pages_vues/annonces_page/modify_annonceform.dart';
+import 'package:connect_kasa/vues/pages_vues/post_page/modify_asking_neighbors_form.dart';
+import 'package:connect_kasa/vues/pages_vues/post_page/modify_postform.dart';
+import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 

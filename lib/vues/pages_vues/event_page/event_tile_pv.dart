@@ -7,10 +7,10 @@ import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/components/image_annonce.dart';
-import 'package:connect_kasa/vues/pages_vues/event_page_details.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_annonceform.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_asking_neighbors_form.dart';
-import 'package:connect_kasa/vues/pages_vues/modify_postform.dart';
+import 'package:connect_kasa/vues/pages_vues/event_page/event_page_details.dart';
+import 'package:connect_kasa/vues/pages_vues/annonces_page/modify_annonceform.dart';
+import 'package:connect_kasa/vues/pages_vues/post_page/modify_asking_neighbors_form.dart';
+import 'package:connect_kasa/vues/pages_vues/post_page/modify_postform.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -23,7 +23,8 @@ class EventTilepv extends StatefulWidget {
   final Function()? updatePostsList;
 
   EventTilepv(this.post, this.residenceId, this.uid, this.canModify,
-      this.colorStatut, this.updatePostsList, {super.key});
+      this.colorStatut, this.updatePostsList,
+      {super.key});
 
   @override
   State<StatefulWidget> createState() => EventTileState();
@@ -125,8 +126,8 @@ class EventTileState extends State<EventTilepv> {
         child: Column(
           children: [
             Container(
-              padding:
-                  const EdgeInsetsDirectional.symmetric(horizontal: 10, vertical: 10),
+              padding: const EdgeInsetsDirectional.symmetric(
+                  horizontal: 10, vertical: 10),
               width: MediaQuery.of(context).size.width * 0.95,
               child: _event == null
                   ? const Center(child: CircularProgressIndicator())
