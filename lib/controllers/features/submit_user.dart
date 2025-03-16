@@ -4,6 +4,7 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
+import 'package:flutter/material.dart';
 
 import '../../models/pages_models/residence.dart';
 
@@ -85,6 +86,31 @@ class SubmitUser {
 
       dataBasesDocsJustifServices.setDocument(
           newDocJustif, newUserId, '${residence.id}-$lotId');
+    }
+  }
+
+  static UpdateUser(
+      {required BuildContext context,
+      required String uid,
+      required String field,
+      required String label,
+      String? value,
+      bool? newBool}) async {
+    try {
+      await DataBasesUserServices.updateUserField(
+          uid: uid, field: field, value: value, newBool: newBool);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$label mis à jour avec succès!'),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de la mise à jour du champ private: $e'),
+        ),
+      );
     }
   }
 }

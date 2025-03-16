@@ -68,6 +68,30 @@ class MyApp extends StatelessWidget {
           home: LoginPageView(
             firestore: FirebaseFirestore.instance,
           ),
+          onGenerateRoute: (settings) {
+            if (settings.name == '/MyNavBar') {
+              return PageRouteBuilder(
+                settings: settings, // Conserve les arguments
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    MyNavBar(uid: settings.arguments as String),
+                transitionsBuilder:
+                    (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(-1.0, 0.0); // Départ à gauche
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOutCubic;
+
+                  var tween = Tween(begin: begin, end: end)
+                      .chain(CurveTween(curve: curve));
+
+                  return SlideTransition(
+                    position: animation.drive(tween),
+                    child: child,
+                  );
+                },
+              );
+            }
+            return null; // Ajouté pour éviter une erreur si aucune route ne correspond
+          },
         );
       },
     );

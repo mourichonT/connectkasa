@@ -47,7 +47,10 @@ class DataBasesUserServices {
   }
 
   static Future<void> updateUserField(
-      String uid, String field, String value) async {
+      {required String uid,
+      required String field,
+      String? value,
+      bool? newBool}) async {
     try {
       // Utilise .where() pour filtrer l'utilisateur par son UID
       var querySnapshot = await FirebaseFirestore.instance
@@ -60,7 +63,7 @@ class DataBasesUserServices {
         // On récupère le premier document trouvé
         var doc = querySnapshot.docs.first;
         // Mise à jour du champ spécifique
-        await doc.reference.update({field: value});
+        await doc.reference.update({field: value ?? newBool});
       } else {
         throw Exception('Utilisateur non trouvé');
       }

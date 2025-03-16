@@ -7,18 +7,21 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/management_property.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/management_tenant.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/info_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/new_profil_pic.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/profil_page_modify.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/param_page_view.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/info_pers_page_modify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class NewProfilePage extends StatefulWidget {
+class ProfilePage extends StatefulWidget {
   final String uid;
   final Color color;
   final String refLot;
 
-  const NewProfilePage({
+  const ProfilePage({
     super.key,
     required this.uid,
     required this.color,
@@ -26,10 +29,10 @@ class NewProfilePage extends StatefulWidget {
   });
 
   @override
-  _NewProfilePageState createState() => _NewProfilePageState();
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
-class _NewProfilePageState extends State<NewProfilePage> {
+class _ProfilePageState extends State<ProfilePage> {
   final LoadUserController _loadUserController = LoadUserController();
   final DataBasesUserServices userServices = DataBasesUserServices();
   final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
@@ -44,6 +47,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
   String pseudo = "";
   String bio = "";
   String job = "";
+  String profilPic = "";
   bool privateAccount = true;
   String email = "";
 
@@ -103,6 +107,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
           bio = fetchedUser.bio ?? "";
           job = fetchedUser.profession ?? "";
           privateAccount = fetchedUser.private;
+          profilPic = fetchedUser.profilPic ?? "";
         });
       }
       email = await LoadUserController.getUserEmail(uid);
@@ -113,7 +118,7 @@ class _NewProfilePageState extends State<NewProfilePage> {
     final updatedUser = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ProfilPageModify(
+        builder: (context) => InfoPersoPageModify(
           email: email,
           uid: widget.uid,
           color: widget.color,
@@ -123,23 +128,6 @@ class _NewProfilePageState extends State<NewProfilePage> {
         ),
       ),
     );
-
-// Méthode de mise à jour des données utilisateur
-    // if (updatedUser != null) {
-    // Remplacer la page actuelle par une nouvelle instance de la page parente
-    // Navigator.pushReplacement(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (context) => NewProfilePage(
-    //       uid: widget.uid,
-    //       color: widget.color,
-    //       refLot: widget.refLot,
-    //     ),
-    //   ),
-    // );
-
-    //Navigator.pop(context, true);
-    //}
   }
 
   @override
@@ -148,23 +136,29 @@ class _NewProfilePageState extends State<NewProfilePage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: MyTextStyle.lotName("Profile", Colors.black87, SizeFont.h1.size),
+        title:
+            MyTextStyle.lotName("Mon profil", Colors.black87, SizeFont.h1.size),
         leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              Navigator.pop(context); // Ferme le drawer
+              Navigator.pushNamed(context, '/MyNavBar',
+                  arguments: widget.uid // Passer l'uid ici
+                  );
+              // Navigator.pop(context); // Ferme le drawer
               // Renvoie l'utilisateur avec les nouvelles données
             }),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Column(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Column(
               children: [
                 ProfilePic(
+                  imagePath: profilPic,
                   uid: widget.uid,
                   color: widget.color,
                   refLot: widget.refLot,
+                  refresh: _initializeUserData,
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 20),
@@ -188,19 +182,66 @@ class _NewProfilePageState extends State<NewProfilePage> {
                           ),
                         ],
                       ),
-                      MyTextStyle.lotDesc(
-                        "@$pseudo",
-                        SizeFont.h3.size,
-                        FontStyle.italic,
-                        FontWeight.normal,
+                      Visibility(
+                        visible: pseudo.isNotEmpty,
+                        child: MyTextStyle.lotDesc(
+                          "@$pseudo",
+                          SizeFont.h3.size,
+                          FontStyle.italic,
+                          FontWeight.normal,
+                        ),
+                      ),
+                      Visibility(
+                        visible: job.isNotEmpty,
+                        child: MyTextStyle.lotDesc(
+                          "$job",
+                          SizeFont.h3.size,
+                          FontStyle.italic,
+                          FontWeight.normal,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            !privateAccount
+                                ? Icon(
+                                    Icons.public,
+                                    size: SizeFont.h3.size,
+                                    color: Colors.black54,
+                                  )
+                                : Icon(
+                                    Icons.lock_outlined,
+                                    size: SizeFont.h3.size,
+                                    color: Colors.black54,
+                                  ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            MyTextStyle.lotDesc(
+                              !privateAccount
+                                  ? "Ce compte est public"
+                                  : "Ce compte est privé",
+                              SizeFont.h3.size,
+                              FontStyle.normal,
+                              FontWeight.w600,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Padding(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-                  child: MyTextStyle.annonceDesc("$bio", SizeFont.h3.size, 4),
+                      const EdgeInsets.only(left: 20, right: 15, bottom: 30),
+                  child: MyTextStyle.lotDesc(
+                    "$bio",
+                    SizeFont.h3.size,
+                    FontStyle.normal,
+                    FontWeight.normal,
+                  ),
                 ),
                 ProfileMenu(
                   uid: widget.uid,
@@ -208,16 +249,24 @@ class _NewProfilePageState extends State<NewProfilePage> {
                   refLot: widget.refLot,
                   text: "Mes informations",
                   icon: const Icon(Icons.person_2_rounded, size: 22),
-                  press:
-                      _navigateToModifyPage, // Utilisation de la fonction pour naviguer et récupérer les données mises à jour
+                  press: () {
+                    Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                            builder: (context) => InfoPageView(
+                                  refLot: widget.refLot,
+                                  uid: widget.uid,
+                                  color: widget.color,
+                                )));
+                  },
                   isLogOut: false,
                 ),
                 ProfileMenu(
                   uid: widget.uid,
                   color: widget.color,
                   refLot: widget.refLot,
-                  text: "Mes biens immobiliers",
-                  icon: const Icon(Icons.notifications_none_rounded, size: 22),
+                  text: "Ma gestion immobilière",
+                  icon: const Icon(Icons.home_work_outlined, size: 22),
                   press: () {
                     Navigator.push(
                         context,
@@ -235,33 +284,63 @@ class _NewProfilePageState extends State<NewProfilePage> {
                   uid: widget.uid,
                   color: widget.color,
                   refLot: widget.refLot,
+                  text: "Mes locataires",
+                  icon: const Icon(Icons.group_outlined, size: 22),
+                  press: () {
+                    Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                            builder: (context) => ManagementTenant(
+                                  uid: widget.uid,
+                                  lotByUser: _lotByUser!,
+                                  color: widget.color,
+                                )));
+                  },
+                  isLogOut: false,
+                ),
+                ProfileMenu(
+                  uid: widget.uid,
+                  color: widget.color,
+                  refLot: widget.refLot,
                   text: "Paramètres",
                   icon: const Icon(Icons.settings_outlined, size: 22),
-                  press: () {},
+                  press: () {
+                    Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                            builder: (context) => ParamPage(
+                                  refLot: widget.refLot,
+                                  uid: widget.uid,
+                                  color: widget.color,
+                                )));
+                  },
                   isLogOut: false,
                 ),
               ],
             ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: ProfileMenu(
-              uid: widget.uid,
-              color: widget.color,
-              refLot: widget.refLot,
-              text: "Déconnexion",
-              icon: const Icon(Icons.power_settings_new_rounded,
-                  color: Colors.white, size: 22),
-              press: () {
-                _loadUserController.handleGoogleSignOut();
-                Navigator.popUntil(context, ModalRoute.withName('/'));
-                LoadPreferedData.clearSharedPreferences();
-              },
-              isLogOut: true,
+            SizedBox(
+              height: 30,
             ),
-          ),
-          const SizedBox(height: 20),
-        ],
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: ProfileMenu(
+                uid: widget.uid,
+                color: widget.color,
+                refLot: widget.refLot,
+                text: "Déconnexion",
+                icon: const Icon(Icons.power_settings_new_rounded,
+                    color: Colors.white, size: 22),
+                press: () {
+                  _loadUserController.handleGoogleSignOut();
+                  Navigator.popUntil(context, ModalRoute.withName('/'));
+                  LoadPreferedData.clearSharedPreferences();
+                },
+                isLogOut: true,
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }

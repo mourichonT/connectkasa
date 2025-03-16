@@ -17,20 +17,39 @@ Widget ProfilTile(
       // Maintenant, vous pouvez utiliser l'objet User ici
       if (snapshot.hasData && snapshot.data != null) {
         var userUnique = snapshot.data!;
+
+        // Extraire uniquement la première lettre de userUnique.name et la mettre en majuscule
+        String firstName = userUnique.name;
+        String formattedFirstName = firstName.isNotEmpty
+            ? firstName[0].toUpperCase() // Première lettre en majuscule
+            : ''; // Si le prénom est vide, on laisse une chaîne vide
+
+        // Extraire seulement le premier mot de userUnique.surname
+        String surname = userUnique.surname;
+        String firstWordOfSurname = surname.isNotEmpty
+            ? surname.split(' ')[0] // On prend le premier mot avant un espace
+            : ''; // Si le nom est vide, on laisse une chaîne vide
+
+        // Construire le nom à afficher : pseudo ou nom complet avec prénom formaté
+        String displayName = (userUnique.pseudo == null ||
+                userUnique.pseudo == "")
+            ? "$firstWordOfSurname $formattedFirstName" // Utilise le premier mot du nom et la première lettre du prénom
+            : userUnique.pseudo!;
+
         if (userUnique.profilPic != null && userUnique.profilPic != "") {
           // Retourner le widget avec l'image de profil si disponible
           return Row(
             children: [
               CircleAvatar(
-                radius: radiusT,
+                radius: radius1,
                 backgroundColor: Theme.of(context).primaryColor,
-                child: formatProfilPic.ProfilePic(radiusT, userUnique, size),
+                child: formatProfilPic.ProfilePic(radius1, userUnique, size),
               ),
               if (pseudoHidden)
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
-                  child: MyTextStyle.lotName(userUnique.pseudo!,
-                      color ?? Colors.black87, pseudoFontSize),
+                  child: MyTextStyle.lotName(
+                      displayName, color ?? Colors.black87, pseudoFontSize),
                 )
             ],
           );
@@ -46,8 +65,8 @@ Widget ProfilTile(
               if (pseudoHidden)
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
-                  child: MyTextStyle.lotName(userUnique.pseudo!,
-                      color ?? Colors.black87, pseudoFontSize),
+                  child: MyTextStyle.lotName(
+                      displayName, color ?? Colors.black87, pseudoFontSize),
                 )
             ],
           );
@@ -67,7 +86,7 @@ Widget ProfilTile(
             if (pseudoHidden)
               Padding(
                 padding: const EdgeInsets.only(left: 10),
-                child: MyTextStyle.lotName("Utilisteur inconnu",
+                child: MyTextStyle.lotName("Utilisateur inconnu",
                     color ?? Colors.black87, pseudoFontSize),
               ),
           ],

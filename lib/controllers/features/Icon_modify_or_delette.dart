@@ -15,6 +15,7 @@ Widget IconModifyOrDelette(
       onTap: () {
         // Affichage du BottomSheet
         showModalBottomSheet(
+          showDragHandle: true,
           context: context,
           builder: (context) {
             return StatefulBuilder(
@@ -23,35 +24,33 @@ Widget IconModifyOrDelette(
                 StatutPostList selectedStatut =
                     StatutPostList.fromString(post.statu!);
 
-                return Padding(
-                  padding: const EdgeInsets.only(top: 30),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Section modification du statut
-                      Visibility(
-                        visible: post.type == "sinistres" ||
-                            post.type == "incivilites",
-                        child: ListTile(
-                          title: Padding(
-                            padding: const EdgeInsets.only(bottom: 20.0),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.edit),
-                                const SizedBox(width: 15),
-                                MyTextStyle.postDesc(
-                                  'Modifier le statut',
-                                  SizeFont.h3.size,
-                                  Colors.black87,
-                                ),
-                              ],
-                            ),
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Section modification du statut
+                    Visibility(
+                      visible: post.type == "sinistres" ||
+                          post.type == "incivilites",
+                      child: ListTile(
+                        title: Padding(
+                          padding: const EdgeInsets.only(bottom: 20.0),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.edit),
+                              const SizedBox(width: 15),
+                              MyTextStyle.postDesc(
+                                'Modifier le statut',
+                                SizeFont.h3.size,
+                                Colors.black87,
+                              ),
+                            ],
                           ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: Align(
-                              alignment: Alignment.center,
-                              child: Wrap(
+                        ),
+                        subtitle: Align(
+                          alignment: Alignment.center,
+                          child: Column(
+                            children: [
+                              Wrap(
                                 spacing: 8.0,
                                 children: StatutPostList.values
                                     .where((statut) =>
@@ -91,31 +90,35 @@ Widget IconModifyOrDelette(
                                     )
                                     .toList(),
                               ),
-                            ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              const Divider(),
+                            ],
                           ),
                         ),
                       ),
-                      const Divider(),
-                      // Section suppression du post
-                      ListTile(
-                        leading: const Icon(Icons.delete),
-                        title: MyTextStyle.postDesc(
-                          'Supprimer',
-                          SizeFont.h3.size,
-                          Colors.black87,
-                        ),
-                        onTap: () {
-                          // Fermer le BottomSheet avant d'afficher l'AlertDialog
-                          //Navigator.pop(context); // Ferme le BottomSheet
-                          showAlertDialog(post, context, updatePostsList);
-                        },
-                      ),
+                    ),
 
-                      SizedBox(
-                        height: 30,
-                      )
-                    ],
-                  ),
+                    // Section suppression du post
+                    ListTile(
+                      leading: const Icon(Icons.delete),
+                      title: MyTextStyle.postDesc(
+                        'Supprimer',
+                        SizeFont.h3.size,
+                        Colors.black87,
+                      ),
+                      onTap: () {
+                        // Fermer le BottomSheet avant d'afficher l'AlertDialog
+                        //Navigator.pop(context); // Ferme le BottomSheet
+                        showAlertDialog(post, context, updatePostsList);
+                      },
+                    ),
+
+                    SizedBox(
+                      height: 30,
+                    )
+                  ],
                 );
               },
             );

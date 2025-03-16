@@ -1,5 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/camera_files_choices.dart';
+import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 
 class Step2 extends StatefulWidget {
