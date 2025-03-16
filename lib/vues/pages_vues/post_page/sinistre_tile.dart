@@ -6,7 +6,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/components/image_annonce.dart';
+import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
 import 'package:connect_kasa/vues/pages_vues/annonces_page/annonce_page_details.dart';
 import 'package:connect_kasa/vues/pages_vues/post_page/communication_detail.dart';
 import 'package:connect_kasa/vues/pages_vues/annonces_page/modify_annonceform.dart';

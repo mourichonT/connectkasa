@@ -3,7 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/components/card_contact_view.dart';
+import 'package:connect_kasa/vues/widget_view/components/card_contact_view.dart';
 import 'package:flutter/material.dart';
 
 class CardContactController extends StatelessWidget {

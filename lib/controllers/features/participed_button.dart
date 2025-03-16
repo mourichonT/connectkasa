@@ -6,8 +6,8 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/components/profil_tile.dart';
+import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
+import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 
 class PartipedTile extends StatefulWidget {
@@ -18,7 +18,8 @@ class PartipedTile extends StatefulWidget {
   final int number;
   final double sizeFont;
 
-  const PartipedTile({super.key, 
+  const PartipedTile({
+    super.key,
     required this.residenceSelected,
     required this.post,
     required this.uid,

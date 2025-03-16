@@ -3,10 +3,10 @@
 import 'dart:async';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/asking_neighbors_widget.dart';
-import 'package:connect_kasa/vues/widget_view/event_widget.dart';
-import 'package:connect_kasa/vues/widget_view/annonce_widget.dart';
-import 'package:connect_kasa/vues/widget_view/post_widget.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/asking_neighbors_widget.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/event_widget.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/annonce_widget.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/post_widget.dart';
 import 'package:flutter/material.dart';
 import '../../../models/pages_models/post.dart';
 

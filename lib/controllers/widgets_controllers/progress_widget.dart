@@ -1,11 +1,11 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/widget_view/have_not_account_widget/step0.dart';
-import 'package:connect_kasa/vues/widget_view/have_not_account_widget/step1.dart';
-import 'package:connect_kasa/vues/widget_view/have_not_account_widget/step2.dart';
-import 'package:connect_kasa/vues/widget_view/have_not_account_widget/step3.dart';
-import 'package:connect_kasa/vues/widget_view/have_not_account_widget/step4.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step0.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step1.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step2.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step3.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step4.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -19,12 +19,13 @@ class ProgressWidget extends StatefulWidget {
   State<StatefulWidget> createState() => ProgressWidgetState();
 }
 
-class ProgressWidgetState extends State<ProgressWidget>  with WidgetsBindingObserver {
+class ProgressWidgetState extends State<ProgressWidget>
+    with WidgetsBindingObserver {
   double _progress = 0;
   int currentPage = 0;
   final PageController _progressController = PageController(initialPage: 0);
 
-  String emailUser="";
+  String emailUser = "";
   String name = "";
   String surname = "";
   String pseudo = "";
@@ -57,20 +58,23 @@ class ProgressWidgetState extends State<ProgressWidget>  with WidgetsBindingObse
     super.dispose();
   }
 
-@override
+  @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.detached || state == AppLifecycleState.inactive) {
+    if (state == AppLifecycleState.detached ||
+        state == AppLifecycleState.inactive) {
       // Supprimer l'utilisateur si l'application est fermée ou inactive
       try {
         final currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser != null && currentUser.uid == widget.userId) {
           await currentUser.delete();
           await DataBasesUserServices.removeUserById(currentUser.uid);
-          Navigator.popUntil( context, ModalRoute.withName('/'));
-          print("Utilisateur supprimé après fermeture de l'application : ${widget.userId}");
+          Navigator.popUntil(context, ModalRoute.withName('/'));
+          print(
+              "Utilisateur supprimé après fermeture de l'application : ${widget.userId}");
         }
       } catch (e) {
-        print("Erreur lors de la suppression de l'utilisateur après fermeture : $e");
+        print(
+            "Erreur lors de la suppression de l'utilisateur après fermeture : $e");
       }
     }
   }
@@ -79,10 +83,10 @@ class ProgressWidgetState extends State<ProgressWidget>  with WidgetsBindingObse
       String email, String newName, String newSurname, String? newPseudo) {
     // Faites ce que vous voulez avec les valeurs récupérées
     print('Nom: $newName, Prénom: $newSurname, Pseudo: $newPseudo');
-    email=emailUser;
+    email = emailUser;
     name = newName;
     surname = newSurname;
-    pseudo = newPseudo??"";
+    pseudo = newPseudo ?? "";
   }
 
   void getInformationsStep1(Residence newResidence) {
@@ -136,30 +140,31 @@ class ProgressWidgetState extends State<ProgressWidget>  with WidgetsBindingObse
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-    icon: const Icon(Icons.arrow_back),
-    onPressed: () async {
-      if (currentPage > 0) {
-        _progressController.previousPage(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      } else {
-        // Supprimer l'utilisateur de Firebase Auth
-        try {
-          final currentUser = FirebaseAuth.instance.currentUser;
-          if (currentUser != null && currentUser.uid == widget.userId) {
-            await currentUser.delete();
-            await DataBasesUserServices.removeUserById(currentUser.uid); // Supprime l'utilisateur de Firebase Auth
-            print("Utilisateur supprimé : ${widget.userId}");
-          }
-        } catch (e) {
-          print("Erreur lors de la suppression de l'utilisateur : $e");
-        }
-        // Ferme la page
-        Navigator.of(context).pop();
-      }
-    },
-  ),
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              if (currentPage > 0) {
+                _progressController.previousPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              } else {
+                // Supprimer l'utilisateur de Firebase Auth
+                try {
+                  final currentUser = FirebaseAuth.instance.currentUser;
+                  if (currentUser != null && currentUser.uid == widget.userId) {
+                    await currentUser.delete();
+                    await DataBasesUserServices.removeUserById(currentUser
+                        .uid); // Supprime l'utilisateur de Firebase Auth
+                    print("Utilisateur supprimé : ${widget.userId}");
+                  }
+                } catch (e) {
+                  print("Erreur lors de la suppression de l'utilisateur : $e");
+                }
+                // Ferme la page
+                Navigator.of(context).pop();
+              }
+            },
+          ),
           title: MyTextStyle.lotName(
               "Vous êtes à l'étape ${currentPage + 1} / 5", Colors.black54),
           bottom: PreferredSize(
@@ -184,7 +189,7 @@ class ProgressWidgetState extends State<ProgressWidget>  with WidgetsBindingObse
           },
           children: [
             Step0(
-              emailUser : widget.emailUser??"",
+              emailUser: widget.emailUser ?? "",
               userId: widget.userId,
               recupererInformationsStep0: getInformationsStep0,
               currentPage: currentPage,
@@ -217,7 +222,6 @@ class ProgressWidgetState extends State<ProgressWidget>  with WidgetsBindingObse
               progressController: _progressController,
             ),
             Step4(
-              
               userId: widget.userId,
               emailUser: widget.emailUser!,
               name: name,

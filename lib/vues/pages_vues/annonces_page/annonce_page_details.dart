@@ -1,6 +1,6 @@
 import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/components/payement_page.dart';
-import 'package:connect_kasa/vues/components/profil_tile.dart';
+import 'package:connect_kasa/vues/widget_view/components/payement_page.dart';
+import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
@@ -9,10 +9,10 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/components/image_annonce.dart';
+import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
+import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
-import 'package:connect_kasa/vues/pages_vues/my_nav_bar.dart';
+import 'package:connect_kasa/controllers/pages_controllers/my_nav_bar.dart';
 
 class AnnoncePageDetails extends StatefulWidget {
   final Post post;

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:connect_kasa/controllers/services/databases_mail_services.dart';
 import 'package:connect_kasa/models/pages_models/mail.dart';
-import 'package:connect_kasa/vues/components/chat_bubble.dart';
+import 'package:connect_kasa/vues/widget_view/components/chat_bubble.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 
 class MailChatPage extends StatefulWidget {

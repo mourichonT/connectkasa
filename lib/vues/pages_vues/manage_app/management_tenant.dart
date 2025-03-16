@@ -3,7 +3,7 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/vues/components/button_add.dart';
+import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

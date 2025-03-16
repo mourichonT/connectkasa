@@ -2,20 +2,27 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/components/profil_tile.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/new_profile_page_view.dart';
+import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 
 class ProfilPageModify extends StatefulWidget {
+  final User user;
   final String uid;
   final Color color;
   final String email;
+  final Function refresh;
+  final String refLot;
 
   const ProfilPageModify({
     super.key,
     required this.uid,
     required this.color,
     required this.email,
+    required this.refresh,
+    required this.user,
+    required this.refLot,
   });
 
   @override
@@ -27,8 +34,9 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
   TextEditingController surname = TextEditingController();
   TextEditingController pseudo = TextEditingController();
   TextEditingController bio = TextEditingController();
+  TextEditingController profession = TextEditingController();
   DataBasesUserServices userServices = DataBasesUserServices();
-  User? user;
+  String? profilPic = "";
 
   FocusNode nameFocusNode = FocusNode();
   FocusNode surnameFocusNode = FocusNode();
@@ -41,7 +49,13 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
   void initState() {
     super.initState();
 
-    _loadUser(widget.uid);
+    // Initialisation avec les valeurs de widget.user
+    name.text = widget.user.name;
+    surname.text = widget.user.surname;
+    pseudo.text = widget.user.pseudo!;
+    bio.text = widget.user.bio!;
+    profilPic = widget.user.profilPic;
+    privateAccount = widget.user.private; // Met à jour l'état du compte privé
 
     nameFocusNode.addListener(() => setState(() {}));
     surnameFocusNode.addListener(() => setState(() {}));
@@ -69,85 +83,87 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-            "Modifier le profil", Colors.black87, SizeFont.h1.size),
+            "Modifier vos informations", Colors.black87, SizeFont.h1.size),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // Lorsque l'utilisateur appuie sur la flèche de retour,
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NewProfilePage(
+                  uid: widget.uid,
+                  color: widget.color,
+                  refLot: widget.refLot,
+                ),
+              ),
+            ); // Renvoie l'utilisateur avec les nouvelles données
+          },
+        ),
       ),
-      body: user == null
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 20),
+                child: _buildReadOnlyTextField('Email', widget.email),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: ButtonAdd(
+                    function: () {
+                      resetPassword(widget.email);
+                    },
+                    colorText: widget.color,
+                    borderColor: widget.color,
+                    color: Colors.transparent,
+                    text: 'Réinitialiser le mot de passe',
+                    horizontal: 10,
+                    vertical: 10,
+                    size: SizeFont.h3.size),
+              ),
+              _buildModifyTextField("name", 'Nom', name, nameFocusNode),
+              _buildModifyTextField(
+                  "surname", 'Prénom', surname, surnameFocusNode),
+              _buildModifyTextField(
+                  "pseudo", "Pseudo", pseudo, pseudoFocusNode),
+              _buildModifyTextField("bio", "Biographie", bio, bioFocusNode,
+                  maxLines: 5, minLines: 2),
+              Padding(
+                padding: const EdgeInsets.only(top: 30, bottom: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ProfilTile(widget.uid, 45, 40, 45, false),
-                        ],
-                      ),
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        TextButton(
-                          onPressed: () {},
-                          child: MyTextStyle.lotName("Modifier la photo",
-                              widget.color ?? Colors.black87, SizeFont.h3.size),
-                        ),
-                        Icon(
-                          Icons.camera_alt_outlined,
-                          size: 20,
-                          color: widget.color,
-                        ),
-                      ],
-                    ),
-                    _buildReadOnlyTextField('Email', widget.email),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      child: ElevatedButton(
-                        onPressed: () => resetPassword(widget.email),
-                        child: const Text('Réinitialiser le mot de passe'),
-                      ),
-                    ),
-                    _buildReadOnlyTextField('Nom', name.text),
-                    _buildReadOnlyTextField('Prénom', surname.text),
-                    _buildModifyTextField("Pseudo", pseudo, pseudoFocusNode),
-                    _buildModifyTextField("Biographie", bio, bioFocusNode,
-                        maxLines: 5, minLines: 2),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 30, bottom: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          MyTextStyle.lotDesc("Compte privé", SizeFont.h3.size,
-                              FontStyle.normal),
-                          Transform.scale(
-                            scale: 0.8,
-                            child: Switch(
-                              value: privateAccount,
-                              onChanged: (bool value) {
-                                setState(() {
-                                  privateAccount = value;
-                                  // Met à jour l'état du compte privé
-                                  user!.private = value;
-                                });
-                              },
-                            ),
-                          ),
-                        ],
+                    MyTextStyle.lotDesc(
+                        "Compte privé", SizeFont.h3.size, FontStyle.normal),
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: privateAccount,
+                        onChanged: (bool value) {
+                          setState(() {
+                            privateAccount = value;
+                            // Met à jour l'état du compte privé
+                            widget.user.private = value;
+                          });
+                        },
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildModifyTextField(
-      String label, TextEditingController controller, FocusNode focusNode,
-      {int maxLines = 1, int minLines = 1}) {
+  Widget _buildModifyTextField(String field, String label,
+      TextEditingController controller, FocusNode focusNode,
+      {int maxLines = 5, int minLines = 1}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
@@ -158,6 +174,7 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
               focusNode: focusNode,
               maxLines: maxLines,
               minLines: minLines,
+              onSubmitted: (value) {},
               decoration: InputDecoration(
                 labelText: label,
                 labelStyle: const TextStyle(
@@ -179,8 +196,28 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
           ),
           if (focusNode.hasFocus)
             IconButton(
-              onPressed: () {
-                focusNode.unfocus();
+              onPressed: () async {
+                try {
+                  await DataBasesUserServices.updateUserField(
+                      widget.uid, field, controller.text);
+                  widget.refresh;
+                  // Perdre le focus après la validation
+                  focusNode.unfocus();
+                  // Affiche un message de confirmation
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('$label mis à jour avec succès!'),
+                    ),
+                  );
+                } catch (e) {
+                  // En cas d'erreur, afficher un message d'erreur
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'Erreur lors de la mise à jour du champ $label: $e'),
+                    ),
+                  );
+                }
               },
               icon: const Icon(Icons.check),
             ),
@@ -214,20 +251,6 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
         ),
       ),
     );
-  }
-
-  Future<void> _loadUser(String uid) async {
-    if (uid.isNotEmpty) {
-      user = await userServices.getUserById(uid);
-      if (user != null) {
-        name.text = user!.name;
-        surname.text = user!.surname;
-        pseudo.text = user!.pseudo!;
-        bio.text = user!.bio!;
-        privateAccount = user!.private; // Met à jour l'état du compte privé
-      }
-      setState(() {});
-    }
   }
 
   Future<void> resetPassword(String email) async {
