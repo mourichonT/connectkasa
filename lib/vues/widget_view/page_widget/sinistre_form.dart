@@ -2,7 +2,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/camera_files_choices.dart';
+import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 

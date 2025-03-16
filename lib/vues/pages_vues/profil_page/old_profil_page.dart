@@ -11,17 +11,17 @@ import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/management_property.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/management_tenant.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/profil_page_modify.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/info_pers_page_modify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 // Alias pour la classe User de firebase_auth
 
-class ProfilPage extends StatefulWidget {
+class OldProfilPage extends StatefulWidget {
   final String uid;
   final Color color;
   final String refLot;
 
-  const ProfilPage({
+  const OldProfilPage({
     super.key,
     required this.uid,
     required this.color,
@@ -29,10 +29,10 @@ class ProfilPage extends StatefulWidget {
   });
 
   @override
-  _ProfilPageState createState() => _ProfilPageState();
+  _OldProfilPageState createState() => _OldProfilPageState();
 }
 
-class _ProfilPageState extends State<ProfilPage> {
+class _OldProfilPageState extends State<OldProfilPage> {
   final LoadUserController _loadUserController = LoadUserController();
   DataBasesUserServices userServices = DataBasesUserServices();
   local_user.User? user;
@@ -373,7 +373,8 @@ class _ProfilPageState extends State<ProfilPage> {
                                 Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (context) => ProfilPageModify(
+                                        builder: (context) =>
+                                            InfoPersoPageModify(
                                               email: email,
                                               uid: widget.uid,
                                               color: widget.color,

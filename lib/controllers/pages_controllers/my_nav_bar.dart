@@ -1,9 +1,9 @@
 import 'dart:math';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/models/enum/set_logo_color.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/new_profile_page_view.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/profile_page_view.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/profil_page.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/old_profil_page.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
@@ -127,7 +127,7 @@ class _MyNavBarState extends State<MyNavBar>
                     onTap: () {
                       Scaffold.of(context).openEndDrawer();
                     },
-                    child: ProfilTile(widget.uid, 20, 20, 60, false)),
+                    child: ProfilTile(widget.uid, 20, 15, 15, false)),
               );
             },
           ),
@@ -203,7 +203,7 @@ class _MyNavBarState extends State<MyNavBar>
           ),
         ],
       ),
-      endDrawer: NewProfilePage(
+      endDrawer: ProfilePage(
         refLot: preferedLot?.refLot ?? defaultLot.refLot,
         uid: widget.uid,
         color: colorStatut,
@@ -281,6 +281,7 @@ class _MyNavBarState extends State<MyNavBar>
 
   void _showLotBottomSheet(BuildContext context, String uid) {
     showModalBottomSheet(
+      showDragHandle: true,
       backgroundColor: Colors.white,
       context: context,
       builder: (BuildContext context) {

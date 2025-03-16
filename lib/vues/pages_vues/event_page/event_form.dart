@@ -11,7 +11,7 @@ import 'package:connect_kasa/models/pages_models/contact.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/camera_files_choices.dart';
+import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';

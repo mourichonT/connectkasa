@@ -6,7 +6,7 @@ import 'package:connect_kasa/controllers/widgets_controllers/signalement_count_c
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/header_row.dart';
+import 'package:connect_kasa/vues/widget_view/components/header_row.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/signalement_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
 import 'package:flutter/material.dart';

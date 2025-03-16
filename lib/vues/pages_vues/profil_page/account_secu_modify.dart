@@ -1,13 +1,15 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/features/submit_user.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/models/legal_texts/info_centre.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/new_profile_page_view.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/profile_page_view.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 
-class ProfilPageModify extends StatefulWidget {
+class AccountSecuPageModify extends StatefulWidget {
   final User user;
   final String uid;
   final Color color;
@@ -15,7 +17,7 @@ class ProfilPageModify extends StatefulWidget {
   final Function refresh;
   final String refLot;
 
-  const ProfilPageModify({
+  const AccountSecuPageModify({
     super.key,
     required this.uid,
     required this.color,
@@ -26,10 +28,10 @@ class ProfilPageModify extends StatefulWidget {
   });
 
   @override
-  _ProfilPageModifyState createState() => _ProfilPageModifyState();
+  _AccountSecuPageModifyState createState() => _AccountSecuPageModifyState();
 }
 
-class _ProfilPageModifyState extends State<ProfilPageModify> {
+class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
   TextEditingController name = TextEditingController();
   TextEditingController surname = TextEditingController();
   TextEditingController pseudo = TextEditingController();
@@ -42,6 +44,7 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
   FocusNode surnameFocusNode = FocusNode();
   FocusNode pseudoFocusNode = FocusNode();
   FocusNode bioFocusNode = FocusNode();
+  FocusNode professionFocusNode = FocusNode();
 
   bool privateAccount = true;
 
@@ -55,12 +58,14 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
     pseudo.text = widget.user.pseudo!;
     bio.text = widget.user.bio!;
     profilPic = widget.user.profilPic;
+    profession.text = widget.user.profession!;
     privateAccount = widget.user.private; // Met à jour l'état du compte privé
 
     nameFocusNode.addListener(() => setState(() {}));
     surnameFocusNode.addListener(() => setState(() {}));
     pseudoFocusNode.addListener(() => setState(() {}));
     bioFocusNode.addListener(() => setState(() {}));
+    professionFocusNode.addListener(() => setState(() {}));
   }
 
   @override
@@ -83,73 +88,78 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-            "Modifier vos informations", Colors.black87, SizeFont.h1.size),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // Lorsque l'utilisateur appuie sur la flèche de retour,
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NewProfilePage(
-                  uid: widget.uid,
-                  color: widget.color,
-                  refLot: widget.refLot,
-                ),
-              ),
-            ); // Renvoie l'utilisateur avec les nouvelles données
-          },
-        ),
+            "Compte & sécurité", Colors.black87, SizeFont.h1.size),
       ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: _buildReadOnlyTextField('Email', widget.email),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: ButtonAdd(
-                    function: () {
-                      resetPassword(widget.email);
-                    },
-                    colorText: widget.color,
-                    borderColor: widget.color,
-                    color: Colors.transparent,
-                    text: 'Réinitialiser le mot de passe',
-                    horizontal: 10,
-                    vertical: 10,
-                    size: SizeFont.h3.size),
-              ),
-              _buildModifyTextField("name", 'Nom', name, nameFocusNode),
-              _buildModifyTextField(
-                  "surname", 'Prénom', surname, surnameFocusNode),
-              _buildModifyTextField(
-                  "pseudo", "Pseudo", pseudo, pseudoFocusNode),
-              _buildModifyTextField("bio", "Biographie", bio, bioFocusNode,
-                  maxLines: 5, minLines: 2),
-              Padding(
-                padding: const EdgeInsets.only(top: 30, bottom: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    MyTextStyle.lotDesc(
-                        "Compte privé", SizeFont.h3.size, FontStyle.normal),
-                    Transform.scale(
-                      scale: 0.8,
-                      child: Switch(
-                        value: privateAccount,
-                        onChanged: (bool value) {
-                          setState(() {
-                            privateAccount = value;
-                            // Met à jour l'état du compte privé
-                            widget.user.private = value;
-                          });
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: _buildReadOnlyTextField('Email', widget.email),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: ButtonAdd(
+                        function: () {
+                          resetPassword(widget.email);
                         },
-                      ),
+                        colorText: widget.color,
+                        borderColor: widget.color,
+                        color: Colors.transparent,
+                        text: 'Réinitialiser le mot de passe',
+                        horizontal: 10,
+                        vertical: 10,
+                        size: SizeFont.h3.size),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: MyTextStyle.lotName(
+                    "Confidentialité", Colors.black87, SizeFont.h1.size),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 30, top: 10, bottom: 10),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        MyTextStyle.lotDesc(
+                            "Compte privé", SizeFont.h3.size, FontStyle.normal),
+                        Transform.scale(
+                          scale: 0.8,
+                          child: Switch(
+                            value: privateAccount,
+                            onChanged: (bool value) async {
+                              setState(() {
+                                privateAccount = value;
+                                widget.user.private = value;
+                              });
+                              SubmitUser.UpdateUser(
+                                  context: context,
+                                  uid: widget.uid,
+                                  field: 'private',
+                                  label: "Confidentialité du compte",
+                                  newBool: privateAccount);
+                              widget.refresh();
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    MyTextStyle.lotDesc(
+                      InfoCentre.privateAccount,
+                      SizeFont.para.size,
+                      FontStyle.italic,
+                      FontWeight.normal,
                     ),
                   ],
                 ),
@@ -196,28 +206,16 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
           ),
           if (focusNode.hasFocus)
             IconButton(
-              onPressed: () async {
-                try {
-                  await DataBasesUserServices.updateUserField(
-                      widget.uid, field, controller.text);
-                  widget.refresh;
-                  // Perdre le focus après la validation
-                  focusNode.unfocus();
-                  // Affiche un message de confirmation
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('$label mis à jour avec succès!'),
-                    ),
-                  );
-                } catch (e) {
-                  // En cas d'erreur, afficher un message d'erreur
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'Erreur lors de la mise à jour du champ $label: $e'),
-                    ),
-                  );
-                }
+              onPressed: () {
+                SubmitUser.UpdateUser(
+                  context: context,
+                  uid: widget.uid,
+                  field: field,
+                  label: label,
+                  value: controller.text,
+                );
+                focusNode.unfocus();
+                widget.refresh();
               },
               icon: const Icon(Icons.check),
             ),
@@ -227,10 +225,27 @@ class _ProfilPageModifyState extends State<ProfilPageModify> {
   }
 
   Widget _buildReadOnlyTextField(String label, String? value) {
+    // Fonction pour masquer la partie de l'e-mail entre la première et la dernière lettre avant '@'
+    String _maskEmail(String? email) {
+      if (email == null || !email.contains('@')) return email ?? '';
+
+      final atIndex = email.indexOf('@');
+      final firstLetter = email[0];
+      final lastLetterBeforeAt = email[atIndex - 1];
+
+      // Masquer tout entre la première lettre et la dernière avant '@'
+      String maskedEmail = firstLetter +
+          '*' * (atIndex - 2) +
+          lastLetterBeforeAt +
+          email.substring(atIndex);
+
+      return maskedEmail;
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: TextField(
-        controller: TextEditingController(text: value ?? ''),
+        controller: TextEditingController(text: _maskEmail(value)),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(

@@ -12,7 +12,7 @@ import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/annonces_page/annonce_page_details.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/header_row.dart';
+import 'package:connect_kasa/vues/widget_view/components/header_row.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../../../models/pages_models/post.dart';

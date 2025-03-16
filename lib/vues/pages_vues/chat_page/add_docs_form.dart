@@ -5,7 +5,7 @@ import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/camera_files_choices.dart';
+import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
