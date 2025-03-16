@@ -4,12 +4,13 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/pages_models/lot.dart';
-import '../../vues/components/lot_tile_view.dart';
+import '../../vues/widget_view/components/lot_tile_view.dart';
 
 class SelectLotComponentController extends StatefulWidget {
   final String uid;
-  const SelectLotComponentController(
-      {super.key, required this.uid, required Lot defaultLot});
+  final Lot defaultLot;
+  const SelectLotComponentController(this.defaultLot,
+      {super.key, required this.uid});
 
   @override
   SelectLotComponentControllerState createState() =>
@@ -32,7 +33,7 @@ class SelectLotComponentControllerState
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Container(
-        child: (preferedLot == null)
+        child: (preferedLot == null && widget.defaultLot == null)
             ? Container(
                 padding: const EdgeInsets.symmetric(vertical: 21),
                 child: Row(
@@ -51,7 +52,7 @@ class SelectLotComponentControllerState
                   children: [
                     LotTileView(
                       toShow: false,
-                      lot: preferedLot!,
+                      lot: preferedLot ?? widget.defaultLot,
                       uid: widget.uid,
                     ),
                     const Icon(Icons.arrow_drop_down),

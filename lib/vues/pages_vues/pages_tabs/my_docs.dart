@@ -2,7 +2,7 @@ import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/vues/components/button_add.dart';
+import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page/add_docs_form.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/chat_services.dart';
-import 'package:connect_kasa/vues/components/chat_bubble.dart';
-import 'package:connect_kasa/vues/widget_view/message_user_tile.dart';
+import 'package:connect_kasa/vues/widget_view/components/chat_bubble.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/message_user_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 

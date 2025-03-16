@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/components/subtitle_message.dart';
+import 'package:connect_kasa/vues/widget_view/components/subtitle_message.dart';
 import 'package:flutter/material.dart';
 
 class PageChatFriendsList extends StatefulWidget {

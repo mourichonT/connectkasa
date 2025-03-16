@@ -9,9 +9,9 @@ import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/components/my_dropdown_menu.dart';
-import 'package:connect_kasa/vues/components/profil_tile.dart';
-import 'package:connect_kasa/vues/widget_view/camera_files_choices.dart';
+import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
@@ -31,8 +31,6 @@ class EventForm extends StatefulWidget {
     required this.onEventAdded,
     required this.preferedLot,
   });
-
-
 
   @override
   State<StatefulWidget> createState() => EventFormState();
@@ -56,16 +54,13 @@ class EventFormState extends State<EventForm> {
   TimeOfDay? selectedTime;
   late Timestamp eventDate;
   Set<EventType> _selectedEventTypes = {};
-  List<String> itemsCSMembers=[];
+  List<String> itemsCSMembers = [];
   late Future<List<Contact>> itemsPresta;
   String? presta;
-  
 
   void updateItem(String updatedElement) {
-    
     setState(() {
       presta = updatedElement;
-       
     });
   }
 
@@ -73,22 +68,22 @@ class EventFormState extends State<EventForm> {
   void initState() {
     super.initState();
     updateEventDate(dateSelected: widget.dateSelected);
-    itemsCSMembers = List<String>.from(widget.preferedLot!.residenceData['csmembers']);
-    _selectedEventTypes = !itemsCSMembers.contains(widget.uid)? {EventType.evenement}:{};
-    itemsPresta = _databaseContactServices.getContactByResidence(widget.residence);
-
+    itemsCSMembers =
+        List<String>.from(widget.preferedLot!.residenceData['csmembers']);
+    _selectedEventTypes =
+        !itemsCSMembers.contains(widget.uid) ? {EventType.evenement} : {};
+    itemsPresta =
+        _databaseContactServices.getContactByResidence(widget.residence);
   }
 
- @override
- void dispose() {
-  title.dispose();
-  desc.dispose();
-  _dateEventController.dispose();
-  _timeEventController.dispose();
-  super.dispose();
-}
-
-
+  @override
+  void dispose() {
+    title.dispose();
+    desc.dispose();
+    _dateEventController.dispose();
+    _timeEventController.dispose();
+    super.dispose();
+  }
 
   void updateEventDate({DateTime? dateSelected}) {
     if (dateSelected != null) {
@@ -134,8 +129,7 @@ class EventFormState extends State<EventForm> {
   Widget build(BuildContext context) {
     // List<String> itemsPresta =
     //     ["teste1", "teste2"];
-    
-    
+
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
@@ -250,97 +244,113 @@ class EventFormState extends State<EventForm> {
                       ],
                     ),
                   ),
-                    Visibility(
-                      visible:itemsCSMembers.contains(widget.uid),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        decoration: BoxDecoration(color: Colors.black12.withOpacity(0.05)),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            MyTextStyle.lotDesc("-- Vous êtes membre du Conseil Syndical -- ", SizeFont.h3.size, FontStyle.italic),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 10, bottom: 20),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: CheckboxListTile(
-                                      title: const Text("Evénement participatif"),
-                                      value: _selectedEventTypes.contains(EventType.evenement), // Vérifie si l'option est sélectionnée
-                                      onChanged: (bool? value) {
+                  Visibility(
+                    visible: itemsCSMembers.contains(widget.uid),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      decoration: BoxDecoration(
+                          color: Colors.black12.withOpacity(0.05)),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          MyTextStyle.lotDesc(
+                              "-- Vous êtes membre du Conseil Syndical -- ",
+                              SizeFont.h3.size,
+                              FontStyle.italic),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 10, bottom: 20),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CheckboxListTile(
+                                    title: const Text("Evénement participatif"),
+                                    value: _selectedEventTypes.contains(EventType
+                                        .evenement), // Vérifie si l'option est sélectionnée
+                                    onChanged: (bool? value) {
+                                      setState(() {
+                                        if (value != null && value) {
+                                          // Ajoute EventType.evenement à l'ensemble
+                                          _selectedEventTypes
+                                              .add(EventType.evenement);
+                                        } else {
+                                          // Retire EventType.evenement de l'ensemble
+                                          _selectedEventTypes
+                                              .remove(EventType.evenement);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ),
+                                Expanded(
+                                  child: CheckboxListTile(
+                                    title: const Text("Prestation externe"),
+                                    value: _selectedEventTypes.contains(EventType
+                                        .prestation), // Vérifie si l'option est sélectionnée
+                                    onChanged: (bool? value) {
+                                      setState(() {
+                                        if (value != null && value) {
+                                          // Ajoute EventType.prestation à l'ensemble
+                                          _selectedEventTypes
+                                              .add(EventType.prestation);
+                                        } else {
+                                          // Retire EventType.prestation de l'ensemble
+                                          _selectedEventTypes
+                                              .remove(EventType.prestation);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Visibility(
+                            visible: _selectedEventTypes
+                                .contains(EventType.prestation),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: 10, left: 20, right: 20),
+                              child: FutureBuilder<List<Contact>>(
+                                future:
+                                    itemsPresta, // Attend la récupération des contacts
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const CircularProgressIndicator(); // Affiche un loader en attendant
+                                  } else if (snapshot.hasError) {
+                                    return Text("Erreur : ${snapshot.error}");
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data!.isEmpty) {
+                                    return const Text(
+                                        "Aucun prestataire trouvé.");
+                                  } else {
+                                    List<String> prestataireNoms = snapshot
+                                        .data!
+                                        .map((contact) => contact.name)
+                                        .toList();
+
+                                    return MyDropDownMenu(
+                                      MediaQuery.of(context).size.width,
+                                      "Prestataire",
+                                      "Choisir un prestataire",
+                                      items: prestataireNoms,
+                                      onValueChanged: (String value) {
                                         setState(() {
-                                          if (value != null && value) {
-                                            // Ajoute EventType.evenement à l'ensemble
-                                            _selectedEventTypes.add(EventType.evenement);
-                                          } else {
-                                            // Retire EventType.evenement de l'ensemble
-                                            _selectedEventTypes.remove(EventType.evenement);
-                                          }
+                                          presta = value;
+                                          updateItem(presta!);
                                         });
                                       },
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: CheckboxListTile(
-                                      title: const Text("Prestation externe"),
-                                      value: _selectedEventTypes.contains(EventType.prestation), // Vérifie si l'option est sélectionnée
-                                      onChanged: (bool? value) {
-                                        setState(() {
-                                          if (value != null && value) {
-                                            // Ajoute EventType.prestation à l'ensemble
-                                            _selectedEventTypes.add(EventType.prestation);
-                                          } else {
-                                            // Retire EventType.prestation de l'ensemble
-                                            _selectedEventTypes.remove(EventType.prestation);
-                                          }
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ],
+                                    );
+                                  }
+                                },
                               ),
                             ),
-                             Visibility(
-                              visible:_selectedEventTypes.contains(EventType.prestation) ,
-                               child: Padding(
-                                 padding: const EdgeInsets.only(bottom: 10, left: 20, right: 20),
-                                 child: FutureBuilder<List<Contact>>(
-                                  future: itemsPresta, // Attend la récupération des contacts
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return const CircularProgressIndicator(); // Affiche un loader en attendant
-                                    } else if (snapshot.hasError) {
-                                      return Text("Erreur : ${snapshot.error}");
-                                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                      return const Text("Aucun prestataire trouvé.");
-                                    } else {
-                                      List<String> prestataireNoms = snapshot.data!.map((contact) => contact.name).toList();
-
-                                      return MyDropDownMenu(
-                                        MediaQuery.of(context).size.width,
-                                        "Prestataire",
-                                        "Choisir un prestataire",
-                                        items: prestataireNoms,
-                                        onValueChanged: (String value) {
-                                          setState(() {
-                                            presta = value;
-                                            updateItem(presta!);
-                                          });
-                                        },
-                                      );
-                                    }
-                                  },
-                                ),
-
-                               ),
-                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ),
-
-                  
+                  ),
                   Padding(
                     padding: const EdgeInsets.only(top: 10, bottom: 20),
                     child: Column(
@@ -485,9 +495,7 @@ class EventFormState extends State<EventForm> {
       selectedDate = picked;
       updateEventDate(dateSelected: picked);
     });
-    }
-
-  
+  }
 
   Future<void> _selectHour() async {
     TimeOfDay? pickedTime = await showTimePicker(
@@ -502,8 +510,4 @@ class EventFormState extends State<EventForm> {
       });
     }
   }
-
-  
-
-  
 }

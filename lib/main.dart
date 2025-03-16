@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
 import 'package:flutter/material.dart';

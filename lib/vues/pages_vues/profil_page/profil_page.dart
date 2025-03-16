@@ -7,8 +7,8 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart'
     as local_user; // Alias pour la classe User locale
-import 'package:connect_kasa/vues/components/button_add.dart';
-import 'package:connect_kasa/vues/components/profil_tile.dart';
+import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
+import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/management_property.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/management_tenant.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/profil_page_modify.dart';
@@ -377,6 +377,9 @@ class _ProfilPageState extends State<ProfilPage> {
                                               email: email,
                                               uid: widget.uid,
                                               color: widget.color,
+                                              refresh: () {},
+                                              user: user!,
+                                              refLot: "",
                                             )));
                               },
                               color: widget.color,

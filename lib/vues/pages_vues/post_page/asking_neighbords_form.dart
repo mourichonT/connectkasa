@@ -12,7 +12,7 @@ import 'dart:io';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/components/button_add.dart';
+import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 
 class AskingNeighbordsForm extends StatefulWidget {
@@ -456,7 +456,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                   );
 
                   widget.updateUrl(imageUrl!);
-                                }
+                }
 
                 SubmitPostController.submitForm(
                     uid: widget.uid,

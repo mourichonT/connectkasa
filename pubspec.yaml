@@ -68,6 +68,7 @@ dependencies:
   open_filex: ^4.7.0
   sign_in_with_apple: ^6.1.4
   share_plus: ^10.1.4
+  flutter_svg: ^2.0.17
   #flutter_appauth: ^8.0.3
   
  
