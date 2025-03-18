@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 class UserInfo extends User {
   @override
   String email;
-  Timestamp birthday; // Conversion depuis Timestamp dans Firestore
   String amountFamilyAllowance;
   String amountAdditionalRevenu;
   String amountHousingAllowance;
@@ -18,8 +17,7 @@ class UserInfo extends User {
   Timestamp? entryJobDate;
 
   UserInfo({
-    this.email="",
-    required this.birthday,
+    this.email = "",
     this.amountFamilyAllowance = "",
     this.amountAdditionalRevenu = "",
     this.amountHousingAllowance = "",
@@ -32,6 +30,7 @@ class UserInfo extends User {
     this.entryJobDate,
     required super.name,
     required super.surname,
+    required super.birthday,
     required super.uid,
     super.profession,
     super.pseudo,
@@ -39,28 +38,27 @@ class UserInfo extends User {
     required super.approved,
     super.createdDate,
     super.bio,
-    String solde = "0",
     super.profilPic,
   }) : super(
-email: email,
+          email: email,
         );
 
   /// Méthode pour créer une instance depuis une Map
   factory UserInfo.fromMap(Map<String, dynamic> map) {
     return UserInfo(
-      email: map['email']??"N/C",
+      email: map['email'] ?? "N/C",
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",
       pseudo: map['pseudo'] ?? "",
       uid: map['uid'] ?? "",
       approved: map['approved'] ?? false,
-      profession: map['profession']??"",
+      profession: map['profession'] ?? "",
       bio: map['bio'],
       private: map['private'] ?? false,
       createdDate: map['createdDate'] as Timestamp?,
       profilPic: map['profilPic'] ?? "",
-      solde: map['solde'] ?? "0",
-      birthday: map['birthday'] as Timestamp, // Conversion du Timestamp en DateTime
+      birthday:
+          map['birthday'] as Timestamp, // Conversion du Timestamp en DateTime
       amountFamilyAllowance: map['amountFamilyAllowance'] ?? "",
       amountAdditionalRevenu: map['amountAdditionalRevenu'] ?? "",
       amountHousingAllowance: map['amountHousingAllowance'] ?? "",
@@ -70,37 +68,43 @@ email: email,
       phone: map['phone'] ?? "",
       salary: map['salary'] ?? "",
       typeContract: map['typeContract'] ?? "",
-      entryJobDate: map['entryJobDate']??"",
+      entryJobDate: map['entryJobDate'] ?? "",
     );
   }
 
-Map<String, dynamic> toMapForExport() {
-  return {
-    'email':email,
-    'name': name,
-    'surname': surname,
-    'pseudo': pseudo,
-    'uid': uid,
-    'profilPic': profilPic,
-    'approved': approved,
-    'createdDate': createdDate != null ? DateFormat('dd/MM/yyyy').format(createdDate!.toDate()) : null,
-    'profession': profession,
-    'bio': bio,
-    'private': private,
-    'solde': solde,
-    'birthday': birthday != null ? DateFormat('dd/MM/yyyy').format(birthday.toDate()) : null,
-    'amountFamilyAllowance': amountFamilyAllowance,
-    'amountAdditionalRevenu': amountAdditionalRevenu,
-    'amountHousingAllowance': amountHousingAllowance,
-    'dependent': dependent,
-    'familySituation': familySituation,
-    'nationality': nationality,
-    'phone': phone,
-    'salary': salary,
-    'typeContract': typeContract,
-    'entryJobDate': entryJobDate != null ? DateFormat('dd/MM/yyyy').format(entryJobDate!.toDate()) : null,
-  };
-}
+  Map<String, dynamic> toMapForExport() {
+    return {
+      'email': email,
+      'name': name,
+      'surname': surname,
+      'pseudo': pseudo,
+      'uid': uid,
+      'profilPic': profilPic,
+      'approved': approved,
+      'createdDate': createdDate != null
+          ? DateFormat('dd/MM/yyyy').format(createdDate!.toDate())
+          : null,
+      'profession': profession,
+      'bio': bio,
+      'private': private,
+      'birthday': birthday != null
+          ? DateFormat('dd/MM/yyyy').format(birthday.toDate())
+          : null,
+      'amountFamilyAllowance': amountFamilyAllowance,
+      'amountAdditionalRevenu': amountAdditionalRevenu,
+      'amountHousingAllowance': amountHousingAllowance,
+      'dependent': dependent,
+      'familySituation': familySituation,
+      'nationality': nationality,
+      'phone': phone,
+      'salary': salary,
+      'typeContract': typeContract,
+      'entryJobDate': entryJobDate != null
+          ? DateFormat('dd/MM/yyyy').format(entryJobDate!.toDate())
+          : null,
+    };
+  }
+
   /// Méthode pour convertir une instance en Map
   @override
   Map<String, dynamic> toMap() {
@@ -117,10 +121,7 @@ Map<String, dynamic> toMapForExport() {
       'phone': phone,
       'salary': salary,
       'typeContract': typeContract,
-      'entryJobDate' : entryJobDate
+      'entryJobDate': entryJobDate
     };
   }
-
-
-
 }

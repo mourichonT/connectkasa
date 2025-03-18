@@ -49,7 +49,8 @@ class CreateAccountController {
         uid: userCredential.user!.uid,
         approved: false,
         // statutResident: "", // Remplacez par une logique réelle
-        typeLot: "", // Remplacez par une logique réelle
+        typeLot: "",
+        birthday: Timestamp.now(), // Remplacez par une logique réelle
         // compagnyBuy: false, // Remplacez par une logique réelle
       );
 
@@ -93,7 +94,7 @@ class CreateAccountController {
   }
 
   /// Vérifie la complexité du mot de passe
- static bool _isPasswordStrong(String password) {
+  static bool _isPasswordStrong(String password) {
     final regex = RegExp(
       r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])[A-Za-z\d!@#$%^&*(),.?":{}|<>]{8,}$',
     );

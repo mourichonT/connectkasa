@@ -10,10 +10,11 @@ class MyDropDownMenu extends StatefulWidget {
   final double width;
   final String label;
   String hintText;
+  bool inverseColor;
   final List<String> items;
   final Function(String) onValueChanged;
 
-  MyDropDownMenu(this.width, this.label, this.hintText,
+  MyDropDownMenu(this.width, this.label, this.hintText, this.inverseColor,
       {super.key,
       this.preferedLot,
       required this.items,
@@ -26,34 +27,47 @@ class MyDropDownMenu extends StatefulWidget {
 class MyDropDownMenuState extends State<MyDropDownMenu> {
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      //padding: EdgeInsets.symmetric(horizontal: 10),
-      width: widget.width,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          MyTextStyle.lotName(
-              "${widget.label} :", Colors.black87, SizeFont.h3.size),
-          DropdownMenu<String>(
-            //initialSelection: typeDeclaration,
-            hintText: widget.hintText,
-            onSelected: (String? value) {
-              // This is called when the user selects an item.
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        color: widget.inverseColor
+            ? Colors.white
+            : Color(0xFFF5F6F9), // Light background color for the container
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10),
+        child: DropdownMenu<String>(
+          inputDecorationTheme: const InputDecorationTheme(
+            border: InputBorder.none, // Supprime la bordure
+            enabledBorder: InputBorder
+                .none, // Supprime la bordure lorsque le champ est activé
+            focusedBorder: InputBorder
+                .none, // Supprime la bordure lorsque le champ est sélectionné
+            errorBorder:
+                InputBorder.none, // Supprime la bordure en cas d'erreur
+            focusedErrorBorder: InputBorder
+                .none, // Supprime la bordure en cas d'erreur et de focus
+            disabledBorder: InputBorder
+                .none, // Supprime la bordure lorsque le champ est désactivé
+          ),
+          hintText: widget.hintText,
+          onSelected: (String? value) {
+            if (value != null) {
               setState(() {
-                widget.hintText = value!;
+                widget.hintText = value;
                 widget.onValueChanged(value);
               });
-            },
-            dropdownMenuEntries:
-                widget.items.map<DropdownMenuEntry<String>>((String value) {
-              return DropdownMenuEntry<String>(
-                value: value,
-                label: value,
-              );
-            }).toList(),
-            width: widget.width / 1.8,
-          )
-        ],
+            }
+          },
+          dropdownMenuEntries:
+              widget.items.map<DropdownMenuEntry<String>>((String value) {
+            return DropdownMenuEntry<String>(
+              value: value,
+              label: value,
+            );
+          }).toList(),
+          width: widget.width,
+        ),
       ),
     );
   }

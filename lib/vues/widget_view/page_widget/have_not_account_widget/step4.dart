@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_user.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
@@ -304,6 +305,7 @@ class _Step4State extends State<Step4> {
                       justifChoice:
                           justifChoice, // Passage en tant qu'argument nommé
                       imagepathJustif: imagePathJustif,
+                      birthday: Timestamp.now(),
                     );
                     showDialog(
                       context: context,
