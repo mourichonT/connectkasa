@@ -9,6 +9,8 @@ import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
+import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
@@ -142,7 +144,7 @@ class EventFormState extends State<EventForm> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -248,8 +250,7 @@ class EventFormState extends State<EventForm> {
                     visible: itemsCSMembers.contains(widget.uid),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 20),
-                      decoration: BoxDecoration(
-                          color: Colors.black12.withOpacity(0.05)),
+                      decoration: BoxDecoration(color: Color(0xFFF5F6F9)),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.center,
@@ -334,6 +335,7 @@ class EventFormState extends State<EventForm> {
                                       MediaQuery.of(context).size.width,
                                       "Prestataire",
                                       "Choisir un prestataire",
+                                      true,
                                       items: prestataireNoms,
                                       onValueChanged: (String value) {
                                         setState(() {
@@ -352,129 +354,87 @@ class EventFormState extends State<EventForm> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 10, bottom: 20),
+                    padding: const EdgeInsets.only(
+                      top: 20,
+                      bottom: 20,
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 90,
-                                child: MyTextStyle.lotName(
-                                  "Titre : ",
-                                  Colors.black87,
-                                  SizeFont.h3.size,
-                                ),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: TextField(
-                                  controller: title,
-                                  maxLines: 1,
-                                  decoration: InputDecoration.collapsed(
-                                    hintText:
-                                        "Saisissez le titre de votre évenement",
-                                    hintStyle: TextStyle(
-                                      fontSize: SizeFont.h3.size,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                        CustomTextFieldWidget(
+                          label: "Titre",
+                          text: "Définissez un titre pour votre post",
+                          controller: title,
+                          isEditable: true,
+                          minLines: 1,
+                          maxLines: 1,
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 25),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: 90,
-                                child: MyTextStyle.lotName(
-                                  "Description : ",
-                                  Colors.black87,
-                                  SizeFont.h3.size,
-                                ),
-                              ),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: TextField(
-                                  controller: desc,
-                                  maxLines: 4,
-                                  decoration: InputDecoration.collapsed(
-                                    hintText: "Saisissez une description",
-                                    hintStyle: TextStyle(
-                                      fontSize: SizeFont.h3.size,
-                                      fontStyle: FontStyle.italic,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+
+                        /// 📝 **Description (Remplacé par CustomTextFieldWidget)**
+                        CustomTextFieldWidget(
+                            label: "Description",
+                            controller: desc,
+                            isEditable: true,
+                            minLines: 6,
+                            maxLines: 6,
+                            text: "Donnez des précisions sur la déclaration"),
+                        CameraOrFiles(
+                          racineFolder: "residences",
+                          residence: widget.residence,
+                          folderName: "events",
+                          title: title.text,
+                          onImageUploaded: downloadImagePath,
+                          cardOverlay: false,
                         ),
                       ],
                     ),
                   ),
-                  const Divider(),
                 ],
               ),
             ),
-            CameraOrFiles(
-              racineFolder: "residences",
-              residence: widget.residence,
-              folderName: "events",
-              title: title.text,
-              onImageUploaded: downloadImagePath,
-              cardOverlay: false,
-            ),
-            const SizedBox(height: 30),
-            const Divider(),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () {
-                if (imagePath.isEmpty ||
-                    _dateEventController.text.isEmpty ||
-                    title.text.isEmpty ||
-                    desc.text.isEmpty ||
-                    imagePath.isEmpty) {
-                  // Show an error message or disable the button
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      backgroundColor: Colors.red,
-                      content: Text(
-                        'Tous les champs sont requis!',
-                        style: TextStyle(color: Colors.white),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 45),
+              child: ButtonAdd(
+                color: Theme.of(context).primaryColor,
+                //icon: Icons.add,
+                text: "Ajouter l'événement",
+                horizontal: 20,
+                vertical: 5,
+                size: SizeFont.h3.size,
+                function: () {
+                  if (imagePath.isEmpty ||
+                      _dateEventController.text.isEmpty ||
+                      title.text.isEmpty ||
+                      desc.text.isEmpty ||
+                      imagePath.isEmpty) {
+                    // Show an error message or disable the button
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: Colors.red,
+                        content: Text(
+                          'Tous les champs sont requis!',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
-                    ),
+                    );
+                    return;
+                  }
+                  SubmitPostController.submitForm(
+                    uid: widget.uid,
+                    idPost: idPost,
+                    eventType: _selectedEventTypes.map((e) => e.value).toList(),
+                    prestaName: presta,
+                    selectedLabel: "events",
+                    imagePath: imagePath,
+                    eventDate: eventDate,
+                    title: title,
+                    desc: desc,
+                    docRes: widget.residence,
                   );
-                  return;
-                }
-
-                SubmitPostController.submitForm(
-                  uid: widget.uid,
-                  idPost: idPost,
-                  eventType: _selectedEventTypes.map((e) => e.value).toList(),
-                  prestaName: presta,
-                  selectedLabel: "events",
-                  imagePath: imagePath,
-                  eventDate: eventDate,
-                  title: title,
-                  desc: desc,
-                  docRes: widget.residence,
-                );
-                widget.onEventAdded();
-              },
-              child: MyTextStyle.lotName(
-                "Ajouter",
-                Theme.of(context).primaryColor,
-                SizeFont.h3.size,
+                  widget.onEventAdded();
+                },
               ),
             ),
-            const SizedBox(height: 15),
           ],
         ),
       ),

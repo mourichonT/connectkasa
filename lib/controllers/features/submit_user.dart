@@ -18,6 +18,7 @@ class SubmitUser {
     required String intendedFor,
     required String typeChoice,
     required bool compagnyBuy,
+    required Timestamp birthday,
     String? companyName,
     String? pseudo,
 
@@ -45,6 +46,7 @@ class SubmitUser {
       approved: false,
       //statutResident: statutResident,
       typeLot: typeChoice,
+      birthday: birthday,
       //compagnyBuy: compagnyBuy,
     );
 

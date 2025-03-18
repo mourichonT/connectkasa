@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_user.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
@@ -6,8 +7,10 @@ import 'package:connect_kasa/models/legal_texts/info_centre.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/profile_page_view.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
+import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class InfoPersoPageModify extends StatefulWidget {
   final User user;
@@ -34,6 +37,7 @@ class InfoPersoPageModify extends StatefulWidget {
 class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
   TextEditingController name = TextEditingController();
   TextEditingController surname = TextEditingController();
+  TextEditingController birthday = TextEditingController();
   TextEditingController pseudo = TextEditingController();
   TextEditingController bio = TextEditingController();
   TextEditingController profession = TextEditingController();
@@ -42,6 +46,7 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
 
   FocusNode nameFocusNode = FocusNode();
   FocusNode surnameFocusNode = FocusNode();
+  FocusNode birthdayFocusNode = FocusNode();
   FocusNode pseudoFocusNode = FocusNode();
   FocusNode bioFocusNode = FocusNode();
   FocusNode professionFocusNode = FocusNode();
@@ -56,6 +61,11 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
     name.text = widget.user.name;
     surname.text = widget.user.surname;
     pseudo.text = widget.user.pseudo!;
+    if (widget.user.birthday != null) {
+      DateTime birthDate =
+          (widget.user.birthday as Timestamp).toDate().toLocal();
+      birthday.text = DateFormat('dd/MM/yyyy').format(birthDate);
+    }
     bio.text = widget.user.bio!;
     profilPic = widget.user.profilPic;
     profession.text = widget.user.profession!;
@@ -94,11 +104,31 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
             children: [
-              _buildReadOnlyTextField("name", name.text),
-              _buildReadOnlyTextField('Prénom', surname.text),
+              CustomTextFieldWidget(
+                label: "Nom",
+                value: name
+                    .text, // Assurez-vous que `name` est un TextEditingController
+                isEditable: false,
+              ),
+              CustomTextFieldWidget(
+                label: "Prénom",
+                value: surname
+                    .text, // Assurez-vous que `name` est un TextEditingController
+                isEditable: false,
+              ),
+              CustomTextFieldWidget(
+                label: 'Date de naissance',
+                value: birthday
+                    .text, // Assurez-vous que `name` est un TextEditingController
+                isEditable: false,
+              ),
               Padding(
-                padding: const EdgeInsets.only(bottom: 30),
+                padding: const EdgeInsets.only(
+                    left: 10, bottom: 30, top: 5, right: 10),
                 child: MyTextStyle.lotDesc(
                   InfoCentre.changeNameforbidden,
                   SizeFont.para.size,
@@ -106,142 +136,64 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
                   FontWeight.normal,
                 ),
               ),
-              _buildModifyTextField(
-                  "pseudo", "Pseudo", pseudo, pseudoFocusNode),
-              _buildModifyTextField("bio", "Biographie", bio, bioFocusNode,
-                  maxLines: 5, minLines: 2),
-              _buildModifyTextField(
-                  "profession", "Profession", profession, professionFocusNode),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildModifyTextField(String field, String label,
-      TextEditingController controller, FocusNode focusNode,
-      {int maxLines = 5, int minLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              maxLines: maxLines,
-              minLines: minLines,
-              onSubmitted: (value) {},
-              decoration: InputDecoration(
-                labelText: label,
-                labelStyle: const TextStyle(
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w400,
-                ),
-                border: const UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.grey,
-                    width: 1.0,
-                  ),
-                ),
-              ),
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: SizeFont.h3.size,
-              ),
-            ),
-          ),
-          if (focusNode.hasFocus)
-            IconButton(
-              onPressed: () {
-                SubmitUser.UpdateUser(
-                  context: context,
-                  uid: widget.uid,
-                  field: field,
-                  label: label,
-                  value: controller.text,
-                );
-                focusNode.unfocus();
-                widget.refresh();
-              },
-              icon: const Icon(Icons.check),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReadOnlyTextField(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: TextField(
-        controller: TextEditingController(text: value ?? ''),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(
-            color: Colors.black54,
-            fontWeight: FontWeight.w400,
-          ),
-          enabled: false,
-          border: const UnderlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.grey,
-              width: 1.0,
-            ),
-          ),
-        ),
-        style: TextStyle(
-          color: Colors.black54,
-          fontSize: SizeFont.h3.size,
-        ),
-      ),
-    );
-  }
-
-  Future<void> resetPassword(String email) async {
-    try {
-      await firebase_auth.FirebaseAuth.instance
-          .sendPasswordResetEmail(email: email);
-      // Affichez un message à l'utilisateur indiquant que l'e-mail de réinitialisation a été envoyé
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Réinitialisation du mot de passe'),
-            content: Text(
-                'Un e-mail de réinitialisation du mot de passe a été envoyé à $email.'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
+              CustomTextFieldWidget(
+                label: "Pseudo",
+                field: "pseudo",
+                controller: pseudo,
+                focusNode: pseudoFocusNode,
+                isEditable: true,
+                onSubmit: (field, label, value) {
+                  SubmitUser.UpdateUser(
+                    context: context,
+                    uid: widget.uid,
+                    field: field,
+                    label: label,
+                    value: value,
+                  );
+                  widget.refresh();
                 },
+                refresh: () => setState(() {}),
               ),
-            ],
-          );
-        },
-      );
-    } catch (e) {
-      // Gérez les erreurs ici, par exemple, si l'e-mail n'est pas valide ou si une autre erreur survient
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Erreur'),
-            content: const Text(
-                'Erreur lors de l\'envoi de l\'e-mail de réinitialisation du mot de passe.'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
+              CustomTextFieldWidget(
+                label: "Biographie",
+                field: "bio",
+                controller: bio,
+                focusNode: bioFocusNode,
+                isEditable: true,
+                onSubmit: (field, label, value) {
+                  SubmitUser.UpdateUser(
+                    context: context,
+                    uid: widget.uid,
+                    field: field,
+                    label: label,
+                    value: value,
+                  );
+                  widget.refresh();
                 },
+                refresh: () => setState(() {}),
+              ),
+              CustomTextFieldWidget(
+                label: "Profession",
+                field: "profession",
+                controller: profession,
+                focusNode: professionFocusNode,
+                isEditable: true,
+                onSubmit: (field, label, value) {
+                  SubmitUser.UpdateUser(
+                    context: context,
+                    uid: widget.uid,
+                    field: field,
+                    label: label,
+                    value: value,
+                  );
+                  widget.refresh();
+                },
+                refresh: () => setState(() {}),
               ),
             ],
-          );
-        },
-      );
-    }
+          ),
+        ),
+      ),
+    );
   }
 }

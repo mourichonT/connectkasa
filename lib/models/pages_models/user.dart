@@ -5,6 +5,7 @@ class User {
   String _profilPic = "";
   String name;
   String surname;
+  Timestamp birthday;
   String? pseudo;
   String uid;
   String? profession;
@@ -12,13 +13,13 @@ class User {
   Timestamp? createdDate;
   bool approved;
   bool private;
-  String _solde = "0"; // Nouvel attribut pour le solde
 
   User({
     required this.email,
     String profilPic = "",
     required this.name,
     required this.surname,
+    required this.birthday,
     required this.uid,
     this.profession,
     this.pseudo,
@@ -29,17 +30,6 @@ class User {
     String solde = "0",
   }) {
     _profilPic = profilPic;
-    _solde = solde;
-  }
-
-  // Méthode pour obtenir le solde
-  String get solde => _solde;
-
-  // Méthode pour définir le solde
-  set solde(String newSolde) {
-    if (newSolde != '0') {
-      _solde = newSolde;
-    }
   }
 
   String? get profilPic {
@@ -60,34 +50,24 @@ class User {
     private = newValue;
   }
 
-  String setSolde(solde) {
-    if (solde == 0) {
-      return "0 €";
-    } else if (solde == "1") {
-      return "$solde €";
-    } else {
-      return "$solde €";
-    }
-  }
-
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
-      email: map['email']??"",
+      email: map['email'] ?? "",
       profilPic: map['profilPic'] ?? "",
       approved: map['approved'] ?? false,
       createdDate: map['createdDate'] ?? "",
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",
+      birthday: map['birthday'] as Timestamp,
       pseudo: map['pseudo'] ?? "",
       uid: map['uid'] ?? "",
-      profession: map[
-          'profession']??"", // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
-      bio: map[
-          'bio']??"", // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
+      profession: map['profession'] ??
+          "", // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
+      bio: map['bio'] ??
+          "", // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
       private: map['private'] ??
           false, // Si 'private' est null, utilisez false par défaut
-      solde: map['solde'] ??
-          "0", // Ajout du solde lors de la création d'une instance depuis une Map
+      // Ajout du solde lors de la création d'une instance depuis une Map
     );
   }
 
@@ -98,12 +78,12 @@ class User {
       'createdDate': createdDate,
       'name': name,
       'surname': surname,
+      'birthday': birthday,
       'pseudo': pseudo,
       'uid': uid,
       'profession': profession,
       'bio': bio,
       'private': private,
-      'solde': _solde, // Ajout du solde lors de la conversion en Map
     };
   }
 }

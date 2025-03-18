@@ -3,6 +3,7 @@ import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
+import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
 
 class InciviliteForm extends StatefulWidget {
@@ -82,10 +83,6 @@ class InciviliteFormState extends State<InciviliteForm> {
           mainAxisSize: MainAxisSize.max,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Divider(),
-            const SizedBox(
-              height: 15,
-            ),
             Center(
               child: CameraOrFiles(
                 racineFolder: widget.racineFolder,
@@ -97,48 +94,30 @@ class InciviliteFormState extends State<InciviliteForm> {
                 cardOverlay: false,
               ),
             ),
-            const Divider(),
             Column(
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.max,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                MyTextStyle.lotName(
-                    "Titre : ", Colors.black87, SizeFont.h3.size),
-                const SizedBox(
-                  height: 15,
-                ),
-                TextField(
+                CustomTextFieldWidget(
+                  label: "Titre",
+                  text: "Définissez un titre pour votre post",
                   controller: title,
+                  isEditable: true,
+                  minLines: 1,
                   maxLines: 1,
-                  decoration: const InputDecoration.collapsed(
-                      hintText: "Saisissez le titre de votre post"),
                 ),
+
+                /// 📝 **Description (Remplacé par CustomTextFieldWidget)**
+                CustomTextFieldWidget(
+                    label: "Description",
+                    controller: desc,
+                    isEditable: true,
+                    minLines: 6,
+                    maxLines: 6,
+                    text: "Donnez des précisions sur la déclaration"),
               ],
             ),
-            const SizedBox(
-              height: 15,
-            ),
-            const Divider(),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MyTextStyle.lotName(
-                    "Description : ", Colors.black87, SizeFont.h3.size),
-                const SizedBox(
-                  height: 15,
-                ),
-                TextField(
-                  controller: desc,
-                  maxLines: 6,
-                  decoration: const InputDecoration.collapsed(
-                      hintText: "Saisissez une description"),
-                ),
-              ],
-            ),
-            const Divider(),
             const SizedBox(
               height: 15,
             ),
