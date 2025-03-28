@@ -6,6 +6,9 @@ class User {
   String name;
   String surname;
   Timestamp birthday;
+  String sex;
+  String nationality;
+  String placeOfborn;
   String? pseudo;
   String uid;
   String? profession;
@@ -20,6 +23,9 @@ class User {
     required this.name,
     required this.surname,
     required this.birthday,
+    required this.sex,
+    required this.nationality,
+    required this.placeOfborn,
     required this.uid,
     this.profession,
     this.pseudo,
@@ -59,6 +65,9 @@ class User {
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",
       birthday: map['birthday'] as Timestamp,
+      sex: map['sex'] ?? "",
+      nationality: map['nationality'] ?? "",
+      placeOfborn: map['placeOfborn'] ?? "",
       pseudo: map['pseudo'] ?? "",
       uid: map['uid'] ?? "",
       profession: map['profession'] ??
@@ -79,6 +88,9 @@ class User {
       'name': name,
       'surname': surname,
       'birthday': birthday,
+      'sex': sex,
+      'nationality': nationality,
+      'placeOfborn': placeOfborn,
       'pseudo': pseudo,
       'uid': uid,
       'profession': profession,

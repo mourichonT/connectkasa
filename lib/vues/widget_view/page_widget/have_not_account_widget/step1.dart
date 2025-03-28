@@ -59,48 +59,60 @@ class _Step1State extends State<Step1> {
             height: 30,
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: FutureBuilder<List<String>>(
-              future: saisieAsyncFunction(_addressController.text),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator(); // Indicateur de chargement
-                } else {
-                  return AutoCompleteTextField<String>(
-                      controller: _addressController,
-                      itemSubmitted: (item) {
-                        setState(() {
-                          _addressController.text = item;
-                          visible = true;
-                          selectedResidence = residencesTrouvees.firstWhere(
-                              (residence) =>
-                                  "${residence.name} - ${residence.numero} ${residence.street} ${residence.zipCode} ${residence.city}" ==
-                                  item);
-                        });
-                      },
-                      key: GlobalKey<AutoCompleteTextFieldState<String>>(),
-                      itemBuilder: (context, item) {
-                        return ListTile(
-                          title: Text(item),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF5F6F9),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: FutureBuilder<List<String>>(
+                    future: saisieAsyncFunction(_addressController.text),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else {
+                        return AutoCompleteTextField<String>(
+                          controller: _addressController,
+                          itemSubmitted: (item) {
+                            setState(() {
+                              _addressController.text = item;
+                              visible = true;
+                              selectedResidence = residencesTrouvees.firstWhere(
+                                  (residence) =>
+                                      "${residence.name} - ${residence.numero} ${residence.street} ${residence.zipCode} ${residence.city}" ==
+                                      item);
+                            });
+                          },
+                          key: GlobalKey<AutoCompleteTextFieldState<String>>(),
+                          itemBuilder: (context, item) {
+                            return ListTile(
+                              title: Text(item),
+                            );
+                          },
+                          itemSorter: (a, b) => a.compareTo(b),
+                          itemFilter: (item, query) =>
+                              item.toLowerCase().contains(query.toLowerCase()),
+                          suggestions: snapshot.data ?? [],
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Nom de résidence / Adresse / Ville',
+                            hintStyle:
+                                TextStyle(color: Colors.black45, fontSize: 15),
+                          ),
+                          submitOnSuggestionTap: true,
+                          clearOnSubmit: false,
                         );
-                      },
-                      itemSorter: (a, b) {
-                        return a.compareTo(b);
-                      },
-                      itemFilter: (item, query) {
-                        return item.toLowerCase().contains(query.toLowerCase());
-                      },
-                      suggestions: snapshot.data ??
-                          [], // Utilise les données de la future
-                      decoration: const InputDecoration(
-                        hintText: 'Nom de résidence / Adresse / Ville',
-                        hintStyle:
-                            TextStyle(color: Colors.black45, fontSize: 15),
-                      ),
-                      submitOnSuggestionTap: true,
-                      clearOnSubmit: false);
-                }
-              },
+                      }
+                    },
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(

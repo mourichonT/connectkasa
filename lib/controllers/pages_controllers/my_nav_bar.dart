@@ -226,7 +226,7 @@ class _MyNavBarState extends State<MyNavBar>
               RouteController().createRoute(
                 PostFormController(
                   racineFolder: "residences",
-                  preferedLot: preferedLot!,
+                  preferedLot: preferedLot ?? defaultLot,
                   uid: uid,
                 ),
               ),

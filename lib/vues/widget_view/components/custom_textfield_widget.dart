@@ -69,6 +69,7 @@ class CustomTextFieldWidget extends StatelessWidget {
                     color: Colors.black87,
                     fontSize: 16,
                     fontWeight: FontWeight.w400),
+                onChanged: (value) => refresh?.call(),
               ),
             ),
             if (focusNode?.hasFocus ?? false)

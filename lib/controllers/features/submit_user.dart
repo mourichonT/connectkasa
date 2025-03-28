@@ -19,6 +19,9 @@ class SubmitUser {
     required String typeChoice,
     required bool compagnyBuy,
     required Timestamp birthday,
+    required String sex,
+    required String nationality,
+    required String placeOfborn,
     String? companyName,
     String? pseudo,
 
@@ -47,9 +50,36 @@ class SubmitUser {
       //statutResident: statutResident,
       typeLot: typeChoice,
       birthday: birthday,
+      sex: sex,
+      nationality: nationality,
+      placeOfborn: placeOfborn,
       //compagnyBuy: compagnyBuy,
     );
-
+    print("----- Données reçues pour la création d'un utilisateur -----");
+    print("Email: $emailUser");
+    print("Nom: $name");
+    print("Prénom: $surname");
+    print("Pseudo: ${pseudo ?? "Non défini"}");
+    print("ID Utilisateur: $newUserId");
+    print("Statut Résident: $statutResident");
+    print("Intended For: $intendedFor");
+    print("Type de Lot: $typeChoice");
+    print("Achat via Société: ${compagnyBuy ? "Oui" : "Non"}");
+    print("Nom de la Société: ${companyName ?? "Non défini"}");
+    print("Date de naissance: $birthday");
+    print("Sexe: $sex");
+    print("Nationalité: $nationality");
+    print("Lieu de naissance: $placeOfborn");
+    print("Résidence: ${residence.id} - ${residence.name}");
+    print("Lot ID: $lotId");
+    print("Type de Document ID: ${docTypeID ?? "Non défini"}");
+    print("Type de Document Justificatif: ${docTypeJustif ?? "Non défini"}");
+    print("Chemin ID Recto: ${imagepathIDrecto ?? "Non défini"}");
+    print("Chemin ID Verso: ${imagepathIDverso ?? "Non défini"}");
+    print("Justificatif: ${justifChoice ?? "Non défini"}");
+    print("Chemin Justificatif: ${imagepathJustif ?? "Non défini"}");
+    print("Kbis Path: ${kbisPath ?? "Non défini"}");
+    print("----------------------------------------------------------");
     dataBasesUserServices.setUser(
         newUser, "${residence.id}-$lotId", compagnyBuy, companyName);
 

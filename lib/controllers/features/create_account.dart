@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/progress_widget.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/progress_widget.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -45,6 +45,9 @@ class CreateAccountController {
         createdDate: Timestamp.now(),
         name: "", // Remplacez par une saisie réelle
         surname: "", // Remplacez par une saisie réelle
+        sex: "",
+        nationality: "",
+        placeOfborn: "",
         pseudo: "", // Remplacez par une saisie réelle
         uid: userCredential.user!.uid,
         approved: false,

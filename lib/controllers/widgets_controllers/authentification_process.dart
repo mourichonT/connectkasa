@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/progress_widget.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/progress_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as Firebase;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -123,7 +123,7 @@ class AuthentificationProcess {
   //   }
   // }
 
-    // Méthode de connexion avec Microsoft
+  // Méthode de connexion avec Microsoft
   // Future<Firebase.User?> fluttLogInWithMicrosoft() async {
   //   try {
   //     // Charger les données utilisateur
@@ -170,7 +170,7 @@ class AuthentificationProcess {
   //     return null;
   //   }
   // }
-  
+
   Future SignInWithMail(UserCredential userCredential) async {
     User checkUser = userCredential.user!;
 
@@ -191,7 +191,7 @@ class AuthentificationProcess {
       // Peut-être afficher un message d'erreur ou effectuer une autre action appropriée
       return null;
     }
-    }
+  }
 
   void navigateToMyApp(String userID, FirebaseFirestore firestore) {
     Navigator.push(
@@ -217,7 +217,10 @@ class AuthentificationProcess {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ProgressWidget(userId: user.uid, emailUser: user.email,),
+          builder: (context) => ProgressWidget(
+            userId: user.uid,
+            emailUser: user.email,
+          ),
           //Step0(newUser: user.uid),
         ),
       );

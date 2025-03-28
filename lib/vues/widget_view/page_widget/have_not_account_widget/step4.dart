@@ -4,6 +4,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_user.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
+import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 
 class Step4 extends StatefulWidget {
@@ -19,11 +20,18 @@ class Step4 extends StatefulWidget {
   final String name;
   final String surname;
   final String pseudo;
+  final Timestamp birthday;
+  final String imagepathIDrecto;
+  final String imagepathIDverso;
   final bool compagnyBuy;
   final String intendedFor;
   final String refLot;
   final String typeLot;
   final String kbisPath;
+  final String sex;
+  final String nationality;
+  final String placeOfBorn;
+  final Function(bool) onCameraStateChanged;
 
   const Step4({
     super.key,
@@ -34,6 +42,9 @@ class Step4 extends StatefulWidget {
     required this.progressController,
     required this.name,
     required this.surname,
+    required this.birthday,
+    required this.imagepathIDrecto,
+    required this.imagepathIDverso,
     required this.pseudo,
     required this.compagnyBuy,
     required this.kbisPath,
@@ -42,6 +53,10 @@ class Step4 extends StatefulWidget {
     required this.userId,
     required this.typeLot,
     required this.emailUser,
+    required this.sex,
+    required this.nationality,
+    required this.placeOfBorn,
+    required this.onCameraStateChanged,
   });
 
   @override
@@ -54,8 +69,8 @@ class _Step4State extends State<Step4> {
   bool visible = false;
   bool visibleID = false;
   bool visibleJustif = false;
-  String imagePathIDrecto = "";
-  String imagePathIDverso = "";
+  //String imagePathIDrecto = "";
+  //String imagePathIDverso = "";
   String imagePathJustif = "";
   String justifChoice = "";
   String? idChoice = "";
@@ -77,30 +92,6 @@ class _Step4State extends State<Step4> {
     "Contrat de bail",
   ];
 
-  String getIdType() {
-    return idChoice!;
-  }
-
-  String getKbis() {
-    return idChoice!;
-  }
-
-  String getPathIdrect() {
-    return imagePathIDrecto;
-  }
-
-  String getPathIdvers() {
-    return imagePathIDverso;
-  }
-
-  String getJustifType() {
-    return justifChoice;
-  }
-
-  String getJustifPath() {
-    return imagePathJustif;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -111,131 +102,36 @@ class _Step4State extends State<Step4> {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SingleChildScrollView(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.max,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
-              child: MyTextStyle.lotName(
-                  "A présent veuillez nous fournir une pièce d'identité et un justificatif de domicile du bien de la residence ${widget.residence.name}",
-                  Colors.black54),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  MyTextStyle.lotName("Type de document: ", Colors.black54),
-                  DropdownMenu<String>(
-                    //initialSelection: typeDeclaration,
-                    hintText: "Choisir...",
-                    onSelected: (String? value) {
-                      // This is called when the user selects an item.
-                      setState(() {
-                        idChoice = value;
-                        visibleID = true;
-                      });
-                    },
-                    dropdownMenuEntries:
-                        idType.map<DropdownMenuEntry<String>>((String value) {
-                      return DropdownMenuEntry<String>(
-                          value: value, label: value);
-                    }).toList(),
-                    width: width / 2,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            Visibility(
-              visible: visibleID,
-              child: Column(
-                children: [
-                  const Divider(),
-                  CameraOrFiles(
-                    racineFolder: 'user',
-                    residence: widget.userId,
-                    folderName: 'documentID',
-                    title: idChoice!,
-                    onImageUploaded: (downloadUrl) =>
-                        downloadImagePathID(downloadUrl, true),
-                    cardOverlay: true,
-                  ),
-                ],
-              ),
-            ),
-            Visibility(
-              visible: imagePathIDrecto != "",
-              child: Column(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 10, horizontal: 20),
-                    child: MyTextStyle.lotName(
-                        "Merci de prendre l'autre coté de la carte",
-                        Colors.black54),
-                  ),
-                  CameraOrFiles(
-                    racineFolder: 'user',
-                    residence: widget.userId,
-                    folderName: 'documentID',
-                    title: idChoice!,
-                    onImageUploaded: (downloadUrl) =>
-                        downloadImagePathID(downloadUrl, false),
-                    cardOverlay: true,
-                  ),
-                ],
-              ),
-            ),
-            Visibility(
-              visible: imagePathIDverso != "",
-              child: Column(
-                children: [
-                  const Divider(),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 30, horizontal: 20),
+                    padding: const EdgeInsets.symmetric(vertical: 30),
                     child: MyTextStyle.lotName(
                         "Maintenant fournissez un justificatif de domicile, attention ce document dois être au nom du document d'identité fournis",
                         Colors.black54),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        MyTextStyle.lotName(
-                            "Type de document: ", Colors.black54),
-                        DropdownMenu<String>(
-                          //initialSelection: typeDeclaration,
-                          hintText: "Choisir...",
-                          onSelected: (String? value) {
-                            // This is called when the user selects an item.
-                            setState(() {
-                              justifChoice = value!;
-                              visibleJustif = true;
-                            });
-                          },
-                          dropdownMenuEntries: widget.residentType ==
-                                  "Locataire"
-                              ? justifTypeLoc.map<DropdownMenuEntry<String>>(
-                                  (String value) {
-                                  return DropdownMenuEntry<String>(
-                                      value: value, label: value);
-                                }).toList()
-                              : justifTypeProp.map<DropdownMenuEntry<String>>(
-                                  (String value) {
-                                  return DropdownMenuEntry<String>(
-                                      value: value, label: value);
-                                }).toList(),
-                          width: width / 2,
-                        ),
-                      ],
-                    ),
+                  MyDropDownMenu(
+                    // Replacing DropdownMenu with MyDropDownMenu
+                    width,
+                    "Type de document",
+                    "Choisir un type de document",
+                    false,
+                    items: widget.residentType == "Locataire"
+                        ? justifTypeLoc
+                        : justifTypeProp,
+                    onValueChanged: (String value) {
+                      setState(() {
+                        justifChoice = value;
+                        visibleJustif = true;
+                      });
+                    },
                   ),
                   const SizedBox(
                     height: 30,
@@ -244,13 +140,16 @@ class _Step4State extends State<Step4> {
                     visible: visibleJustif,
                     child: Column(
                       children: [
-                        const Divider(),
                         CameraOrFiles(
                           racineFolder: 'user',
                           residence: widget.userId,
                           folderName: 'justificatifDom',
                           title: idChoice!,
-                          onImageUploaded: downloadImagePathJustif,
+                          onCameraStateChanged: (bool isOpen) {
+                            widget.onCameraStateChanged(isOpen);
+                          },
+                          onImageUploaded: (downloadUrl) =>
+                              downloadPath(downloadUrl, false),
                           cardOverlay: true,
                         ),
                       ],
@@ -258,12 +157,12 @@ class _Step4State extends State<Step4> {
                   ),
                 ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Visibility(
-        visible: getJustifPath().isNotEmpty,
+        visible: visibleJustif,
         child: BottomAppBar(
           surfaceTintColor: Colors.white,
           padding: const EdgeInsets.all(2),
@@ -277,16 +176,13 @@ class _Step4State extends State<Step4> {
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor),
                   onPressed: () {
-                    String IdDoc = getIdType();
-                    String pathIdrecto = getPathIdrect();
-                    String pathIdverso = getPathIdvers();
-                    String justifChoice = getJustifType();
-                    String pathJustif = getJustifType();
-
                     SubmitUser.submitUser(
                       emailUser: widget.emailUser,
                       name: widget.name,
                       surname: widget.surname,
+                      sex: widget.sex,
+                      nationality: widget.nationality,
+                      placeOfborn: widget.placeOfBorn,
                       pseudo: widget.pseudo,
                       newUserId: widget.userId,
                       statutResident: widget.residentType,
@@ -298,14 +194,14 @@ class _Step4State extends State<Step4> {
                       lotId: widget.refLot,
                       docTypeID: idChoice,
                       docTypeJustif: justifChoice,
-                      imagepathIDrecto:
-                          imagePathIDrecto, // Passage en tant qu'argument nommé
-                      imagepathIDverso:
-                          imagePathIDverso, // Passage en tant qu'argument nommé
+                      imagepathIDrecto: widget
+                          .imagepathIDrecto, // Passage en tant qu'argument nommé
+                      imagepathIDverso: widget
+                          .imagepathIDverso, // Passage en tant qu'argument nommé
                       justifChoice:
                           justifChoice, // Passage en tant qu'argument nommé
                       imagepathJustif: imagePathJustif,
-                      birthday: Timestamp.now(),
+                      birthday: widget.birthday,
                     );
                     showDialog(
                       context: context,
@@ -339,19 +235,8 @@ class _Step4State extends State<Step4> {
     );
   }
 
-  void downloadImagePathID(String downloadUrl, bool isRecto) {
+  void downloadPath(String downloadUrl, bool isRecto) {
     setState(() {
-      if (isRecto) {
-        imagePathIDrecto = downloadUrl;
-      } else {
-        imagePathIDverso = downloadUrl;
-      }
-    });
-  }
-
-  void downloadImagePathJustif(String downloadUrl) {
-    setState(() {
-      //widget.updateUrl(downloadUrl);
       imagePathJustif = downloadUrl;
     });
   }

@@ -258,12 +258,14 @@ class DataBasesUserServices {
           amountHousingAllowance: userInfoMap['amount_housingAllowance'] ?? "",
           dependent: userInfoMap['dependent'] ?? 0,
           familySituation: userInfoMap['familySituation'] ?? "",
-          nationality: userInfoMap['nationality'] ?? "",
+          nationality: user.nationality,
           phone: userInfoMap['phone'] ?? "",
           salary: userInfoMap['salary'] ?? "",
           typeContract: userInfoMap['typeContract'] ?? "",
           entryJobDate: userInfoMap['entryJobDate'] ??
               Timestamp.fromDate(DateTime(1900, 1, 1)),
+          sex: user.sex,
+          placeOfborn: user.placeOfborn,
         );
       } else {
         print("Aucun utilisateur trouvé avec l'ID '$userId'.");

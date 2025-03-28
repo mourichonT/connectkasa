@@ -8,6 +8,7 @@ import 'package:connect_kasa/vues/widget_view/components/my_text_fied.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/create_account.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPageView extends StatelessWidget {
   final FirebaseFirestore firestore;
@@ -16,6 +17,12 @@ class LoginPageView extends StatelessWidget {
   final TextEditingController _MdPController = TextEditingController();
 
   LoginPageView({super.key, required this.firestore});
+
+  Future<void> clearCache() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear(); // Supprime toutes les données stockées localement
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -200,10 +207,11 @@ class LoginPageView extends StatelessWidget {
             const SizedBox(width: 4),
             TextButton(
               onPressed: () {
+                clearCache();
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CreateAccount(firestore: firestore),
+                    builder: (context) => CreateAccount(),
                   ),
                 );
               },

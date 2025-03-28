@@ -9,14 +9,17 @@ import 'package:flutter/material.dart';
 
 class CreateAccount extends StatelessWidget {
   final controller = CreateAccountController();
-  final FirebaseFirestore firestore;
+  //final FirebaseFirestore firestore;
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   final LoadUserController _loadUserController = LoadUserController();
 
-  CreateAccount({super.key, required this.firestore});
+  CreateAccount({
+    super.key,
+    // required this.firestore,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +79,7 @@ class CreateAccount extends StatelessWidget {
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(6)),
                       ),
-                      backgroundColor: Theme.of(context).primaryColor,
+                      backgroundColor: Color.fromRGBO(72, 119, 91, 1.0),
                     ),
                     onPressed: () {
                       CreateAccountController.createAccount(
@@ -98,7 +101,7 @@ class CreateAccount extends StatelessWidget {
                     context,
                     28,
                     42,
-                    firestore,
+                    FirebaseFirestore.instance,
                     _loadUserController,
                     width,
                     "images/assets/logo_login/google.png",

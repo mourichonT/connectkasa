@@ -141,7 +141,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
   }
 
   Widget _buildDropDownMenu(double width, String label) {
-    List<String> statuts = StatutList.statutList();
+    List<String> statuts = ImmoList.statutList();
     bool isEnabled = !widget.lot.idLocataire!.contains(widget.uid);
 
     return Padding(

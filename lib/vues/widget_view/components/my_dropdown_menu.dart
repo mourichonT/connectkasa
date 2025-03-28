@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 class MyDropDownMenu extends StatefulWidget {
   final Lot? preferedLot;
   final double width;
-  final String label;
+  final String? label;
   String hintText;
   bool inverseColor;
   final List<String> items;

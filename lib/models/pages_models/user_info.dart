@@ -10,7 +10,6 @@ class UserInfo extends User {
   String amountHousingAllowance;
   int dependent;
   String familySituation;
-  String nationality;
   String phone;
   String salary;
   String typeContract;
@@ -23,7 +22,7 @@ class UserInfo extends User {
     this.amountHousingAllowance = "",
     this.dependent = 0,
     this.familySituation = "",
-    this.nationality = "",
+    required super.nationality,
     this.phone = "",
     this.salary = "",
     this.typeContract = "",
@@ -31,6 +30,8 @@ class UserInfo extends User {
     required super.name,
     required super.surname,
     required super.birthday,
+    required super.sex,
+    required super.placeOfborn,
     required super.uid,
     super.profession,
     super.pseudo,
@@ -49,6 +50,9 @@ class UserInfo extends User {
       email: map['email'] ?? "N/C",
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",
+      sex: map['sex'],
+      nationality: map['nationality'],
+      placeOfborn: map['placeOfborn'],
       pseudo: map['pseudo'] ?? "",
       uid: map['uid'] ?? "",
       approved: map['approved'] ?? false,
@@ -64,7 +68,6 @@ class UserInfo extends User {
       amountHousingAllowance: map['amountHousingAllowance'] ?? "",
       dependent: map['dependent'] ?? 0,
       familySituation: map['familySituation'] ?? "",
-      nationality: map['nationality'] ?? "",
       phone: map['phone'] ?? "",
       salary: map['salary'] ?? "",
       typeContract: map['typeContract'] ?? "",

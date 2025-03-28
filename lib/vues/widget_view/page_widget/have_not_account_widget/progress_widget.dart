@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
@@ -8,6 +11,7 @@ import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widge
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step4.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ProgressWidget extends StatefulWidget {
   final String userId;
@@ -28,6 +32,12 @@ class ProgressWidgetState extends State<ProgressWidget>
   String emailUser = "";
   String name = "";
   String surname = "";
+  Timestamp birthday = Timestamp.now();
+  String sex = "";
+  String imagePathIDrecto = "";
+  String imagePathIDverso = "";
+  String nationality = "";
+  String placeOfBorn = "";
   String pseudo = "";
   Residence? residence;
   String residentType = "";
@@ -43,12 +53,15 @@ class ProgressWidgetState extends State<ProgressWidget>
   String justifType = "";
   String pathJustif = "";
   String? refLot = "";
+  Timer? _deleteTimer;
+  bool isCameraOpen = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _progress = 1 / 5; // Assuming you have 5 steps
+    _startDeletionTimer();
   }
 
   @override
@@ -58,10 +71,17 @@ class ProgressWidgetState extends State<ProgressWidget>
     super.dispose();
   }
 
+  void _startDeletionTimer() {
+    _deleteTimer = Timer(Duration(minutes: 10), () {
+      DataBasesUserServices.removeUserById(widget.userId);
+    });
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.detached ||
-        state == AppLifecycleState.inactive) {
+    if ((state == AppLifecycleState.paused ||
+            state == AppLifecycleState.inactive) &&
+        !isCameraOpen) {
       // Supprimer l'utilisateur si l'application est fermée ou inactive
       try {
         final currentUser = FirebaseAuth.instance.currentUser;
@@ -79,14 +99,44 @@ class ProgressWidgetState extends State<ProgressWidget>
     }
   }
 
+  void _handleCameraState(bool isOpen) {
+    setState(() {
+      isCameraOpen = isOpen;
+    });
+  }
+
   void getInformationsStep0(
-      String email, String newName, String newSurname, String? newPseudo) {
+      String email,
+      String newName,
+      String newSurname,
+      String newBirthday,
+      String newSex,
+      String newNationality,
+      String newPlaceOfBorn,
+      String? newPseudo,
+      String newImagePathIDrecto,
+      String newimagePathIDverso) {
     // Faites ce que vous voulez avec les valeurs récupérées
-    print('Nom: $newName, Prénom: $newSurname, Pseudo: $newPseudo');
+    print(
+        'Nom: $newName, Prénom: $newSurname, Pseudo: $newPseudo, imagepath: $newimagePathIDverso');
     email = emailUser;
     name = newName;
+    sex = newSex;
+    birthday = formatBirthday(newBirthday);
+    imagePathIDrecto = newImagePathIDrecto;
+    imagePathIDverso = newimagePathIDverso;
+    nationality = newNationality;
+    placeOfBorn = newPlaceOfBorn;
     surname = newSurname;
     pseudo = newPseudo ?? "";
+  }
+
+  Timestamp formatBirthday(String date) {
+    DateFormat format = DateFormat("dd MM yyyy");
+    DateTime localDate = format.parse(date);
+    DateTime utcPlus3Date = localDate.add(Duration(hours: 3));
+    return Timestamp.fromMillisecondsSinceEpoch(
+        utcPlus3Date.millisecondsSinceEpoch);
   }
 
   void getInformationsStep1(Residence newResidence) {
@@ -194,6 +244,7 @@ class ProgressWidgetState extends State<ProgressWidget>
               recupererInformationsStep0: getInformationsStep0,
               currentPage: currentPage,
               progressController: _progressController,
+              onCameraStateChanged: _handleCameraState,
             ),
             Step1(
               recupererInformationsStep1: getInformationsStep1,
@@ -204,6 +255,7 @@ class ProgressWidgetState extends State<ProgressWidget>
               recupererInformationsStep2: getInformationsStep2,
               currentPage: currentPage,
               progressController: _progressController,
+              onCameraStateChanged: _handleCameraState,
             ),
             Step3(
               typeResident: residentType,
@@ -226,6 +278,11 @@ class ProgressWidgetState extends State<ProgressWidget>
               emailUser: widget.emailUser!,
               name: name,
               surname: surname,
+              sex: sex,
+              nationality: nationality,
+              imagepathIDrecto: imagePathIDrecto,
+              imagepathIDverso: imagePathIDverso,
+              placeOfBorn: placeOfBorn,
               pseudo: pseudo,
               compagnyBuy: compagnyBuy,
               kbisPath: kbisPath,
@@ -246,6 +303,8 @@ class ProgressWidgetState extends State<ProgressWidget>
               recupererInformationsStep4: getInformationsStep4,
               currentPage: currentPage,
               progressController: _progressController,
+              onCameraStateChanged: _handleCameraState,
+              birthday: birthday,
             ),
           ],
         ),

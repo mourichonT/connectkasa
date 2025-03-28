@@ -1,17 +1,21 @@
 import 'dart:async';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
+import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:connect_kasa/vues/widget_view/components/photo_for_id.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/widgets.dart';
 
 class Step0 extends StatefulWidget {
   final String userId;
   final String emailUser;
-  final Function(String, String, String, String) recupererInformationsStep0;
+  final Function(String, String, String, String, String, String, String, String,
+      String, String) recupererInformationsStep0;
   final int currentPage;
   final PageController progressController;
+  // final bool isCameraOpen;
+  final Function(bool) onCameraStateChanged;
 
   const Step0({
     super.key,
@@ -20,6 +24,8 @@ class Step0 extends StatefulWidget {
     required this.recupererInformationsStep0,
     required this.currentPage,
     required this.progressController,
+    // required this.isCameraOpen,
+    required this.onCameraStateChanged,
   });
 
   @override
@@ -27,205 +33,230 @@ class Step0 extends StatefulWidget {
 }
 
 class _Step0State extends State<Step0> with WidgetsBindingObserver {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _surnameController = TextEditingController();
-  final TextEditingController _pseudoController = TextEditingController();
+  Map<String, String> idData = {};
+  String _name = "";
+  String _surname = "";
+  String _birthday = "";
+  String _sex = "";
+  String _nationality = "";
+  String _placeOfBorn = "";
+  TextEditingController _pseudoController = TextEditingController();
+  String imagePathIDrecto = "";
+  String imagePathIDverso = "";
   Timer? _deleteTimer;
+  String? idChoice = "";
+  bool visibleID = false;
 
-  String getNom() {
-    return _nameController.text;
-  }
+  // Méthode pour mettre à jour les informations extraites
+  // Méthode pour mettre à jour les informations extraites
+  void _updateIdData(Map<String, String> extractedData) {
+    setState(() {
+      idData = extractedData;
+      print("VOICI LE TEXT OCR : $idData");
+      _name = extractedData['Nom'] ?? '';
+      _surname = extractedData['Prénom'] ?? '';
+      _birthday = extractedData['Date de naissance'] ?? '';
+      _sex = extractedData['Sexe'] ?? '';
+      _nationality = extractedData['Nationalité'] ?? '';
+      _placeOfBorn = extractedData['Lieu de naissance'] ?? '';
 
-  String getPrenom() {
-    return _surnameController.text;
-  }
-
-  String getPseudo() {
-    return _pseudoController.text;
-  }
-
-  // Méthode pour démarrer le timer de suppression
-  void _startDeletionTimer() {
-    _deleteTimer = Timer(Duration(minutes: 30), () {
-      DataBasesUserServices.removeUserById(widget.userId);
+      print("Nom mis à jour: $_name");
+      print("Prénom mis à jour: $_surname");
+      print("Date de naissance mise à jour: $_birthday");
+      print("sexe mise à jour: $_sex");
+      print("Nationalite mise à jour: $_nationality");
+      print("Lieu de naissance mise à jour: $_placeOfBorn");
     });
   }
-
-  // Observateur du cycle de vie de l'application pour détecter si l'app est en arrière-plan ou au premier plan
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
-      // Application fermée ou mise en arrière-plan : suppression de l'utilisateur
-      _deleteUser();
-    }
-  }
-
-// Supprimer l'utilisateur si l'inscription n'est pas terminée
-Future<void> _deleteUser() async {
-  // Créez une instance de DataBasesUserServices
-  DataBasesUserServices databaseService = DataBasesUserServices();
-
-  // Utilisez cette instance pour appeler la méthode getUserById
-  User? user = await databaseService.getUserById(widget.userId);
-
-  // Vérifiez si l'utilisateur n'existe pas
-  if (user != null) {
-    // Si l'utilisateur n'est pas trouvé, supprimez-le
-    await DataBasesUserServices.removeUserById(widget.userId);
-  } 
-}
-
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _startDeletionTimer();
   }
 
-  @override
-  void dispose() {
-    _deleteTimer?.cancel();
-    WidgetsBinding.instance.removeObserver(this);
-    // Vérifie si l'utilisateur a complété son inscription avant de le supprimer
-    _deleteUser();
-    super.dispose();
+  void downloadImagePathID(String downloadUrl, bool isRecto) {
+    setState(() {
+      if (isRecto) {
+        imagePathIDrecto = downloadUrl;
+      } else {
+        imagePathIDverso = downloadUrl;
+      }
+    });
+  }
+
+  String getPathIdrect() {
+    return imagePathIDrecto;
+  }
+
+  String getPathIdvers() {
+    return imagePathIDverso;
+  }
+
+  List<String> idType = [
+    "Carte d'identité",
+    "Permis de conduire",
+    "Passeport",
+    "Titre de séjour",
+  ];
+
+  String getIdType() {
+    return idChoice!;
   }
 
   @override
   Widget build(BuildContext context) {
+    double width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: MyTextStyle.lotName(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                MyTextStyle.lotName(
                     """Vous venez de vous installer dans une résidence du réseau ConnectKasa. Commençons par renseigner quelques informations. """,
                     Colors.black54),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 150,
-                      padding: const EdgeInsets.only(right: 20),
-                      child: Text(
-                        "Nom de famille * :",
-                        style: GoogleFonts.robotoCondensed(
-                            fontSize: 16, color: Colors.black87),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: _nameController,
-                        onEditingComplete: () => setState(() {}),
-                        decoration: InputDecoration(
-                            hintText: 'Nom',
-                            hintStyle: GoogleFonts.robotoCondensed(
-                                color: Colors.black45)),
-                      ),
-                    ),
-                  ],
+                Padding(
+                  padding: const EdgeInsets.only(top: 30),
+                  child: MyDropDownMenu(
+                    width,
+                    "Type de document",
+                    "Choisir...",
+                    false,
+                    items: idType,
+                    onValueChanged: (String value) {
+                      setState(() {
+                        idChoice = value;
+                        visibleID = true;
+                      });
+                    },
+                  ),
                 ),
-              ),
-              Visibility(
-                visible: getNom().isNotEmpty,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 150,
-                            padding: const EdgeInsets.only(right: 20),
-                            child: Text(
-                              "Prénom * :",
-                              style: GoogleFonts.robotoCondensed(
-                                  fontSize: 16, color: Colors.black87),
-                            ),
-                          ),
-                          Expanded(
-                            child: TextField(
-                              controller: _surnameController,
-                              onEditingComplete: () =>
-                                  setState(() {}),
-                              decoration: InputDecoration(
-                                  hintText: 'Prénom',
-                                  hintStyle: GoogleFonts.robotoCondensed(
-                                      color: Colors.black45)),
-                            ),
-                          ),
-                        ],
+                Visibility(
+                  visible: visibleID,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        child: PhotoForId(
+                            racineFolder: 'user',
+                            residence: widget.userId,
+                            folderName: 'documentID',
+                            title: idChoice!,
+                            onImageUploaded: (downloadUrl) =>
+                                downloadImagePathID(downloadUrl, true),
+                            cardOverlay: true,
+                            onCameraStateChanged: (bool isOpen) {
+                              widget.onCameraStateChanged(isOpen);
+                            },
+                            onIdDataExtracted: (data) {
+                              _updateIdData(
+                                  data); // Met à jour les données extraites
+                            }),
                       ),
-                    ),
-                    Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 150,
-                            padding: const EdgeInsets.only(right: 20),
-                            child: Text(
-                              "Pseudo :",
-                              style: GoogleFonts.robotoCondensed(
-                                  fontSize: 16, color: Colors.black45),
-                            ),
-                          ),
-                          Expanded(
-                            child: TextField(
-                              controller: _pseudoController,
-                              decoration: InputDecoration(
-                                  hintText: 'Pseudo',
-                                  hintStyle: GoogleFonts.robotoCondensed(
-                                      color: Colors.black45)),
-                            ),
-                          ),
-                        ],
+                    ],
+                  ),
+                ),
+                Visibility(
+                  visible: imagePathIDrecto != "",
+                  child: Column(
+                    children: [
+                      MyTextStyle.lotName(
+                          "Merci de prendre l'autre coté de la carte",
+                          Colors.black54),
+                      CameraOrFiles(
+                        racineFolder: 'user',
+                        residence: widget.userId,
+                        folderName: 'documentID',
+                        title: idChoice!,
+                        onCameraStateChanged: (bool isOpen) {
+                          widget.onCameraStateChanged(isOpen);
+                        },
+                        onImageUploaded: (downloadUrl) =>
+                            downloadImagePathID(downloadUrl, false),
+                        cardOverlay: true,
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+                Visibility(
+                  visible: imagePathIDverso.isNotEmpty,
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: CustomTextFieldWidget(
+                          label: "Nom de famille:",
+                          value:
+                              _name, // Utilisation du controller pour afficher le nom extrait
+                          isEditable: false, // Rendre le champ non éditable
+                        ),
+                      ),
+                      CustomTextFieldWidget(
+                        label: "Prénom:",
+                        value:
+                            _surname, // Utilisation du controller pour afficher le prénom extrait
+                        isEditable: false, // Rendre le champ non éditable
+                      ),
+                      CustomTextFieldWidget(
+                        label: "Date de naissance:",
+                        value:
+                            _birthday, // Utilisation du controller pour afficher le prénom extrait
+                        isEditable: false, // Rendre le champ non éditable
+                      ),
+                    ],
+                  ),
+                ),
+                CustomTextFieldWidget(
+                  label: "Pseudo :",
+                  controller: _pseudoController,
+                  isEditable: true,
+                  minLines: 1,
+                  maxLines: 1,
+                  text: "Pseudo",
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: Visibility(
+        visible: imagePathIDverso.isNotEmpty,
+        child: BottomAppBar(
+          surfaceTintColor: Colors.white,
+          padding: const EdgeInsets.all(2),
+          height: 70,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              TextButton(
+                onPressed: () {
+                  widget.recupererInformationsStep0(
+                      widget.emailUser,
+                      _name,
+                      _surname,
+                      _birthday,
+                      _sex,
+                      _nationality,
+                      _placeOfBorn,
+                      _pseudoController.text,
+                      imagePathIDrecto,
+                      imagePathIDverso);
+                  if (widget.currentPage < 5) {
+                    widget.progressController.nextPage(
+                      duration: const Duration(milliseconds: 500),
+                      curve: Curves.ease,
+                    );
+                  }
+                },
+                child: const Text(
+                  'Suivant',
                 ),
               ),
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: Visibility(
-        visible: getPrenom().isNotEmpty,
-        child: BottomAppBar(
-            surfaceTintColor: Colors.white,
-            padding: const EdgeInsets.all(2),
-            height: 70,
-            child: Container(
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                  TextButton(
-                    onPressed: () {
-                      String nom = getNom();
-                      String prenom = getPrenom();
-                      String pseudo = getPseudo();
-                      widget.recupererInformationsStep0(
-                          widget.emailUser, nom, prenom, pseudo);
-                      if (widget.currentPage < 5) {
-                        widget.progressController.nextPage(
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.ease,
-                        );
-                      }
-                    },
-                    child: const Text(
-                      'Suivant',
-                    ),
-                  ),
-                ]))),
       ),
     );
   }
