@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/vues/pages_vues/no_approval_page.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/progress_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as Firebase;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -32,10 +33,17 @@ class AuthentificationProcess {
           // Récupérer les données de l'utilisateur à partir de la base de données
           var userData = await _userDataBases.getUserById(user.uid);
 
-          if (userData?.uid == user.uid) {
+          if (userData?.uid == user.uid && userData?.approved == true) {
             // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
             navigateToMyApp(userData!.uid, firestore);
             return Future.value(user);
+          } else if (userData?.uid == user.uid && userData?.approved == false) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NoApprovalPage(),
+              ),
+            );
           } else {
             loadUserController.handleGoogleSignOut();
 
@@ -177,10 +185,17 @@ class AuthentificationProcess {
     // Récupérer les données de l'utilisateur à partir de la base de données
     var userData = await _userDataBases.getUserById(checkUser.uid);
 
-    if (userData?.uid == checkUser.uid) {
+    if (userData?.uid == checkUser.uid && userData?.approved == true) {
       // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
       navigateToMyApp(userData!.uid, firestore);
       return Future.value(checkUser);
+    } else if (userData?.uid == checkUser.uid && userData?.approved == false) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => NoApprovalPage(),
+        ),
+      );
     } else {
       loadUserController.handleGoogleSignOut();
 
