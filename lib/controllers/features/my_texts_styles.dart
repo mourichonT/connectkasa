@@ -83,9 +83,15 @@ class MyTextStyle {
     );
   }
 
-  static Text postDesc(String text, double size, Color color) {
+  static Text postDesc(
+    String text,
+    double size,
+    Color color, {
+    TextAlign? textAlign,
+  }) {
     return Text(
       text,
+      textAlign: textAlign,
       style: GoogleFonts.roboto(
         fontSize: size,
         color: color,

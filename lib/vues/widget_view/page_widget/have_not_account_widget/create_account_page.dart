@@ -7,7 +7,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_text_fied.dart';
 import 'package:flutter/material.dart';
 
-class CreateAccount extends StatelessWidget {
+class CreateAccountPage extends StatelessWidget {
   final controller = CreateAccountController();
   //final FirebaseFirestore firestore;
   final TextEditingController _emailController = TextEditingController();
@@ -16,7 +16,7 @@ class CreateAccount extends StatelessWidget {
       TextEditingController();
   final LoadUserController _loadUserController = LoadUserController();
 
-  CreateAccount({
+  CreateAccountPage({
     super.key,
     // required this.firestore,
   });
@@ -106,9 +106,6 @@ class CreateAccount extends StatelessWidget {
                     width,
                     "images/assets/logo_login/google.png",
                     "Google"),
-                //WidgetConnectionTiers (context,40,30, firestore, _loadUserController, width, "images/assets/logo_login/apple-logo.png", "Apple"),
-                //WidgetConnectionTiers (context,40,30, firestore, _loadUserController, width, "images/assets/logo_login/microsoft.png", "Microsoft")
-
                 // Add other sign-in options here
               ],
             ),

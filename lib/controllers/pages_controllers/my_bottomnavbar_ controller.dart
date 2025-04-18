@@ -3,7 +3,7 @@
 import 'package:connect_kasa/controllers/features/route_controller.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/pages_vues/contact_page/contact_view.dart';
-import 'package:connect_kasa/vues/pages_vues/page_chat_friends_list.dart';
+import 'package:connect_kasa/vues/pages_vues/chat_page/page_chat_friends_list.dart';
 import 'package:flutter/material.dart';
 import '../../models/enum/tab_bar_icon.dart';
 

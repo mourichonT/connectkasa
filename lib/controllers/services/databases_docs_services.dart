@@ -1,36 +1,35 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
 
 class DataBasesDocsServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
- Future<DocumentModel> setDocument(DocumentModel newDoc, String userId, String lotId) async {
-  try {
-    // Vérifier si le document utilisateur existe
-    DocumentReference<Map<String, dynamic>> userLotRef = db
-        .collection("User")
-        .doc(userId)
-        .collection("Lots")
-        .doc(lotId);
+  Future<DocumentModel> setDocument(
+      DocumentModel newDoc, String userId, String lotId) async {
+    final List<String> idType = TypeList.idTypes;
 
-    DocumentSnapshot<Map<String, dynamic>> lotSnapshot = await userLotRef.get();
+    try {
+      if (idType.contains(newDoc.type)) {
+        // ➤ Cas ID : stocké dans User/{userId}/documents
+        DocumentReference<Map<String, dynamic>> userDocRef =
+            db.collection("User").doc(userId);
 
-    if (lotSnapshot.exists) {
-      // Ajouter le nouveau document dans la sous-collection "documents"
-      await userLotRef.collection("documents").add(newDoc.toJson(), );
-      print("Document ajouté avec succès !");
-    } else {
-      print("Le lot spécifié n'existe pas.");
+        await userDocRef.collection("documents").add(newDoc.toJson());
+        print("Document ID ajouté avec succès dans User/{userId}/documents !");
+      } else {
+        // ➤ Cas non-ID : stocké dans User/{userId}/Lots/{lotId}/documents
+        DocumentReference<Map<String, dynamic>> userLotRef =
+            db.collection("User").doc(userId).collection("lots").doc(lotId);
+
+        await userLotRef.collection("documents").add(newDoc.toJson());
+      }
+    } catch (e) {
+      print("Erreur lors de l'ajout du document : $e");
     }
-  } catch (e) {
-    // Gestion d'erreur
-    print("Erreur lors de l'ajout du document : $e");
+
+    return newDoc;
   }
-
-  // Retourner l'objet même s'il n'a pas été ajouté
-  return newDoc;
-}
-
 
   Future<List<DocumentModel>> getAllDocs(String residenceId) async {
     List<DocumentModel> docs = [];

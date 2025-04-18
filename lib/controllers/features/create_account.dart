@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/progress_widget.dart';
+import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -38,9 +38,14 @@ class CreateAccountController {
       // Création de l'utilisateur avec email et mot de passe
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
+      User? currentUser = FirebaseAuth.instance.currentUser;
+      print('UID récupéré après création: ${currentUser?.uid}');
+
+      print("email créé : ${userCredential.user?.email}");
 
       // Initialisation de l'objet UserTemp
       UserTemp newUser = UserTemp(
+        privacyPolicy: false,
         email: email,
         createdDate: Timestamp.now(),
         name: "", // Remplacez par une saisie réelle

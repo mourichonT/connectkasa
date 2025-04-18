@@ -3,7 +3,7 @@ import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/vues/pages_vues/no_approval_page.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/progress_widget.dart';
+import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as Firebase;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';

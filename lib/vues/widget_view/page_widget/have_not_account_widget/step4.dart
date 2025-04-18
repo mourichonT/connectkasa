@@ -2,6 +2,8 @@ import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_user.dart';
+import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
+import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
@@ -12,10 +14,10 @@ class Step4 extends StatefulWidget {
   final String emailUser;
   final Residence residence;
   final String residentType;
-  final Function(String, String, String, String, String)
-      recupererInformationsStep4;
+  final Function(String, String, String, String) recupererInformationsStep4;
   final int currentPage;
   final PageController progressController;
+  final String docTypeId;
 
   final String name;
   final String surname;
@@ -32,6 +34,7 @@ class Step4 extends StatefulWidget {
   final String nationality;
   final String placeOfBorn;
   final Function(bool) onCameraStateChanged;
+  final VoidCallback cancelDeletionTimer;
 
   const Step4({
     super.key,
@@ -57,6 +60,8 @@ class Step4 extends StatefulWidget {
     required this.nationality,
     required this.placeOfBorn,
     required this.onCameraStateChanged,
+    required this.docTypeId,
+    required this.cancelDeletionTimer,
   });
 
   @override
@@ -69,28 +74,14 @@ class _Step4State extends State<Step4> {
   bool visible = false;
   bool visibleID = false;
   bool visibleJustif = false;
-  //String imagePathIDrecto = "";
-  //String imagePathIDverso = "";
   String imagePathJustif = "";
   String justifChoice = "";
-  String? idChoice = "";
+  String idChoice = "";
 
-  List<String> idType = [
-    "Carte d'identité",
-    "Permis de conduire",
-    "Passeport",
-    "Titre de séjour",
-  ];
+  final List<String> idType = TypeList.idTypes;
 
-  List<String> justifTypeProp = [
-    "Attestation de propriété ",
-  ];
-  List<String> justifTypeLoc = [
-    "Facture d'eau",
-    "Facture téléphone",
-    "Facture d'electricité",
-    "Contrat de bail",
-  ];
+  final List<String> justifTypeProp = TypeList.justifTypeProps;
+  final List<String> justifTypeLoc = TypeList.justifTypeLocs;
 
   @override
   void initState() {
@@ -144,7 +135,7 @@ class _Step4State extends State<Step4> {
                           racineFolder: 'user',
                           residence: widget.userId,
                           folderName: 'justificatifDom',
-                          title: idChoice!,
+                          title: justifChoice,
                           onCameraStateChanged: (bool isOpen) {
                             widget.onCameraStateChanged(isOpen);
                           },
@@ -177,6 +168,7 @@ class _Step4State extends State<Step4> {
                       backgroundColor: Theme.of(context).primaryColor),
                   onPressed: () {
                     SubmitUser.submitUser(
+                      privacyPolicy: false,
                       emailUser: widget.emailUser,
                       name: widget.name,
                       surname: widget.surname,
@@ -192,17 +184,19 @@ class _Step4State extends State<Step4> {
                       kbisPath: widget.kbisPath,
                       residence: widget.residence,
                       lotId: widget.refLot,
-                      docTypeID: idChoice,
+                      docTypeID: widget.docTypeId,
                       docTypeJustif: justifChoice,
                       imagepathIDrecto: widget
                           .imagepathIDrecto, // Passage en tant qu'argument nommé
                       imagepathIDverso: widget
                           .imagepathIDverso, // Passage en tant qu'argument nommé
-                      justifChoice:
-                          justifChoice, // Passage en tant qu'argument nommé
+                      // justifChoice:
+                      //     justifChoice, // Passage en tant qu'argument nommé
                       imagepathJustif: imagePathJustif,
                       birthday: widget.birthday,
                     );
+                    print("UTILISATEUR CREE");
+                    widget.cancelDeletionTimer();
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {

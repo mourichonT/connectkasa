@@ -1,4 +1,3 @@
-
 class TypeList {
   List<List<String>> typeDeclaration() {
     return [
@@ -24,4 +23,21 @@ class TypeList {
       "Véhicule"
     ];
   }
+
+  static List<String> idTypes = [
+    "Carte d'identité",
+    "Permis de conduire",
+    "Passeport",
+    "Titre de séjour",
+  ];
+
+  static List<String> justifTypeProps = [
+    "Attestation de propriété ",
+  ];
+  static List<String> justifTypeLocs = [
+    "Facture d'eau",
+    "Facture téléphone",
+    "Facture d'electricité",
+    "Contrat de bail",
+  ];
 }

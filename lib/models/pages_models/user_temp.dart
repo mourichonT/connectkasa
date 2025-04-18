@@ -7,6 +7,7 @@ class UserTemp extends User {
   bool? compagnyBuy;
 
   UserTemp({
+    required super.privacyPolicy,
     required super.email,
     required super.name,
     required super.surname,
@@ -25,6 +26,7 @@ class UserTemp extends User {
 
   factory UserTemp.fromMap(Map<String, dynamic> map) {
     return UserTemp(
+        privacyPolicy: map['privacyPolicy'],
         birthday: map['birthday'] as Timestamp,
         createdDate: map['createdDate'] ?? Timestamp.now(),
         email: map['email'],

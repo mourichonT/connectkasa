@@ -10,6 +10,7 @@ import '../../models/pages_models/residence.dart';
 
 class SubmitUser {
   static submitUser({
+    required bool privacyPolicy,
     required String emailUser,
     required String name,
     required String surname,
@@ -22,102 +23,85 @@ class SubmitUser {
     required String sex,
     required String nationality,
     required String placeOfborn,
-    String? companyName,
-    String? pseudo,
-
-    // pour la class Document
     required Residence residence,
     required String lotId,
-    String? docTypeID,
+    required String docTypeID,
+    String? companyName,
+    String? pseudo,
     String? docTypeJustif,
-    String? docId,
-    String? docBail,
-    String? docinvest,
     String? imagepathIDrecto,
     String? imagepathIDverso,
-    String? justifChoice,
     String? imagepathJustif,
     String? kbisPath,
   }) {
-    DataBasesUserServices dataBasesUserServices = DataBasesUserServices();
-    UserTemp newUser = UserTemp(
+    final dataBasesUserServices = DataBasesUserServices();
+    final dataBasesDocsServices = DataBasesDocsServices();
+
+    final newUser = UserTemp(
+      privacyPolicy: privacyPolicy,
       email: emailUser,
       name: name,
       surname: surname,
       uid: newUserId,
       pseudo: pseudo,
       approved: false,
-      //statutResident: statutResident,
       typeLot: typeChoice,
       birthday: birthday,
       sex: sex,
       nationality: nationality,
       placeOfborn: placeOfborn,
-      //compagnyBuy: compagnyBuy,
     );
-    print("----- Données reçues pour la création d'un utilisateur -----");
-    print("Email: $emailUser");
-    print("Nom: $name");
-    print("Prénom: $surname");
-    print("Pseudo: ${pseudo ?? "Non défini"}");
-    print("ID Utilisateur: $newUserId");
-    print("Statut Résident: $statutResident");
-    print("Intended For: $intendedFor");
-    print("Type de Lot: $typeChoice");
-    print("Achat via Société: ${compagnyBuy ? "Oui" : "Non"}");
-    print("Nom de la Société: ${companyName ?? "Non défini"}");
-    print("Date de naissance: $birthday");
-    print("Sexe: $sex");
-    print("Nationalité: $nationality");
-    print("Lieu de naissance: $placeOfborn");
-    print("Résidence: ${residence.id} - ${residence.name}");
-    print("Lot ID: $lotId");
-    print("Type de Document ID: ${docTypeID ?? "Non défini"}");
-    print("Type de Document Justificatif: ${docTypeJustif ?? "Non défini"}");
-    print("Chemin ID Recto: ${imagepathIDrecto ?? "Non défini"}");
-    print("Chemin ID Verso: ${imagepathIDverso ?? "Non défini"}");
-    print("Justificatif: ${justifChoice ?? "Non défini"}");
-    print("Chemin Justificatif: ${imagepathJustif ?? "Non défini"}");
-    print("Kbis Path: ${kbisPath ?? "Non défini"}");
-    print("----------------------------------------------------------");
-    dataBasesUserServices.setUser(
-        newUser, "${residence.id}-$lotId", compagnyBuy, companyName);
 
-    DataBasesDocsServices dataBasesDocsIdServices = DataBasesDocsServices();
-    DocumentModel newDocId = DocumentModel(
-        type: docTypeID!,
+    dataBasesUserServices.setUser(newUser, "${residence.id}-$lotId",
+        companyName, intendedFor, statutResident);
+
+    // Document pièce d'identité
+    if (docTypeID != null &&
+        imagepathIDrecto != null &&
+        imagepathIDverso != null) {
+      final newDocId = DocumentModel(
+        type: docTypeID,
+        timeStamp: Timestamp.now(),
+        documentPathRecto: imagepathIDrecto,
+        documentPathVerso: imagepathIDverso,
+      );
+      dataBasesDocsServices.setDocument(
+          newDocId, newUserId, '${residence.id}-$lotId');
+    } else {
+      print("le document ID n'a pas était importé dans la collection");
+    }
+
+    // Document justificatif
+    if (docTypeJustif != null && imagepathJustif != null) {
+      final newDocJustif = DocumentModel(
+        type: docTypeJustif,
         residenceId: residence.id,
         timeStamp: Timestamp.now(),
-        documentPathRecto: imagepathIDrecto!,
-        documentPathVerso: imagepathIDverso!,
-        lotId: lotId);
+        documentPathRecto: imagepathJustif,
+        lotId: lotId,
+      );
+      dataBasesDocsServices.setDocument(
+        newDocJustif,
+        newUserId,
+        '${residence.id}-$lotId',
+      );
+    } else {
+      print("le document justif n'a pas était importé dans la collection");
+    }
 
-    dataBasesDocsIdServices.setDocument(
-        newDocId, newUserId, '${residence.id}-$lotId');
-
-    DataBasesDocsServices dataBasesDocsJustifServices = DataBasesDocsServices();
-    DocumentModel newDocJustif = DocumentModel(
-        type: docTypeJustif!,
+    // Kbis (si société)
+    if (compagnyBuy && kbisPath != null) {
+      final newDocKbis = DocumentModel(
+        type: "Kbis",
         residenceId: residence.id,
         timeStamp: Timestamp.now(),
-        documentPathRecto: imagepathJustif!,
-        lotId: lotId);
-
-    dataBasesDocsJustifServices.setDocument(
-        newDocJustif, newUserId, '${residence.id}-$lotId');
-
-    if (compagnyBuy == true) {
-      DataBasesDocsServices dataBasesDocsJustifServices =
-          DataBasesDocsServices();
-      DocumentModel newDocJustif = DocumentModel(
-          type: "Kbis",
-          residenceId: residence.id,
-          timeStamp: Timestamp.now(),
-          documentPathRecto: kbisPath!,
-          lotId: lotId);
-
-      dataBasesDocsJustifServices.setDocument(
-          newDocJustif, newUserId, '${residence.id}-$lotId');
+        documentPathRecto: kbisPath,
+        lotId: lotId,
+      );
+      dataBasesDocsServices.setDocument(
+          newDocKbis, newUserId, '${residence.id}-$lotId');
+    } else {
+      print("le document société n'a pas était importé dans la collection");
     }
   }
 

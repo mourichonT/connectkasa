@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step0.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step1.dart';
@@ -71,10 +72,33 @@ class ProgressWidgetState extends State<ProgressWidget>
     super.dispose();
   }
 
-  void _startDeletionTimer() {
-    _deleteTimer = Timer(Duration(minutes: 10), () {
-      DataBasesUserServices.removeUserById(widget.userId);
-    });
+  void _deleteStorage() async {
+    final StorageServices _storageServices = StorageServices();
+    _storageServices.removeFolder("user", widget.userId);
+  }
+
+  void _startDeletionTimer() async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    try {
+      if (currentUser != null && currentUser.uid == widget.userId) {
+        await currentUser.delete();
+        _deleteTimer = Timer(Duration(minutes: 10), () {
+          DataBasesUserServices.removeUserById(widget.userId);
+          _deleteStorage();
+        });
+      }
+    } catch (e) {
+      print(
+          "Erreur lors de la suppression de l'utilisateur après depassement du timer : $e");
+    }
+  }
+
+  void _cancelDeletionTimer() {
+    if (_deleteTimer != null && _deleteTimer!.isActive) {
+      _deleteTimer!.cancel();
+      _deleteTimer = null;
+      print("Timer de suppression annulé");
+    }
   }
 
   @override
@@ -87,6 +111,7 @@ class ProgressWidgetState extends State<ProgressWidget>
         final currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser != null && currentUser.uid == widget.userId) {
           await currentUser.delete();
+          _deleteStorage();
           await DataBasesUserServices.removeUserById(currentUser.uid);
           Navigator.popUntil(context, ModalRoute.withName('/'));
           print(
@@ -115,7 +140,8 @@ class ProgressWidgetState extends State<ProgressWidget>
       String newPlaceOfBorn,
       String? newPseudo,
       String newImagePathIDrecto,
-      String newimagePathIDverso) {
+      String newimagePathIDverso,
+      String docTypeId) {
     // Faites ce que vous voulez avec les valeurs récupérées
     print(
         'Nom: $newName, Prénom: $newSurname, Pseudo: $newPseudo, imagepath: $newimagePathIDverso');
@@ -129,6 +155,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     placeOfBorn = newPlaceOfBorn;
     surname = newSurname;
     pseudo = newPseudo ?? "";
+    idType = docTypeId;
   }
 
   Timestamp formatBirthday(String date) {
@@ -171,13 +198,12 @@ class ProgressWidgetState extends State<ProgressWidget>
     refLot = newrefLot;
   }
 
-  void getInformationsStep4(String newIdType, String newImagePathIdrect,
+  void getInformationsStep4(String newImagePathIdrect,
       String newImagePathIdvers, String newJustifType, String newPathJustif) {
     // Faites ce que vous voulez avec les valeurs récupérées
     print(
-        'Type id: $newIdType, path id recto: $newImagePathIdrect, path id verso: $newImagePathIdvers');
+        'path id recto: $newImagePathIdrect, path id verso: $newImagePathIdvers');
 
-    idType = newIdType;
     pathIdRect = newImagePathIdrect;
     pathIdVers = newImagePathIdvers;
     justifType = newJustifType;
@@ -278,6 +304,7 @@ class ProgressWidgetState extends State<ProgressWidget>
               emailUser: widget.emailUser!,
               name: name,
               surname: surname,
+              docTypeId: idType,
               sex: sex,
               nationality: nationality,
               imagepathIDrecto: imagePathIDrecto,
@@ -305,6 +332,7 @@ class ProgressWidgetState extends State<ProgressWidget>
               progressController: _progressController,
               onCameraStateChanged: _handleCameraState,
               birthday: birthday,
+              cancelDeletionTimer: _cancelDeletionTimer,
             ),
           ],
         ),

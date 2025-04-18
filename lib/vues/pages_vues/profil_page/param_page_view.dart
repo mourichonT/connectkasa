@@ -6,6 +6,7 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:connect_kasa/vues/pages_vues/privacy_policy_page.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/info_pers_page_modify.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/account_secu_modify.dart';
@@ -194,7 +195,17 @@ class _ParamPageState extends State<ParamPage> {
                   refLot: widget.refLot,
                   text: "Politique de confidentialité",
                   icon: const Icon(Icons.settings_outlined, size: 22),
-                  press: () {},
+                  press: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PrivatePolicyPage(
+                          user: user!,
+                          refresh: _initializeUserData,
+                        ),
+                      ),
+                    );
+                  },
                   isLogOut: false,
                 ),
               ],

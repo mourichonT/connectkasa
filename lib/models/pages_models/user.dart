@@ -16,8 +16,10 @@ class User {
   Timestamp? createdDate;
   bool approved;
   bool private;
+  bool privacyPolicy;
 
   User({
+    required this.privacyPolicy,
     required this.email,
     String profilPic = "",
     required this.name,
@@ -58,6 +60,7 @@ class User {
 
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
+      privacyPolicy: map['privacyPolicy'] ?? false,
       email: map['email'] ?? "",
       profilPic: map['profilPic'] ?? "",
       approved: map['approved'] ?? false,
@@ -82,6 +85,7 @@ class User {
 
   Map<String, dynamic> toMap() {
     return {
+      'privacyPolicy': privacyPolicy,
       'profilPic': profilPic,
       'approved': approved,
       'createdDate': createdDate,

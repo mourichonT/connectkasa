@@ -20,6 +20,15 @@ allprojects {
     tasks.withType(JavaCompile).configureEach {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        options.compilerArgs << "-Xlint:deprecation"
+        options.compilerArgs << "-Xlint:unchecked"
+    }
+    configurations.all {
+        resolutionStrategy.eachDependency { details ->
+            if (details.requested.group == 'org.bouncycastle' && details.requested.name == 'bcprov-jdk18on') {
+                details.useVersion '1.76' // version stable connue
+            }
+        }
     }
 }
 

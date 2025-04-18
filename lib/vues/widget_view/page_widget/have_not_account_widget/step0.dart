@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
@@ -11,7 +12,7 @@ class Step0 extends StatefulWidget {
   final String userId;
   final String emailUser;
   final Function(String, String, String, String, String, String, String, String,
-      String, String) recupererInformationsStep0;
+      String, String, String) recupererInformationsStep0;
   final int currentPage;
   final PageController progressController;
   // final bool isCameraOpen;
@@ -92,16 +93,11 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
     return imagePathIDverso;
   }
 
-  List<String> idType = [
-    "Carte d'identité",
-    "Permis de conduire",
-    "Passeport",
-    "Titre de séjour",
-  ];
+  final List<String> idType = TypeList.idTypes;
 
-  String getIdType() {
-    return idChoice!;
-  }
+  // String getIdType() {
+  //   return idChoice!;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -242,7 +238,8 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
                       _placeOfBorn,
                       _pseudoController.text,
                       imagePathIDrecto,
-                      imagePathIDverso);
+                      imagePathIDverso,
+                      idChoice!);
                   if (widget.currentPage < 5) {
                     widget.progressController.nextPage(
                       duration: const Duration(milliseconds: 500),

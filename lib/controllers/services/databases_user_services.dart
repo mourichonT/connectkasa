@@ -10,8 +10,8 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 class DataBasesUserServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
-  Future<UserTemp> setUser(UserTemp newUser, String? lotId, bool? compagnyBuy,
-      String? companyName) async {
+  Future<UserTemp> setUser(UserTemp newUser, String? lotId, String? companyName,
+      String? intentedFor, String? statutResident) async {
     try {
       // Génère `refUserApp` unique
       String refUserApp = await generateUniqueRefUserApp(db, newUser.uid);
@@ -31,12 +31,13 @@ class DataBasesUserServices {
         await db
             .collection("User")
             .doc(newUser.uid)
-            .collection("Lots")
+            .collection("lots")
             .doc(lotId)
             .set({
           "lotId": lotId,
-          "compagnyBuy": compagnyBuy,
-          "companyName": companyName,
+          if (companyName != null) "companyName": companyName,
+          if (intentedFor != null) "intendedFor": intentedFor,
+          "StatutResident": statutResident,
         }, SetOptions(merge: true));
       }
     } catch (e) {
@@ -243,6 +244,7 @@ class DataBasesUserServices {
             : {};
 
         return UserInfo(
+          privacyPolicy: user.privacyPolicy,
           name: user.name,
           surname: user.surname,
           email: email ?? "Non spécifié",
@@ -279,23 +281,36 @@ class DataBasesUserServices {
 
   static Future<void> removeUserById(String uid) async {
     try {
-      // Recherchez le document du post en utilisant l'ID
-      DocumentSnapshot<Map<String, dynamic>> userQuery =
-          await FirebaseFirestore.instance.collection("User").doc(uid).get();
+      final userRef = FirebaseFirestore.instance.collection("User").doc(uid);
 
-      // Vérifiez si des documents correspondent à la condition
-      if (userQuery.exists) {
-        // Supprimez le premier document trouvé (il ne devrait y en avoir qu'un)
+      final userSnapshot = await userRef.get();
 
-        await userQuery.reference.delete();
-      } else {
+      if (!userSnapshot.exists) {
         throw Exception('Aucun utilisateur trouvé avec l\'ID $uid');
       }
+
+      // Liste des sous-collections à supprimer — à adapter selon ton modèle
+      final List<String> subcollections = [
+        'documents',
+        'lots'
+        // ajoute ici toutes les sous-collections possibles
+      ];
+
+      for (String subCol in subcollections) {
+        final subColRef = userRef.collection(subCol);
+        final subColSnapshot = await subColRef.get();
+
+        for (final doc in subColSnapshot.docs) {
+          await doc.reference.delete();
+          print("🗑️ ${subCol}/${doc.id} supprimé");
+        }
+      }
+
+      // Supprime le document principal après avoir vidé les sous-collections
+      await userRef.delete();
+      print("✅ Utilisateur et ses sous-collections supprimés avec succès");
     } catch (e) {
-      // Gère les erreurs ici
-      print(
-          'Une erreur s\'est produite lors de la suppression de l\'utilisateur: $e');
-      // Lance l'erreur pour que l'appelant puisse la gérer si nécessaire
+      print('❌ Erreur lors de la suppression de l\'utilisateur: $e');
       rethrow;
     }
   }

@@ -27,6 +27,7 @@ class UserInfo extends User {
     this.salary = "",
     this.typeContract = "",
     this.entryJobDate,
+    required super.privacyPolicy,
     required super.name,
     required super.surname,
     required super.birthday,
@@ -47,6 +48,7 @@ class UserInfo extends User {
   /// Méthode pour créer une instance depuis une Map
   factory UserInfo.fromMap(Map<String, dynamic> map) {
     return UserInfo(
+      privacyPolicy: map['privacyPolicy'] ?? false,
       email: map['email'] ?? "N/C",
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",

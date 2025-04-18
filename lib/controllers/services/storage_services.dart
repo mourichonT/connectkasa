@@ -54,6 +54,23 @@ class StorageServices {
     }
   }
 
+  Future<void> removeFolder(String racine, String folder) async {
+    final Reference reference =
+        FirebaseStorage.instance.ref().child("$racine/$folder");
+
+    try {
+      // Supprimer le dossier
+      await reference.delete();
+
+      print(
+          'Le dossier du user temporaire $folder a été supprimé avec succès.');
+    } catch (e) {
+      print(
+          'Erreur lors de la suppression du fichier : $e, sur le chemin $racine/$folder');
+      // Gérer l'erreur ici
+    }
+  }
+
   Future<void> removeFile(String racine, String residence, String folderName,
       {String? url, String? idPost}) async {
     String
