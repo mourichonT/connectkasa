@@ -51,45 +51,137 @@ class DataBasesDocsServices {
     return docs;
   }
 
-  Future<List<DocumentModel>> getDocByUser(
-      String residenceId, String lotId, List<String> numUser) async {
-    List<DocumentModel> docs = [];
+  Future<List<Map<String, dynamic>>> getAllDocsWithId(
+      String residenceId) async {
+    List<Map<String, dynamic>> docs = [];
+
+    try {
+      final querySnapshot = await db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("documents_copro")
+          .get();
+
+      for (var docSnapshot in querySnapshot.docs) {
+        docs.add({
+          "data": DocumentModel.fromJson(docSnapshot.data()),
+          "id": docSnapshot.id,
+        });
+      }
+    } catch (e) {
+      print("Erreur getAllDocsWithId: $e");
+    }
+
+    return docs;
+  }
+
+  Future<List<Map<String, dynamic>>> getDocByUser(
+      String uid, String refLot) async {
+    print("REFLOT: $refLot");
+    print("UID: $uid");
+
+    List<Map<String, dynamic>> docs = [];
 
     try {
       print("Début de la fonction getDocByUser");
 
-      // Récupérer la référence de la collection "Residence"
-      CollectionReference residenceRef =
-          FirebaseFirestore.instance.collection("Residence");
+      // Référence à la collection de documents du lot spécifique de l'utilisateur
+      CollectionReference documentsRef = FirebaseFirestore.instance
+          .collection("User")
+          .doc(uid)
+          .collection("lots")
+          .doc(refLot)
+          .collection("documents");
 
-      // Récupérer le document de la résidence spécifique
-      DocumentReference residenceDocRef = residenceRef.doc(residenceId);
+      // Récupération de tous les documents sans filtre
+      QuerySnapshot docQuerySnapshot = await documentsRef.get();
 
-      // Récupérer la collection "lot" pour la résidence spécifique
-      QuerySnapshot lotQuerySnapshot = await residenceDocRef
-          .collection("lot")
-          .where("refLot", isEqualTo: lotId)
-          .get();
+      for (QueryDocumentSnapshot doc in docQuerySnapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
 
-      // Parcourir chaque document de la collection "lot"
-      for (QueryDocumentSnapshot lotDoc in lotQuerySnapshot.docs) {
-        // Récupérer les documents de chaque lot et filtrer par "numUser"
-        QuerySnapshot docQuerySnapshot = await lotDoc.reference
-            .collection("documents")
-            .where("destinataire", arrayContainsAny: numUser)
-            .get();
+        DocumentModel document = DocumentModel.fromJson(data);
 
-        for (QueryDocumentSnapshot doc in docQuerySnapshot.docs) {
-          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-          DocumentModel document = DocumentModel.fromJson(data);
-          docs.add(document);
-        }
+        docs.add({
+          'id': doc.id,
+          'data': document,
+        });
       }
     } catch (e) {
       print("Erreur dans getDocByUser : $e");
     }
 
     return docs;
+  }
+
+  Future<void> deleteDocument({
+    String? userId,
+    List<List<String>>? userIdsMatrix, // ✅ Matrice de UID
+    required String? lotId,
+    required String documentId,
+    required String? residenceId,
+    required String documentType,
+    required bool isCopro,
+  }) async {
+    try {
+      if (isCopro && residenceId != null) {
+        print("Residence => $residenceId => documents_copro => $documentId");
+        await db
+            .collection("Residence")
+            .doc(residenceId)
+            .collection("documents_copro")
+            .doc(documentId)
+            .delete();
+        print("Document copro supprimé avec succès !");
+      } else if (TypeList.idTypes.contains(documentType)) {
+        // Cas document d'identité
+        await db
+            .collection("User")
+            .doc(userId)
+            .collection("documents")
+            .doc(documentId)
+            .delete();
+        print("Document ID supprimé avec succès !");
+      } else if (lotId != null) {
+        if (userIdsMatrix != null && userIdsMatrix.isNotEmpty) {
+          // ✅ Cas plusieurs groupes de users
+          for (var userList in userIdsMatrix) {
+            for (String uid in userList) {
+              print(
+                  "Suppression document pour User => $uid => lots => $lotId => documents => $documentId");
+              await db
+                  .collection("User")
+                  .doc(uid)
+                  .collection("lots")
+                  .doc(lotId)
+                  .collection("documents")
+                  .doc(documentId)
+                  .delete();
+            }
+          }
+          print(
+              "Document supprimé pour tous les utilisateurs (groupes) avec succès !");
+        } else if (userId != null) {
+          // Cas classique avec un seul user
+          print(
+              "User => $userId => lots => $lotId => documents => $documentId");
+          await db
+              .collection("User")
+              .doc(userId)
+              .collection("lots")
+              .doc(lotId)
+              .collection("documents")
+              .doc(documentId)
+              .delete();
+          print("Document perso supprimé avec succès !");
+        } else {
+          throw Exception("Aucun utilisateur fourni pour la suppression.");
+        }
+      } else {
+        throw Exception("Impossible de déterminer l'emplacement du document.");
+      }
+    } catch (e) {
+      print("Erreur lors de la suppression du document : $e");
+      rethrow;
+    }
   }
 }

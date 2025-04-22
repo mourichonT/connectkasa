@@ -22,7 +22,7 @@ class DetailContactView extends StatelessWidget {
             "Détails du contact", Colors.black87, SizeFont.h1.size),
       ),
       body: FutureBuilder(
-        future: DataBasesUserServices().getUserById(uid),
+        future: DataBasesUserServices.getUserById(uid),
         builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(

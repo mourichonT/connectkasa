@@ -79,7 +79,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
 
       // Créer une liste de futures pour récupérer les utilisateurs
       List<Future<User?>> userFutures = uniqueUserIds
-          .map((userId) => _dataBasesUserServices.getUserById(userId))
+          .map((userId) => DataBasesUserServices.getUserById(userId))
           .toList();
 
       // Attendre que toutes les futures soient terminées

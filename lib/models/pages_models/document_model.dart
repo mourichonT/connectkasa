@@ -24,7 +24,7 @@ class DocumentModel {
   }) {
     _documentPathRecto = documentPathRecto;
     _documentPathVerso = documentPathVerso;
-    _lotId= lotId;
+    _lotId = lotId;
   }
 
   String get documentPathRecto {
@@ -37,7 +37,7 @@ class DocumentModel {
   //   }
   // }
 
-String? get lotId {
+  String? get lotId {
     return _lotId;
   }
 
@@ -70,19 +70,19 @@ String? get lotId {
         residenceId: json['residenceId'] ?? "",
         lotId: json['lotId'] ?? "",
         extension: json['extension'] ?? "",
-        destinataire: destinataireList);
+        destinataire: destinataireList ?? []);
   }
   Map<String, dynamic> toJson() {
     return {
-      'name': name,
-      'documentPathRecto': documentPathRecto,
-      'documentPathVerso': documentPathVerso,
+      if (name != null) 'name': name,
+      if (documentPathVerso != null) 'documentPathVerso': documentPathVerso,
+      if (documentPathVerso != null) 'residenceId': residenceId,
+      if (lotId != null) 'lotId': lotId,
+      if (destinataire != null) 'destinataire': destinataire,
       'type': type,
       'timeStamp': timeStamp,
-      'residenceId': residenceId,
-      'lotId': lotId,
+      'documentPathRecto': documentPathRecto,
       'extension': extension,
-      'destinataire': destinataire
     };
   }
 }

@@ -31,7 +31,7 @@ class AuthentificationProcess {
           (Firebase.User? user) async {
         if (user != null) {
           // Récupérer les données de l'utilisateur à partir de la base de données
-          var userData = await _userDataBases.getUserById(user.uid);
+          var userData = await DataBasesUserServices.getUserById(user.uid);
 
           if (userData?.uid == user.uid && userData?.approved == true) {
             // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
@@ -183,7 +183,7 @@ class AuthentificationProcess {
     User checkUser = userCredential.user!;
 
     // Récupérer les données de l'utilisateur à partir de la base de données
-    var userData = await _userDataBases.getUserById(checkUser.uid);
+    var userData = await DataBasesUserServices.getUserById(checkUser.uid);
 
     if (userData?.uid == checkUser.uid && userData?.approved == true) {
       // Si l'utilisateur existe dans la base de données, naviguer vers MyApp

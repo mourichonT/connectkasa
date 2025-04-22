@@ -12,7 +12,7 @@ Widget ProfilTile(
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();
   return FutureBuilder<User?>(
-    future: user = databasesUserServices.getUserById(uid),
+    future: user = DataBasesUserServices.getUserById(uid),
     builder: (context, snapshot) {
       // Maintenant, vous pouvez utiliser l'objet User ici
       if (snapshot.hasData && snapshot.data != null) {

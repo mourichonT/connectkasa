@@ -35,8 +35,11 @@ class MyDropDownMenuState extends State<MyDropDownMenu> {
             : Color(0xFFF5F6F9), // Light background color for the container
       ),
       child: Padding(
-        padding: const EdgeInsets.only(left: 10),
+        padding: const EdgeInsets.only(left: 20),
         child: DropdownMenu<String>(
+          label: widget.label != null
+              ? MyTextStyle.lotName(widget.label!, Colors.black54)
+              : null,
           inputDecorationTheme: const InputDecorationTheme(
             border: InputBorder.none, // Supprime la bordure
             enabledBorder: InputBorder

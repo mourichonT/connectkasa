@@ -71,7 +71,7 @@ class PostViewState extends State<PostView> {
     final double width = MediaQuery.of(context).size.width;
     final double height = MediaQuery.of(context).size.height;
     late Future<User?> userPost =
-        widget._databasesUserServices.getUserById(widget.postSelected!.user);
+        DataBasesUserServices.getUserById(widget.postSelected!.user);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(

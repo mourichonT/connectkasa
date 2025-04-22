@@ -108,7 +108,7 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
 
       // Upload de l'image
       _storageServices
-          .uploadFile(
+          .uploadImg(
         XFile(imageFile.path),
         widget.racineFolder,
         widget.residence,
@@ -136,7 +136,7 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
     }
 
     // 1️⃣ - Upload de l'image sur Firebase Storage
-    String? imageUrl = await _storageServices.uploadFile(
+    String? imageUrl = await _storageServices.uploadImg(
       XFile(imageFile.path),
       widget.racineFolder,
       widget.residence,

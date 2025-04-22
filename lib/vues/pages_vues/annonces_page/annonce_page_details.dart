@@ -42,13 +42,12 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
   late Future<User?> userCurrent;
   late Future<List<Post>> _allAnnonceFuture;
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
-  final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
 
   @override
   void initState() {
     super.initState();
-    userCurrent = _databasesUserServices.getUserById(widget.uid);
-    userPost = _databasesUserServices.getUserById(widget.post.user);
+    userCurrent = DataBasesUserServices.getUserById(widget.uid);
+    userPost = DataBasesUserServices.getUserById(widget.post.user);
     _allAnnonceFuture =
         _databaseServices.getAnnonceById(widget.residence, widget.post.user);
   }

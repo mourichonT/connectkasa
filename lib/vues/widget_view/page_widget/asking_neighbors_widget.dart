@@ -47,14 +47,14 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
   void initState() {
     super.initState();
     //post = widget.post;
-    userPost = _databasesUserServices.getUserById(widget.post.user);
+    userPost = DataBasesUserServices.getUserById(widget.post.user);
     // Initialisez post à partir des propriétés du widget
   }
 
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    _databasesUserServices.getUserById(widget.post.user);
+    DataBasesUserServices.getUserById(widget.post.user);
     return Container(
       decoration: const BoxDecoration(boxShadow: [
         BoxShadow(color: Colors.grey, blurRadius: 10, offset: Offset(0, 3))

@@ -43,7 +43,7 @@ class EventPageDetailsState extends State<EventPageDetails> {
     super.initState();
     alreadyParticipated = widget.post.participants!.contains(widget.uid);
     userParticipatedCount = widget.post.participants!.length;
-    userOrga = dbService.getUserById(
+    userOrga = DataBasesUserServices.getUserById(
         widget.post.user); // assuming organizerId is a field in Post model
   }
 

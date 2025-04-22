@@ -163,7 +163,7 @@ class _PartipedTileState extends State<PartipedTile> {
       List<String> participantIds) async {
     List<User?> users = [];
     for (String id in participantIds) {
-      User? user = await dbService.getUserById(id);
+      User? user = await DataBasesUserServices.getUserById(id);
       users.add(user);
     }
     return users;

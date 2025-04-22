@@ -81,7 +81,6 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
                 'Residence', widget.lot.residenceData['name']),
             _buildReadOnlyTextField('Référence Lot', widget.lot.refLot),
             _buildReadOnlyTextField('Bâtiment', widget.lot.batiment),
-            _buildReadOnlyTextField('Référence Lot', widget.lot.refLot),
             _buildReadOnlyTextField('Lot', widget.lot.lot),
             _buildReadOnlyTextField('Adresse',
                 "${widget.lot.residenceData["numero"]} ${widget.lot.residenceData["voie"]} ${widget.lot.residenceData["street"]}"),

@@ -383,7 +383,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
       String fileName = "${widget.post.id}-${Random().nextInt(10000)}";
       _selectedImage = File(returnedImage.path);
       _storageServices
-          .uploadFile(returnedImage, "residences", widget.residence,
+          .uploadImg(returnedImage, "residences", widget.residence,
               widget.post.type, fileName)
           .then((downloadUrl) {
         if (downloadUrl != null) {
@@ -402,7 +402,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
       String fileName = "${widget.post.id}-${Random().nextInt(10000)}";
       _selectedImage = File(returnedImage.path);
       _storageServices
-          .uploadFile(returnedImage, "residences", widget.residence,
+          .uploadImg(returnedImage, "residences", widget.residence,
               widget.post.type, fileName)
           .then((downloadUrl) {
         if (downloadUrl != null) {

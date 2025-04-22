@@ -72,7 +72,7 @@ class CameraOrFilesState extends State<CameraOrFiles> {
     );
 
     try {
-      final downloadUrl = await _storageServices.uploadFile(
+      final downloadUrl = await _storageServices.uploadImg(
         pickedFile,
         widget.racineFolder,
         widget.residence,
@@ -122,7 +122,7 @@ class CameraOrFilesState extends State<CameraOrFiles> {
     );
 
     _storageServices
-        .uploadFile(
+        .uploadImg(
       pickedFile,
       widget.racineFolder,
       widget.residence,

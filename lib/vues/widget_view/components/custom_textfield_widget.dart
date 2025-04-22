@@ -1,3 +1,5 @@
+import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextFieldWidget extends StatelessWidget {
@@ -50,11 +52,7 @@ class CustomTextFieldWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: TextStyle(
-                color: Colors.black87,
-                fontSize: 16,
-                fontWeight: FontWeight.bold)),
+        MyTextStyle.lotName(label, Colors.black54),
         Row(
           children: [
             Expanded(
@@ -65,9 +63,9 @@ class CustomTextFieldWidget extends StatelessWidget {
                 minLines: minLines,
                 decoration:
                     InputDecoration(hintText: text, border: InputBorder.none),
-                style: const TextStyle(
-                    color: Colors.black87,
-                    fontSize: 16,
+                style: TextStyle(
+                    color: Colors.black54,
+                    fontSize: SizeFont.h3.size,
                     fontWeight: FontWeight.w400),
                 onChanged: (value) => refresh?.call(),
               ),
@@ -93,18 +91,14 @@ class CustomTextFieldWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: TextStyle(
-                color: Colors.black45,
-                fontSize: 16,
-                fontWeight: FontWeight.bold)),
+        MyTextStyle.lotName(label, Colors.black54),
         Padding(
           padding: const EdgeInsets.only(left: 10.0),
           child: Text(
             value ?? '',
-            style: const TextStyle(
+            style: TextStyle(
                 color: Colors.black54,
-                fontSize: 16,
+                fontSize: SizeFont.h3.size,
                 fontWeight: FontWeight.w400),
           ),
         ),

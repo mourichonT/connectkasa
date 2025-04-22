@@ -24,12 +24,12 @@ class MessageUserTile extends StatefulWidget {
 class MessageUserTileState extends State<MessageUserTile> {
   late Future<User?> user;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
-  final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
+  // final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
 
   @override
   void initState() {
     super.initState();
-    user = _databasesUserServices.getUserById(widget.uid);
+    user = DataBasesUserServices.getUserById(widget.uid);
   }
 
   @override

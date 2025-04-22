@@ -194,9 +194,7 @@ class _MyNavBarState extends State<MyNavBar>
           ),
           MydocsPageView(
             key: UniqueKey(),
-            lotSelected: preferedLot?.refLot ?? "",
-            residenceSelected:
-                preferedLot?.residenceId ?? defaultLot.residenceId,
+            lotSelected: preferedLot ?? defaultLot,
             uid: uid,
             colorStatut: colorStatut,
             isCsMember: _isCsMember,

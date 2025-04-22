@@ -175,7 +175,7 @@ class EventTileState extends State<EventTilepv> {
                                     if (!_event!.hideUser)
                                       if (!widget.canModify)
                                         FutureBuilder<User?>(
-                                            future: databasesUserServices
+                                            future: DataBasesUserServices
                                                 .getUserById(_event!.user),
                                             builder: (context, snapshot) {
                                               if (snapshot.connectionState ==

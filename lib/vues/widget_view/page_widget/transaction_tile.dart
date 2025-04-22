@@ -44,8 +44,8 @@ class TransactionTileState extends State<TransactionTile> {
       widget.transac.postId,
     );
     userAcheteur =
-        databasesUserServices.getUserById(widget.transac.uidAcheteur);
-    userVendeur = databasesUserServices.getUserById(widget.transac.uidVendeur);
+        DataBasesUserServices.getUserById(widget.transac.uidAcheteur);
+    userVendeur = DataBasesUserServices.getUserById(widget.transac.uidVendeur);
   }
 
   @override

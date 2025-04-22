@@ -1,4 +1,3 @@
-
 class Lot {
   String _nameProp = "";
   String _nameLoc = "";

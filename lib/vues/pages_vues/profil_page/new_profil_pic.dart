@@ -46,7 +46,7 @@ class _ProfilePicState extends State<ProfilePic> {
         url: widget.imagePath);
 
     _storageServices
-        .uploadFile(pickedFile, 'user', widget.uid, "photo", fileName)
+        .uploadImg(pickedFile, 'user', widget.uid, "photo", fileName)
         .then((downloadUrl) {
       if (downloadUrl != null) {
         _updateProfilePicture(downloadUrl);

@@ -420,7 +420,7 @@ class _OldProfilPageState extends State<OldProfilPage> {
 
   Future<void> _loadUser(String uid) async {
     if (uid.isNotEmpty) {
-      user = await userServices.getUserById(uid);
+      user = await DataBasesUserServices.getUserById(uid);
       if (user != null) {
         name = user!.name;
         surname = user!.surname;

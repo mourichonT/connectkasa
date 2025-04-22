@@ -542,7 +542,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                       Uint8List pngBytes = await _capturePng();
                       File file = await _saveImage(pngBytes);
 
-                      imageUrl = await StorageServices().uploadFile(
+                      imageUrl = await StorageServices().uploadImg(
                         XFile(file.path),
                         "residences",
                         widget.residence,

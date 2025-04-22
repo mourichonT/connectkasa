@@ -21,7 +21,7 @@ class SignalementTile extends StatelessWidget {
 
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();
-  late Future<User?> userPost = databasesUserServices.getUserById(post.user);
+  late Future<User?> userPost = DataBasesUserServices.getUserById(post.user);
   @override
   Widget build(BuildContext context) {
     postCountCallback(postCount);

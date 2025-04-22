@@ -33,6 +33,9 @@ class _Step3State extends State<Step3> {
   String? batChoice = "";
   String? lotChoice = "";
   String? refLot = "";
+  late Future<List<String>> _typeLotFuture;
+  late Future<List<String>> _typeBatFuture;
+  late Future<List<String>> _numLotFuture;
 
   String getTypeChoice() {
     return typeChoice;
@@ -56,6 +59,9 @@ class _Step3State extends State<Step3> {
     super.initState();
     expressionTypeChoice =
         widget.typeResident == "Locataire" ? "loué" : "acheté";
+    _typeLotFuture = getTypeLot(widget.residence);
+    _typeBatFuture = getBatimentLot(widget.residence);
+    _numLotFuture = getSpecificLot(widget.residence);
   }
 
   @override
@@ -76,7 +82,7 @@ class _Step3State extends State<Step3> {
               height: 30,
             ),
             FutureBuilder<List<String>>(
-              future: getTypeLot(widget.residence),
+              future: _typeLotFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
@@ -93,6 +99,7 @@ class _Step3State extends State<Step3> {
                     items: snapshot.data ?? [],
                     onValueChanged: (value) {
                       setState(() {
+                        print(value);
                         typeChoice = value;
                       });
                     },
@@ -110,7 +117,7 @@ class _Step3State extends State<Step3> {
                       "Selectionnez le bâtiment de votre bien", Colors.black54),
                 ),
                 FutureBuilder<List<String>>(
-                  future: getBatimentLot(widget.residence),
+                  future: _typeBatFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const CircularProgressIndicator();
@@ -145,7 +152,7 @@ class _Step3State extends State<Step3> {
                           Colors.black54),
                     ),
                     FutureBuilder<List<String>>(
-                      future: getSpecificLot(widget.residence),
+                      future: _numLotFuture,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {

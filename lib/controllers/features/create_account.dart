@@ -71,12 +71,14 @@ class CreateAccountController {
       _showSnackbar(context, "Compte créé avec succès !");
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => ProgressWidget(
+        MaterialPageRoute(builder: (context) {
+          print(
+              "Utilisateur dans  push de creatAccount: ${FirebaseAuth.instance.currentUser?.uid}");
+          return ProgressWidget(
             userId: userCredential.user!.uid,
             emailUser: email,
-          ),
-        ),
+          );
+        }),
       );
     } on FirebaseAuthException catch (e) {
       // Gestion des erreurs spécifiques à Firebase Auth

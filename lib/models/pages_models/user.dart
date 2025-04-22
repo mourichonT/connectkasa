@@ -64,22 +64,22 @@ class User {
       email: map['email'] ?? "",
       profilPic: map['profilPic'] ?? "",
       approved: map['approved'] ?? false,
-      createdDate: map['createdDate'] ?? "",
+      createdDate: map['createdDate'] != null
+          ? map['createdDate'] as Timestamp
+          : Timestamp.fromMillisecondsSinceEpoch(0),
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",
-      birthday: map['birthday'] as Timestamp,
+      birthday: map['birthday'] != null
+          ? map['birthday'] as Timestamp
+          : Timestamp.fromMillisecondsSinceEpoch(0),
       sex: map['sex'] ?? "",
       nationality: map['nationality'] ?? "",
       placeOfborn: map['placeOfborn'] ?? "",
       pseudo: map['pseudo'] ?? "",
       uid: map['uid'] ?? "",
-      profession: map['profession'] ??
-          "", // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
-      bio: map['bio'] ??
-          "", // Pas besoin de fournir une valeur par défaut, car c'est déjà un champ optionnel
-      private: map['private'] ??
-          false, // Si 'private' est null, utilisez false par défaut
-      // Ajout du solde lors de la création d'une instance depuis une Map
+      profession: map['profession'] ?? "",
+      bio: map['bio'] ?? "",
+      private: map['private'] ?? false,
     );
   }
 

@@ -55,7 +55,7 @@ class CommentTileState extends State<CommentTile> {
     super.initState();
     _textEditingController = TextEditingController();
     comment = widget.comment;
-    user = _databasesUserServices.getUserById(comment.user);
+    user = DataBasesUserServices.getUserById(comment.user);
   }
 
   @override
@@ -191,7 +191,7 @@ class CommentTileState extends State<CommentTile> {
 
   void _replyToComment(
       Comment currentComment, bool isReply, String? initComment) async {
-    User? user = await _databasesUserServices.getUserById(currentComment.user);
+    User? user = await DataBasesUserServices.getUserById(currentComment.user);
     if (user != null) {
       FocusScope.of(context).requestFocus(widget.focusNode);
       widget.getUsertoreply(_textEditingController);

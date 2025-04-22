@@ -155,7 +155,7 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
                   ),
                 ),
                 Visibility(
-                  visible: imagePathIDrecto != "",
+                  visible: idChoice == 'Passeport' ? false : true,
                   child: Column(
                     children: [
                       MyTextStyle.lotName(
@@ -177,7 +177,9 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
                   ),
                 ),
                 Visibility(
-                  visible: imagePathIDverso.isNotEmpty,
+                  visible: idChoice == 'Passeport'
+                      ? imagePathIDverso.isEmpty
+                      : imagePathIDrecto.isNotEmpty,
                   child: Column(
                     children: [
                       Padding(
@@ -218,7 +220,9 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
         ),
       ),
       bottomNavigationBar: Visibility(
-        visible: imagePathIDverso.isNotEmpty,
+        visible: idChoice == 'Passeport'
+            ? imagePathIDverso.isEmpty
+            : imagePathIDrecto.isNotEmpty,
         child: BottomAppBar(
           surfaceTintColor: Colors.white,
           padding: const EdgeInsets.all(2),

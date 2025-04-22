@@ -7,22 +7,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 class FormatProfilPic {
   Widget getInitiales(double raduis, User user, double size) {
-    // Une fois que le futur est résolu, vous pouvez accéder aux propriétés de l'utilisateur
+    String initName = user.name.trim();
+    String initSurname = user.surname.trim();
 
-    String? initName = user.name;
-    String? initSurname = user.surname;
+    String firstLetterNom =
+        initName.isNotEmpty ? initName[0].toUpperCase() : '';
+    String firstLetterPrenom =
+        initSurname.isNotEmpty ? initSurname[0].toUpperCase() : '';
 
-    List<String> lettresNom = [];
-    List<String> lettresPrenom = [];
-
-    for (int i = 0; i < initName.length; i++) {
-      lettresNom.add(initName[i]);
-    }
-    for (int i = 0; i < initSurname.length; i++) {
-      lettresPrenom.add(initSurname[i]);
-    }
-
-    String initiale = "${lettresNom.first}${lettresPrenom.first}";
+    String initiale = (firstLetterNom + firstLetterPrenom).isNotEmpty
+        ? "$firstLetterNom$firstLetterPrenom"
+        : "??";
 
     return CircleAvatar(
       radius: raduis,
@@ -37,6 +32,38 @@ class FormatProfilPic {
       ),
     );
   }
+
+  // Widget getInitiales(double raduis, User user, double size) {
+  //   // Une fois que le futur est résolu, vous pouvez accéder aux propriétés de l'utilisateur
+
+  //   String? initName = user.name;
+  //   String? initSurname = user.surname;
+
+  //   List<String> lettresNom = [];
+  //   List<String> lettresPrenom = [];
+
+  //   for (int i = 0; i < initName.length; i++) {
+  //     lettresNom.add(initName[i]);
+  //   }
+  //   for (int i = 0; i < initSurname.length; i++) {
+  //     lettresPrenom.add(initSurname[i]);
+  //   }
+
+  //   String initiale = "${lettresNom.first}${lettresPrenom.first}";
+
+  //   return CircleAvatar(
+  //     radius: raduis,
+  //     child: Container(
+  //       decoration: const BoxDecoration(
+  //         color: Colors.white,
+  //         shape: BoxShape.circle,
+  //       ),
+  //       child: Center(
+  //         child: MyTextStyle.initialAvatar(initiale, size),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget ProfilePic(double radius, User? userPost, double size) {
     if (userPost != null &&

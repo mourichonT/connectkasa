@@ -47,50 +47,98 @@ class DataBasesUserServices {
     return newUser;
   }
 
-  static Future<void> updateUserField(
-      {required String uid,
-      required String field,
-      String? value,
-      bool? newBool}) async {
+  static Future<void> updateUserField({
+    required String uid,
+    required String field,
+    String? value,
+    bool? newBool,
+  }) async {
     try {
-      // Utilise .where() pour filtrer l'utilisateur par son UID
-      var querySnapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .where('uid', isEqualTo: uid) // Filtrage par l'UID
-          .get();
+      // Récupérer l'utilisateur avec getUserById
+      User? user = await getUserById(uid);
 
-      // Vérifie s'il y a des utilisateurs correspondants
-      if (querySnapshot.docs.isNotEmpty) {
-        // On récupère le premier document trouvé
-        var doc = querySnapshot.docs.first;
-        // Mise à jour du champ spécifique
-        await doc.reference.update({field: value ?? newBool});
-      } else {
+      // Vérifier si l'utilisateur existe
+      if (user == null) {
         throw Exception('Utilisateur non trouvé');
       }
+
+      // Choisir la valeur à mettre à jour
+      final newValue = value ?? newBool;
+
+      if (newValue == null) {
+        throw Exception('Aucune valeur spécifiée pour la mise à jour.');
+      }
+
+      // Mise à jour du champ dans Firestore
+      await FirebaseFirestore.instance.collection('User').doc(uid).update({
+        field: newValue,
+      });
     } catch (e) {
       throw Exception('Erreur lors de la mise à jour du champ $field: $e');
     }
   }
 
-  Future<User?> getUserById(String numUser) async {
+  // static Future<void> updateUserField(
+  //     {required String uid,
+  //     required String field,
+  //     String? value,
+  //     bool? newBool}) async {
+  //   try {
+  //     // Utilise .where() pour filtrer l'utilisateur par son UID
+  //     var querySnapshot = await FirebaseFirestore.instance
+  //         .collection('User')
+  //         .where('uid', isEqualTo: uid) // Filtrage par l'UID
+  //         .get();
+
+  //     // Vérifie s'il y a des utilisateurs correspondants
+  //     if (querySnapshot.docs.isNotEmpty) {
+  //       // On récupère le premier document trouvé
+  //       var doc = querySnapshot.docs.first;
+  //       // Mise à jour du champ spécifique
+  //       await doc.reference.update({field: value ?? newBool});
+  //     } else {
+  //       throw Exception('Utilisateur non trouvé');
+  //     }
+  //   } catch (e) {
+  //     throw Exception('Erreur lors de la mise à jour du champ $field: $e');
+  //   }
+  // }
+  static Future<User?> getUserById(String uid) async {
     User? user;
     try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot =
-          await FirebaseFirestore.instance
-              .collection("User")
-              .where("uid", isEqualTo: numUser)
-              .get();
-      if (querySnapshot.docs.isNotEmpty) {
-        // S'il y a des documents correspondants, prenez le premier
-        user = User.fromMap(querySnapshot.docs.first.data());
+      DocumentSnapshot<Map<String, dynamic>> docSnapshot =
+          await FirebaseFirestore.instance.collection("User").doc(uid).get();
+
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        user = User.fromMap(docSnapshot.data()!);
+      } else {
+        throw Exception('Utilisateur non trouvé');
       }
     } catch (e) {
-      print("Error completing: $e");
+      print("Erreur lors de la récupération de l'utilisateur : $e");
     }
 
     return user;
   }
+
+  // Future<User?> getUserById(String numUser) async {
+  //   User? user;
+  //   try {
+  //     QuerySnapshot<Map<String, dynamic>> querySnapshot =
+  //         await FirebaseFirestore.instance
+  //             .collection("User")
+  //             .where("uid", isEqualTo: numUser)
+  //             .get();
+  //     if (querySnapshot.docs.isNotEmpty) {
+  //       // S'il y a des documents correspondants, prenez le premier
+  //       user = User.fromMap(querySnapshot.docs.first.data());
+  //     }
+  //   } catch (e) {
+  //     print("Error completing: $e");
+  //   }
+
+  //   return user;
+  // }
 
   Future<String?> getImageUrl(String pathImage) async {
     if (pathImage.isNotEmpty) {

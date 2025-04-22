@@ -81,9 +81,9 @@ class ProgressWidgetState extends State<ProgressWidget>
     final currentUser = FirebaseAuth.instance.currentUser;
     try {
       if (currentUser != null && currentUser.uid == widget.userId) {
-        await currentUser.delete();
         _deleteTimer = Timer(Duration(minutes: 10), () {
           DataBasesUserServices.removeUserById(widget.userId);
+          currentUser.delete();
           _deleteStorage();
         });
       }
@@ -106,7 +106,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     if ((state == AppLifecycleState.paused ||
             state == AppLifecycleState.inactive) &&
         !isCameraOpen) {
-      // Supprimer l'utilisateur si l'application est fermée ou inactive
+      print("Supprimer l'utilisateur si l'application est fermée ou inactive");
       try {
         final currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser != null && currentUser.uid == widget.userId) {
@@ -159,11 +159,31 @@ class ProgressWidgetState extends State<ProgressWidget>
   }
 
   Timestamp formatBirthday(String date) {
-    DateFormat format = DateFormat("dd MM yyyy");
-    DateTime localDate = format.parse(date);
-    DateTime utcPlus3Date = localDate.add(Duration(hours: 3));
+    final formats = [
+      DateFormat("dd MM yyyy"),
+      DateFormat("dd/MM/yyyy"),
+    ];
+
+    DateTime? localDate;
+
+    for (var format in formats) {
+      try {
+        localDate = format.parseStrict(date);
+        break;
+      } catch (e) {
+        // Ignore and try next format
+      }
+    }
+
+    if (localDate == null) {
+      throw FormatException("Unrecognized date format: $date");
+    }
+
+    final utcPlus3Date = localDate.add(const Duration(hours: 3));
+
     return Timestamp.fromMillisecondsSinceEpoch(
-        utcPlus3Date.millisecondsSinceEpoch);
+      utcPlus3Date.millisecondsSinceEpoch,
+    );
   }
 
   void getInformationsStep1(Residence newResidence) {
@@ -212,6 +232,8 @@ class ProgressWidgetState extends State<ProgressWidget>
 
   @override
   Widget build(BuildContext context) {
+    print(
+        "Utilisateur après push dans progress widget: ${FirebaseAuth.instance.currentUser?.uid}");
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(

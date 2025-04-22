@@ -77,6 +77,7 @@ class _Step4State extends State<Step4> {
   String imagePathJustif = "";
   String justifChoice = "";
   String idChoice = "";
+  bool _isChecked = false;
 
   final List<String> idType = TypeList.idTypes;
 
@@ -146,6 +147,19 @@ class _Step4State extends State<Step4> {
                       ],
                     ),
                   ),
+                  CheckboxListTile(
+                    value: _isChecked,
+                    onChanged: (value) {
+                      setState(() {
+                        _isChecked = value ?? false;
+                      });
+                    },
+                    title: Text(
+                      "J'ai lu et j'accepte la politique de confidentialité.",
+                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                    ),
+                    controlAffinity: ListTileControlAffinity.leading,
+                  ),
                 ],
               ),
             ],
@@ -195,7 +209,6 @@ class _Step4State extends State<Step4> {
                       imagepathJustif: imagePathJustif,
                       birthday: widget.birthday,
                     );
-                    print("UTILISATEUR CREE");
                     widget.cancelDeletionTimer();
                     showDialog(
                       context: context,

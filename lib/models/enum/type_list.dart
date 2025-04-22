@@ -24,6 +24,18 @@ class TypeList {
     ];
   }
 
+  List<String> categoryDocs() {
+    return [
+      "Gestion du syndic",
+      "Assemblées générales",
+      "Contrats et marchés",
+      "Assurances",
+      "Carnet d'entretien et gestion technique",
+      "Synthèse et fiches officielles",
+      "Documents juridiques de la copropriété"
+    ];
+  }
+
   static List<String> idTypes = [
     "Carte d'identité",
     "Permis de conduire",

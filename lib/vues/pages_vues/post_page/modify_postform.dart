@@ -459,7 +459,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
 
       _selectedImage = File(returnedImage.path);
       _storageServices
-          .uploadFile(returnedImage, "residences", widget.residence,
+          .uploadImg(returnedImage, "residences", widget.residence,
               widget.post.type, fileName)
           .then((downloadUrl) {
         if (downloadUrl != null) {
@@ -479,7 +479,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
       removeImage = !removeImage;
       _selectedImage = File(returnedImage.path);
       _storageServices
-          .uploadFile(returnedImage, "residences", widget.residence,
+          .uploadImg(returnedImage, "residences", widget.residence,
               widget.post.type, fileName)
           .then((downloadUrl) {
         if (downloadUrl != null) {

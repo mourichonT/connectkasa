@@ -97,7 +97,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadUser(String uid) async {
     if (uid.isNotEmpty) {
-      User? fetchedUser = await userServices.getUserById(uid);
+      User? fetchedUser = await DataBasesUserServices.getUserById(uid);
       if (fetchedUser != null) {
         setState(() {
           user = fetchedUser;

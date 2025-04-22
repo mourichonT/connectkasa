@@ -447,7 +447,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                   Uint8List pngBytes = await _capturePng();
                   File file = await _saveImage(pngBytes);
 
-                  imageUrl = await StorageServices().uploadFile(
+                  imageUrl = await StorageServices().uploadImg(
                     XFile(file.path),
                     widget.racineFolder,
                     widget.preferedLot!.residenceId,
