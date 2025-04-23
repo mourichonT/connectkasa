@@ -10,8 +10,13 @@ import 'package:firebase_auth/firebase_auth.dart' as auth;
 class DataBasesUserServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
-  Future<UserTemp> setUser(UserTemp newUser, String? lotId, String? companyName,
-      String? intentedFor, String? statutResident) async {
+  Future<UserTemp> setUser(
+      UserTemp newUser,
+      String? lotId,
+      String? companyName,
+      String? intentedFor,
+      String? statutResident,
+      bool? informationsCorrectes) async {
     try {
       // Génère `refUserApp` unique
       String refUserApp = await generateUniqueRefUserApp(db, newUser.uid);
@@ -19,13 +24,17 @@ class DataBasesUserServices {
       // Ajoute refUserApp à l'objet utilisateur
       Map<String, dynamic> userData = newUser.toMap();
       userData['refUserApp'] = refUserApp; // ✅ Ajout de `refUserApp`
+// Fusionner les données utilisateur et le champ informationsCorrectes
+      Map<String, dynamic> fullUserData = {
+        ...userData,
+        "informationsCorrectes": informationsCorrectes,
+      };
 
-      // Met à jour ou crée l'utilisateur dans Firestore
+// Envoi vers Firestore avec fusion
       await db.collection("User").doc(newUser.uid).set(
-            userData,
-            SetOptions(merge: true), // Fusionner au lieu d'écraser
+            fullUserData,
+            SetOptions(merge: true),
           );
-
       // Ajoute les informations sur le lot si `lotId` est défini
       if (lotId != null) {
         await db
@@ -334,7 +343,8 @@ class DataBasesUserServices {
       final userSnapshot = await userRef.get();
 
       if (!userSnapshot.exists) {
-        throw Exception('Aucun utilisateur trouvé avec l\'ID $uid');
+        print('Aucun utilisateur trouvé avec l\'ID $uid');
+        return; // Sortir de la fonction si l'utilisateur n'existe pas
       }
 
       // Liste des sous-collections à supprimer — à adapter selon ton modèle
@@ -359,7 +369,6 @@ class DataBasesUserServices {
       print("✅ Utilisateur et ses sous-collections supprimés avec succès");
     } catch (e) {
       print('❌ Erreur lors de la suppression de l\'utilisateur: $e');
-      rethrow;
     }
   }
 }

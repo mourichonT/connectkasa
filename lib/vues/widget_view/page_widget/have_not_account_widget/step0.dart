@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
@@ -12,7 +13,7 @@ class Step0 extends StatefulWidget {
   final String userId;
   final String emailUser;
   final Function(String, String, String, String, String, String, String, String,
-      String, String, String) recupererInformationsStep0;
+      String, String, String, bool?) recupererInformationsStep0;
   final int currentPage;
   final PageController progressController;
   // final bool isCameraOpen;
@@ -47,6 +48,7 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
   Timer? _deleteTimer;
   String? idChoice = "";
   bool visibleID = false;
+  bool? informationsCorrectes;
 
   // Méthode pour mettre à jour les informations extraites
   // Méthode pour mettre à jour les informations extraites
@@ -155,7 +157,11 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
                   ),
                 ),
                 Visibility(
-                  visible: idChoice == 'Passeport' ? false : true,
+                  visible: idChoice == 'Passeport'
+                      ? false
+                      : true && imagePathIDrecto.isEmpty
+                          ? false
+                          : true,
                   child: Column(
                     children: [
                       MyTextStyle.lotName(
@@ -177,9 +183,11 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
                   ),
                 ),
                 Visibility(
-                  visible: idChoice == 'Passeport'
-                      ? imagePathIDverso.isEmpty
-                      : imagePathIDrecto.isNotEmpty,
+                  visible: idChoice == 'Passeport' && imagePathIDrecto.isEmpty
+                      ? false
+                      : true && imagePathIDrecto.isNotEmpty
+                          ? true
+                          : false,
                   child: Column(
                     children: [
                       Padding(
@@ -203,6 +211,34 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
                             _birthday, // Utilisation du controller pour afficher le prénom extrait
                         isEditable: false, // Rendre le champ non éditable
                       ),
+                      MyTextStyle.lotDesc(
+                          "Les informations récupérées sur votre $idChoice sont-ils correct? Nos services s'occuperons de les corriger",
+                          SizeFont.h3.size),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Radio<bool>(
+                            value: true,
+                            groupValue: informationsCorrectes,
+                            onChanged: (value) {
+                              setState(() {
+                                informationsCorrectes = value;
+                              });
+                            },
+                          ),
+                          const Text("Oui"),
+                          Radio<bool>(
+                            value: false,
+                            groupValue: informationsCorrectes,
+                            onChanged: (value) {
+                              setState(() {
+                                informationsCorrectes = value;
+                              });
+                            },
+                          ),
+                          const Text("Non"),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -220,9 +256,15 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
         ),
       ),
       bottomNavigationBar: Visibility(
-        visible: idChoice == 'Passeport'
-            ? imagePathIDverso.isEmpty
-            : imagePathIDrecto.isNotEmpty,
+        visible: idChoice == 'Passeport' &&
+                imagePathIDrecto.isEmpty &&
+                informationsCorrectes != null
+            ? false
+            : true &&
+                    imagePathIDverso.isNotEmpty &&
+                    informationsCorrectes != null
+                ? true
+                : false,
         child: BottomAppBar(
           surfaceTintColor: Colors.white,
           padding: const EdgeInsets.all(2),
@@ -233,17 +275,19 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
               TextButton(
                 onPressed: () {
                   widget.recupererInformationsStep0(
-                      widget.emailUser,
-                      _name,
-                      _surname,
-                      _birthday,
-                      _sex,
-                      _nationality,
-                      _placeOfBorn,
-                      _pseudoController.text,
-                      imagePathIDrecto,
-                      imagePathIDverso,
-                      idChoice!);
+                    widget.emailUser,
+                    _name,
+                    _surname,
+                    _birthday,
+                    _sex,
+                    _nationality,
+                    _placeOfBorn,
+                    _pseudoController.text,
+                    imagePathIDrecto,
+                    imagePathIDverso,
+                    idChoice!,
+                    informationsCorrectes,
+                  );
                   if (widget.currentPage < 5) {
                     widget.progressController.nextPage(
                       duration: const Duration(milliseconds: 500),

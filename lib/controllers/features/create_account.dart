@@ -39,10 +39,7 @@ class CreateAccountController {
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
       User? currentUser = FirebaseAuth.instance.currentUser;
-      print('UID récupéré après création: ${currentUser?.uid}');
-
-      print("email créé : ${userCredential.user?.email}");
-
+      print('PASSORD: $password');
       // Initialisation de l'objet UserTemp
       UserTemp newUser = UserTemp(
         privacyPolicy: false,
@@ -72,11 +69,12 @@ class CreateAccountController {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) {
-          print(
-              "Utilisateur dans  push de creatAccount: ${FirebaseAuth.instance.currentUser?.uid}");
           return ProgressWidget(
             userId: userCredential.user!.uid,
             emailUser: email,
+            password: password,
+            providerId: FirebaseAuth
+                .instance.currentUser?.providerData.first.providerId,
           );
         }),
       );

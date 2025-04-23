@@ -3,10 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_user.dart';
 import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
+import 'package:connect_kasa/vues/pages_vues/privacy_policy_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/Privacy_politic_widget.dart';
 import 'package:flutter/material.dart';
 
 class Step4 extends StatefulWidget {
@@ -33,11 +36,13 @@ class Step4 extends StatefulWidget {
   final String sex;
   final String nationality;
   final String placeOfBorn;
+  final bool informationsCorrectes;
   final Function(bool) onCameraStateChanged;
   final VoidCallback cancelDeletionTimer;
 
   const Step4({
     super.key,
+    required this.informationsCorrectes,
     required this.residence,
     required this.residentType,
     required this.recupererInformationsStep4,
@@ -147,18 +152,38 @@ class _Step4State extends State<Step4> {
                       ],
                     ),
                   ),
-                  CheckboxListTile(
-                    value: _isChecked,
-                    onChanged: (value) {
-                      setState(() {
-                        _isChecked = value ?? false;
-                      });
-                    },
-                    title: Text(
-                      "J'ai lu et j'accepte la politique de confidentialité.",
-                      style: TextStyle(fontSize: 14, color: Colors.black87),
+                  Container(
+                    child: CheckboxListTile(
+                      value: _isChecked,
+                      onChanged: (value) {
+                        setState(() {
+                          _isChecked = value ?? false;
+                        });
+                      },
+                      title: Wrap(
+                        alignment: WrapAlignment.start,
+                        crossAxisAlignment: WrapCrossAlignment.start,
+                        children: [
+                          MyTextStyle.postDesc(
+                            " J'ai lu et j'accepte",
+                            SizeFont.h3.size,
+                            Colors.black54,
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              showPrivacyPolicyPopup(context);
+                            },
+                            child: MyTextStyle.login(
+                              "la politique de confidentialité.",
+                              SizeFont.h3.size,
+                              Color.fromRGBO(72, 119, 91, 1.0),
+                              FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      controlAffinity: ListTileControlAffinity.leading,
                     ),
-                    controlAffinity: ListTileControlAffinity.leading,
                   ),
                 ],
               ),
@@ -166,79 +191,126 @@ class _Step4State extends State<Step4> {
           ),
         ),
       ),
-      bottomNavigationBar: Visibility(
-        visible: visibleJustif,
-        child: BottomAppBar(
-          surfaceTintColor: Colors.white,
-          padding: const EdgeInsets.all(2),
-          height: 70,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor),
-                  onPressed: () {
-                    SubmitUser.submitUser(
-                      privacyPolicy: false,
-                      emailUser: widget.emailUser,
-                      name: widget.name,
-                      surname: widget.surname,
-                      sex: widget.sex,
-                      nationality: widget.nationality,
-                      placeOfborn: widget.placeOfBorn,
-                      pseudo: widget.pseudo,
-                      newUserId: widget.userId,
-                      statutResident: widget.residentType,
-                      typeChoice: widget.typeLot,
-                      intendedFor: widget.intendedFor,
-                      compagnyBuy: widget.compagnyBuy,
-                      kbisPath: widget.kbisPath,
-                      residence: widget.residence,
-                      lotId: widget.refLot,
-                      docTypeID: widget.docTypeId,
-                      docTypeJustif: justifChoice,
-                      imagepathIDrecto: widget
-                          .imagepathIDrecto, // Passage en tant qu'argument nommé
-                      imagepathIDverso: widget
-                          .imagepathIDverso, // Passage en tant qu'argument nommé
-                      // justifChoice:
-                      //     justifChoice, // Passage en tant qu'argument nommé
-                      imagepathJustif: imagePathJustif,
-                      birthday: widget.birthday,
-                    );
-                    widget.cancelDeletionTimer();
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          content: const Text(
-                            'Merci, votre demande a été transmise à notre équipe. Vous recevrez un mail pour vous avertir de la création et du rattachement de votre compte.',
-                            textAlign: TextAlign.justify,
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.popUntil(
-                                    context, ModalRoute.withName('/'));
-                              },
-                              child: const Text('OK'),
+      bottomNavigationBar: BottomAppBar(
+        surfaceTintColor: Colors.white,
+        padding: const EdgeInsets.all(2),
+        height: 70,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor.withOpacity(
+                      (visibleJustif && _isChecked)
+                          ? 1.0
+                          : 0.5, // opacité réduite si désactivé
+                    ),
+              ),
+              onPressed: (visibleJustif && _isChecked)
+                  ? () {
+                      SubmitUser.submitUser(
+                        privacyPolicy: _isChecked,
+                        emailUser: widget.emailUser,
+                        name: widget.name,
+                        surname: widget.surname,
+                        sex: widget.sex,
+                        nationality: widget.nationality,
+                        placeOfborn: widget.placeOfBorn,
+                        pseudo: widget.pseudo,
+                        newUserId: widget.userId,
+                        statutResident: widget.residentType,
+                        typeChoice: widget.typeLot,
+                        intendedFor: widget.intendedFor,
+                        compagnyBuy: widget.compagnyBuy,
+                        kbisPath: widget.kbisPath,
+                        residence: widget.residence,
+                        lotId: widget.refLot,
+                        docTypeID: widget.docTypeId,
+                        docTypeJustif: justifChoice,
+                        imagepathIDrecto: widget.imagepathIDrecto,
+                        imagepathIDverso: widget.imagepathIDverso,
+                        imagepathJustif: imagePathJustif,
+                        birthday: widget.birthday,
+                        informationsCorrectes: widget.informationsCorrectes,
+                      );
+                      widget.cancelDeletionTimer();
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            content: const Text(
+                              'Merci, votre demande a été transmise à notre équipe. Vous recevrez un mail pour vous avertir de la création et du rattachement de votre compte.',
+                              textAlign: TextAlign.justify,
                             ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  child: const Text('Soumettre',
-                      style: TextStyle(
-                        color: Colors.white,
-                      ))),
-            ],
-          ),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.popUntil(
+                                      context, ModalRoute.withName('/'));
+                                },
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    }
+                  : null, // désactive le bouton si la condition n’est pas remplie
+              child: const Text(
+                'Soumettre',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  void showPrivacyPolicyPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          insetPadding: const EdgeInsets.all(16),
+          backgroundColor: Colors.white,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.85,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: Scrollbar(
+                    thumbVisibility: true,
+                    child: SingleChildScrollView(
+                      child: PrivatePolicyWidget(),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0, top: 8.0),
+                  child: TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text(
+                      'Fermer',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

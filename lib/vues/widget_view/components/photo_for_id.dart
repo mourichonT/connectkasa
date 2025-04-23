@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
@@ -73,12 +74,41 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
   Future<void> _pickImage(ImageSource source) async {
     setState(() => isCameraOpen = true);
     widget.onCameraStateChanged?.call(true);
-    final XFile? pickedFile = await _picker.pickImage(source: source);
+
+    final pickedFile = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+    // final XFile? pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
-      _processImage(File(pickedFile.path));
+      _processImage(File(pickedFile.files.single.path!));
     }
     setState(() => isCameraOpen = false);
     widget.onCameraStateChanged?.call(false);
+  }
+
+  Future<bool> _isValidImage(File file) async {
+    try {
+      final decoded = await decodeImageFromList(await file.readAsBytes());
+      return decoded != null;
+    } catch (e) {
+      debugPrint("📛 Image invalide ou non décodable : $e");
+      return false;
+    }
+  }
+
+  Future<void> _deleteInvalidFile(File file) async {
+    try {
+      if (await file.exists()) {
+        await file.delete();
+        debugPrint("🗑️ Fichier supprimé : ${file.path}");
+      }
+      setState(() {
+        _selectedImage = null;
+      });
+    } catch (e) {
+      debugPrint("❌ Erreur suppression fichier : $e");
+    }
   }
 
   Future<void> _processImage(File imageFile) async {
@@ -88,12 +118,27 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
     });
 
     try {
-      // Extraction des informations de la carte d'identité
-      final extractedData = await extractDataFromIdCard(imageFile);
+      // Vérifie si c’est un fichier image supporté
+      final isImageValid = await _isValidImage(imageFile);
+      if (!isImageValid) {
+        await _deleteInvalidFile(imageFile);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                "Fichier non supporté ou corrompu. Veuillez choisir une image au format png, jpg ou jpeg."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
 
-      // Vérification des données extraites
-      if (extractedData.isEmpty ||
-          extractedData.values.any((value) => value.trim().isEmpty)) {
+      final extractedData = await extractDataFromIdCard(imageFile);
+      final cleanedData = cleanExtractedData(extractedData);
+
+      final isValid = cleanedData.isNotEmpty &&
+          cleanedData.values.every((v) => v.trim().isNotEmpty);
+
+      if (!isValid) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -101,42 +146,40 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
             backgroundColor: Colors.red,
           ),
         );
-        return; // Arrêter l'exécution si les données ne sont pas valides
+        return;
       }
 
-      widget.onIdDataExtracted(extractedData);
+      widget.onIdDataExtracted(cleanedData);
 
-      // Upload de l'image
-      _storageServices
-          .uploadImg(
+      // Ré-upload (si nécessaire)
+      final downloadUrl = await _storageServices.uploadImg(
         XFile(imageFile.path),
         widget.racineFolder,
         widget.residence,
         widget.folderName,
         fileName,
-      )
-          .then((downloadUrl) {
-        if (mounted && downloadUrl != null) {
-          widget.onImageUploaded(downloadUrl);
-        }
-      });
+      );
+
+      if (mounted && downloadUrl != null) {
+        widget.onImageUploaded(downloadUrl);
+      }
     } catch (e) {
+      print("❌ Erreur globale : $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors du traitement de l\'image: $e')),
       );
-      print('Erreur lors du traitement de l\'image: $e');
     } finally {
       setState(() => _isProcessing = false);
     }
   }
 
   Future<Map<String, String>> extractDataFromIdCard(File imageFile) async {
-    if (apiKey!.isEmpty) {
+    if (apiKey?.isEmpty ?? true) {
       throw Exception("Clé API OpenAI non trouvée !");
     }
 
-    // 1️⃣ - Upload de l'image sur Firebase Storage
-    String? imageUrl = await _storageServices.uploadImg(
+    // Upload de l'image vers Firebase
+    final imageUrl = await _storageServices.uploadImg(
       XFile(imageFile.path),
       widget.racineFolder,
       widget.residence,
@@ -148,18 +191,25 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
       throw Exception("Échec de l'upload de l'image");
     }
 
-    final headers = {
-      'Authorization': 'Bearer $apiKey',
-      'Content-Type': 'application/json',
-    };
-
-    final body = jsonEncode({
+    final prompt = {
       "model": "gpt-4-turbo",
       "messages": [
         {
           "role": "system",
           "content":
-              "Tu es un assistant qui extrait des informations ${widget.title}. Retourne uniquement les données en JSON."
+              """ Tu es un expert en lecture de  ${widget.title}. Ne pas inventer d'informations. Si un champ est manquant ou mal lisible, indique-le comme vide.
+                  Tu dois extraire : Nom, Prénom, Sexe, Nationalité, Lieu de naissance, Date de naissance. 
+                  Si plusieurs prénoms ou noms sont reconnus, utilise uniquement ceux les plus proches de leur champ d'origine sur la carte (ne pas mélanger).
+                  les noms et les prénom ne seront jamais sur la meme ligne prend cela en considération
+                  Si la nationnalité est etrangère traduit la moi en Français (ex: Venezuela => Vénézuelienne)
+
+                  Corrige les erreurs fréquentes d'OCR : 
+                  - Séparation de mots collés (ex: 'JohnDoe' → 'John Doe'),
+                  - Les Noms et Prénoms ne sont jamais sur la même ligne, ne les regroupent pas ensemble
+                  - Correction de lettres confondues (B vs M, P vs F),
+                  - Ne jamais fusionner les prénoms avec les noms ou inversement.
+
+                  Retourne seulement un JSON propre avec les champs exacts. """
         },
         {
           "role": "user",
@@ -167,64 +217,80 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
             {
               "type": "text",
               "text":
-                  "Analyse cette image et renvoie uniquement les informations sous forme de JSON avec Nom, Prénom, Sexe, Nationalite, Lieu de naissance et Date de naissance."
+                  "Voici un document de  ${widget.title}. Retourne les données sous forme de JSON avec les champs attendus."
             },
             {
               "type": "image_url",
-              "image_url": {
-                "url": imageUrl
-              } // ✅ On utilise l'URL au lieu de base64
+              "image_url": {"url": imageUrl}
             }
           ]
         }
       ],
       "max_tokens": 300
-    });
+    };
 
     try {
-      final response =
-          await http.post(Uri.parse(baseUrl!), headers: headers, body: body);
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
+      final response = await http.post(
+        Uri.parse(baseUrl!),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(prompt),
+      );
 
-        // 🔹 Vérifions ce que contient exactement "content"
-        print(
-            "🔹 Contenu OpenAI : ${jsonResponse['choices'][0]['message']['content']}");
-
-        // Nettoyage du contenu pour gérer les caractères mal encodés et enlever les backticks
-        final content = jsonResponse['choices'][0]['message']['content'];
-
-        // Retirer les backticks et autres caractères indésirables
-        String cleanedContent =
-            content.replaceAll(RegExp(r'```json|```|\n'), '');
-
-        // Décodage manuel des caractères mal encodés
-        String decodedContent = utf8.decode(cleanedContent.runes.toList());
-
-        // Essayer de décoder le JSON après nettoyage
-        try {
-          // Conversion forcée en Map<String, String>
-          Map<String, dynamic> parsedJson = jsonDecode(decodedContent);
-
-          // Conversion en Map<String, String>
-          Map<String, String> finalResult = {};
-          parsedJson.forEach((key, value) {
-            finalResult[key] = value.toString();
-          });
-
-          return finalResult; // ✅ Retourne un Map<String, String>
-        } catch (e) {
-          print("❌ Erreur lors du parsing JSON : $e");
-          return {}; // Retourne un map vide en cas d'erreur
-        }
-      } else {
+      if (response.statusCode != 200) {
         print("❌ Erreur OpenAI : ${response.body}");
         return {};
       }
+
+      final content =
+          jsonDecode(response.body)['choices'][0]['message']['content'];
+
+      // Nettoyage du contenu JSON brut
+      final cleanedContent = content
+          .replaceAll(RegExp(r'```json|```|\n'), '')
+          .replaceAll(RegExp(r'\\n|\\t'), ' ')
+          .trim();
+
+      final decodedContent = utf8.decode(cleanedContent.runes.toList());
+
+      // Tentative de parsing
+      final Map<String, dynamic> rawJson = jsonDecode(decodedContent);
+
+      return rawJson.map((key, value) => MapEntry(key, value.toString()));
     } catch (e) {
-      print("❌ Erreur lors de la requête : $e");
+      print("❌ Erreur lors de l'extraction : $e");
       return {};
     }
+  }
+
+  Map<String, String> cleanExtractedData(Map<String, String> data) {
+    final Map<String, String> cleaned = {};
+
+    data.forEach((key, value) {
+      String fixed = value.trim();
+
+      // Espaces manquants entre lettres
+      fixed = fixed.replaceAllMapped(RegExp(r'([a-z])([A-Z])'),
+          (match) => '${match.group(1)} ${match.group(2)}');
+
+      // Mise en forme des champs
+      if (key.toLowerCase() == 'nom') {
+        fixed = fixed.toUpperCase();
+      } else if (key.toLowerCase().contains('prénom')) {
+        fixed = fixed
+            .split(' ')
+            .map((e) => e.isNotEmpty
+                ? e[0].toUpperCase() + e.substring(1).toLowerCase()
+                : '')
+            .join(' ');
+      }
+
+      cleaned[key] = fixed;
+    });
+
+    return cleaned;
   }
 
   @override

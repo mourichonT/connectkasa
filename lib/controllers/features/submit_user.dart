@@ -9,31 +9,31 @@ import 'package:flutter/material.dart';
 import '../../models/pages_models/residence.dart';
 
 class SubmitUser {
-  static submitUser({
-    required bool privacyPolicy,
-    required String emailUser,
-    required String name,
-    required String surname,
-    required String newUserId,
-    required String statutResident,
-    required String intendedFor,
-    required String typeChoice,
-    required bool compagnyBuy,
-    required Timestamp birthday,
-    required String sex,
-    required String nationality,
-    required String placeOfborn,
-    required Residence residence,
-    required String lotId,
-    required String docTypeID,
-    String? companyName,
-    String? pseudo,
-    String? docTypeJustif,
-    String? imagepathIDrecto,
-    String? imagepathIDverso,
-    String? imagepathJustif,
-    String? kbisPath,
-  }) {
+  static submitUser(
+      {required bool privacyPolicy,
+      required String emailUser,
+      required String name,
+      required String surname,
+      required String newUserId,
+      required String statutResident,
+      required String intendedFor,
+      required String typeChoice,
+      required bool compagnyBuy,
+      required Timestamp birthday,
+      required String sex,
+      required String nationality,
+      required String placeOfborn,
+      required Residence residence,
+      required String lotId,
+      required String docTypeID,
+      String? companyName,
+      String? pseudo,
+      String? docTypeJustif,
+      String? imagepathIDrecto,
+      String? imagepathIDverso,
+      String? imagepathJustif,
+      String? kbisPath,
+      bool? informationsCorrectes}) {
     final dataBasesUserServices = DataBasesUserServices();
     final dataBasesDocsServices = DataBasesDocsServices();
 
@@ -53,7 +53,7 @@ class SubmitUser {
     );
 
     dataBasesUserServices.setUser(newUser, "${residence.id}-$lotId",
-        companyName, intendedFor, statutResident);
+        companyName, intendedFor, statutResident, informationsCorrectes);
 
     // Document pièce d'identité
     if (docTypeID != null &&

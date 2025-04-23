@@ -12,13 +12,21 @@ import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widge
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step4.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/intl.dart';
 
 class ProgressWidget extends StatefulWidget {
   final String userId;
   final String? emailUser;
+  final String? password;
+  final String? providerId;
 
-  const ProgressWidget({required this.userId, this.emailUser, super.key});
+  const ProgressWidget(
+      {required this.userId,
+      this.emailUser,
+      super.key,
+      this.password,
+      this.providerId});
 
   @override
   State<StatefulWidget> createState() => ProgressWidgetState();
@@ -29,7 +37,7 @@ class ProgressWidgetState extends State<ProgressWidget>
   double _progress = 0;
   int currentPage = 0;
   final PageController _progressController = PageController(initialPage: 0);
-
+  final currentUser = FirebaseAuth.instance.currentUser;
   String emailUser = "";
   String name = "";
   String surname = "";
@@ -56,42 +64,114 @@ class ProgressWidgetState extends State<ProgressWidget>
   String? refLot = "";
   Timer? _deleteTimer;
   bool isCameraOpen = false;
+  bool informationsCorrectes = false;
 
   @override
   void initState() {
     super.initState();
+    print("PROVIDER / ${widget.providerId}");
     WidgetsBinding.instance.addObserver(this);
     _progress = 1 / 5; // Assuming you have 5 steps
-    _startDeletionTimer();
+    //_startDeletionTimer();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _progressController.dispose();
+    if (currentUser != null && currentUser!.uid == widget.userId) {
+      _deleteUser();
+      _deleteStorage();
+      DataBasesUserServices.removeUserById(currentUser!.uid);
+
+      print("Utilisateur supprimé dans la fonction dispose : ${widget.userId}");
+    }
     super.dispose();
   }
+
+  // Fonction pour supprimer l'utilisateur de Firebase Authentication
+  Future<void> _deleteUser() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    // Vérifier le fournisseur d'authentification
+    if (widget.providerId == "password") {
+      // Si l'utilisateur s'est authentifié via mot de passe
+      final cred = EmailAuthProvider.credential(
+        email: user!.email!,
+        password: widget.password!,
+      );
+
+      try {
+        await user.reauthenticateWithCredential(cred);
+        await user.delete(); // Suppression de l'utilisateur
+        print("Utilisateur supprimé après re-auth avec mot de passe");
+      } catch (e) {
+        print("Erreur lors de la suppression avec mot de passe: $e");
+      }
+    } else if (widget.providerId == "google.com") {
+      // Si l'utilisateur s'est authentifié via Google
+      final googleSignIn = GoogleSignIn();
+      final googleUser = await googleSignIn.signInSilently();
+
+      if (googleUser == null) {
+        print("⚠️ Reconnexion silencieuse échouée.");
+        return;
+      }
+
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      try {
+        await user!.reauthenticateWithCredential(credential);
+        await user.delete(); // Suppression de l'utilisateur
+        print("Utilisateur supprimé après re-auth avec Google");
+      } catch (e) {
+        print("Erreur lors de la suppression avec Google: $e");
+      }
+    }
+  }
+
+  // void _deleteUser() async {
+  //   final user = FirebaseAuth.instance.currentUser;
+  //   final cred = EmailAuthProvider.credential(
+  //     email: user!.email!,
+  //     password: widget.password!,
+  //   );
+
+  //   await user.reauthenticateWithCredential(cred);
+  //   await user.delete(); // maintenant ça marche
+  // }
 
   void _deleteStorage() async {
     final StorageServices _storageServices = StorageServices();
     _storageServices.removeFolder("user", widget.userId);
   }
 
-  void _startDeletionTimer() async {
-    final currentUser = FirebaseAuth.instance.currentUser;
-    try {
-      if (currentUser != null && currentUser.uid == widget.userId) {
-        _deleteTimer = Timer(Duration(minutes: 10), () {
-          DataBasesUserServices.removeUserById(widget.userId);
-          currentUser.delete();
-          _deleteStorage();
-        });
-      }
-    } catch (e) {
-      print(
-          "Erreur lors de la suppression de l'utilisateur après depassement du timer : $e");
-    }
-  }
+  // void _startDeletionTimer() {
+  //   try {
+  //     if (currentUser != null && currentUser!.uid == widget.userId) {
+  //       // Définir un timer pour la suppression après 10 minutes d'inactivité
+  //       _deleteTimer = Timer(Duration(minutes: 10), () {
+  //         // Supprimer l'utilisateur de la base de données et du stockage
+  //         _deleteUser();
+  //         _deleteStorage();
+
+  //         // Supprimer également l'utilisateur de Firebase Authentication
+  //         DataBasesUserServices.removeUserById(widget.userId);
+
+  //         print("Utilisateur supprimé automatiquement après 10 minutes.");
+  //         // Vous pouvez aussi rediriger l'utilisateur à l'écran d'accueil
+  //         Navigator.popUntil(context, ModalRoute.withName('/'));
+  //       });
+  //     }
+  //   } catch (e) {
+  //     print(
+  //         "Erreur lors de l'initialisation du timer de suppression automatique: $e");
+  //   }
+  // }
 
   void _cancelDeletionTimer() {
     if (_deleteTimer != null && _deleteTimer!.isActive) {
@@ -102,17 +182,18 @@ class ProgressWidgetState extends State<ProgressWidget>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) async {
+  void didChangeAppLifecycleState(
+    AppLifecycleState state,
+  ) async {
     if ((state == AppLifecycleState.paused ||
             state == AppLifecycleState.inactive) &&
         !isCameraOpen) {
       print("Supprimer l'utilisateur si l'application est fermée ou inactive");
       try {
-        final currentUser = FirebaseAuth.instance.currentUser;
-        if (currentUser != null && currentUser.uid == widget.userId) {
-          await currentUser.delete();
+        if (currentUser != null && currentUser!.uid == widget.userId) {
+          await currentUser!.delete();
           _deleteStorage();
-          await DataBasesUserServices.removeUserById(currentUser.uid);
+          await DataBasesUserServices.removeUserById(currentUser!.uid);
           Navigator.popUntil(context, ModalRoute.withName('/'));
           print(
               "Utilisateur supprimé après fermeture de l'application : ${widget.userId}");
@@ -124,6 +205,38 @@ class ProgressWidgetState extends State<ProgressWidget>
     }
   }
 
+  Future<bool> silentReauthAndDelete() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      print("⚠️ Aucune session active.");
+      return false;
+    }
+
+    final googleSignIn = GoogleSignIn();
+    final googleUser = await googleSignIn.signInSilently();
+
+    if (googleUser == null) {
+      print("⚠️ Reconnexion silencieuse échouée.");
+      return false;
+    }
+
+    final googleAuth = await googleUser.authentication;
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    try {
+      await user.reauthenticateWithCredential(credential);
+      await user.delete(); // ✅ Suppression après re-auth
+      print("✅ Compte supprimé !");
+      return true;
+    } catch (e) {
+      print("❌ Erreur lors de la re-auth: $e");
+      return false;
+    }
+  }
+
   void _handleCameraState(bool isOpen) {
     setState(() {
       isCameraOpen = isOpen;
@@ -131,17 +244,19 @@ class ProgressWidgetState extends State<ProgressWidget>
   }
 
   void getInformationsStep0(
-      String email,
-      String newName,
-      String newSurname,
-      String newBirthday,
-      String newSex,
-      String newNationality,
-      String newPlaceOfBorn,
-      String? newPseudo,
-      String newImagePathIDrecto,
-      String newimagePathIDverso,
-      String docTypeId) {
+    String email,
+    String newName,
+    String newSurname,
+    String newBirthday,
+    String newSex,
+    String newNationality,
+    String newPlaceOfBorn,
+    String? newPseudo,
+    String newImagePathIDrecto,
+    String newimagePathIDverso,
+    String docTypeId,
+    bool? newInformationsCorrectes,
+  ) {
     // Faites ce que vous voulez avec les valeurs récupérées
     print(
         'Nom: $newName, Prénom: $newSurname, Pseudo: $newPseudo, imagepath: $newimagePathIDverso');
@@ -156,12 +271,27 @@ class ProgressWidgetState extends State<ProgressWidget>
     surname = newSurname;
     pseudo = newPseudo ?? "";
     idType = docTypeId;
+    informationsCorrectes = newInformationsCorrectes ?? false;
   }
 
   Timestamp formatBirthday(String date) {
     final formats = [
       DateFormat("dd MM yyyy"),
       DateFormat("dd/MM/yyyy"),
+      DateFormat("dd-MM-yyyy"),
+      DateFormat("yyyy-MM-dd"),
+      DateFormat("yyyy/MM/dd"),
+      DateFormat("MM/dd/yyyy"),
+      DateFormat("MM-dd-yyyy"),
+      DateFormat("dd.MM.yyyy"),
+      DateFormat("d MMM yyyy", 'fr_FR'), // ex : 5 janv. 2023
+      DateFormat("d MMMM yyyy", 'fr_FR'), // ex : 5 janvier 2023
+      DateFormat("d MMM yyyy", 'en_US'), // ex : 10 May 1988
+      DateFormat("d MMMM yyyy", 'en_US'), // ex : 10 May 1988 (long)
+      DateFormat("dd MMM yyyy", 'en_US'), // ex : 05 May 1988
+      DateFormat("dd MMMM yyyy", 'en_US'), // ex : 05 May 1988 (long)
+      DateFormat("d MMM yyyy", 'en_GB'), // variante UK
+      DateFormat("d MMMM yyyy", 'en_GB'),
     ];
 
     DateTime? localDate;
@@ -241,6 +371,7 @@ class ProgressWidgetState extends State<ProgressWidget>
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
               if (currentPage > 0) {
+                print("PASSWORD; ${widget.password}");
                 _progressController.previousPage(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
@@ -248,10 +379,10 @@ class ProgressWidgetState extends State<ProgressWidget>
               } else {
                 // Supprimer l'utilisateur de Firebase Auth
                 try {
-                  final currentUser = FirebaseAuth.instance.currentUser;
-                  if (currentUser != null && currentUser.uid == widget.userId) {
-                    await currentUser.delete();
-                    await DataBasesUserServices.removeUserById(currentUser
+                  if (currentUser != null &&
+                      currentUser!.uid == widget.userId) {
+                    _deleteUser();
+                    await DataBasesUserServices.removeUserById(currentUser!
                         .uid); // Supprime l'utilisateur de Firebase Auth
                     print("Utilisateur supprimé : ${widget.userId}");
                   }
@@ -322,6 +453,7 @@ class ProgressWidgetState extends State<ProgressWidget>
               progressController: _progressController,
             ),
             Step4(
+              informationsCorrectes: informationsCorrectes,
               userId: widget.userId,
               emailUser: widget.emailUser!,
               name: name,

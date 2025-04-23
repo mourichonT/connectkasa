@@ -7,6 +7,7 @@ import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as Firebase;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthentificationProcess {
   final BuildContext context;
@@ -23,55 +24,53 @@ class AuthentificationProcess {
 
   Future<Firebase.User?> fluttLogInWithGoogle() async {
     try {
-      // Charger les données utilisateur
-      await loadUserController.loadUserDataGoogle();
+      // 1. Déconnexion de Firebase et Google
+      await FirebaseAuth.instance.signOut();
+      await GoogleSignIn()
+          .signOut(); // <- Assure-toi d'importer 'google_sign_in'
 
-      // Écouter les changements d'état de l'authentification
-      Firebase.FirebaseAuth.instance.authStateChanges().listen(
-          (Firebase.User? user) async {
-        if (user != null) {
-          // Récupérer les données de l'utilisateur à partir de la base de données
-          var userData = await DataBasesUserServices.getUserById(user.uid);
+      // 2. Lancer l'authentification avec Google
+      await loadUserController
+          .loadUserDataGoogle(); // <- fait la connexion Google et l'auth avec Firebase
 
-          if (userData?.uid == user.uid && userData?.approved == true) {
-            // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
-            navigateToMyApp(userData!.uid, firestore);
-            return Future.value(user);
-          } else if (userData?.uid == user.uid && userData?.approved == false) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NoApprovalPage(),
-              ),
-            );
-          } else {
-            loadUserController.handleGoogleSignOut();
+      // 3. Récupérer l'utilisateur connecté via Firebase
+      final user = FirebaseAuth.instance.currentUser;
 
-            navigateToStep0(user);
-            print(
-                "Les données utilisateur ne sont pas disponibles dans la base de données.");
-            // Gérer le cas où les données utilisateur ne sont pas disponibles dans la base de données
-            // Peut-être afficher un message d'erreur ou effectuer une autre action appropriée
-            return;
-          }
-        } else {
-          // Gérer le cas où aucun utilisateur n'est connecté
-          // Peut-être afficher un message ou effectuer une autre action appropriée
-          print("Aucun utilisateur connecté.");
-          return;
-        }
-      }, onError: (dynamic error) {
-        print(
-            'Erreur lors de l\'écoute des changements d\'état d\'authentification : $error');
-        // Gérer l'erreur
-      });
+      if (user == null) {
+        print("Aucun utilisateur Google authentifié.");
+        return null;
+      }
+
+      final uid = user.uid;
+      final email = user.email;
+
+      print("✅ Compte Google connecté : UID=$uid | EMAIL=$email");
+
+      // 4. Chercher dans Firestore si l'utilisateur existe
+      final userData = await DataBasesUserServices.getUserById(uid);
+
+      if (userData != null && userData.approved == true) {
+        navigateToMyApp(uid, firestore);
+        return user;
+      } else if (userData != null && userData.approved == false) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NoApprovalPage(),
+          ),
+        );
+        return null;
+      } else {
+        // L'utilisateur n'existe pas encore dans Firestore
+        print("🚨 Utilisateur non trouvé dans Firestore → Redirection Step0");
+
+        navigateToStep0(user);
+        return null;
+      }
     } catch (e) {
-      // Gérer les erreurs éventuelles
-      print("Erreur lors de la connexion : $e");
-      // Afficher un message d'erreur ou effectuer une autre action appropriée
+      print("❌ Erreur lors de la connexion Google : $e");
       return null;
     }
-    return null;
   }
 
   // Future<Firebase.User?> fluttLogInWithApple() async {
@@ -228,15 +227,21 @@ class AuthentificationProcess {
       }
       return true;
     });
+
     if (!isStep0Present) {
+      final providerData = FirebaseAuth.instance.currentUser?.providerData;
+      final providerId = (providerData != null && providerData.isNotEmpty)
+          ? providerData.first.providerId
+          : null;
+
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => ProgressWidget(
             userId: user.uid,
             emailUser: user.email,
+            providerId: providerId,
           ),
-          //Step0(newUser: user.uid),
         ),
       );
     }

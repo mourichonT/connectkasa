@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -54,8 +55,7 @@ class CameraOrFilesState extends State<CameraOrFiles> {
 
     setState(() {
       isCameraOpen = false;
-      widget.onCameraStateChanged
-          ?.call(false); // Inverser ici pour indiquer que la caméra est fermée
+      widget.onCameraStateChanged?.call(false);
     });
 
     if (pickedFile == null) return;
@@ -64,7 +64,51 @@ class CameraOrFilesState extends State<CameraOrFiles> {
       _selectedImage = File(pickedFile.path);
     });
 
-    _storageServices.removeFile(
+    _uploadFromXFile(pickedFile);
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    setState(() {
+      isCameraOpen = true;
+      widget.onCameraStateChanged?.call(true);
+    });
+
+    final pickedFile = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+    );
+
+    setState(() {
+      isCameraOpen = false;
+      widget.onCameraStateChanged?.call(false);
+    });
+
+    if (pickedFile == null || pickedFile.files.single.path == null) return;
+
+    if (mounted) {
+      setState(() {
+        _selectedImage = File(pickedFile.files.single.path!);
+      });
+    }
+
+    _uploadFromFilePicker(pickedFile);
+  }
+
+  void _uploadFromFilePicker(FilePickerResult result) {
+    final path = result.files.single.path;
+    if (path != null) {
+      _uploadImage(path);
+    }
+  }
+
+  void _uploadFromXFile(XFile file) {
+    _uploadImage(file.path);
+  }
+
+  void _uploadImage(String path) async {
+    final file = File(path);
+
+    await _storageServices.removeFile(
       widget.racineFolder,
       widget.residence,
       widget.folderName,
@@ -73,13 +117,14 @@ class CameraOrFilesState extends State<CameraOrFiles> {
 
     try {
       final downloadUrl = await _storageServices.uploadImg(
-        pickedFile,
+        XFile(file.path),
         widget.racineFolder,
         widget.residence,
         widget.folderName,
         fileName,
       );
-      if (downloadUrl != null) {
+
+      if (mounted && downloadUrl != null) {
         widget.onImageUploaded(downloadUrl);
       }
     } catch (e) {
@@ -87,54 +132,54 @@ class CameraOrFilesState extends State<CameraOrFiles> {
     }
   }
 
-  Future<void> _pickImage(ImageSource source) async {
-    setState(() {
-      isCameraOpen = true;
-    });
-    widget.onCameraStateChanged?.call(
-        true); // Indiquer que l'option de sélection de fichier est activée
+  // Future<void> _pickImage(ImageSource source) async {
+  //   setState(() {
+  //     isCameraOpen = true;
+  //   });
+  //   widget.onCameraStateChanged?.call(
+  //       true); // Indiquer que l'option de sélection de fichier est activée
 
-    final XFile? pickedFile = await _picker.pickImage(source: source);
+  //   final XFile? pickedFile = await _picker.pickImage(source: source);
 
-    setState(() {
-      isCameraOpen = false;
-    });
-    widget.onCameraStateChanged
-        ?.call(false); // Indiquer que la sélection est terminée
+  //   setState(() {
+  //     isCameraOpen = false;
+  //   });
+  //   widget.onCameraStateChanged
+  //       ?.call(false); // Indiquer que la sélection est terminée
 
-    if (pickedFile == null) return;
+  //   if (pickedFile == null) return;
 
-    if (mounted) {
-      setState(() {
-        _selectedImage = File(pickedFile.path);
-      });
-    }
+  //   if (mounted) {
+  //     setState(() {
+  //       _selectedImage = File(pickedFile.path);
+  //     });
+  //   }
 
-    _uploadImage(pickedFile);
-  }
+  //   _uploadImage(pickedFile);
+  // }
 
-  void _uploadImage(XFile pickedFile) {
-    _storageServices.removeFile(
-      widget.racineFolder,
-      widget.residence,
-      widget.folderName,
-      idPost: fileName,
-    );
+  // void _uploadImage(XFile pickedFile) {
+  //   _storageServices.removeFile(
+  //     widget.racineFolder,
+  //     widget.residence,
+  //     widget.folderName,
+  //     idPost: fileName,
+  //   );
 
-    _storageServices
-        .uploadImg(
-      pickedFile,
-      widget.racineFolder,
-      widget.residence,
-      widget.folderName,
-      fileName,
-    )
-        .then((downloadUrl) {
-      if (mounted && downloadUrl != null) {
-        widget.onImageUploaded(downloadUrl);
-      }
-    });
-  }
+  //   _storageServices
+  //       .uploadImg(
+  //     pickedFile,
+  //     widget.racineFolder,
+  //     widget.residence,
+  //     widget.folderName,
+  //     fileName,
+  //   )
+  //       .then((downloadUrl) {
+  //     if (mounted && downloadUrl != null) {
+  //       widget.onImageUploaded(downloadUrl);
+  //     }
+  //   });
+  // }
 
   Future<void> _removeImage() async {
     try {
@@ -217,9 +262,20 @@ class CameraOrFilesState extends State<CameraOrFiles> {
               ? SizedBox(
                   width: width,
                   height: width * 0.5,
-                  child: Image.file(
-                    _selectedImage!,
-                    fit: BoxFit.cover,
+                  child: Builder(
+                    builder: (_) {
+                      try {
+                        return Image.file(
+                          _selectedImage!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return _buildErrorPlaceholder(); // custom placeholder
+                          },
+                        );
+                      } catch (e) {
+                        return _buildErrorPlaceholder();
+                      }
+                    },
                   ),
                 )
               : _buildAddImageButton(width),
@@ -285,6 +341,48 @@ class CameraOrFilesState extends State<CameraOrFiles> {
                 fontWeight: FontWeight.w400,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getFileExtension(File file) {
+    final filename = file.path.split('/').last;
+    return filename.contains('.') ? filename.split('.').last.toLowerCase() : '';
+  }
+
+  IconData _getIconForExtension(String ext) {
+    switch (ext) {
+      case 'pdf':
+        return Icons.picture_as_pdf;
+      case 'doc':
+      case 'docx':
+        return Icons.description;
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'bmp':
+      case 'gif':
+        return Icons.image;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
+  Widget _buildErrorPlaceholder() {
+    final extension =
+        _selectedImage != null ? _getFileExtension(_selectedImage!) : '';
+    final icon = _getIconForExtension(extension);
+    return Container(
+      color: Colors.grey[300],
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 40, color: Colors.grey),
+            SizedBox(height: 8),
+            Text('.$extension', style: TextStyle(color: Colors.grey)),
           ],
         ),
       ),
