@@ -1,4 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
@@ -55,9 +56,8 @@ class ManagementPropertyState extends State<ManagementProperty> {
                 itemBuilder: (context, index) {
                   Lot? lot = snapshot.data![index];
                   bool loca = lot!.idLocataire!.contains(widget.uid);
-                  _backgroundColor = Color(
-                      int.parse(lot.colorSelected.substring(2), radix: 16) +
-                          0xFF000000);
+                  _backgroundColor =
+                      ColorUtils.fromHex(lot.userLotDetails['colorSelected']);
                   return InkWell(
                     onTap: () {
                       Navigator.push(

@@ -1,4 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
@@ -96,7 +97,7 @@ class ModifyPropertyState extends State<ModifyProperty> {
                     context,
                     CupertinoPageRoute(
                         builder: (context) => ColorView(
-                              residenceId: widget.lot.residenceId,
+                              uiserId: widget.uid,
                               lot: widget.lot,
                               refLotSelected: widget.refLotSelected,
                               onColorSelected: (color) {
@@ -413,9 +414,8 @@ class ModifyPropertyState extends State<ModifyProperty> {
     name.text = isProprietaire ? widget.lot.nameProp : widget.lot.nameLoc;
 
     selectedStatut = widget.lot.type;
-    _backgroundColor = Color(
-        int.parse(widget.lot.colorSelected.substring(2), radix: 16) +
-            0xFF000000);
+    _backgroundColor =
+        ColorUtils.fromHex(widget.lot.userLotDetails['colorSelected']);
     setState(() {});
   }
 }

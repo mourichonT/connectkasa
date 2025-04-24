@@ -14,6 +14,12 @@ class LoadPreferedData {
     }
   }
 
+  Future<void> savePreferedLot(Lot lot) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String lotJson = json.encode(lot.toJson());
+    await prefs.setString('preferedLot', lotJson);
+  }
+
   static void clearSharedPreferences() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.clear();

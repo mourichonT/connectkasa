@@ -3,10 +3,13 @@
 import 'dart:convert';
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/widget_view/components/lot_tile_view.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../models/pages_models/lot.dart';
 
@@ -117,21 +120,67 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
         ));
   }
 
-// Méthode pour sélectionner un lot
-  selectLot(int? selectedLotIndex, context) async {
-    if (selectedLotIndex != null) {
-      List<Lot?> lots =
-          await _lotByUser; // Accéder à la liste lots de la méthode build
-      Lot selectedLot = lots[selectedLotIndex]!;
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String selectedLotJson = jsonEncode(selectedLot.toJson());
-      prefs.setString('preferedLot', selectedLotJson);
-      widget.onRefresh?.call();
-      // Mettez à jour l'état pour refléter le lot sélectionné
+// // Méthode pour sélectionner un lot
+//   selectLot(int? selectedLotIndex, context) async {
+//     if (selectedLotIndex != null) {
+//       List<Lot?> lots =
+//           await _lotByUser; // Accéder à la liste lots de la méthode build
+//       Lot selectedLot = lots[selectedLotIndex]!;
+//       SharedPreferences prefs = await SharedPreferences.getInstance();
+//       String selectedLotJson = jsonEncode(selectedLot.toJson());
+//       prefs.setString('preferedLot', selectedLotJson);
+//       widget.onRefresh?.call();
+//       // Mettez à jour l'état pour refléter le lot sélectionné
 
-      setState(() {
-        preferedLot = selectedLot;
-      });
+//       setState(() {
+//         preferedLot = selectedLot;
+//       });
+//     }
+//   }
+
+  selectLot(int? selectedLotIndex, BuildContext context) async {
+    if (selectedLotIndex == null) return;
+
+    List<Lot?> lots = await _lotByUser;
+    Lot selectedLot = lots[selectedLotIndex]!;
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Sauvegarde du lot sélectionné
+    String selectedLotJson = jsonEncode(selectedLot.toJson());
+    await prefs.setString('preferedLot', selectedLotJson);
+
+    // Charger les détails utilisateur du lot
+    try {
+      final details = await DataBasesUserServices().getLotDetails(
+        widget.uid,
+        "${selectedLot.residenceData['id']}-${selectedLot.refLot}",
+      );
+
+      if (details != null) {
+        selectedLot.userLotDetails = details;
+        String lotDetailsJson = jsonEncode(details);
+        await prefs.setString('lotDetails', lotDetailsJson);
+
+        // ✅ Appliquer la couleur sélectionnée
+        final colorString = details['colorSelected'];
+        if (colorString != null && colorString is String) {
+          if (context.mounted) {
+            Provider.of<ColorProvider>(context, listen: false)
+                .updateColor(colorString);
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Erreur lors du chargement des détails du lot: $e");
     }
+
+    // ✅ Actualiser la vue et le lot sélectionné
+    setState(() {
+      preferedLot = selectedLot;
+    });
+
+    // ✅ Rebuild complet
+    widget.onRefresh?.call();
   }
 }

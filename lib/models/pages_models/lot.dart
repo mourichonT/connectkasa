@@ -5,13 +5,13 @@ class Lot {
   String? batiment;
   String? lot;
   String typeLot;
-  String colorSelected; // Attribut de type Color
   String? refGerance;
   String type;
   List<String>? idProprietaire;
   List<String>? idLocataire;
   String residenceId;
   Map<String, dynamic> residenceData;
+  Map<String, dynamic> userLotDetails;
 
   Lot({
     String nameProp = "",
@@ -20,13 +20,13 @@ class Lot {
     this.batiment,
     this.lot,
     required this.typeLot,
-    required this.colorSelected,
     this.refGerance,
     required this.type,
     required this.idProprietaire,
     this.idLocataire,
     required this.residenceId,
     required this.residenceData,
+    required this.userLotDetails,
   })  : _nameProp = nameProp,
         _nameLoc = nameLoc;
 
@@ -38,7 +38,6 @@ class Lot {
       batiment: json["batiment"],
       lot: json["lot"],
       typeLot: json["typeLot"] ?? "",
-      colorSelected: json["colorSelected"], // Convertir en Color
       refGerance: json["refGerance"],
       type: json["type"] ?? "",
       idProprietaire:
@@ -52,6 +51,9 @@ class Lot {
       residenceData: json["residenceData"] != null
           ? Map<String, dynamic>.from(json["residenceData"])
           : {},
+      userLotDetails: json["userLotDetails"] != null
+          ? Map<String, dynamic>.from(json["userLotDetails"])
+          : {},
     );
   }
 
@@ -63,13 +65,13 @@ class Lot {
       "batiment": batiment,
       "lot": lot,
       "typeLot": typeLot,
-      "colorSelected": colorSelected, // Convertir en valeur pour le JSON
       "refGerance": refGerance,
       "type": type,
       "idProprietaire": idProprietaire,
       "idLocataire": idLocataire,
       "residenceId": residenceId,
       "residenceData": residenceData,
+      'userLotDetails': userLotDetails,
     };
   }
 
@@ -118,12 +120,12 @@ class Lot {
       if (batiment != null) "batiment": batiment,
       if (lot != null) "lot": lot,
       "typeLot": typeLot,
-      "colorSelected": colorSelected, // Convertir en valeur pour Firestore
       if (type.isNotEmpty) "type": type,
       if (idProprietaire != null) "idProprietaire": idProprietaire,
       if (idLocataire != null) "idLocataire": idLocataire,
       "residenceId": residenceId,
       "residenceData": residenceData,
+      'userLotDetails': userLotDetails,
     };
   }
 
@@ -135,7 +137,6 @@ class Lot {
       batiment: map['batiment'],
       lot: map['lot'],
       typeLot: map['typeLot'] ?? "",
-      colorSelected: map['colorSelected'], // Convertir en Color
       refGerance: map["refGerance"],
       type: map['type'] ?? "",
       idProprietaire: List<String>.from(map['idProprietaire'] ?? []),
@@ -143,6 +144,9 @@ class Lot {
       residenceId: map["residenceId"] ?? "",
       residenceData: map["residenceData"] != null
           ? Map<String, dynamic>.from(map["residenceData"])
+          : {},
+      userLotDetails: map["userLotDetails"] != null
+          ? Map<String, dynamic>.from(map["userLotDetails"])
           : {},
     );
   }

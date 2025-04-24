@@ -8,5 +8,5 @@ class ColorProvider with ChangeNotifier {
   void updateColor(String colorHex) {
     _color = Color(int.parse(colorHex.substring(2), radix: 16) + 0xFF000000);
     notifyListeners();
-    }
+  }
 }

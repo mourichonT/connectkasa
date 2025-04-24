@@ -43,6 +43,7 @@ class DataBasesUserServices {
             .collection("lots")
             .doc(lotId)
             .set({
+          "colorSelected": "ff48775b",
           "lotId": lotId,
           if (companyName != null) "companyName": companyName,
           if (intentedFor != null) "intendedFor": intentedFor,
@@ -369,6 +370,38 @@ class DataBasesUserServices {
       print("✅ Utilisateur et ses sous-collections supprimés avec succès");
     } catch (e) {
       print('❌ Erreur lors de la suppression de l\'utilisateur: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>?> getLotDetails(
+      String userID, String refLot) async {
+    print("REFLOT: $refLot");
+    print("USER: $userID");
+    try {
+      // Référence du document dans la sous-collection "lots"
+      DocumentReference lotRef = FirebaseFirestore.instance
+          .collection("User")
+          .doc(userID)
+          .collection("lots")
+          .doc(refLot);
+
+      // Récupération du document
+      DocumentSnapshot snapshot = await lotRef.get();
+
+      if (snapshot.exists) {
+        // Accès aux champs spécifiques
+        var data = snapshot.data() as Map<String, dynamic>;
+        return {
+          "colorSelected": data["colorSelected"],
+          "nameLot": data["nameLot"],
+        };
+      } else {
+        print("Detail non trouvé.");
+        return null;
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération du lot : $e");
+      return null;
     }
   }
 }

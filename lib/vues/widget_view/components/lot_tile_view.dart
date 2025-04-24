@@ -1,5 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api
 
+import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import '../../../controllers/features/my_texts_styles.dart';
@@ -23,7 +24,6 @@ class _LotTileViewState extends State<LotTileView> {
   String showNameLotLoc = "";
   @override
   void initState() {
-    print(widget.lot.nameProp);
     super.initState();
   }
 
@@ -64,20 +64,23 @@ class _LotTileViewState extends State<LotTileView> {
                 Row(
                   children: [
                     MyTextStyle.lotDesc(
-                        widget.lot.residenceData["numero"] ?? "N/A", 14),
+                        widget.lot.residenceData["numero"] ?? "",
+                        SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 2)),
                     MyTextStyle.lotDesc(
-                        widget.lot.residenceData["street"] ?? "N/A", 14),
+                        widget.lot.residenceData["street"] ?? "",
+                        SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 2)),
                   ],
                 ),
                 Row(
                   children: [
                     MyTextStyle.lotDesc(
-                        widget.lot.residenceData["zipCode"] ?? "N/A", 14),
+                        widget.lot.residenceData["zipCode"] ?? "",
+                        SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 2)),
-                    MyTextStyle.lotDesc(
-                        widget.lot.residenceData["city"] ?? "N/A", 14),
+                    MyTextStyle.lotDesc(widget.lot.residenceData["city"] ?? "",
+                        SizeFont.h3.size),
                   ],
                 ),
               ],
@@ -86,9 +89,8 @@ class _LotTileViewState extends State<LotTileView> {
         ),
         if (widget.toShow)
           CircleAvatar(
-            backgroundColor: Color(
-                int.parse(widget.lot.colorSelected.substring(2), radix: 16) +
-                    0xFF000000),
+            backgroundColor:
+                ColorUtils.fromHex(widget.lot.userLotDetails['colorSelected']),
             // Utilisation de la couleur primaire du thème
             radius: 13, // Rayon du cercle
             child: Container(

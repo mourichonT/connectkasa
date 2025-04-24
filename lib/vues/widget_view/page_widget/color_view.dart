@@ -1,13 +1,14 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/colo_circle.dart';
+import 'package:connect_kasa/controllers/features/colo_circle.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/color_controller.dart';
 import 'package:connect_kasa/models/enum/tab_bar_icon.dart';
 
 class ColorView extends StatefulWidget {
-  final String residenceId;
+  final String uiserId;
   final Lot lot;
   final String refLotSelected;
   final Function(Color) onColorSelected;
@@ -47,7 +48,7 @@ class ColorView extends StatefulWidget {
 
   ColorView({
     super.key,
-    required this.residenceId,
+    required this.uiserId,
     required this.lot,
     required this.refLotSelected,
     required this.onColorSelected,
@@ -63,9 +64,8 @@ class _ColorViewState extends State<ColorView> {
   @override
   void initState() {
     super.initState();
-    _selectedColor = Color(
-        int.parse(widget.lot.colorSelected.substring(2), radix: 16) +
-            0xFF000000);
+    _selectedColor =
+        ColorUtils.fromHex(widget.lot.userLotDetails['colorSelected']);
   }
 
   void _updateSelectedColor(Color newColor) {
@@ -96,10 +96,13 @@ class _ColorViewState extends State<ColorView> {
                   width: 40.0, // Ajustez la largeur comme nécessaire
                   height: 40.0, // Ajustez la hauteur comme nécessaire
                   child: ColorCircle(
-                    refLotSelected: widget.refLotSelected,
-                    refLot: widget.lot.refLot,
+                    refLotSelected:
+                        "${widget.lot.residenceData['id']}-${widget.refLotSelected}",
+                    refLot:
+                        "${widget.lot.residenceData['id']}-${widget.lot.refLot}",
                     color: const Color.fromRGBO(72, 119, 91, 1),
-                    residenceId: widget.residenceId,
+                    userId: widget.uiserId,
+                    onColorSelected: _updateSelectedColor,
                   ),
                 ),
                 const Text("Couleur choisie:"),
@@ -108,10 +111,12 @@ class _ColorViewState extends State<ColorView> {
                   height: 40.0, // Ajustez la hauteur comme nécessaire
                   child: Center(
                     child: ColorCircle(
-                      refLotSelected: widget.refLotSelected,
+                      refLotSelected:
+                          "${widget.lot.residenceData['id']}-${widget.refLotSelected}",
                       color: _selectedColor,
-                      residenceId: widget.residenceId,
-                      refLot: widget.lot.refLot,
+                      userId: widget.uiserId,
+                      refLot:
+                          "${widget.lot.residenceData['id']}-${widget.lot.refLot}",
                     ),
                   ),
                 ),
@@ -127,9 +132,11 @@ class _ColorViewState extends State<ColorView> {
                 itemBuilder: (context, index) {
                   return Center(
                     child: ColorCircle(
-                      refLotSelected: widget.refLotSelected,
-                      residenceId: widget.residenceId,
-                      refLot: widget.lot.refLot,
+                      refLotSelected:
+                          "${widget.lot.residenceData['id']}-${widget.refLotSelected}",
+                      userId: widget.uiserId,
+                      refLot:
+                          "${widget.lot.residenceData['id']}-${widget.lot.refLot}",
                       color: widget.customColors[index],
                       onColorSelected: _updateSelectedColor,
                     ),
