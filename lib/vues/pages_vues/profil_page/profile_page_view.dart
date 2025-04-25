@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -15,6 +16,7 @@ import 'package:connect_kasa/vues/pages_vues/profil_page/param_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/info_pers_page_modify.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ProfilePage extends StatefulWidget {
   final String uid;
@@ -35,10 +37,8 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final LoadUserController _loadUserController = LoadUserController();
   final DataBasesUserServices userServices = DataBasesUserServices();
-  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
 
   User? user;
-  Future<List<Lot?>>? _lotByUser;
   int nbrLot = 0;
   int nbrLoc = 0;
   bool loca = false;
@@ -59,40 +59,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _initializeUserData() {
     _loadUser(widget.uid);
-    _loadLotsData();
-  }
-
-  void _loadLotsData() {
-    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
-    _lotByUser!.then((lots) {
-      setState(() {
-        nbrLot = lots.length;
-      });
-
-      for (Lot? lot in lots) {
-        if (lot != null) {
-          if (lot.idLocataire!.contains(widget.uid)) {
-            setState(() {
-              loca = true;
-            });
-            break;
-          } else if (lot.idProprietaire!.contains(widget.uid)) {
-            setState(() {
-              loca = false;
-            });
-            break;
-          }
-        }
-      }
-    });
-
-    _databasesLotServices
-        .countLocatairesExcludingUser(widget.uid)
-        .then((tenants) {
-      setState(() {
-        nbrLoc = tenants;
-      });
-    });
+    // _loadLotsData();
   }
 
   Future<void> _loadUser(String uid) async {
@@ -274,7 +241,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             builder: (context) => ManagementProperty(
                                   refLot: widget.refLot,
                                   uid: widget.uid,
-                                  lotByUser: _lotByUser!,
+                                  //lotByUser: _lotByUser!,
                                   color: widget.color,
                                 )));
                   },
@@ -292,7 +259,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         CupertinoPageRoute(
                             builder: (context) => ManagementTenant(
                                   uid: widget.uid,
-                                  lotByUser: _lotByUser!,
                                   color: widget.color,
                                 )));
                   },
@@ -331,9 +297,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 icon: const Icon(Icons.power_settings_new_rounded,
                     color: Colors.white, size: 22),
                 press: () {
+                  LoadPreferedData.clearSharedPreferences();
                   _loadUserController.handleGoogleSignOut();
                   Navigator.popUntil(context, ModalRoute.withName('/'));
-                  LoadPreferedData.clearSharedPreferences();
+                  Provider.of<ColorProvider>(context, listen: false)
+                      .updateColor("ff48775b");
                 },
                 isLogOut: true,
               ),

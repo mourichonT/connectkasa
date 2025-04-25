@@ -64,7 +64,7 @@ class CustomTextFieldWidget extends StatelessWidget {
                 decoration:
                     InputDecoration(hintText: text, border: InputBorder.none),
                 style: TextStyle(
-                    color: Colors.black54,
+                    color: Colors.black87,
                     fontSize: SizeFont.h3.size,
                     fontWeight: FontWeight.w400),
                 onChanged: (value) => refresh?.call(),

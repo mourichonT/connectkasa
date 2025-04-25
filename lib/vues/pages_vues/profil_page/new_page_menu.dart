@@ -8,6 +8,9 @@ class ProfileMenu extends StatelessWidget {
   final Color color;
   final String refLot;
   final bool isLogOut;
+  final String text;
+  final Icon icon;
+  final VoidCallback? press;
 
   ProfileMenu(
       {Key? key,
@@ -19,11 +22,6 @@ class ProfileMenu extends StatelessWidget {
       required this.refLot,
       required this.isLogOut})
       : super(key: key);
-
-  final String text;
-  final Icon icon;
-  final VoidCallback? press;
-
   @override
   Widget build(BuildContext context) {
     return Padding(

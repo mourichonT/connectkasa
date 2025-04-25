@@ -44,6 +44,7 @@ class DataBasesUserServices {
             .doc(lotId)
             .set({
           "colorSelected": "ff48775b",
+          "nameLot": "",
           "lotId": lotId,
           if (companyName != null) "companyName": companyName,
           if (intentedFor != null) "intendedFor": intentedFor,

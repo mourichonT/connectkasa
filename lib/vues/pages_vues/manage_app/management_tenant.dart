@@ -1,4 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -9,33 +10,37 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class ManagementTenant extends StatefulWidget {
-  final Future<List<Lot?>> lotByUser;
   final Color color;
   final String uid;
 
-  const ManagementTenant(
-      {super.key,
-      required this.lotByUser,
-      required this.color,
-      required this.uid});
+  const ManagementTenant({super.key, required this.color, required this.uid});
 
   @override
   ManagementTenantState createState() => ManagementTenantState();
 }
 
 class ManagementTenantState extends State<ManagementTenant> {
+  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
+  late Future<List<Lot?>> _lotByUser;
+
   DataBasesUserServices userServices = DataBasesUserServices();
   late Future<List<Map<String, dynamic>>> tenantsAndLots;
 
   @override
   void initState() {
     super.initState();
+    _fetchLotsByUser();
     tenantsAndLots = Future.value([]); // Initialize with an empty future
     initializeTenants();
   }
 
+  Future<List<Lot?>> _fetchLotsByUser() async {
+    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
+    return await _lotByUser;
+  }
+
   void initializeTenants() {
-    tenantsAndLots = widget.lotByUser.then((lots) async {
+    tenantsAndLots = _lotByUser.then((lots) async {
       List<Future<Map<String, dynamic>>> userFutures = [];
 
       for (var lot in lots) {
@@ -74,7 +79,7 @@ class ManagementTenantState extends State<ManagementTenant> {
       body: Padding(
         padding: const EdgeInsets.only(top: 50),
         child: FutureBuilder<List<Lot?>>(
-          future: widget.lotByUser,
+          future: _lotByUser,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());

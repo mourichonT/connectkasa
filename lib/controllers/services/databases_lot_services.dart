@@ -195,6 +195,21 @@ class DataBasesLotServices {
   //     rethrow;
   //   }
   // }
+  Future<void> updateNameLot(
+      String userUid, String refLot, String newName) async {
+    print(" USER : $userUid, REFLOT: $refLot, newName : $newName ");
+    try {
+      DocumentReference lotRef =
+          db.collection("User").doc(userUid).collection("lots").doc(refLot);
+
+      await lotRef.update({'nameLot': newName});
+
+      print('Le nom $newName du lot $refLot mise à jour avec succès.');
+    } catch (e) {
+      print('Erreur lors de la mise à jour de la couleur du lot $refLot : $e');
+      rethrow;
+    }
+  }
 
   Future<void> updateLot(
       String residenceId, String refLot, String field, String upDate) async {

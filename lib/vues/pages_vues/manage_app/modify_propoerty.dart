@@ -1,43 +1,44 @@
+// import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/modify_prop_details.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/modify_prop_info_loc.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
+import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
+import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/color_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 class ModifyProperty extends StatefulWidget {
   final Lot lot;
   final String refLotSelected;
   final String uid;
+  final Function(Color) newColor;
 
   const ModifyProperty({
     super.key,
     required this.lot,
     required this.uid,
     required this.refLotSelected,
+    required this.newColor,
   });
 
   @override
-  State<StatefulWidget> createState() => ModifyPropertyState();
+  State<ModifyProperty> createState() => _ModifyPropertyState();
 }
 
-class ModifyPropertyState extends State<ModifyProperty> {
-  DataBasesLotServices lotServices = DataBasesLotServices();
+class _ModifyPropertyState extends State<ModifyProperty> {
+  final DataBasesLotServices lotServices = DataBasesLotServices();
+  final TextEditingController name = TextEditingController();
+  final FocusNode nameFocusNode = FocusNode();
 
-  TextEditingController name = TextEditingController();
   String? selectedStatut;
   bool isProprietaire = false;
-
   late Color _backgroundColor;
-
-  FocusNode nameFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -48,6 +49,34 @@ class ModifyPropertyState extends State<ModifyProperty> {
     _loadProperty();
   }
 
+  void _loadProperty() {
+    name.text = widget.lot.userLotDetails['nameLot'];
+    selectedStatut = widget.lot.type;
+    _backgroundColor =
+        ColorUtils.fromHex(widget.lot.userLotDetails['colorSelected']);
+    setState(() {});
+  }
+
+  void _handleTextChange() {
+    if (name.text.length > 30) {
+      name.text = name.text.substring(0, 30);
+      name.selection = TextSelection.fromPosition(
+        TextPosition(offset: name.text.length),
+      );
+    }
+  }
+
+  void _handleSubmit(String field, String label, String value) {
+    lotServices.updateNameLot(widget.uid,
+        "${widget.lot.residenceData['id']}-${widget.lot.refLot}", value);
+    setState(() {});
+  }
+
+  void _updateSelectedColor(Color newColor) {
+    setState(() => _backgroundColor = newColor);
+    widget.newColor(newColor);
+  }
+
   @override
   void dispose() {
     nameFocusNode.dispose();
@@ -56,21 +85,13 @@ class ModifyPropertyState extends State<ModifyProperty> {
     super.dispose();
   }
 
-  void _handleTextChange() {
-    if (name.text.length > 30) {
-      name.text = name.text.substring(0, 30);
-      name.selection =
-          TextSelection.fromPosition(TextPosition(offset: name.text.length));
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-          widget.lot.nameProp != "" || widget.lot.nameLoc != ""
+          widget.lot.userLotDetails['nameLot'] != "" ||
+                  widget.lot.userLotDetails['nameLot'] != null
               ? name.text
               : "${widget.lot.residenceData['name']} ${widget.lot.lot}",
           Colors.black87,
@@ -80,342 +101,177 @@ class ModifyPropertyState extends State<ModifyProperty> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(top: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const SizedBox(height: 20),
+            _buildSectionTitle("Paramètres"),
+            _buildColorPicker(),
+            const Divider(),
+            CustomTextFieldWidget(
+              label: 'Nom',
+              text: 'Donner un nom à votre bien',
+              controller: name,
+              focusNode: nameFocusNode,
+              field: widget.lot.userLotDetails['nameLot'],
+              onSubmit: _handleSubmit,
+              refresh: () => setState(() {}),
+              isEditable: true,
+              maxLines: 1,
+              minLines: 1,
+            ),
+            const SizedBox(height: 30),
+            _buildSectionTitle("Informations"),
+            _buildNavigationTile(
+              "Fiche du bien",
+              () {
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (context) => ModifyPropDetails(
+                      refLotSelected: widget.refLotSelected,
+                      lot: widget.lot,
+                      uid: widget.uid,
+                    ),
+                  ),
+                );
+              },
+              const Icon(Icons.home_outlined, color: Colors.black87),
+            ),
+            Visibility(
+              visible: widget.lot.idProprietaire!.contains(widget.uid),
+              child: Column(
                 children: [
-                  MyTextStyle.lotDesc(
-                      "Paramètres", SizeFont.h2.size, FontStyle.italic),
+                  _buildNavigationTile(
+                    "Ma gestion locative",
+                    () {
+                      Navigator.push(
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => ModifyPropInfoLoc(
+                            refLotSelected: widget.refLotSelected,
+                            lot: widget.lot,
+                            uid: widget.uid,
+                          ),
+                        ),
+                      );
+                    },
+                    const Icon(Icons.manage_accounts_outlined,
+                        color: Colors.black87),
+                  ),
                 ],
               ),
             ),
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                        builder: (context) => ColorView(
-                              uiserId: widget.uid,
-                              lot: widget.lot,
-                              refLotSelected: widget.refLotSelected,
-                              onColorSelected: (color) {
-                                setState(() {
-                                  _backgroundColor = color;
-                                });
-                              },
-                            )));
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(top: 25, bottom: 1),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: _backgroundColor,
-                          radius: 10, // Rayon du cercle
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              shape: BoxShape
-                                  .circle, // Définir la forme comme un cercle
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(left: 15),
-                          child: Text(
-                            "Couleur du bien",
-                            style: TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w400,
-                                fontSize: SizeFont.h3.size),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Icon(
-                      Icons.arrow_right_outlined,
-                      size: 30,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const Divider(),
-            _buildModifyTextField("Donner un nom à votre bien", 'Nom', name,
-                nameFocusNode, isProprietaire ? 'nameProp' : 'nameLoc'),
-            Padding(
-              padding: const EdgeInsets.only(top: 30, bottom: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  MyTextStyle.lotDesc(
-                      "Informations", SizeFont.h2.size, FontStyle.italic),
-                ],
-              ),
-            ),
-            InkWell(
-              onTap: () {
-                Navigator.push(
-                    context,
-                    CupertinoPageRoute(
-                        builder: (context) => ModifyPropDetails(
-                              refLotSelected: widget.refLotSelected,
-                              lot: widget.lot,
-                              uid: widget.uid,
-                            )));
-              },
-              child: Padding(
-                padding: const EdgeInsets.only(top: 15, bottom: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Fiche du bien",
-                      style: TextStyle(
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w400,
-                          fontSize: SizeFont.h3.size),
-                    ),
-                    const Icon(
-                      Icons.arrow_right_outlined,
-                      size: 30,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const Divider(),
-            if (!widget.lot.idLocataire!.contains(widget.uid))
-              Visibility(
-                visible: selectedStatut == "Location longue durée" ||
-                    selectedStatut == "Location courte durée",
-                child: Column(
-                  children: [
-                    InkWell(
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                                builder: (context) => ModifyPropInfoLoc(
-                                      refLotSelected: widget.refLotSelected,
-                                      lot: widget.lot,
-                                      uid: widget.uid,
-                                    )));
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 15, bottom: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Ma gestion locative",
-                              style: TextStyle(
-                                  color: Colors.black87,
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: SizeFont.h3.size),
-                            ),
-                            const Icon(
-                              Icons.arrow_right_outlined,
-                              size: 30,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const Divider(),
-                  ],
-                ),
-              ),
-            const SizedBox(
-              height: 80,
-            )
+            const SizedBox(height: 80),
           ],
         ),
       ),
-      bottomSheet: Container(
-        height: 50,
-        //alignment: Alignment.bottomCenter,
-        width: MediaQuery.of(context).size.width,
-        color: Colors.transparent,
-        child: Center(
-          child: ButtonAdd(
-              function: () {},
-              text: "Supprimer",
-              color: Colors.black26,
-              horizontal: 30,
-              vertical: 10,
-              size: SizeFont.h3.size),
-        ),
-      ),
+      bottomSheet: _buildDeleteButton(),
     );
   }
 
-  Widget _buildDropDownMenu(double width, String label) {
-    List<String> statuts = ImmoList.statutList();
-    bool isEnabled = !widget.lot.idLocataire!.contains(widget.uid);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: DropdownButtonFormField(
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(
-              color: Colors.black54,
-              fontWeight: FontWeight.w400,
-              fontSize: SizeFont.h3.size),
-          border: const UnderlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.grey,
-              width: 1.0,
-            ),
-          ),
-        ),
-        value: selectedStatut,
-        items: statuts.map((statut) {
-          return DropdownMenuItem(
-            value: statut, // Assurez-vous que chaque valeur est unique
-            child: Text(
-              statut,
-              style: TextStyle(
-                  color: isEnabled ? Colors.black87 : Colors.black54,
-                  fontWeight: FontWeight.w400,
-                  fontSize: SizeFont.h3.size),
-            ),
-          );
-        }).toList(),
-        onChanged: isEnabled
-            ? (newValue) {
-                setState(() {
-                  selectedStatut = newValue as String?;
-                  widget.lot.type = selectedStatut!;
-                });
-              }
-            : null,
-        isExpanded: true,
-        style: TextStyle(
-            color: isEnabled ? Colors.black54 : Colors.black87,
-            fontWeight: FontWeight.w400,
-            fontSize: SizeFont.h3.size),
-        disabledHint: Text(
-          selectedStatut ?? '',
-          style: TextStyle(
-              color: isEnabled ? Colors.black54 : Colors.black87,
-              fontWeight: FontWeight.w400,
-              fontSize: SizeFont.h3.size),
-        ),
-      ),
+  Widget _buildSectionTitle(String title) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        MyTextStyle.lotDesc(title, SizeFont.h2.size, FontStyle.italic),
+      ],
     );
   }
 
-  Widget _buildReadOnlyTextField(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: TextField(
-        controller: TextEditingController(text: value ?? ''),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(
-            color: Colors.black54,
-            fontWeight: FontWeight.w400,
-          ),
-          enabled: false,
-          border: const UnderlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.grey,
-              width: 1.0,
+  Widget _buildColorPicker() {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => ColorView(
+              uiserId: widget.uid,
+              lot: widget.lot,
+              refLotSelected: widget.refLotSelected,
+              onColorSelected: (color) => _updateSelectedColor(color),
             ),
           ),
-        ),
-        style: TextStyle(
-          color: Colors.black54,
-          fontSize: SizeFont.h3.size,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildModifyTextField(String hintText, String label,
-      TextEditingController controller, FocusNode focusNode, String field,
-      {int maxLines = 1, int minLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Expanded(
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              maxLines: maxLines,
-              minLines: minLines,
-              inputFormatters: [
-                LengthLimitingTextInputFormatter(30),
-              ],
-              decoration: InputDecoration(
-                hintText: hintText,
-                labelText: label,
-                labelStyle: const TextStyle(
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w400,
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(top: 25, bottom: 1),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: _backgroundColor,
+                  radius: 10,
                 ),
-                border: const UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.grey,
-                    width: 1.0,
+                const SizedBox(width: 15),
+                Text(
+                  "Couleur du bien",
+                  style: TextStyle(
+                    color: Colors.black87,
+                    fontWeight: FontWeight.w400,
+                    fontSize: SizeFont.h3.size,
                   ),
                 ),
-              ),
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: SizeFont.h3.size,
-              ),
+              ],
             ),
-          ),
-          if (focusNode.hasFocus)
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  controller.clear();
-                });
-              },
-              icon: const Icon(Icons.clear),
-            ),
-          if (focusNode.hasFocus)
-            IconButton(
-              onPressed: () {
-                lotServices.updateLot(
-                  widget.lot.residenceId,
-                  widget.lot.refLot,
-                  field,
-                  controller.text,
-                );
-                setState(() {
-                  // Mettre à jour le nom dans le lot après la validation
-                  if (field == 'nameProp') {
-                    widget.lot.newNameProp = controller.text;
-                  } else {
-                    widget.lot.newNameLoc = controller.text;
-                  }
-                });
-                focusNode.unfocus();
-              },
-              icon: const Icon(Icons.check),
-            )
-        ],
+            const Icon(Icons.arrow_right_outlined, size: 30),
+          ],
+        ),
       ),
     );
   }
 
-  _loadProperty() {
-    name.text = isProprietaire ? widget.lot.nameProp : widget.lot.nameLoc;
+  Widget _buildNavigationTile(String label, VoidCallback onTap, Icon icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: TextButton(
+        style: TextButton.styleFrom(
+          foregroundColor: Colors.black87,
+          padding: const EdgeInsets.all(20),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          backgroundColor: const Color(0xFFF5F6F9),
+        ),
+        onPressed: onTap,
+        child: Row(
+          children: [
+            icon,
+            const SizedBox(width: 20),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: MyTextStyle.postDesc(
+                  label,
+                  SizeFont.h3.size,
+                  Colors.black87,
+                ),
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Color(0xFF757575),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-    selectedStatut = widget.lot.type;
-    _backgroundColor =
-        ColorUtils.fromHex(widget.lot.userLotDetails['colorSelected']);
-    setState(() {});
+  Widget _buildDeleteButton() {
+    return Container(
+      height: 50,
+      width: MediaQuery.of(context).size.width,
+      color: Colors.transparent,
+      child: Center(
+        child: ButtonAdd(
+          function: () {}, // À implémenter : suppression
+          text: "Supprimer",
+          color: Colors.black26,
+          horizontal: 30,
+          vertical: 10,
+          size: SizeFont.h3.size,
+        ),
+      ),
+    );
   }
 }

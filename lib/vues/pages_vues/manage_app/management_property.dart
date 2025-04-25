@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
+import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
@@ -9,13 +10,13 @@ import 'package:flutter/material.dart';
 
 class ManagementProperty extends StatefulWidget {
   final String uid;
-  final Future<List<Lot?>> lotByUser;
+  //final Future<List<Lot?>> lotByUser;
   final String refLot;
   final Color color;
 
   const ManagementProperty(
       {super.key,
-      required this.lotByUser,
+      // required this.lotByUser,
       required this.color,
       required this.uid,
       required this.refLot});
@@ -25,11 +26,28 @@ class ManagementProperty extends StatefulWidget {
 
 class ManagementPropertyState extends State<ManagementProperty> {
   late Color _backgroundColor;
+  late Future<List<Lot?>> _lotByUser;
+  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
+  Map<String, Color> _lotColors = {};
 
   @override
   void initState() {
     // TODO: implement initState
+    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
     super.initState();
+  }
+
+  // Méthode pour récupérer les lots de l'utilisateur
+  Future<List<Lot?>> _fetchLotsByUser() async {
+    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
+    return await _lotByUser;
+  }
+
+  void _refreshData() {
+    setState(() {
+      _lotByUser =
+          _fetchLotsByUser(); // Rafraîchissez le Future pour recharger les données
+    });
   }
 
   @override
@@ -42,7 +60,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
       body: Padding(
         padding: const EdgeInsets.only(top: 50),
         child: FutureBuilder<List<Lot?>>(
-          future: widget.lotByUser,
+          future: _lotByUser,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -55,19 +73,25 @@ class ManagementPropertyState extends State<ManagementProperty> {
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   Lot? lot = snapshot.data![index];
-                  bool loca = lot!.idLocataire!.contains(widget.uid);
+                  //bool loca = lot!.idLocataire!.contains(widget.uid);
+
                   _backgroundColor =
-                      ColorUtils.fromHex(lot.userLotDetails['colorSelected']);
+                      ColorUtils.fromHex(lot!.userLotDetails['colorSelected']);
                   return InkWell(
                     onTap: () {
                       Navigator.push(
-                          context,
-                          CupertinoPageRoute(
-                              builder: (context) => ModifyProperty(
-                                    refLotSelected: widget.refLot,
-                                    lot: lot,
-                                    uid: widget.uid,
-                                  )));
+                        context,
+                        CupertinoPageRoute(
+                          builder: (context) => ModifyProperty(
+                            refLotSelected: lot.refLot,
+                            lot: lot,
+                            uid: widget.uid,
+                            newColor: (Color newColor) {
+                              _backgroundColor = newColor;
+                            },
+                          ),
+                        ),
+                      ).then((_) => _refreshData());
                     },
                     child: ListTile(
                       leading: CircleAvatar(
@@ -80,21 +104,14 @@ class ManagementPropertyState extends State<ManagementProperty> {
                           ),
                         ),
                       ),
-                      title: loca
-                          ? MyTextStyle.lotName(
-                              (lot.nameLoc != "")
-                                  ? lot.nameLoc
-                                  : "${lot.residenceData['name']} ${lot.lot!}",
-                              Colors.black87,
-                              SizeFont.h2.size,
-                            )
-                          : MyTextStyle.lotName(
-                              (lot.nameProp != "")
-                                  ? lot.nameProp
-                                  : "${lot.residenceData['name']} ${lot.lot!}",
-                              Colors.black87,
-                              SizeFont.h2.size,
-                            ),
+                      title: MyTextStyle.lotName(
+                        lot.userLotDetails['nameLot'] != "" ||
+                                lot.userLotDetails['nameLot'] != null
+                            ? lot.userLotDetails['nameLot']
+                            : "${lot.residenceData['name']} ${lot.lot}",
+                        Colors.black87,
+                        SizeFont.h1.size,
+                      ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

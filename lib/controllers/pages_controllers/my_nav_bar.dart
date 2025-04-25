@@ -3,7 +3,6 @@ import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/models/enum/set_logo_color.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/profile_page_view.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/old_profil_page.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
@@ -262,23 +261,15 @@ class _MyNavBarState extends State<MyNavBar>
     setState(() {});
   }
 
-  // Future<void> _loadPreferedLot() async {
-  //   preferedLot = await _loadPreferedData.loadPreferedLot(preferedLot);
-
-  //   // Mettre à jour la couleur dans ColorProvider
-  //   Provider.of<ColorProvider>(context, listen: false)
-  //       .updateColor(preferedLot!.userLotDetails['colorSelected']);
-
-  //   updateCsMemberStatus(preferedLot!);
-  //   setState(() {});
-  // }
-
   Future<void> _loadDefaultLot(uid) async {
     if (preferedLot == null) {
       defaultLot = await _databasesLotServices.getFirstLotByUserId(uid);
-      // Mettre à jour la couleur si c'est un lot par défaut
-      // Provider.of<ColorProvider>(context, listen: false)
-      //     .updateColor(defaultLot.userLotDetails['colorSelected']);
+
+      final selectedColor = defaultLot.userLotDetails['colorSelected'];
+      if (selectedColor != null && mounted) {
+        Provider.of<ColorProvider>(context, listen: false)
+            .updateColor(selectedColor);
+      }
 
       updateCsMemberStatus(defaultLot);
       setState(() {});
