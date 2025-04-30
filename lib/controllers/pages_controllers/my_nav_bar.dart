@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
+import 'package:connect_kasa/controllers/providers/name_lot_provider.dart';
 import 'package:connect_kasa/models/enum/set_logo_color.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/profile_page_view.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
@@ -43,8 +44,6 @@ class _MyNavBarState extends State<MyNavBar>
   List<Lot?>? lot;
   Lot? preferedLot;
   late Lot defaultLot = Lot(
-    nameLoc: "",
-    nameProp: "",
     refLot: "",
     typeLot: "",
     type: "",
@@ -144,7 +143,7 @@ class _MyNavBarState extends State<MyNavBar>
                   InkWell(
                     child: SelectLotComponentController(
                       uid: uid,
-                      defaultLot,
+                      preferedLot ?? defaultLot,
                     ),
                     onTap: () async {
                       _showLotBottomSheet(context, uid);
@@ -257,34 +256,22 @@ class _MyNavBarState extends State<MyNavBar>
 
   Future<void> _loadPreferedLot() async {
     preferedLot = await _loadPreferedData.loadPreferedLot();
+
     updateCsMemberStatus(preferedLot ?? defaultLot);
     setState(() {});
   }
-
-  // Future<void> _loadPreferedLot() async {
-  //   preferedLot = await _loadPreferedData.loadPreferedLot(preferedLot);
-
-  //   // Mettre à jour la couleur dans ColorProvider
-  //   Provider.of<ColorProvider>(context, listen: false)
-  //       .updateColor(preferedLot!.userLotDetails['colorSelected']);
-
-  //   updateCsMemberStatus(preferedLot!);
-  //   setState(() {});
-  // }
 
   Future<void> _loadDefaultLot(uid) async {
     if (preferedLot == null) {
       defaultLot = await _databasesLotServices.getFirstLotByUserId(uid);
 
       final selectedColor = defaultLot.userLotDetails['colorSelected'];
-
       if (selectedColor != null && mounted) {
         Provider.of<ColorProvider>(context, listen: false)
             .updateColor(selectedColor);
       }
 
       updateCsMemberStatus(defaultLot);
-
       setState(() {});
     }
   }

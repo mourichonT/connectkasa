@@ -1,6 +1,4 @@
 class Lot {
-  String _nameProp = "";
-  String _nameLoc = "";
   String refLot;
   String? batiment;
   String? lot;
@@ -27,13 +25,10 @@ class Lot {
     required this.residenceId,
     required this.residenceData,
     required this.userLotDetails,
-  })  : _nameProp = nameProp,
-        _nameLoc = nameLoc;
+  });
 
   factory Lot.fromJson(Map<String, dynamic> json) {
     return Lot(
-      nameProp: json["nameProp"] ?? "",
-      nameLoc: json["nameLoc"] ?? "",
       refLot: json["refLot"] ?? "",
       batiment: json["batiment"],
       lot: json["lot"],
@@ -59,8 +54,6 @@ class Lot {
 
   Map<String, dynamic> toJson() {
     return {
-      "nameProp": nameProp,
-      "nameLoc": nameLoc,
       "refLot": refLot,
       "batiment": batiment,
       "lot": lot,
@@ -91,30 +84,8 @@ class Lot {
     idProprietaire?.add(newValue);
   }
 
-  String get nameProp {
-    return _nameProp;
-  }
-
-  String get nameLoc {
-    return _nameLoc;
-  }
-
-  set newNameProp(String newName) {
-    if (nameProp != newName) {
-      _nameProp = newName;
-    }
-  }
-
-  set newNameLoc(String newName) {
-    if (nameLoc != newName) {
-      _nameLoc = newName;
-    }
-  }
-
   Map<String, dynamic> toFirestore() {
     return {
-      if (_nameProp.isNotEmpty) "nameProp": nameProp,
-      if (_nameLoc.isNotEmpty) "nameLoc": nameLoc,
       if (refLot.isNotEmpty) "refLot": refLot,
       "refGerance": refGerance,
       if (batiment != null) "batiment": batiment,
@@ -131,8 +102,6 @@ class Lot {
 
   factory Lot.fromMap(Map<String, dynamic> map) {
     return Lot(
-      nameProp: map['nameProp'] ?? "",
-      nameLoc: map['nameLoc'] ?? "",
       refLot: map['refLot'] ?? "",
       batiment: map['batiment'],
       lot: map['lot'],

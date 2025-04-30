@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
+import 'package:connect_kasa/controllers/providers/lot_provider.dart';
+import 'package:connect_kasa/controllers/providers/name_lot_provider.dart';
 import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
@@ -28,14 +30,35 @@ void main() async {
   tz.setLocalLocation(
       tz.getLocation('Europe/Paris')); // Définir le fuseau horaire local
 
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ColorProvider()),
-      ],
-      child: const MyApp(),
-    ),
-  );
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider(
+        create: (context) => ColorProvider(),
+      ),
+      ChangeNotifierProvider(
+        create: (context) => NameLotProvider(),
+      ),
+      // ChangeNotifierProxyProvider2<ColorProvider, NameLotProvider, LotProvider>(
+      //   create: (context) => LotProvider(
+      //     Provider.of<ColorProvider>(context, listen: false),
+      //     Provider.of<NameLotProvider>(context, listen: false),
+      //   ),
+      //   update: (context, colorProvider, nameLotProvider, previous) {
+      //     // Si previous est null, on crée une nouvelle instance de LotProvider
+      //     final lotProvider = previous ??
+      //         LotProvider(
+      //           colorProvider,
+      //           nameLotProvider,
+      //         );
+
+      //     lotProvider.updateLotFromProviders(); // Mettre à jour le lot
+
+      //     return lotProvider; // Retourner l'instance non-nulle de LotProvider
+      //   },
+      // ),
+    ],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {

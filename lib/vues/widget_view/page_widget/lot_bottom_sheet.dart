@@ -37,13 +37,22 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
   }
 
   int? findLotInArray(List<Lot?> lots) {
-    if (preferedLot != null) {
-      return lots
-          .indexWhere((element) => element?.refLot == preferedLot!.refLot);
+    final currentLot = widget.selectedLot ?? preferedLot;
+    if (currentLot != null) {
+      return lots.indexWhere((element) => element?.refLot == currentLot.refLot);
     } else {
       return null;
     }
   }
+
+  // int? findLotInArray(List<Lot?> lots) {
+  //   if (preferedLot != null) {
+  //     return lots
+  //         .indexWhere((element) => element?.refLot == preferedLot!.refLot);
+  //   } else {
+  //     return null;
+  //   }
+  // }
 
   @override
   void initState() {

@@ -1,5 +1,7 @@
+import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
+import 'package:connect_kasa/controllers/providers/name_lot_provider.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -10,6 +12,7 @@ import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget
 import 'package:connect_kasa/vues/widget_view/page_widget/color_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ModifyProperty extends StatefulWidget {
   final Lot lot;
@@ -64,10 +67,21 @@ class _ModifyPropertyState extends State<ModifyProperty> {
     }
   }
 
-  void _handleSubmit(String field, String label, String value) {
+  void _handleSubmit(String field, String label, String value) async {
     lotServices.updateNameLot(widget.uid,
         "${widget.lot.residenceData['id']}-${widget.lot.refLot}", value);
 
+    final nameLotProvider =
+        Provider.of<NameLotProvider>(context, listen: false);
+    nameLotProvider.updateNameLot(value);
+
+    final loadService = LoadPreferedData();
+    Lot? currentLot = await loadService.loadPreferedLot();
+    if (currentLot != null) {
+      currentLot.userLotDetails['nameLot'] = value;
+      await loadService.savePreferedLot(currentLot);
+    }
+    widget.lot.userLotDetails['nameLot'] = value;
     setState(() {});
   }
 
@@ -88,13 +102,23 @@ class _ModifyPropertyState extends State<ModifyProperty> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: MyTextStyle.lotName(
-          widget.lot.userLotDetails['nameLot'] != "" ||
-                  widget.lot.userLotDetails['nameLot'] != null
-              ? name.text
-              : "${widget.lot.residenceData['name']} ${widget.lot.lot}",
-          Colors.black87,
-          SizeFont.h1.size,
+        title: Consumer<NameLotProvider>(
+          builder: (context, nameLotProvider, child) {
+            final nameLot = widget.lot.userLotDetails['nameLot'];
+            final providerName = nameLotProvider.name;
+
+            final displayName = (nameLot != null && nameLot.isNotEmpty)
+                ? nameLot
+                : (providerName != null && providerName.isNotEmpty
+                    ? providerName
+                    : "${widget.lot.residenceData['name']} ${widget.lot.lot}");
+
+            return MyTextStyle.lotName(
+              displayName,
+              Colors.black87,
+              SizeFont.h1.size,
+            );
+          },
         ),
       ),
       body: SingleChildScrollView(

@@ -60,8 +60,8 @@ class ManagementTenantState extends State<ManagementTenant> {
             }
           }
         } else {
-          userFutures
-              .add(Future.value({'user': null, 'lotName': lot?.nameProp}));
+          userFutures.add(Future.value(
+              {'user': null, 'lotName': lot?.userLotDetails["nameLot"]}));
         }
       }
 

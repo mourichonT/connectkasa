@@ -252,14 +252,7 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
                   field,
                   controller.text,
                 );
-                setState(() {
-                  // Mettre à jour le nom dans le lot après la validation
-                  if (field == 'nameProp') {
-                    widget.lot.newNameProp = controller.text;
-                  } else {
-                    widget.lot.newNameLoc = controller.text;
-                  }
-                });
+                setState(() {});
                 focusNode.unfocus();
               },
               icon: const Icon(Icons.check),
