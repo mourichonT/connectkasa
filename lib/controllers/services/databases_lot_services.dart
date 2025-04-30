@@ -169,35 +169,10 @@ class DataBasesLotServices {
     }
   }
 
-  // Future<void> updateLotColor(
-  //     String residenceId, String refLot, Color newColor) async {
-  //   try {
-  //     QuerySnapshot querySnapshot = await db
-  //         .collection("Residence")
-  //         .doc(residenceId)
-  //         .collection("lot")
-  //         .where('refLot', isEqualTo: refLot)
-  //         .get();
-
-  //     if (querySnapshot.docs.isNotEmpty) {
-  //       DocumentReference lotRef = querySnapshot.docs[0].reference;
-  //       String hexColor = extractHexFromColor(newColor);
-
-  //       await lotRef.update({'colorSelected': hexColor});
-
-  //       print('Couleur $hexColor du lot $refLot mise à jour avec succès.');
-  //     } else {
-  //       print(
-  //           'Aucun lot trouvé avec la référence $refLot dans la résidence $residenceId.');
-  //     }
-  //   } catch (e) {
-  //     print('Erreur lors de la mise à jour de la couleur du lot $refLot : $e');
-  //     rethrow;
-  //   }
-  // }
   Future<void> updateNameLot(
       String userUid, String refLot, String newName) async {
     print(" USER : $userUid, REFLOT: $refLot, newName : $newName ");
+
     try {
       DocumentReference lotRef =
           db.collection("User").doc(userUid).collection("lots").doc(refLot);
@@ -207,6 +182,7 @@ class DataBasesLotServices {
       print('Le nom $newName du lot $refLot mise à jour avec succès.');
     } catch (e) {
       print('Erreur lors de la mise à jour de la couleur du lot $refLot : $e');
+
       rethrow;
     }
   }

@@ -261,17 +261,30 @@ class _MyNavBarState extends State<MyNavBar>
     setState(() {});
   }
 
+  // Future<void> _loadPreferedLot() async {
+  //   preferedLot = await _loadPreferedData.loadPreferedLot(preferedLot);
+
+  //   // Mettre à jour la couleur dans ColorProvider
+  //   Provider.of<ColorProvider>(context, listen: false)
+  //       .updateColor(preferedLot!.userLotDetails['colorSelected']);
+
+  //   updateCsMemberStatus(preferedLot!);
+  //   setState(() {});
+  // }
+
   Future<void> _loadDefaultLot(uid) async {
     if (preferedLot == null) {
       defaultLot = await _databasesLotServices.getFirstLotByUserId(uid);
 
       final selectedColor = defaultLot.userLotDetails['colorSelected'];
+
       if (selectedColor != null && mounted) {
         Provider.of<ColorProvider>(context, listen: false)
             .updateColor(selectedColor);
       }
 
       updateCsMemberStatus(defaultLot);
+
       setState(() {});
     }
   }

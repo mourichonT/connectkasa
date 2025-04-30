@@ -20,10 +20,10 @@ class ManagementTenant extends StatefulWidget {
 }
 
 class ManagementTenantState extends State<ManagementTenant> {
-  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
-  late Future<List<Lot?>> _lotByUser;
-
   DataBasesUserServices userServices = DataBasesUserServices();
+  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
+
+  late Future<List<Lot?>> _lotByUser;
   late Future<List<Map<String, dynamic>>> tenantsAndLots;
 
   @override
@@ -36,6 +36,7 @@ class ManagementTenantState extends State<ManagementTenant> {
 
   Future<List<Lot?>> _fetchLotsByUser() async {
     _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
+
     return await _lotByUser;
   }
 
@@ -52,7 +53,6 @@ class ManagementTenantState extends State<ManagementTenant> {
                   .add(userServices.getUserWithInfo(idLocataire).then((user) {
                 return {
                   'user': user,
-                  'lotName': lot.nameProp,
                   'residence':
                       lot.residenceId // Assuming Lot has a `nameProp` field
                 };

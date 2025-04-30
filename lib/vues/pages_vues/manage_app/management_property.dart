@@ -10,13 +10,11 @@ import 'package:flutter/material.dart';
 
 class ManagementProperty extends StatefulWidget {
   final String uid;
-  //final Future<List<Lot?>> lotByUser;
   final String refLot;
   final Color color;
 
   const ManagementProperty(
       {super.key,
-      // required this.lotByUser,
       required this.color,
       required this.uid,
       required this.refLot});
@@ -27,19 +25,20 @@ class ManagementProperty extends StatefulWidget {
 class ManagementPropertyState extends State<ManagementProperty> {
   late Color _backgroundColor;
   late Future<List<Lot?>> _lotByUser;
+
   final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
+
   Map<String, Color> _lotColors = {};
 
   @override
   void initState() {
-    // TODO: implement initState
     _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
     super.initState();
   }
 
-  // Méthode pour récupérer les lots de l'utilisateur
   Future<List<Lot?>> _fetchLotsByUser() async {
     _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
+
     return await _lotByUser;
   }
 
@@ -73,8 +72,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
                 itemCount: snapshot.data!.length,
                 itemBuilder: (context, index) {
                   Lot? lot = snapshot.data![index];
-                  //bool loca = lot!.idLocataire!.contains(widget.uid);
-
+                  //  bool loca = lot!.idLocataire!.contains(widget.uid);
                   _backgroundColor =
                       ColorUtils.fromHex(lot!.userLotDetails['colorSelected']);
                   return InkWell(
@@ -83,7 +81,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
                         context,
                         CupertinoPageRoute(
                           builder: (context) => ModifyProperty(
-                            refLotSelected: lot.refLot,
+                            refLotSelected: widget.refLot,
                             lot: lot,
                             uid: widget.uid,
                             newColor: (Color newColor) {

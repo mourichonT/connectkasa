@@ -22,6 +22,7 @@ class ProfileMenu extends StatelessWidget {
       required this.refLot,
       required this.isLogOut})
       : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Padding(

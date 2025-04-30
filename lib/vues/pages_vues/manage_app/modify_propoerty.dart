@@ -1,4 +1,3 @@
-// import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
@@ -6,7 +5,6 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/modify_prop_details.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/modify_prop_info_loc.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/color_view.dart';
@@ -69,6 +67,7 @@ class _ModifyPropertyState extends State<ModifyProperty> {
   void _handleSubmit(String field, String label, String value) {
     lotServices.updateNameLot(widget.uid,
         "${widget.lot.residenceData['id']}-${widget.lot.refLot}", value);
+
     setState(() {});
   }
 

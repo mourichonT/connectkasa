@@ -37,8 +37,10 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final LoadUserController _loadUserController = LoadUserController();
   final DataBasesUserServices userServices = DataBasesUserServices();
+  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
 
   User? user;
+  Future<List<Lot?>>? _lotByUser;
   int nbrLot = 0;
   int nbrLoc = 0;
   bool loca = false;
@@ -59,7 +61,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _initializeUserData() {
     _loadUser(widget.uid);
-    // _loadLotsData();
   }
 
   Future<void> _loadUser(String uid) async {
@@ -241,7 +242,6 @@ class _ProfilePageState extends State<ProfilePage> {
                             builder: (context) => ManagementProperty(
                                   refLot: widget.refLot,
                                   uid: widget.uid,
-                                  //lotByUser: _lotByUser!,
                                   color: widget.color,
                                 )));
                   },

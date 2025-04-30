@@ -66,7 +66,8 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-          widget.lot.nameProp != "" || widget.lot.nameLoc != ""
+          widget.lot.userLotDetails['nameLot'] != "" ||
+                  widget.lot.userLotDetails['nameLot'] != null
               ? name.text
               : "${widget.lot.residenceData['name']} ${widget.lot.lot}",
           Colors.black87,
@@ -269,8 +270,7 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
   }
 
   _loadProperty() {
-    name.text = isProprietaire ? widget.lot.nameProp : widget.lot.nameLoc;
-
+    name.text = widget.lot.userLotDetails['nameLot'];
     selectedStatut = widget.lot.type;
     _backgroundColor =
         ColorUtils.fromHex(widget.lot.userLotDetails['colorSelected']);

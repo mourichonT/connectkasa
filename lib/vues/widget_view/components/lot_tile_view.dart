@@ -20,8 +20,7 @@ class LotTileView extends StatefulWidget {
 
 class _LotTileViewState extends State<LotTileView> {
   bool isProprietaire = false;
-  String showNameLotProp = "";
-  String showNameLotLoc = "";
+
   @override
   void initState() {
     super.initState();
@@ -30,13 +29,6 @@ class _LotTileViewState extends State<LotTileView> {
   @override
   Widget build(BuildContext context) {
     isProprietaire = widget.lot.idProprietaire?.contains(widget.uid) ?? false;
-    showNameLotProp =
-        widget.lot.nameProp != "" || widget.lot.nameProp.isNotEmpty
-            ? widget.lot.nameProp
-            : "${widget.lot.residenceData["name"]} ${widget.lot.lot} ";
-    showNameLotLoc = widget.lot.nameLoc != "" || widget.lot.nameLoc.isNotEmpty
-        ? widget.lot.nameLoc
-        : "${widget.lot.residenceData["name"]} ${widget.lot.lot} ";
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -56,7 +48,8 @@ class _LotTileViewState extends State<LotTileView> {
               children: [
                 Row(children: [
                   MyTextStyle.lotName(
-                      isProprietaire ? showNameLotProp : showNameLotLoc,
+                      widget.lot.userLotDetails['nameLot'] ??
+                          "${widget.lot.residenceData["name"]} ${widget.lot.lot} ",
                       Colors.black87,
                       SizeFont.h2.size),
                   Container(padding: const EdgeInsets.only(left: 2)),
@@ -65,6 +58,9 @@ class _LotTileViewState extends State<LotTileView> {
                   children: [
                     MyTextStyle.lotDesc(
                         widget.lot.residenceData["numero"] ?? "",
+                        SizeFont.h3.size),
+                    Container(padding: const EdgeInsets.only(left: 2)),
+                    MyTextStyle.lotDesc(widget.lot.residenceData["voie"] ?? "",
                         SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 2)),
                     MyTextStyle.lotDesc(
