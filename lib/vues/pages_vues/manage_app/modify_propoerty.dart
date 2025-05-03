@@ -111,7 +111,7 @@ class _ModifyPropertyState extends State<ModifyProperty> {
                 ? nameLot
                 : (providerName != null && providerName.isNotEmpty
                     ? providerName
-                    : "${widget.lot.residenceData['name']} ${widget.lot.lot}");
+                    : "${widget.lot.residenceData['name']} ${widget.lot.batiment}${widget.lot.lot}");
 
             return MyTextStyle.lotName(
               displayName,

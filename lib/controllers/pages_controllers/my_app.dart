@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import '../../models/enum/tab_bar_icon.dart';
 import 'my_nav_bar.dart';
 
-class MyApp extends StatelessWidget {
+class MyApp2 extends StatelessWidget {
   final IconTabBar iconTabBar = IconTabBar();
   final FirebaseFirestore firestore;
   final String uid;
 
-  MyApp({super.key, required this.firestore, required this.uid});
+  MyApp2({super.key, required this.firestore, required this.uid});
 
   @override
   Widget build(BuildContext context) {

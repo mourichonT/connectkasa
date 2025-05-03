@@ -103,10 +103,10 @@ class ManagementPropertyState extends State<ManagementProperty> {
                         ),
                       ),
                       title: MyTextStyle.lotName(
-                        lot.userLotDetails['nameLot'] != "" ||
-                                lot.userLotDetails['nameLot'] != null
-                            ? lot.userLotDetails['nameLot']
-                            : "${lot.residenceData['name']} ${lot.lot}",
+                        lot.userLotDetails['nameLot'] == null ||
+                                lot.userLotDetails['nameLot'] == ""
+                            ? "${lot.residenceData["name"]} ${lot.batiment}${lot.lot}"
+                            : lot.userLotDetails['nameLot'],
                         Colors.black87,
                         SizeFont.h1.size,
                       ),
@@ -116,12 +116,17 @@ class ManagementPropertyState extends State<ManagementProperty> {
                           Row(
                             children: [
                               MyTextStyle.lotDesc(
-                                  lot.residenceData["numero"] ?? "N/A",
+                                  lot.residenceData["numero"] ?? "",
                                   SizeFont.h3.size),
                               Container(
                                   padding: const EdgeInsets.only(left: 4)),
                               MyTextStyle.lotDesc(
-                                  lot.residenceData["street"] ?? "N/A",
+                                  lot.residenceData["voie"] ?? "",
+                                  SizeFont.h3.size),
+                              Container(
+                                  padding: const EdgeInsets.only(left: 4)),
+                              MyTextStyle.lotDesc(
+                                  lot.residenceData["street"] ?? "",
                                   SizeFont.h3.size),
                               Container(
                                   padding: const EdgeInsets.only(left: 4)),
@@ -130,12 +135,12 @@ class ManagementPropertyState extends State<ManagementProperty> {
                           Row(
                             children: [
                               MyTextStyle.lotDesc(
-                                  lot.residenceData["zipCode"] ?? "N/A",
+                                  lot.residenceData["zipCode"] ?? "",
                                   SizeFont.h3.size),
                               Container(
                                   padding: const EdgeInsets.only(left: 4)),
                               MyTextStyle.lotDesc(
-                                  lot.residenceData["city"] ?? "N/A",
+                                  lot.residenceData["city"] ?? "",
                                   SizeFont.h3.size),
                             ],
                           ),

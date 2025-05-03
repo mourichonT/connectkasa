@@ -19,13 +19,12 @@ class SelectLotComponentController extends StatefulWidget {
 
 class SelectLotComponentControllerState
     extends State<SelectLotComponentController> {
-  Lot? preferedLot;
-  final LoadPreferedData _loadPreferedData = LoadPreferedData();
+  //Lot? preferedLot;
+  // final LoadPreferedData _loadPreferedData = LoadPreferedData();
 
   @override
   void initState() {
     super.initState();
-    _loadPreferedLot();
   }
 
   @override
@@ -33,7 +32,7 @@ class SelectLotComponentControllerState
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Container(
-        child: (preferedLot == null && widget.defaultLot == null)
+        child: (widget.defaultLot == null)
             ? Container(
                 padding: const EdgeInsets.symmetric(vertical: 21),
                 child: Row(
@@ -52,7 +51,7 @@ class SelectLotComponentControllerState
                   children: [
                     LotTileView(
                       toShow: false,
-                      lot: preferedLot ?? widget.defaultLot,
+                      lot: widget.defaultLot,
                       uid: widget.uid,
                     ),
                     const Icon(Icons.arrow_drop_down),
@@ -61,10 +60,5 @@ class SelectLotComponentControllerState
               ),
       ),
     );
-  }
-
-  Future<void> _loadPreferedLot() async {
-    preferedLot = await _loadPreferedData.loadPreferedLot();
-    setState(() {});
   }
 }

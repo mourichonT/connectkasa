@@ -54,14 +54,14 @@ class ManagementTenantState extends State<ManagementTenant> {
                 return {
                   'user': user,
                   'residence':
-                      lot.residenceId // Assuming Lot has a `nameProp` field
+                      lot.residenceId, // Assuming Lot has a `nameProp` field
+                  'lot': lot
                 };
               }));
             }
           }
         } else {
-          userFutures.add(Future.value(
-              {'user': null, 'lotName': lot?.userLotDetails["nameLot"]}));
+          userFutures.add(Future.value({'user': null, 'lot': lot}));
         }
       }
 
@@ -107,7 +107,8 @@ class ManagementTenantState extends State<ManagementTenant> {
                       itemBuilder: (context, index) {
                         var tenantMap = tenants[index];
                         UserInfo? tenant = tenantMap['user'];
-                        String? lotName = tenantMap['lotName'];
+                        Lot? lot = tenantMap['lot'];
+                        String? lotName = lot!.userLotDetails["nameLot"];
                         if (tenant == null) {
                           return const ListTile(
                               title: Text('Locataire non trouvé.'));

@@ -211,7 +211,7 @@ class AuthentificationProcess {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MyApp(
+        builder: (context) => MyApp2(
           firestore: firestore,
           uid: userID,
         ),

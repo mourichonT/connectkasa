@@ -26,37 +26,43 @@ class MyBottomNavBarController extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => MyBottomNavBarState();
 
-  BottomNavigationBar bottomNavBar(
+  ClipRRect bottomNavBar(
       List<BottomNavigationBarItem> bottomTabs, BuildContext context) {
-    return BottomNavigationBar(
-      fixedColor: Colors.black54,
-      unselectedItemColor: Colors.black54,
-      items: bottomTabs,
-      onTap: (index) {
-        switch (index) {
-          case 0:
-            Navigator.of(context).push(RouteController().createRoute(
-              ContactView(
-                residenceSelected: residenceSelected,
-                residenceName: residenceName,
-                uid: uid,
-              ),
-            ));
-
-            break;
-          case 1:
-            Navigator.of(context).push(RouteController().createRoute(
-              PageChatFriendsList(
-                uid: uid,
-                residence: residenceSelected,
-                selectedLot: selectedLot,
-              ),
-            ));
-
-            break;
-        }
-      },
-      selectedIconTheme: Theme.of(context).iconTheme,
+    return ClipRRect(
+      borderRadius: const BorderRadius.only(
+        topLeft: Radius.circular(30),
+        topRight: Radius.circular(30),
+      ),
+      child: BottomNavigationBar(
+        elevation: 0,
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        fixedColor: Colors.black54,
+        unselectedItemColor: Colors.black54,
+        items: bottomTabs,
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              Navigator.of(context).push(RouteController().createRoute(
+                ContactView(
+                  residenceSelected: residenceSelected,
+                  residenceName: residenceName,
+                  uid: uid,
+                ),
+              ));
+              break;
+            case 1:
+              Navigator.of(context).push(RouteController().createRoute(
+                PageChatFriendsList(
+                  uid: uid,
+                  residence: residenceSelected,
+                  selectedLot: selectedLot,
+                ),
+              ));
+              break;
+          }
+        },
+        selectedIconTheme: Theme.of(context).iconTheme,
+      ),
     );
   }
 }

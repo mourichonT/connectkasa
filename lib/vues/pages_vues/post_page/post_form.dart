@@ -87,11 +87,15 @@ class PostFormState extends State<PostForm> {
                     MyTextStyle.lotDesc(
                         widget.preferedLot.residenceData["numero"],
                         SizeFont.h3.size),
-                    Container(padding: const EdgeInsets.only(left: 2)),
+                    Container(padding: const EdgeInsets.only(left: 4)),
+                    MyTextStyle.lotDesc(
+                        widget.preferedLot.residenceData["voie"],
+                        SizeFont.h3.size),
+                    Container(padding: const EdgeInsets.only(left: 4)),
                     MyTextStyle.lotDesc(
                         widget.preferedLot.residenceData["street"],
                         SizeFont.h3.size),
-                    Container(padding: const EdgeInsets.only(left: 2)),
+                    Container(padding: const EdgeInsets.only(left: 4)),
                   ],
                 ),
                 Row(
@@ -101,7 +105,7 @@ class PostFormState extends State<PostForm> {
                     MyTextStyle.lotDesc(
                         widget.preferedLot.residenceData["zipCode"],
                         SizeFont.h3.size),
-                    Container(padding: const EdgeInsets.only(left: 2)),
+                    Container(padding: const EdgeInsets.only(left: 4)),
                     MyTextStyle.lotDesc(
                         widget.preferedLot.residenceData["city"],
                         SizeFont.h3.size),
@@ -123,12 +127,15 @@ class PostFormState extends State<PostForm> {
             spacing: 5.0,
             children: labelsType.map((String itemElement) {
               return ChoiceChip(
+                selectedColor: Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                disabledColor: Theme.of(context).colorScheme.secondary,
                 label: Text(itemElement),
                 selected: selectedDeclaration == itemElement,
                 side: const BorderSide(
                   color: Colors
-                      .black12, // Changez `Colors.blue` et `Colors.grey` selon vos besoins
-                  width: 1.0, // Changez la largeur de la bordure si nécessaire
+                      .transparent, // Changez `Colors.blue` et `Colors.grey` selon vos besoins
+                  width: 0, // Changez la largeur de la bordure si nécessaire
                 ),
                 onSelected: (bool selected) {
                   setState(() {

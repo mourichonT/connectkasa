@@ -7,6 +7,7 @@ import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
@@ -32,30 +33,9 @@ void main() async {
 
   runApp(MultiProvider(
     providers: [
-      ChangeNotifierProvider(
-        create: (context) => ColorProvider(),
-      ),
-      ChangeNotifierProvider(
-        create: (context) => NameLotProvider(),
-      ),
-      // ChangeNotifierProxyProvider2<ColorProvider, NameLotProvider, LotProvider>(
-      //   create: (context) => LotProvider(
-      //     Provider.of<ColorProvider>(context, listen: false),
-      //     Provider.of<NameLotProvider>(context, listen: false),
-      //   ),
-      //   update: (context, colorProvider, nameLotProvider, previous) {
-      //     // Si previous est null, on crée une nouvelle instance de LotProvider
-      //     final lotProvider = previous ??
-      //         LotProvider(
-      //           colorProvider,
-      //           nameLotProvider,
-      //         );
-
-      //     lotProvider.updateLotFromProviders(); // Mettre à jour le lot
-
-      //     return lotProvider; // Retourner l'instance non-nulle de LotProvider
-      //   },
-      // ),
+      ChangeNotifierProvider(create: (context) => ColorProvider()),
+      ChangeNotifierProvider(create: (context) => NameLotProvider()),
+      ChangeNotifierProvider(create: (_) => LotProvider()),
     ],
     child: const MyApp(),
   ));
@@ -68,21 +48,36 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ColorProvider>(
       builder: (context, colorProvider, child) {
+        // Détermine la luminosité de la couleur principale
+        final brightness = ThemeData.estimateBrightnessForColor(
+            Color.lerp(colorProvider.color, Colors.white, 0.90) ??
+                Colors.white);
+        final isDark = brightness == Brightness.dark;
+
+        // Définit le style des icônes système (Android + iOS)
+        SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness:
+              isDark ? Brightness.light : Brightness.dark, // Android
+          statusBarBrightness:
+              isDark ? Brightness.dark : Brightness.light, // iOS
+        ));
+
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             tabBarTheme: const TabBarTheme(
                 dividerColor: Colors.black38, dividerHeight: 0.5),
             dividerTheme: const DividerThemeData(
-              color: Colors.black38, // Couleur principale du diviseur
-              thickness: 0.5, // Épaisseur du diviseur
-              space: 20, // Espace entre les diviseurs
+              color: Colors.black38,
+              thickness: 0.5,
+              space: 20,
             ),
             colorScheme: ColorScheme.light(
               outline: Colors.black26,
               primary: colorProvider.color,
-              secondary: colorProvider.color,
-              surface: Colors.white,
+              secondary: Color.lerp(colorProvider.color, Colors.white, 0.90) ??
+                  Colors.white,
               error: Colors.red,
               onPrimary: Colors.white,
               onSecondary: Colors.white,
@@ -97,12 +92,12 @@ class MyApp extends StatelessWidget {
           onGenerateRoute: (settings) {
             if (settings.name == '/MyNavBar') {
               return PageRouteBuilder(
-                settings: settings, // Conserve les arguments
+                settings: settings,
                 pageBuilder: (context, animation, secondaryAnimation) =>
                     MyNavBar(uid: settings.arguments as String),
                 transitionsBuilder:
                     (context, animation, secondaryAnimation, child) {
-                  const begin = Offset(-1.0, 0.0); // Départ à gauche
+                  const begin = Offset(-1.0, 0.0);
                   const end = Offset.zero;
                   const curve = Curves.easeInOutCubic;
 
@@ -116,7 +111,7 @@ class MyApp extends StatelessWidget {
                 },
               );
             }
-            return null; // Ajouté pour éviter une erreur si aucune route ne correspond
+            return null;
           },
         );
       },
