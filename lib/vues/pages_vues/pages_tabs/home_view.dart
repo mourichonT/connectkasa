@@ -48,11 +48,6 @@ class _HomeviewState extends State<Homeview> {
     _scrollController = ScrollController(
         initialScrollOffset: widget.upDatescrollController ?? 0);
     _scrollController.addListener(_scrollListener);
-    // itemsCSMembers = widget.preferedLot.residenceData['csmembers'] != null
-    //     ? List<String>.from(widget.preferedLot.residenceData['csmembers'])
-    //     : [];
-    // _isCsMember = itemsCSMembers.contains(widget.uid);
-
     _loadPosts();
   }
 

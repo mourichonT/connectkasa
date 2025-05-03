@@ -96,12 +96,7 @@ class PostWidgetState extends State<PostWidget> {
                                     indicatorRadius: 5,
                                     indicatorBackgroundColor: Colors.black12,
                                     currentIndicatorColor: colorStatut,
-                                    itemSpacing: 13)
-                                // indicatorRadius: 5,
-                                // itemSpacing: 11.0,
-                                // indicatorBackgroundColor: Colors.black12,
-                                // currentIndicatorColor: colorStatut,
-                                ),
+                                    itemSpacing: 13)),
                           ),
                           items: signalements.map((postSelected) {
                             return InkWell(
