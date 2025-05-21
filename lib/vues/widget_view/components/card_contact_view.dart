@@ -3,7 +3,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/buid_google_map.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/modal_entry_text.dart';
-import 'package:connect_kasa/vues/pages_vues/mail_chat_page.dart';
+import 'package:connect_kasa/vues/pages_vues/chat_page/mail_chat_page.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/services/databases_mail_services.dart';

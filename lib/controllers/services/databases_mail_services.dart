@@ -66,18 +66,23 @@ class DatabasesMailServices {
   }
 
   Future<void> sendMail(
-      {required Lot selectedLot,
+      {String? subject,
+      Lot? selectedLot,
+      String? residenceId,
       required String message,
-      required String uid,
       required List<String> receiverId}) async {
     final Timestamp timestamp = Timestamp.now();
 
     Mail newMessage = Mail(
         to: receiverId,
         startTime: timestamp,
-        subject:
-            "Vous avez un message pour la residence ${selectedLot.residenceData['name']} - lot ${selectedLot.batiment} ${selectedLot.lot}",
+        subject: subject ??
+            "Vous avez un message pour la residence ${selectedLot!.residenceData['name']} - lot ${selectedLot.batiment} ${selectedLot.lot}",
         html: message);
-    await db.collection("mail").add(newMessage.toJson());
+    await db
+        .collection("Residence")
+        .doc(residenceId ?? selectedLot!.residenceId)
+        .collection("mail")
+        .add(newMessage.toJson());
   }
 }

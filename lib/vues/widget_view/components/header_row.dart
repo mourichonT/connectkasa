@@ -1,12 +1,15 @@
 import 'package:connect_kasa/controllers/features/Icon_modify_or_delette.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart'; // Assure-toi que ton style est importé correctement
 
 // ignore: must_be_immutable
 class CustomHeaderRow extends StatelessWidget {
+  final Lot lot;
   // Texte à afficher
   final Color? colorStatut; // Couleur du texte
   final Post post;
@@ -19,7 +22,8 @@ class CustomHeaderRow extends StatelessWidget {
       this.colorStatut,
       required this.post,
       required this.isCsMember,
-      required this.updatePostsList});
+      required this.updatePostsList,
+      required this.lot});
 
   String getType(Post post) {
     for (var type in typeList) {
@@ -49,7 +53,7 @@ class CustomHeaderRow extends StatelessWidget {
           MyTextStyle.statuColor(post.statu!, colorStatut),
           Visibility(
               visible: isCsMember,
-              child: IconModifyOrDelette(post, context, updatePostsList))
+              child: IconModifyOrDelette(post, lot!, context, updatePostsList))
         ],
       ),
     );

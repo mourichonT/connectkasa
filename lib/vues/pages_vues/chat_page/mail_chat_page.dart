@@ -40,7 +40,6 @@ class MailChatPageState extends State<MailChatPage> {
         selectedLot: widget.selectedLot,
         receiverId: widget.to,
         message: mailChatController.text,
-        uid: widget.uid,
       );
       // Fermez le clavier
       setState(() {

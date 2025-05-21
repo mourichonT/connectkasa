@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_user.dart';
+import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
 import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
@@ -17,7 +18,7 @@ class Step4 extends StatefulWidget {
   final String emailUser;
   final Residence residence;
   final String residentType;
-  final Function(String, String, String, String) recupererInformationsStep4;
+  final Function(bool) recupererInformationsStep4;
   final int currentPage;
   final PageController progressController;
   final String docTypeId;
@@ -83,6 +84,7 @@ class _Step4State extends State<Step4> {
   String justifChoice = "";
   String idChoice = "";
   bool _isChecked = false;
+  String? fmcToken = "";
 
   final List<String> idType = TypeList.idTypes;
 
@@ -92,6 +94,7 @@ class _Step4State extends State<Step4> {
   @override
   void initState() {
     super.initState();
+    initUserFcmToken(widget.userId);
   }
 
   @override
@@ -210,6 +213,7 @@ class _Step4State extends State<Step4> {
               ),
               onPressed: (visibleJustif && _isChecked)
                   ? () {
+                      widget.recupererInformationsStep4(true);
                       SubmitUser.submitUser(
                         privacyPolicy: _isChecked,
                         emailUser: widget.emailUser,
@@ -234,6 +238,7 @@ class _Step4State extends State<Step4> {
                         imagepathJustif: imagePathJustif,
                         birthday: widget.birthday,
                         informationsCorrectes: widget.informationsCorrectes,
+                        fcmToken: fmcToken,
                       );
                       widget.cancelDeletionTimer();
                       showDialog(
@@ -312,6 +317,10 @@ class _Step4State extends State<Step4> {
         );
       },
     );
+  }
+
+  Future<void> initUserFcmToken(String uid) async {
+    fmcToken = await FirebaseApi.getToken();
   }
 
   void downloadPath(String downloadUrl, bool isRecto) {

@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/providers/lot_provider.dart';
 import 'package:connect_kasa/controllers/providers/name_lot_provider.dart';
+import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -15,15 +18,25 @@ import 'firebase_options.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+// If you're going to use other Firebase services in the background, such as Firestore,
+// make sure you call `initializeApp` before using other Firebase services.
+// await Firebase.initializeApp();
+  // print('Background message ${message.messageId}');
+}
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: "dotenv.env");
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   await initializeDateFormatting('fr');
-
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  await FirebaseApi().initNotification();
   await FirebaseAppCheck.instance.activate(
     androidProvider: AndroidProvider.debug,
   );
@@ -37,12 +50,12 @@ void main() async {
       ChangeNotifierProvider(create: (context) => NameLotProvider()),
       ChangeNotifierProvider(create: (_) => LotProvider()),
     ],
-    child: const MyApp(),
+    child: MyApp(),
   ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +77,7 @@ class MyApp extends StatelessWidget {
         ));
 
         return MaterialApp(
+          navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             tabBarTheme: const TabBarTheme(
@@ -90,6 +104,16 @@ class MyApp extends StatelessWidget {
             firestore: FirebaseFirestore.instance,
           ),
           onGenerateRoute: (settings) {
+            if (settings.name == '/ChatPage') {
+              final args = settings.arguments as Map<String, dynamic>;
+              return MaterialPageRoute(
+                builder: (context) => ChatPage(
+                  residence: args['residence'],
+                  idUserFrom: args['idUserFrom'],
+                  idUserTo: args['idUserTo'],
+                ),
+              );
+            }
             if (settings.name == '/MyNavBar') {
               return PageRouteBuilder(
                 settings: settings,

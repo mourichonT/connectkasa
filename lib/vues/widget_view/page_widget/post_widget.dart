@@ -6,6 +6,7 @@ import 'package:connect_kasa/controllers/widgets_controllers/signalement_count_c
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/header_row.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/signalement_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
@@ -15,6 +16,7 @@ import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 import '../../../../models/pages_models/post.dart';
 
 class PostWidget extends StatefulWidget {
+  final Lot lot;
   late Post post;
   final String uid;
   final String residence;
@@ -22,8 +24,8 @@ class PostWidget extends StatefulWidget {
   final bool isCsMember;
   final Function updatePostsList;
 
-  PostWidget(this.post, this.residence, this.uid, this.scrollController,
-      this.isCsMember, this.updatePostsList,
+  PostWidget(this.lot, this.post, this.residence, this.uid,
+      this.scrollController, this.isCsMember, this.updatePostsList,
       {super.key});
   @override
   State<StatefulWidget> createState() => PostWidgetState();
@@ -63,6 +65,7 @@ class PostWidgetState extends State<PostWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomHeaderRow(
+                lot: widget.lot,
                 post: widget.post,
                 colorStatut: colorStatut,
                 isCsMember: widget.isCsMember,

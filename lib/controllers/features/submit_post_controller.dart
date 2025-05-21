@@ -261,6 +261,8 @@ class SubmitPostController {
       required bool anonymPost,
       required String docRes,
       required List<String>? like,
+      Timestamp? timeStamp,
+      Timestamp? declaredDate,
       String? statu,
       int? price,
       String? subtype,
@@ -290,7 +292,7 @@ class SubmitPostController {
         refResidence: docRes,
         like: like ?? [],
         statu: statu ?? "",
-        timeStamp: Timestamp.now(),
+        timeStamp: timeStamp ?? Timestamp.now(),
         title: title ?? "",
         type: selectedLabel,
         user: uid, // Remplacer par l'utilisateur actuel
@@ -304,6 +306,7 @@ class SubmitPostController {
         fontWeight: fontWeight ?? "",
         fontColor: fontColor ?? "",
         fontStyle: fontColor ?? "",
+        declaredDate: declaredDate,
         prestaName: prestaName);
 
     // Appeler la méthode addPost pour ajouter le nouveau post

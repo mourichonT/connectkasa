@@ -6,6 +6,7 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/pages_vues/event_page/event_page_details.dart';
@@ -14,6 +15,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class EventWidget extends StatefulWidget {
+  final Lot lot;
   final Post post;
   final String uid;
   final String residenceSelected;
@@ -25,6 +27,7 @@ class EventWidget extends StatefulWidget {
   const EventWidget(
       {super.key,
       required this.post,
+      required this.lot,
       required this.uid,
       required this.residenceSelected,
       required this.colorStatut,
@@ -69,6 +72,7 @@ class _EventWidgetState extends State<EventWidget> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CustomHeaderRow(
+              lot: widget.lot,
               post: widget.post,
               isCsMember: widget.isCsMember,
               updatePostsList: widget.updatePostsList,

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
 import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
@@ -9,31 +10,33 @@ import 'package:flutter/material.dart';
 import '../../models/pages_models/residence.dart';
 
 class SubmitUser {
-  static submitUser(
-      {required bool privacyPolicy,
-      required String emailUser,
-      required String name,
-      required String surname,
-      required String newUserId,
-      required String statutResident,
-      required String intendedFor,
-      required String typeChoice,
-      required bool compagnyBuy,
-      required Timestamp birthday,
-      required String sex,
-      required String nationality,
-      required String placeOfborn,
-      required Residence residence,
-      required String lotId,
-      required String docTypeID,
-      String? companyName,
-      String? pseudo,
-      String? docTypeJustif,
-      String? imagepathIDrecto,
-      String? imagepathIDverso,
-      String? imagepathJustif,
-      String? kbisPath,
-      bool? informationsCorrectes}) {
+  static submitUser({
+    required bool privacyPolicy,
+    required String emailUser,
+    required String name,
+    required String surname,
+    required String newUserId,
+    required String statutResident,
+    required String intendedFor,
+    required String typeChoice,
+    required bool compagnyBuy,
+    required Timestamp birthday,
+    required String sex,
+    required String nationality,
+    required String placeOfborn,
+    required Residence residence,
+    required String lotId,
+    required String docTypeID,
+    String? companyName,
+    String? pseudo,
+    String? docTypeJustif,
+    String? imagepathIDrecto,
+    String? imagepathIDverso,
+    String? imagepathJustif,
+    String? kbisPath,
+    bool? informationsCorrectes,
+    String? fcmToken,
+  }) {
     final dataBasesUserServices = DataBasesUserServices();
     final dataBasesDocsServices = DataBasesDocsServices();
 
@@ -52,8 +55,14 @@ class SubmitUser {
       placeOfborn: placeOfborn,
     );
 
-    dataBasesUserServices.setUser(newUser, "${residence.id}-$lotId",
-        companyName, intendedFor, statutResident, informationsCorrectes);
+    dataBasesUserServices.setUser(
+        newUser,
+        "${residence.id}-$lotId",
+        companyName,
+        intendedFor,
+        statutResident,
+        informationsCorrectes,
+        fcmToken);
 
     // Document pièce d'identité
     if (docTypeID != null &&

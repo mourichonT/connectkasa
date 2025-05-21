@@ -16,7 +16,8 @@ class DataBasesUserServices {
       String? companyName,
       String? intentedFor,
       String? statutResident,
-      bool? informationsCorrectes) async {
+      bool? informationsCorrectes,
+      String? fcmToken) async {
     try {
       // Génère `refUserApp` unique
       String refUserApp = await generateUniqueRefUserApp(db, newUser.uid);
@@ -49,6 +50,7 @@ class DataBasesUserServices {
           if (companyName != null) "companyName": companyName,
           if (intentedFor != null) "intendedFor": intentedFor,
           "StatutResident": statutResident,
+          if (fcmToken != null) 'token': fcmToken,
         }, SetOptions(merge: true));
       }
     } catch (e) {

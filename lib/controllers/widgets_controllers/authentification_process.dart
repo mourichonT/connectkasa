@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
+import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/vues/pages_vues/no_approval_page.dart';
@@ -21,7 +22,6 @@ class AuthentificationProcess {
   });
 
   final DataBasesUserServices _userDataBases = DataBasesUserServices();
-
   Future<Firebase.User?> fluttLogInWithGoogle() async {
     try {
       // 1. Déconnexion de Firebase et Google
@@ -208,6 +208,7 @@ class AuthentificationProcess {
   }
 
   void navigateToMyApp(String userID, FirebaseFirestore firestore) {
+    initUserFcmToken(userID);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -221,6 +222,7 @@ class AuthentificationProcess {
 
   void navigateToStep0(Firebase.User user) {
     bool isStep0Present = false;
+
     Navigator.of(context).popUntil((route) {
       if (route.settings.name == '/step0') {
         isStep0Present = true;
@@ -245,5 +247,12 @@ class AuthentificationProcess {
         ),
       );
     }
+  }
+
+  void initUserFcmToken(uid) async {
+    FirebaseApi.getToken().then((value) {
+      DataBasesUserServices.updateUserField(
+          uid: uid, field: 'token', value: value);
+    });
   }
 }

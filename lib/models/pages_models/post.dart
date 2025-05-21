@@ -8,6 +8,7 @@ class Post {
   String _subtype = "";
   Timestamp timeStamp;
   Timestamp? eventDate;
+  Timestamp? declaredDate;
   String _statu = "";
   String _pathImage = "";
   String title;
@@ -37,6 +38,7 @@ class Post {
       String subtype = "",
       required this.timeStamp,
       this.eventDate,
+      this.declaredDate,
       String statu = "",
       String pathImage = "",
       required this.title,
@@ -186,6 +188,8 @@ class Post {
       timeStamp: map['timeStamp'] ?? 0,
       eventDate:
           map['eventDate'] != null ? map['eventDate'] as Timestamp : null,
+      declaredDate:
+          map['declaredDate'] != null ? map['declaredDate'] as Timestamp : null,
       title: map['title'] ?? "",
       type: map['type'] ?? "",
       user: map['user'] ?? "",
@@ -224,6 +228,7 @@ class Post {
       'eventType': eventType,
       'timeStamp': timeStamp,
       'eventDate': eventDate,
+      if (declaredDate != null) 'declaredDate': declaredDate,
       'title': title,
       'type': type,
       'user': user,

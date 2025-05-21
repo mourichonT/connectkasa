@@ -98,7 +98,9 @@ class ChatPageState extends State<ChatPage> {
             return Text("Error ${snapshot.error}");
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
           }
 
           return ListView(

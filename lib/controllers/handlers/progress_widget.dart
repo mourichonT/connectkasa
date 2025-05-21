@@ -62,6 +62,7 @@ class ProgressWidgetState extends State<ProgressWidget>
   String justifType = "";
   String pathJustif = "";
   String? refLot = "";
+  bool isUserCompleted = false;
   Timer? _deleteTimer;
   bool isCameraOpen = false;
   bool informationsCorrectes = false;
@@ -69,7 +70,6 @@ class ProgressWidgetState extends State<ProgressWidget>
   @override
   void initState() {
     super.initState();
-    print("PROVIDER / ${widget.providerId}");
     WidgetsBinding.instance.addObserver(this);
     _progress = 1 / 5; // Assuming you have 5 steps
     //_startDeletionTimer();
@@ -79,11 +79,12 @@ class ProgressWidgetState extends State<ProgressWidget>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _progressController.dispose();
-    if (currentUser != null && currentUser!.uid == widget.userId) {
+    if (!isUserCompleted &&
+        currentUser != null &&
+        currentUser!.uid == widget.userId) {
       _deleteUser();
       _deleteStorage();
       DataBasesUserServices.removeUserById(currentUser!.uid);
-
       print("Utilisateur supprimé dans la fonction dispose : ${widget.userId}");
     }
     super.dispose();
@@ -134,17 +135,6 @@ class ProgressWidgetState extends State<ProgressWidget>
     }
   }
 
-  // void _deleteUser() async {
-  //   final user = FirebaseAuth.instance.currentUser;
-  //   final cred = EmailAuthProvider.credential(
-  //     email: user!.email!,
-  //     password: widget.password!,
-  //   );
-
-  //   await user.reauthenticateWithCredential(cred);
-  //   await user.delete(); // maintenant ça marche
-  // }
-
   void _deleteStorage() async {
     final StorageServices _storageServices = StorageServices();
     _storageServices.removeFolder("user", widget.userId);
@@ -186,7 +176,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     AppLifecycleState state,
   ) async {
     if ((state == AppLifecycleState.paused ||
-            state == AppLifecycleState.inactive) &&
+            state == AppLifecycleState.detached) &&
         !isCameraOpen) {
       print("Supprimer l'utilisateur si l'application est fermée ou inactive");
       try {
@@ -348,16 +338,9 @@ class ProgressWidgetState extends State<ProgressWidget>
     refLot = newrefLot;
   }
 
-  void getInformationsStep4(String newImagePathIdrect,
-      String newImagePathIdvers, String newJustifType, String newPathJustif) {
-    // Faites ce que vous voulez avec les valeurs récupérées
-    print(
-        'path id recto: $newImagePathIdrect, path id verso: $newImagePathIdvers');
-
-    pathIdRect = newImagePathIdrect;
-    pathIdVers = newImagePathIdvers;
-    justifType = newJustifType;
-    pathJustif = newPathJustif;
+  void getInformationsStep4(bool newIsUserCompleted) {
+    isUserCompleted = newIsUserCompleted;
+    print("isUserCompleted : $isUserCompleted");
   }
 
   @override

@@ -6,6 +6,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
@@ -19,6 +20,7 @@ import '../../../../models/pages_models/post.dart';
 
 class AnnonceWidget extends StatefulWidget {
   final Post post;
+  final Lot lot;
   final String uid;
   final String residenceSelected;
   final Color colorStatut;
@@ -33,6 +35,7 @@ class AnnonceWidget extends StatefulWidget {
     required this.colorStatut,
     required this.scrollController,
     required this.post,
+    required this.lot,
     required this.isCsMember,
     required this.updatePostsList,
   });
@@ -71,6 +74,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomHeaderRow(
+                lot: widget.lot,
                 post: widget.post,
                 isCsMember: widget.isCsMember,
                 updatePostsList: widget.updatePostsList,

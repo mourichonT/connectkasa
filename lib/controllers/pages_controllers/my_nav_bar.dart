@@ -37,6 +37,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   final _databasesLotServices = DataBasesLotServices();
   final _loadPreferedData = LoadPreferedData();
   late final MyTabBarController tabController;
+  double _calculatedAppBarHeight = 0;
 
   Lot? _preferedLot;
   Lot _defaultLot = Lot(
@@ -56,6 +57,12 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
     super.initState();
     tabController = MyTabBarController(length: 5, vsync: this);
     _initializeLot();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final height = MediaQuery.of(context).size.height * 0.26;
+      setState(() {
+        _calculatedAppBarHeight = height;
+      });
+    });
   }
 
   Future<void> _initializeLot() async {
@@ -103,7 +110,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final double appBarHeight = MediaQuery.of(context).size.height * 0.21;
+    //final double appBarHeight = MediaQuery.of(context).size.height * 0.26;
     final color = context.watch<ColorProvider>().color;
     final lot = _preferedLot ?? _defaultLot;
     final residenceId = lot.residenceId;
@@ -119,51 +126,75 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
         children: [
           // CONTENU PRINCIPAL
           Positioned.fill(
-            top: appBarHeight,
+            //top: appBarHeight,
             child: TabBarView(
               controller: tabController.tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                Homeview(
-                  updatePostsList: () => setState(() {}),
-                  key: UniqueKey(),
-                  uid: widget.uid,
-                  residenceSelected: residenceId,
-                  upDatescrollController: widget.scrollController,
-                  colorStatut: color,
-                  preferedLot: lot,
-                  isCsMember: _isCsMember,
+                Padding(
+                  padding: EdgeInsets.only(
+                      top: max(0, _calculatedAppBarHeight - 15)),
+                  child: Homeview(
+                    updatePostsList: () => setState(() {}),
+                    key: UniqueKey(),
+                    uid: widget.uid,
+                    residenceSelected: residenceId,
+                    upDatescrollController: widget.scrollController,
+                    colorStatut: color,
+                    preferedLot: lot,
+                    isCsMember: _isCsMember,
+                  ),
                 ),
-                SinistrePageView(
-                  key: UniqueKey(),
-                  uid: widget.uid,
-                  residenceId: residenceId,
-                  colorStatut: color,
-                  argument1: "sinistres",
-                  argument2: "incivilites",
-                  argument3: "communication",
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: _calculatedAppBarHeight,
+                  ),
+                  child: SinistrePageView(
+                    key: UniqueKey(),
+                    uid: widget.uid,
+                    residenceId: residenceId,
+                    colorStatut: color,
+                    argument1: "sinistres",
+                    argument2: "incivilites",
+                    argument3: "communication",
+                  ),
                 ),
-                EventPageView(
-                  uid: widget.uid,
-                  type: "events",
-                  preferedLot: lot,
-                  residenceSelected: residenceId,
-                  colorStatut: color,
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: _calculatedAppBarHeight,
+                  ),
+                  child: EventPageView(
+                    uid: widget.uid,
+                    type: "events",
+                    preferedLot: lot,
+                    residenceSelected: residenceId,
+                    colorStatut: color,
+                  ),
                 ),
-                AnnoncesPageView(
-                  key: UniqueKey(),
-                  uid: widget.uid,
-                  residenceSelected: residenceId,
-                  type: "annonces",
-                  colorStatut: color,
-                  scrollController: widget.scrollController ?? 0,
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: _calculatedAppBarHeight,
+                  ),
+                  child: AnnoncesPageView(
+                    key: UniqueKey(),
+                    uid: widget.uid,
+                    residenceSelected: residenceId,
+                    type: "annonces",
+                    colorStatut: color,
+                    scrollController: widget.scrollController ?? 0,
+                  ),
                 ),
-                MydocsPageView(
-                  key: UniqueKey(),
-                  uid: widget.uid,
-                  lotSelected: lot,
-                  colorStatut: color,
-                  isCsMember: _isCsMember,
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: _calculatedAppBarHeight,
+                  ),
+                  child: MydocsPageView(
+                    key: UniqueKey(),
+                    uid: widget.uid,
+                    lotSelected: lot,
+                    colorStatut: color,
+                    isCsMember: _isCsMember,
+                  ),
                 ),
               ],
             ),
@@ -171,59 +202,61 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
 
           // APPBAR CUSTOM EN STACK
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
+              top: 0,
+              left: 0,
+              right: 0,
               child: Container(
-                color: Theme.of(context).colorScheme.secondary,
-                padding: const EdgeInsets.only(
-                    top: 0, left: 20, right: 20, bottom: 0),
-                child: SafeArea(
-                  bottom: false,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // LOGO + PROFIL
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Image.asset(
-                            SetLogoColor.getLogoPath(
-                                Theme.of(context).primaryColor),
-                            width: MediaQuery.of(context).size.width / 2.5,
-                            fit: BoxFit.fitWidth,
-                          ),
-                          Builder(
-                            builder: (scaffoldContext) => GestureDetector(
-                              onTap: () => Scaffold.of(scaffoldContext)
-                                  .openEndDrawer(), // ✅ Correct
-                              child: ProfilTile(widget.uid, 18, 15, 15, false),
-                            ),
-                          ),
-                        ],
-                      ),
-                      // TABS
-                      tabController.tabBar(tabs),
-
-                      // SELECT LOT
-                      InkWell(
-                        onTap: _showLotSelector,
-                        child: SelectLotComponentController(
-                          uid: widget.uid,
-                          lot,
-                        ),
-                      ),
-                    ],
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.secondary,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(30),
+                    bottomRight: Radius.circular(30),
                   ),
                 ),
-              ),
-            ),
-          ),
+                clipBehavior: Clip.hardEdge,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // LOGO + PROFIL
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Image.asset(
+                              SetLogoColor.getLogoPath(
+                                  Theme.of(context).primaryColor),
+                              width: MediaQuery.of(context).size.width / 2.5,
+                              fit: BoxFit.fitWidth,
+                            ),
+                            Builder(
+                              builder: (scaffoldContext) => GestureDetector(
+                                onTap: () => Scaffold.of(scaffoldContext)
+                                    .openEndDrawer(),
+                                child:
+                                    ProfilTile(widget.uid, 18, 15, 15, false),
+                              ),
+                            ),
+                          ],
+                        ),
+                        // TABS
+                        tabController.tabBar(tabs),
+
+                        // SELECT LOT
+                        InkWell(
+                          onTap: _showLotSelector,
+                          child: SelectLotComponentController(
+                            uid: widget.uid,
+                            lot,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )),
 
           // NAVBAR BOTTOM
           Align(
