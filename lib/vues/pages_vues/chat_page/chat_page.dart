@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/pages_controllers/chat_controller.dart';
+import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/controllers/services/chat_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/widget_view/components/chat_bubble.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/message_user_tile.dart';
+import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ChatPage extends StatefulWidget {
@@ -28,40 +32,79 @@ class ChatPageState extends State<ChatPage> {
   final chatController = TextEditingController();
   final ChatServices _chatServices = ChatServices();
   final FocusNode _focusNode = FocusNode();
-
-  void sendMessage() async {
-    if (chatController.text.isNotEmpty) {
-      await _chatServices.sendMessage(widget.idUserFrom, widget.idUserTo,
-          chatController.text, widget.residence);
-
-      setState(() {
-        chatController.clear();
-        _focusNode.unfocus();
-      });
-    }
-  }
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
+    if (widget.message != null) {
+      chatController.text = widget.message!;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final messageProvider =
+          Provider.of<MessageProvider>(context, listen: false);
+
+      messageProvider.init(
+        residenceId: widget.residence,
+        userFrom: widget.idUserFrom,
+        userTo: widget.idUserTo,
+      );
+    });
   }
 
   @override
   void dispose() {
-    // TODO: implement dispose
-    super.dispose();
+    ChatController.clearMessage(
+      userId: widget.idUserFrom,
+      otherUserId: widget.idUserTo,
+      residence: widget.residence,
+    );
+
     chatController.dispose();
     _focusNode.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void sendMessage() async {
+    if (chatController.text.isNotEmpty) {
+      await _chatServices.sendMessage(
+        widget.idUserFrom,
+        widget.idUserTo,
+        chatController.text,
+        widget.residence,
+      );
+      chatController.clear();
+      _focusNode.unfocus();
+      _scrollToBottom();
+    }
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (!_scrollController.hasClients) return;
+
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final targetScroll = (maxScroll + 60).clamp(0.0, maxScroll);
+
+      _scrollController.animateTo(
+        targetScroll,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    print("ChatPage build");
     return Scaffold(
       appBar: AppBar(
-        title: MessageUserTile(radius: 16, uid: widget.idUserTo),
+        title: ProfilTile(widget.idUserTo, 22, 19, 22, true, Colors.black87,
+            SizeFont.h2.size),
         bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1.0), // Hauteur du Divider
+          preferredSize: Size.fromHeight(1.0),
           child: Divider(
             height: 0,
             thickness: 0.2,
@@ -69,120 +112,60 @@ class ChatPageState extends State<ChatPage> {
           ),
         ),
       ),
-      body: Container(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Expanded(
-                child: _buildMessageList(),
-              ),
-              _buildInputMessage(),
-              const SizedBox(
-                height: 25,
-              ),
-              //TextField
-            ],
-          ),
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            Expanded(child: _buildMessageList()),
+            _buildInputMessage(),
+            const SizedBox(height: 25),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildMessageList() {
-    return StreamBuilder(
-        stream: _chatServices.getMessages(
-            widget.idUserFrom, widget.idUserTo, widget.residence),
-        builder: ((context, snapshot) {
-          if (snapshot.hasError) {
-            return Text("Error ${snapshot.error}");
-          }
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+    return StreamBuilder<QuerySnapshot>(
+      stream: _chatServices.getMessages(
+          widget.idUserFrom, widget.idUserTo, widget.residence),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Text("Error ${snapshot.error}");
+        }
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          return ListView(
-            children: snapshot.data!.docs
-                .map((document) => _buildMessageItem(document))
-                .toList(),
-          );
-        }));
-  }
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
-  Widget _buildMessageItem(DocumentSnapshot document) {
-    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+        final docs = snapshot.data!.docs;
 
-    var alignement = (data["userIdFrom"] == widget.idUserFrom)
-        ? Alignment.centerRight
-        : Alignment.centerLeft;
-
-    var crossAlignement = (data["userIdFrom"] == widget.idUserFrom)
-        ? CrossAxisAlignment.end
-        : CrossAxisAlignment.start;
-
-    return Container(
-      alignment: alignement,
-      child: Column(
-        crossAxisAlignment: crossAlignement,
-        children: [
-          const SizedBox(
-            height: 10,
-          ),
-          ChatBubble(
-            defColor: (data["userIdFrom"] == widget.idUserFrom)
-                ? Colors.grey
-                : Theme.of(context).primaryColor,
-            message: data["message"],
-            onTap: () {
-              if (isURL(data["message"])) {
-                // Vérifie si le message est une URL
-                launchURL(Uri.parse(data["message"]));
-              }
-            },
-          ),
-          MyTextStyle.chatdate(data["timestamp"]),
-        ],
-      ),
+        return MessageList(
+          messages: docs,
+          currentUserId: widget.idUserFrom,
+          scrollController: _scrollController,
+        );
+      },
     );
-  }
-
-  void launchURL(Uri uri) async {
-    if (await canLaunchUrl(Uri.parse(uri.toString()))) {
-      await launchUrl(Uri.parse(uri.toString()));
-    } else {
-      throw 'Could not launch $uri';
-    }
-  }
-
-  bool isURL(String text) {
-    final RegExp urlRegex = RegExp(
-      r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+',
-    );
-    return urlRegex.hasMatch(text);
   }
 
   Widget _buildInputMessage() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       width: MediaQuery.of(context).size.width,
-      decoration: const BoxDecoration(color: Colors.white),
+      color: Colors.white,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            // Wrap TextFormField with Expanded
             child: TextFormField(
               maxLines: null,
               minLines: 1,
               keyboardType: TextInputType.multiline,
               focusNode: _focusNode,
-              controller: widget.message != null
-                  ? TextEditingController(text: widget.message)
-                  : chatController,
+              controller: chatController,
               enableInteractiveSelection: true,
               decoration: const InputDecoration(
                 hintText: "Votre message",
@@ -194,5 +177,80 @@ class ChatPageState extends State<ChatPage> {
         ],
       ),
     );
+  }
+
+  void launchURL(Uri uri) async {
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    } else {
+      throw 'Could not launch $uri';
+    }
+  }
+
+  bool isURL(String text) {
+    final RegExp urlRegex = RegExp(
+      r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+',
+    );
+    return urlRegex.hasMatch(text);
+  }
+}
+
+class MessageList extends StatelessWidget {
+  final List<DocumentSnapshot> messages;
+  final String currentUserId;
+  final ScrollController scrollController;
+
+  const MessageList({
+    Key? key,
+    required this.messages,
+    required this.currentUserId,
+    required this.scrollController,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      controller: scrollController,
+      itemCount: messages.length,
+      itemBuilder: (context, index) {
+        final data = messages[index].data() as Map<String, dynamic>;
+        final isFromCurrentUser = data["userIdFrom"] == currentUserId;
+        final alignement =
+            isFromCurrentUser ? Alignment.centerRight : Alignment.centerLeft;
+        final crossAlignement = isFromCurrentUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start;
+
+        return Container(
+          alignment: alignement,
+          child: Column(
+            crossAxisAlignment: crossAlignement,
+            children: [
+              const SizedBox(height: 10),
+              ChatBubble(
+                defColor: isFromCurrentUser
+                    ? Colors.grey
+                    : Theme.of(context).primaryColor,
+                message: data["message"],
+                onTap: () {
+                  if (RegExp(
+                    r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-?=%.]+',
+                  ).hasMatch(data["message"])) {
+                    launchURL(Uri.parse(data["message"]));
+                  }
+                },
+              ),
+              MyTextStyle.chatdate(data["timestamp"]),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void launchURL(Uri uri) async {
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
   }
 }

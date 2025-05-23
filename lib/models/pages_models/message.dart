@@ -29,4 +29,15 @@ class Message {
       "timestamp": timestamp
     };
   }
+
+  // ✅ Nouvelle méthode pour Firestore
+  factory Message.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return Message(
+      message: data["message"],
+      userIdFrom: data["userIdFrom"],
+      userIdTo: data["userIdTo"],
+      timestamp: data["timestamp"],
+    );
+  }
 }

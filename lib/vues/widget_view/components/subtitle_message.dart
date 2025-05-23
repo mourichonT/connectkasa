@@ -3,6 +3,7 @@ import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/card_contact_controller.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/message_gerance_tile.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/message_user_tile.dart';
 import 'package:flutter/material.dart';
 
@@ -153,45 +154,50 @@ class _SubtitleMessageState extends State<SubtitleMessage>
           child: TabBarView(
             controller: _tabController,
             children: <Widget>[
-              Card(
-                margin: const EdgeInsets.all(16),
-                child: FutureBuilder(
-                  future: _allUsersInResidence,
-                  builder: (context, AsyncSnapshot<List<User>> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else {
-                      List<User> allUsers = snapshot.data!;
-                      return Padding(
-                        padding: const EdgeInsets.only(
-                            left: 15, right: 15, top: 10, bottom: 35),
-                        child: ListView.separated(
-                          separatorBuilder: (context, index) => const Divider(),
-                          itemCount: allUsers.length,
-                          itemBuilder: (context, index) {
-                            User user = allUsers[index];
-                            return InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (context) => ChatPage(
-                                              residence: widget.residence,
-                                              idUserFrom: widget.uid,
-                                              idUserTo: user.uid)));
-                                },
-                                child:
-                                    MessageUserTile(radius: 23, uid: user.uid));
-                          },
-                        ),
-                      );
-                    }
-                  },
-                ),
+              FutureBuilder(
+                future: _allUsersInResidence,
+                builder: (context, AsyncSnapshot<List<User>> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  } else {
+                    List<User> allUsers = snapshot.data!;
+                    return Padding(
+                      padding: const EdgeInsets.only(
+                          left: 15, right: 15, top: 10, bottom: 35),
+                      child: ListView.builder(
+                        itemCount: allUsers.length,
+                        itemBuilder: (context, index) {
+                          User user = allUsers[index];
+                          return InkWell(
+                              onTap: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ChatPage(
+                                      residence: widget.residence,
+                                      idUserFrom: widget.uid,
+                                      idUserTo: user.uid,
+                                    ),
+                                  ),
+                                );
+
+                                // Refresh après retour de ChatPage
+                                //_fetchAllUsers();
+                              },
+                              child: MessageUserTile(
+                                  residenceId: widget.residence,
+                                  radius: 23,
+                                  idUserFrom: widget.uid,
+                                  idUserTo: user.uid));
+                        },
+                      ),
+                    );
+                  }
+                },
               ),
 
               // partie 2
@@ -234,9 +240,9 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                               ),
                             );
                           },
-                          child: MessageUserTile(
+                          child: MessageGeranceTile(
                             radius: 23,
-                            uid:
+                            idUserFrom:
                                 uid, // Utilisation du uid correspondant à cet index
                           ),
                         );
@@ -254,25 +260,35 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                   refGerance: widget.selectedLot!.residenceData["refGerance"],
                 )
               else if (nbrTab == 3 && loca == true)
-                Card(
-                  margin: const EdgeInsets.all(16),
-                  child: ListView.separated(
-                    separatorBuilder: (context, index) => const Divider(),
+                Padding(
+                  padding: const EdgeInsets.only(
+                      left: 15, right: 15, top: 10, bottom: 35),
+                  child: ListView.builder(
                     itemCount: widget.selectedLot!.idLocataire!.length,
                     itemBuilder: (context, index) {
                       String locataires =
                           widget.selectedLot!.idLocataire![index];
                       return InkWell(
-                          onTap: () {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ChatPage(
-                                        residence: widget.residence,
-                                        idUserFrom: locataires,
-                                        idUserTo: widget.uid)));
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ChatPage(
+                                  residence: widget.residence,
+                                  idUserFrom: widget.uid,
+                                  idUserTo: locataires,
+                                ),
+                              ),
+                            );
+
+                            // Refresh après retour de ChatPage
+                            //_fetchAllUsers();
                           },
-                          child: MessageUserTile(radius: 23, uid: locataires));
+                          child: MessageUserTile(
+                              residenceId: widget.residence,
+                              radius: 23,
+                              idUserFrom: widget.uid,
+                              idUserTo: locataires));
                     },
                   ),
                 )

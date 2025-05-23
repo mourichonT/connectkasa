@@ -3,11 +3,13 @@ import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/providers/lot_provider.dart';
+import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/controllers/providers/name_lot_provider.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
@@ -49,6 +51,7 @@ void main() async {
       ChangeNotifierProvider(create: (context) => ColorProvider()),
       ChangeNotifierProvider(create: (context) => NameLotProvider()),
       ChangeNotifierProvider(create: (_) => LotProvider()),
+      ChangeNotifierProvider(create: (_) => MessageProvider()),
     ],
     child: MyApp(),
   ));
