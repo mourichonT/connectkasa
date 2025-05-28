@@ -4,6 +4,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/like_button_comment.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
@@ -111,8 +112,24 @@ class CommentTileState extends State<CommentTile> {
               Padding(
                 padding: const EdgeInsets.only(
                     top: 10, bottom: 5, left: 5, right: 15),
-                child:
-                    ProfilTile(comment.user, 20, 18, 20, false, Colors.white),
+                child: InkWell(
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ShowProfilPage(
+                              uid: comment.user, refLot: widget.residence)),
+                    );
+                  },
+                  child: ProfilTile(
+                    comment.user,
+                    22,
+                    19,
+                    22,
+                    false,
+                    Colors.white,
+                  ),
+                ),
               ),
               Column(
                 mainAxisAlignment: MainAxisAlignment.start,

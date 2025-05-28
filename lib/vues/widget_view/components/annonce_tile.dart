@@ -91,7 +91,7 @@ class AnnonceTileState extends State<AnnonceTile> {
               },
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                    const EdgeInsets.symmetric(vertical: 0, horizontal: 10),
                 child: SizedBox(
                   height: 200,
                   child: Column(
@@ -100,7 +100,7 @@ class AnnonceTileState extends State<AnnonceTile> {
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         child: SizedBox(
-                          height: 120,
+                          height: 115,
                           width: MediaQuery.of(context).size.width / 2,
                           // Wrap Row with SizedBox to provide a fixed height
                           // Specify the desired height

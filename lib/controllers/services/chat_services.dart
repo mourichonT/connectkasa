@@ -45,13 +45,6 @@ class ChatServices extends ChangeNotifier {
     // Ajoute le message dans la sous-collection
     await chatDocRef.collection("messages").add(newMessage.toMap());
 
-    // 🔁 Récupération des tokens
-    final sender = await DataBasesUserServices.getUserById(senderId);
-    final receiver = await DataBasesUserServices.getUserById(receiverId);
-
-    final fromToken = await getTokenFromUserId(senderId) ?? '';
-    final toToken = await getTokenFromUserId(receiverId) ?? '';
-
     // Récupère les données du document de chat
     final chatSnapshot = await chatDocRef.get();
 
@@ -88,56 +81,49 @@ class ChatServices extends ChangeNotifier {
     }
   }
 
-  //SEND MESSAGE
-
-  // Future<void> sendMessage(String senderId, String receiverId, String message,
-  //     String residence) async {
-  //   final Timestamp timestamp = Timestamp.now();
-
-  //   Message newMessage = Message(
-  //       message: message,
-  //       userIdFrom: senderId,
-  //       userIdTo: receiverId,
-  //       timestamp: timestamp);
-
-  //   List<String> ids = [senderId, receiverId];
-  //   ids.sort();
-  //   String chatRoomId = ids.join("_");
-  //   await _firestore
-  //       .collection("Residence")
-  //       .doc(residence)
-  //       .collection("chat")
-  //       .doc(chatRoomId)
-  //       .collection("messages")
-  //       .add(newMessage.toMap());
-
-  //   await _firestore
-  //       .collection("Residence")
-  //       .doc(residence)
-  //       .collection("chat")
-  //       .doc(chatRoomId)
-  //       .set( );
-  // }
-
-  // GET MESSAGE
   static Stream<Message?> getLastMessageBetweenUsers({
     required String residenceId,
     required String userA,
     required String userB,
   }) {
+    List<String> ids = [userA, userB];
+    ids.sort();
+    String chatId = ids.join("_");
+
     return FirebaseFirestore.instance
-        .collection('residences')
+        .collection('Residence')
         .doc(residenceId)
+        .collection('chat')
+        .doc(chatId)
         .collection('messages')
-        .where('participants', arrayContainsAny: [userA, userB])
         .orderBy('timestamp', descending: true)
         .limit(1)
         .snapshots()
         .map((snapshot) {
-          if (snapshot.docs.isEmpty) return null;
-          return Message.fromFirestore(snapshot.docs.first);
-        });
+      if (snapshot.docs.isEmpty) return null;
+      return Message.fromFirestore(snapshot.docs.first);
+    });
   }
+
+  // // GET MESSAGE
+  // static Stream<Message?> getLastMessageBetweenUsers({
+  //   required String residenceId,
+  //   required String userA,
+  //   required String userB,
+  // }) {
+  //   return FirebaseFirestore.instance
+  //       .collection('residences')
+  //       .doc(residenceId)
+  //       .collection('messages')
+  //       .where('participants', arrayContainsAny: [userA, userB])
+  //       .orderBy('timestamp', descending: true)
+  //       .limit(1)
+  //       .snapshots()
+  //       .map((snapshot) {
+  //         if (snapshot.docs.isEmpty) return null;
+  //         return Message.fromFirestore(snapshot.docs.first);
+  //       });
+  // }
 
   Stream<QuerySnapshot> getMessages(
     String userId,

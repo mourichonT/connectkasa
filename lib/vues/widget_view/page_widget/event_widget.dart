@@ -180,7 +180,7 @@ class _EventWidgetState extends State<EventWidget> {
                     widget.post.title, Colors.black87, SizeFont.h2.size),
                 const SizedBox(height: 10),
                 SizedBox(
-                  height: 40,
+                  height: 50,
                   child: MyTextStyle.annonceDesc(
                       widget.post.description, SizeFont.h3.size, 3),
                 ),
@@ -193,7 +193,7 @@ class _EventWidgetState extends State<EventWidget> {
                     post: widget.post,
                     residenceSelected: widget.residenceSelected,
                     uid: widget.uid,
-                    space: 1,
+                    space: 0.5,
                     number: 5,
                   ),
                 ),

@@ -292,7 +292,8 @@ class DataBasesPostServices {
     return newPost;
   }
 
-   Future<Post?> addSignalement(Post newSignalement, String docRes, String idPost) async {
+  Future<Post?> addSignalement(
+      Post newSignalement, String docRes, String idPost) async {
     try {
       // Si aucun post correspondant n'est trouvé, ajouter le nouveau post à la collection
       await db
@@ -301,7 +302,8 @@ class DataBasesPostServices {
           .collection("post")
           .doc(idPost)
           .collection("signalements")
-          .doc(newSignalement.id) // Utiliser l'ID du nouveau post pour l'ajouter dans les signalements
+          .doc(newSignalement
+              .id) // Utiliser l'ID du nouveau post pour l'ajouter dans les signalements
           .set(newSignalement.toMap());
     } catch (e) {
       print("Impossible de poster le nouveau Post: $e");
@@ -309,7 +311,6 @@ class DataBasesPostServices {
 
     return newSignalement;
   }
-
 
 //   Future<Post?> addPost(Post newPost, String docRes) async {
 //   try {
@@ -370,7 +371,6 @@ class DataBasesPostServices {
 //     return null;
 //   }
 // }
-
 
   Future<void> updatePostLikes(
       String residenceId, String postId, String userId) async {
@@ -850,6 +850,46 @@ class DataBasesPostServices {
     }
 
     return signalements;
+  }
+
+  static Future<List<Post>> getPostsByUser(
+      String residenceId, String userId) async {
+    List<Post> posts = [];
+
+    try {
+      // 1. Rechercher les publications directement faites par l'utilisateur
+      QuerySnapshot postQuery = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("post")
+          .where("user", isEqualTo: userId)
+          .get();
+
+      posts.addAll(postQuery.docs
+          .map((doc) => Post.fromMap(doc.data() as Map<String, dynamic>)));
+
+      // 2. Rechercher les signalements faits par l'utilisateur
+      QuerySnapshot allPostsQuery = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("post")
+          .get();
+
+      for (var postDoc in allPostsQuery.docs) {
+        QuerySnapshot signalementsQuery = await postDoc.reference
+            .collection("signalements")
+            .where("user", isEqualTo: userId)
+            .get();
+
+        posts.addAll(signalementsQuery.docs
+            .map((sig) => Post.fromMap(sig.data() as Map<String, dynamic>)));
+      }
+
+      return posts;
+    } catch (e) {
+      print('Erreur lors de la récupération des publications : $e');
+      return [];
+    }
   }
 
   Future<Map<String, int>> getMinMaxPrices(String doc) async {

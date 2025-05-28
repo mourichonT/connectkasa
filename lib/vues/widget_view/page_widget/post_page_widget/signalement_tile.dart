@@ -4,6 +4,7 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 
@@ -62,8 +63,18 @@ class SignalementTile extends StatelessWidget {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.only(left: 10),
-                      child: ProfilTile(post.user, 22, 19, 22, true,
-                          Colors.white, SizeFont.h2.size),
+                      child: InkWell(
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ShowProfilPage(
+                                    uid: post.user, refLot: residence)),
+                          );
+                        },
+                        child: ProfilTile(post.user, 22, 19, 22, true,
+                            Colors.white, SizeFont.h2.size),
+                      ),
                     ),
                   ),
                 ),
@@ -72,7 +83,7 @@ class SignalementTile extends StatelessWidget {
         ),
         Expanded(
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 15),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -102,9 +113,8 @@ class SignalementTile extends StatelessWidget {
                 Flexible(
                     child: MyTextStyle.annonceDesc(
                         post.description, SizeFont.h3.size, 3)),
-                // const SizedBox(
-                //   height: 10,
-                // ),
+                //const SizedBox(height: 10),
+
                 //SignalementsCountController(post: post, postCount: postCount),
               ],
             ),

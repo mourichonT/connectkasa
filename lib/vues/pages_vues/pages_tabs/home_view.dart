@@ -4,10 +4,10 @@ import 'dart:async';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/asking_neighbors_widget.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/post_page_widget/asking_neighbors_widget.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/event_widget.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/annonce_widget.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/post_widget.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/annonce_page_widget/annonce_widget.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/post_page_widget/post_widget.dart';
 import 'package:flutter/material.dart';
 
 class Homeview extends StatefulWidget {

@@ -38,8 +38,7 @@ class CreateAccountController {
       // Création de l'utilisateur avec email et mot de passe
       UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
-      User? currentUser = FirebaseAuth.instance.currentUser;
-      print('PASSORD: $password');
+      //User? currentUser = FirebaseAuth.instance.currentUser;
       // Initialisation de l'objet UserTemp
       UserTemp newUser = UserTemp(
         privacyPolicy: false,

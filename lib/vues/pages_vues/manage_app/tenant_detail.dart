@@ -78,65 +78,53 @@ class TenantDetailState extends State<TenantDetail> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.only(bottom: 30),
-                child: Card(
-                  shadowColor: Colors.black12.withOpacity(0),
-                  color: widget.color.withOpacity(0.1),
-                  elevation: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10.0, vertical: 10),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ProfilTile(widget.tenant.uid, 70, 65, 70, false),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    child: Column(
                       children: [
-                        // Profil section
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 50, vertical: 30),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              ProfilTile(widget.tenant.uid, 40, 36, 40, false),
-                              const SizedBox(height: 15),
-                              Row(
-                                children: [
-                                  MyTextStyle.lotName(widget.tenant.name,
-                                      Colors.black87, SizeFont.h1.size),
-                                  const SizedBox(width: 5),
-                                  MyTextStyle.lotName(widget.tenant.surname,
-                                      Colors.black87, SizeFont.h1.size),
-                                ],
-                              ),
-                              MyTextStyle.lotDesc(widget.tenant.pseudo ?? "",
-                                  SizeFont.h3.size, FontStyle.italic),
-                            ],
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            MyTextStyle.lotDesc(
+                              widget.tenant.name,
+                              SizeFont.h3.size,
+                              FontStyle.normal,
+                              FontWeight.bold,
+                            ),
+                            const SizedBox(width: 5),
+                            MyTextStyle.lotDesc(
+                              widget.tenant.surname,
+                              SizeFont.h3.size,
+                              FontStyle.normal,
+                              FontWeight.bold,
+                            ),
+                          ],
                         ),
-                        // Stats section
-                        // Column(
-                        //   children: [
-                        //     _buildStatBox("7", "Évaluations"),
-                        //     const SizedBox(height: 10),
-                        //     _buildStatBox("4.5", "LocaScore", withStar: true),
-                        //   ],
-                        // ),
+                        MyTextStyle.lotDesc(
+                          "@${widget.tenant.pseudo}",
+                          SizeFont.h3.size,
+                          FontStyle.italic,
+                          FontWeight.normal,
+                        )
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
-
-              //  Padding(
-              //    padding: const EdgeInsets.only(top: 20, bottom: 10),
-              //    child: LocascoreHeader(),
-              //  ),
 
               // Informations personnelles
               _buildSectionHeader("Informations personnelles"),
-              lineToWrite(
-                  Icons.numbers, "Référence Utilisateur", widget.tenant.uid),
+
               lineToWrite(
                   Icons.cake,
                   "Date de naissance",
@@ -148,10 +136,7 @@ class TenantDetailState extends State<TenantDetail> {
               if (widget.tenant.dependent != 0)
                 lineToWrite(Icons.diamond, "Personne à charge",
                     widget.tenant.dependent.toString()),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 10.0),
-                child: Divider(),
-              ),
+
               //contact
               _buildSectionHeader("Contact locataire"),
               InkWell(
@@ -192,10 +177,6 @@ class TenantDetailState extends State<TenantDetail> {
                   ],
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 10.0),
-                child: Divider(),
-              ),
 
               // Profil locataire
               _buildSectionHeader("Profil locataire"),
@@ -218,10 +199,7 @@ class TenantDetailState extends State<TenantDetail> {
               if (widget.tenant.amountFamilyAllowance.isNotEmpty)
                 lineToWrite(Icons.euro, "Allocations familiales",
                     widget.tenant.amountFamilyAllowance),
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 10.0),
-                child: Divider(),
-              ),
+              _buildSectionHeader("Liste des documents & justificatifs"),
               _buildGridSection(),
               const SizedBox(
                 height: 50,
@@ -238,16 +216,16 @@ class TenantDetailState extends State<TenantDetail> {
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
-          Icon(icon),
-          const SizedBox(width: 10),
-          MyTextStyle.lotDesc(
-              label, SizeFont.h3.size, FontStyle.normal, FontWeight.bold),
-          const Spacer(),
-          MyTextStyle.lotDesc(
-            value,
-            SizeFont.h3.size,
-            FontStyle.normal,
+          Icon(
+            icon,
+            color: Colors.black54,
           ),
+          const SizedBox(width: 10),
+          MyTextStyle.lotDesc(label, SizeFont.h3.size, FontStyle.normal,
+              FontWeight.bold, Colors.black54),
+          const Spacer(),
+          MyTextStyle.lotDesc(value, SizeFont.h3.size, FontStyle.normal,
+              FontWeight.normal, Colors.black54),
         ],
       ),
     );
@@ -278,7 +256,7 @@ class TenantDetailState extends State<TenantDetail> {
 
   Widget _buildSectionHeader(String title) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(top: 40, bottom: 20),
       child: MyTextStyle.lotDesc(
           title, SizeFont.h2.size, FontStyle.normal, FontWeight.bold),
     );

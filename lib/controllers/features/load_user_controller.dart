@@ -3,24 +3,22 @@ import 'package:connect_kasa/controllers/services/authentification_service.dart'
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
-
 class LoadUserController {
   AuthentificationService authService = AuthentificationService();
   DataBasesUserServices dataBasesUserServices = DataBasesUserServices();
   firebase_auth.UserCredential? user;
 
   Future<void> registerUserInFirestore(firebase_auth.User user) async {
-  FirebaseFirestore.instance.collection("User").doc(user.uid).set({
-    'uid': user.uid,
-    'name': user.displayName ?? "N/A",
-    'email': user.email ?? "N/A",
-    'createdDate': Timestamp.now(),
-    'profilPic': user.photoURL ?? "",
-    
-    // Ajoutez d'autres champs nécessaires ici
-  });
-}
+    FirebaseFirestore.instance.collection("User").doc(user.uid).set({
+      'uid': user.uid,
+      'name': user.displayName ?? "N/A",
+      'email': user.email ?? "N/A",
+      'createdDate': Timestamp.now(),
+      'profilPic': user.photoURL ?? "",
 
+      // Ajoutez d'autres champs nécessaires ici
+    });
+  }
 
   Future<String> loadUserDataGoogle() async {
     user = await authService.signUpWithGoogle();
@@ -39,7 +37,6 @@ class LoadUserController {
 //     try {
 //       await authService.signOutWithGoogle();
 //     } catch (e) {
-//       print('Erreur lors de la déconnexion avec Google: $e');
 //     }
 //   }
   // Utilisation de la variable user déclarée au niveau de la classe.
@@ -61,6 +58,4 @@ class LoadUserController {
       return ""; // Gérer en fonction de votre logique
     }
   }
-
-  
 }

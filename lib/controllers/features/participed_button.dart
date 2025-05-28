@@ -49,8 +49,8 @@ class _PartipedTileState extends State<PartipedTile> {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,34 +61,30 @@ class _PartipedTileState extends State<PartipedTile> {
               FontStyle.italic,
               FontWeight.w900,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 15),
             participants != null ? buildParticipantsList(0, 5) : Container(),
-            const SizedBox(height: 10),
+            const SizedBox(height: 15),
           ],
         ),
-        Row(
-          children: [
-            alreadyParticipated
-                ? ButtonAdd(
-                    function: participedUser,
-                    color: Colors.black38,
-                    icon: Icons.cancel_outlined,
-                    text: "Se désengager",
-                    horizontal: 10,
-                    vertical: 2,
-                    size: SizeFont.h3.size,
-                  )
-                : ButtonAdd(
-                    function: participedUser,
-                    color: Theme.of(context).primaryColor,
-                    icon: Icons.check,
-                    text: "Participer",
-                    horizontal: 10,
-                    vertical: 2,
-                    size: SizeFont.h3.size,
-                  ),
-          ],
-        ),
+        alreadyParticipated
+            ? ButtonAdd(
+                function: participedUser,
+                color: Colors.black38,
+                icon: Icons.cancel_outlined,
+                text: "Se désengager",
+                horizontal: 10,
+                vertical: 2,
+                size: SizeFont.h3.size,
+              )
+            : ButtonAdd(
+                function: participedUser,
+                color: Theme.of(context).primaryColor,
+                icon: Icons.check,
+                text: "Participer",
+                horizontal: 10,
+                vertical: 2,
+                size: SizeFont.h3.size,
+              ),
       ],
     );
   }
@@ -111,7 +107,7 @@ class _PartipedTileState extends State<PartipedTile> {
             }
 
             return Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 for (int i = 0;
                     i < min(userParticipatedCount, widget.number);

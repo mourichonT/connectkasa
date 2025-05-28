@@ -2,6 +2,7 @@
 
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:flutter/material.dart';
@@ -145,8 +146,19 @@ class PostViewState extends State<PostView> {
                     if (widget.postSelected!.hideUser == false)
                       Padding(
                         padding: const EdgeInsets.all(10.0),
-                        child: ProfilTile(widget.postSelected!.user, 22, 19, 22,
-                            true, Colors.white, SizeFont.h2.size),
+                        child: InkWell(
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ShowProfilPage(
+                                      uid: widget.postSelected!.user,
+                                      refLot: widget.residence)),
+                            );
+                          },
+                          child: ProfilTile(widget.postSelected!.user, 22, 19,
+                              22, true, Colors.white, SizeFont.h2.size),
+                        ),
                       ),
 
                     Flexible(

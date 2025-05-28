@@ -124,7 +124,10 @@ class SinistreTileState extends State<SinistreTile> {
                                 } else if (widget.post.type ==
                                     "communication") {
                                   return CommunicationDetails(
-                                      uid: widget.uid, post: widget.post);
+                                    uid: widget.uid,
+                                    post: widget.post,
+                                    residenceId: widget.residenceId,
+                                  );
                                 } else {
                                   return AnnoncePageDetails(
                                     returnHomePage: false,
@@ -149,7 +152,10 @@ class SinistreTileState extends State<SinistreTile> {
                               );
                             } else if (widget.post.type == "communication") {
                               return CommunicationDetails(
-                                  uid: widget.uid, post: widget.post);
+                                uid: widget.uid,
+                                post: widget.post,
+                                residenceId: widget.residenceId,
+                              );
                             } else {
                               return AnnoncePageDetails(
                                 returnHomePage: false,

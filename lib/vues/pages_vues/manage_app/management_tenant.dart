@@ -109,6 +109,9 @@ class ManagementTenantState extends State<ManagementTenant> {
                         UserInfo? tenant = tenantMap['user'];
                         Lot? lot = tenantMap['lot'];
                         String? lotName = lot!.userLotDetails["nameLot"];
+                        String? showLotName = (lotName == "" || lotName == null)
+                            ? "${lot.residenceData["name"]} ${lot.batiment} ${lot.lot}"
+                            : lotName;
                         if (tenant == null) {
                           return const ListTile(
                               title: Text('Locataire non trouvé.'));
@@ -132,8 +135,8 @@ class ManagementTenantState extends State<ManagementTenant> {
                                 Colors.black87,
                                 SizeFont.h3
                                     .size), // Assuming User has a `name` field
-                            subtitle:
-                                Text('Lot: $lotName'), // Displaying lot name
+                            subtitle: Text(
+                                'Lot: $showLotName'), // Displaying lot name
                             trailing: const Icon(
                               Icons.arrow_right_outlined,
                               size: 30,

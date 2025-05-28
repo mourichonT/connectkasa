@@ -34,7 +34,7 @@ class MyDrawer extends StatelessWidget {
                 left: 10,
                 right: 10,
               ),
-              child: ProfilTile(uid, 20, 18, 20, false, Colors.black87),
+              child: ProfilTile(uid, 22, 19, 22, false, Colors.black87),
             ),
             ElevatedButton(
               onPressed: () async {

@@ -110,9 +110,9 @@ class Post {
 
   String setParticipant(participantCount) {
     if (participantCount > 1) {
-      return "Participants ( $participantCount )";
+      return "Participants ($participantCount)";
     } else {
-      return "Participant ( $participantCount )";
+      return "Participant ($participantCount)";
     }
   }
 

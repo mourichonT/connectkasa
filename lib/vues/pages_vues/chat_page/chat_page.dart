@@ -4,6 +4,7 @@ import 'package:connect_kasa/controllers/pages_controllers/chat_controller.dart'
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/controllers/services/chat_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/chat_bubble.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +51,13 @@ class ChatPageState extends State<ChatPage> {
         userFrom: widget.idUserFrom,
         userTo: widget.idUserTo,
       );
+      ChatController.clearMessage(
+        userId: widget.idUserFrom,
+        otherUserId: widget.idUserTo,
+        residence: widget.residence,
+      );
+      // On considère que le message est vu
+      messageProvider.clearNewMessageFlag();
     });
   }
 
@@ -60,7 +68,6 @@ class ChatPageState extends State<ChatPage> {
       otherUserId: widget.idUserTo,
       residence: widget.residence,
     );
-
     chatController.dispose();
     _focusNode.dispose();
     _scrollController.dispose();
@@ -98,11 +105,23 @@ class ChatPageState extends State<ChatPage> {
 
   @override
   Widget build(BuildContext context) {
-    print("ChatPage build");
     return Scaffold(
       appBar: AppBar(
-        title: ProfilTile(widget.idUserTo, 22, 19, 22, true, Colors.black87,
-            SizeFont.h2.size),
+        title: InkWell(
+          onTap: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ShowProfilPage(
+                      uid: widget.idUserTo, refLot: widget.residence)),
+            );
+
+            // Refresh après retour de ChatPage
+            //_fetchAllUsers();
+          },
+          child: ProfilTile(widget.idUserTo, 22, 19, 22, true, Colors.black87,
+              SizeFont.h2.size),
+        ),
         bottom: const PreferredSize(
           preferredSize: Size.fromHeight(1.0),
           child: Divider(
@@ -229,8 +248,8 @@ class MessageList extends StatelessWidget {
               const SizedBox(height: 10),
               ChatBubble(
                 defColor: isFromCurrentUser
-                    ? Colors.grey
-                    : Theme.of(context).primaryColor,
+                    ? Theme.of(context).primaryColor
+                    : Colors.grey,
                 message: data["message"],
                 onTap: () {
                   if (RegExp(

@@ -1,4 +1,5 @@
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/payement_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/cupertino.dart';
@@ -104,8 +105,22 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              ProfilTile(widget.post.user, 22, 19, 22, true,
-                                  Colors.black87, SizeFont.h2.size),
+                              InkWell(
+                                onTap: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => ShowProfilPage(
+                                            uid: widget.post.user,
+                                            refLot: widget.residence)),
+                                  );
+
+                                  // Refresh après retour de ChatPage
+                                  //_fetchAllUsers();
+                                },
+                                child: ProfilTile(widget.post.user, 22, 19, 22,
+                                    true, Colors.black87, SizeFont.h2.size),
+                              ),
                               // ButtonAdd(
                               //   function: () {
                               //     Navigator.push(

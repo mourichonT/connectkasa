@@ -155,7 +155,7 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                   children: <Widget>[
                     // Onglet "Tous"
                     GridView.builder(
-                      padding: const EdgeInsets.only(bottom: 100),
+                      padding: const EdgeInsets.only(top: 20, bottom: 100),
                       physics: BouncingScrollPhysics(),
                       itemCount: allPosts.length,
                       gridDelegate:
@@ -192,11 +192,11 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                         if (index == 0) {
                           return Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 110,
+                              horizontal: 90,
                             ),
                             child: Padding(
-                              padding:
-                                  const EdgeInsets.only(top: 10, bottom: 10),
+                              padding: const EdgeInsets.only(
+                                  top: 10, bottom: 10, left: 20, right: 10),
                               child: ButtonAdd(
                                 function: () {
                                   Navigator.push(

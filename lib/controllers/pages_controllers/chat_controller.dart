@@ -49,8 +49,6 @@ class ChatController {
     ids.sort();
     String chatRoomId = ids.join("_");
 
-    String champAAffacer = (ids[0] == userId) ? "to_msg_num" : "from_msg_num";
-
     final docRef = FirebaseFirestore.instance
         .collection("Residence")
         .doc(residence)
@@ -60,10 +58,24 @@ class ChatController {
     final docSnapshot = await docRef.get();
 
     if (docSnapshot.exists) {
+      final data = docSnapshot.data()!;
+      String champAAffacer;
+
+      // On regarde si l'utilisateur est le from_id ou to_id
+      if (data['from_id'] == userId) {
+        champAAffacer = 'from_msg_num';
+      } else if (data['to_id'] == userId) {
+        champAAffacer = 'to_msg_num';
+      } else {
+        print(
+            "⚠️ L'utilisateur n'est ni l'expéditeur ni le destinataire du chat");
+        return;
+      }
+
       await docRef.update({champAAffacer: 0});
+      print("✅ $champAAffacer réinitialisé pour $userId");
     } else {
-      // Crée le document avec la valeur souhaitée
-      await docRef.set({champAAffacer: 0}, SetOptions(merge: true));
+      print("❌ Le document du chat n'existe pas.");
     }
   }
 

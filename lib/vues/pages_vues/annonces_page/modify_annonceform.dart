@@ -125,7 +125,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ProfilTile(widget.post.user, 22, 19, 22, true,
+                      ProfilTile(widget.post.user, 30, 26, 30, true,
                           Colors.black87, SizeFont.h2.size),
                     ],
                   ),

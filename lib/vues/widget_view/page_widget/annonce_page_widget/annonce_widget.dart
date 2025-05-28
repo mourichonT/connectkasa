@@ -8,6 +8,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
@@ -16,7 +17,7 @@ import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/header_row.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../../../models/pages_models/post.dart';
+import '../../../../../models/pages_models/post.dart';
 
 class AnnonceWidget extends StatefulWidget {
   final Post post;
@@ -124,8 +125,26 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                               Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 10),
-                                child: ProfilTile(widget.post.user, 30, 26, 30,
-                                    false, Colors.black),
+                                child: InkWell(
+                                  onTap: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ShowProfilPage(
+                                              uid: widget.post.user,
+                                              refLot:
+                                                  widget.residenceSelected)),
+                                    );
+                                  },
+                                  child: ProfilTile(
+                                    widget.post.user,
+                                    30,
+                                    26,
+                                    30,
+                                    false,
+                                    Colors.black87,
+                                  ),
+                                ),
                               ),
                               Expanded(
                                 child: Padding(

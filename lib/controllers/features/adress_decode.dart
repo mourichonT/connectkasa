@@ -7,7 +7,6 @@ class AddressDecode {
 
     for (Match match in matches) {
       integers.add(int.parse(match.group(0)!));
-      print(integers);
     }
     return integers;
   }

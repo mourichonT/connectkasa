@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/message_provider.dart';
 import 'my_tab_bar_controller.dart';
 import 'select_lot_component_controller.dart';
 import '../../models/pages_models/lot.dart';
@@ -76,7 +77,31 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
     }
     _updateCsMemberStatus(_preferedLot ?? _defaultLot);
     setState(() {});
+
+    // Lance l'écoute des messages ici, une fois résidence connue
+    final residenceId = (_preferedLot ?? _defaultLot).residenceId;
+    if (residenceId.isNotEmpty) {
+      final messageProvider =
+          Provider.of<MessageProvider>(context, listen: false);
+      messageProvider.listenForMessages(
+        residenceId: residenceId,
+        currentUserId: widget.uid,
+      );
+    }
   }
+
+  // Future<void> _initializeLot() async {
+  //   _preferedLot = await _loadPreferedData.loadPreferedLot();
+  //   if (_preferedLot == null) {
+  //     _defaultLot = await _databasesLotServices.getFirstLotByUserId(widget.uid);
+  //     final color = _defaultLot.userLotDetails['colorSelected'];
+  //     if (color != null) {
+  //       Provider.of<ColorProvider>(context, listen: false).updateColor(color);
+  //     }
+  //   }
+  //   _updateCsMemberStatus(_preferedLot ?? _defaultLot);
+  //   setState(() {});
+  // }
 
   void _updateCsMemberStatus(Lot lot) {
     final csMembers = List<String>.from(lot.residenceData['csmembers'] ?? []);
@@ -236,7 +261,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                                 onTap: () => Scaffold.of(scaffoldContext)
                                     .openEndDrawer(),
                                 child:
-                                    ProfilTile(widget.uid, 18, 15, 15, false),
+                                    ProfilTile(widget.uid, 22, 19, 22, false),
                               ),
                             ),
                           ],

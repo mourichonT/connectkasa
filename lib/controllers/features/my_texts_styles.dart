@@ -66,20 +66,20 @@ class MyTextStyle {
     return Text(text,
         style: GoogleFonts.robotoCondensed(
           fontWeight: FontWeight.w600,
-          fontSize: size ?? 16,
+          fontSize: size ?? SizeFont.h3.size,
           color: color,
         ));
   }
 
   static Text lotDesc(String text, double size,
-      [FontStyle? fontsize, FontWeight? weight]) {
+      [FontStyle? fontsize, FontWeight? weight, Color? color]) {
     return Text(
       text,
       style: GoogleFonts.roboto(
-        fontSize: size,
-        fontStyle: fontsize ?? FontStyle.italic,
-        fontWeight: weight ?? FontWeight.normal,
-      ),
+          fontSize: size,
+          fontStyle: fontsize ?? FontStyle.italic,
+          fontWeight: weight ?? FontWeight.normal,
+          color: color),
     );
   }
 

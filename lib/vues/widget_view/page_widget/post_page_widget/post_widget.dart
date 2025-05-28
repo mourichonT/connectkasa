@@ -8,12 +8,12 @@ import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/header_row.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/signalement_tile.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/post_page_widget/signalement_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 
-import '../../../../models/pages_models/post.dart';
+import '../../../../../models/pages_models/post.dart';
 
 class PostWidget extends StatefulWidget {
   final Lot lot;
@@ -86,75 +86,73 @@ class PostWidgetState extends State<PostWidget> {
                   postCount = signalements.length;
                   return Column(
                     children: [
-                      SizedBox(
-                        height: width, // Définir une hauteur fixe ou contrainte
-                        child: FlutterCarousel(
-                          options: FlutterCarouselOptions(
-                            viewportFraction: 1.0,
-                            pageSnapping: true,
-                            showIndicator: true,
-                            floatingIndicator: true,
-                            slideIndicator: CircularSlideIndicator(
-                                slideIndicatorOptions: SlideIndicatorOptions(
-                                    indicatorRadius: 5,
-                                    indicatorBackgroundColor: Colors.black12,
-                                    currentIndicatorColor: colorStatut,
-                                    itemSpacing: 13)),
-                          ),
-                          items: signalements.map((postSelected) {
-                            return InkWell(
-                              onTap: () {
-                                _getPostFuture = dbService.getUpdatePost(
-                                    widget.residence, widget.post.id);
+                      FlutterCarousel(
+                        options: FlutterCarouselOptions(
+                          viewportFraction: 1.0,
+                          pageSnapping: true,
+                          showIndicator: true,
+                          floatingIndicator: true,
+                          slideIndicator: CircularSlideIndicator(
+                              slideIndicatorOptions: SlideIndicatorOptions(
+                                  indicatorRadius: 5,
+                                  indicatorBackgroundColor: Colors.black12,
+                                  currentIndicatorColor: colorStatut,
+                                  itemSpacing: 13)),
+                        ),
+                        items: signalements.map((postSelected) {
+                          return InkWell(
+                            onTap: () {
+                              _getPostFuture = dbService.getUpdatePost(
+                                  widget.residence, widget.post.id);
 
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => FutureBuilder<Post?>(
-                                      future: _getPostFuture,
-                                      builder: (BuildContext context,
-                                          AsyncSnapshot<Post?> snapshot) {
-                                        if (snapshot.connectionState ==
-                                            ConnectionState.waiting) {
-                                          return const CircularProgressIndicator();
-                                        } else if (snapshot.hasError) {
-                                          return Text(
-                                              'Error: ${snapshot.error}');
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => FutureBuilder<Post?>(
+                                    future: _getPostFuture,
+                                    builder: (BuildContext context,
+                                        AsyncSnapshot<Post?> snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const CircularProgressIndicator();
+                                      } else if (snapshot.hasError) {
+                                        return Text('Error: ${snapshot.error}');
+                                      } else {
+                                        final postUpdated = snapshot.data;
+                                        if (postUpdated != null) {
+                                          return PopScope(
+                                            onPopInvoked: (didPop) async {
+                                              Post? postChanges =
+                                                  await dbService.getUpdatePost(
+                                                      widget.residence,
+                                                      widget.post.id);
+
+                                              setState(() {
+                                                widget.post = postChanges!;
+                                              });
+                                            },
+                                            child: PostView(
+                                              postOrigin: postUpdated,
+                                              residence: widget.residence,
+                                              uid: widget.uid,
+                                              scrollController:
+                                                  widget.scrollController,
+                                              postSelected: postSelected,
+                                              returnHomePage: true,
+                                            ),
+                                          );
                                         } else {
-                                          final postUpdated = snapshot.data;
-                                          if (postUpdated != null) {
-                                            return PopScope(
-                                              onPopInvoked: (didPop) async {
-                                                Post? postChanges =
-                                                    await dbService
-                                                        .getUpdatePost(
-                                                            widget.residence,
-                                                            widget.post.id);
-
-                                                setState(() {
-                                                  widget.post = postChanges!;
-                                                });
-                                              },
-                                              child: PostView(
-                                                postOrigin: postUpdated,
-                                                residence: widget.residence,
-                                                uid: widget.uid,
-                                                scrollController:
-                                                    widget.scrollController,
-                                                postSelected: postSelected,
-                                                returnHomePage: true,
-                                              ),
-                                            );
-                                          } else {
-                                            return const Text(
-                                                'No data available');
-                                          }
+                                          return const Text(
+                                              'No data available');
                                         }
-                                      },
-                                    ),
+                                      }
+                                    },
                                   ),
-                                );
-                              },
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 20),
                               child: SignalementTile(
                                 postSelected,
                                 width,
@@ -165,9 +163,9 @@ class PostWidgetState extends State<PostWidget> {
                                 widget.residence,
                                 widget.uid,
                               ),
-                            );
-                          }).toList(),
-                        ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                       SignalementsCountController(
                           post: widget.post, postCount: postCount),

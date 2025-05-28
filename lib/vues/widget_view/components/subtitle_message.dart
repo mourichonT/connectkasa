@@ -1,10 +1,12 @@
+import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/card_contact_controller.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/message_gerance_tile.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/message_user_tile.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/chat_page_widget/message_gerance_tile.dart';
+import 'package:connect_kasa/vues/widget_view/page_widget/chat_page_widget/message_user_tile.dart';
 import 'package:flutter/material.dart';
 
 class SubtitleMessage extends StatefulWidget {
@@ -165,35 +167,78 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                     return Text('Error: ${snapshot.error}');
                   } else {
                     List<User> allUsers = snapshot.data!;
+                    List<String> csMemberUids = List<String>.from(
+                        widget.selectedLot!.residenceData["csmembers"] ?? []);
+                    List<User> csMembers = allUsers
+                        .where((u) => csMemberUids.contains(u.uid))
+                        .toList();
+                    List<User> residents = allUsers
+                        .where((u) => !csMemberUids.contains(u.uid))
+                        .toList();
+
                     return Padding(
                       padding: const EdgeInsets.only(
                           left: 15, right: 15, top: 10, bottom: 35),
-                      child: ListView.builder(
-                        itemCount: allUsers.length,
-                        itemBuilder: (context, index) {
-                          User user = allUsers[index];
-                          return InkWell(
-                              onTap: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ChatPage(
-                                      residence: widget.residence,
-                                      idUserFrom: widget.uid,
-                                      idUserTo: user.uid,
-                                    ),
+                      child: ListView(
+                        children: [
+                          if (csMembers.isNotEmpty) ...[
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.0),
+                              child: MyTextStyle.lotName("Le Conseil Syndical",
+                                  Colors.black54, SizeFont.h2.size),
+                            ),
+                            ...csMembers.map((user) => InkWell(
+                                  onTap: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChatPage(
+                                          residence: widget.residence,
+                                          idUserFrom: widget.uid,
+                                          idUserTo: user.uid,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: MessageUserTile(
+                                    residenceId: widget.residence,
+                                    radius: 23,
+                                    idUserFrom: widget.uid,
+                                    idUserTo: user.uid,
                                   ),
-                                );
-
-                                // Refresh après retour de ChatPage
-                                //_fetchAllUsers();
-                              },
-                              child: MessageUserTile(
-                                  residenceId: widget.residence,
-                                  radius: 23,
-                                  idUserFrom: widget.uid,
-                                  idUserTo: user.uid));
-                        },
+                                )),
+                            const SizedBox(
+                              height: 20,
+                            ),
+                          ],
+                          if (residents.isNotEmpty) ...[
+                            Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.0),
+                              child: MyTextStyle.lotName("La communauté",
+                                  Colors.black54, SizeFont.h2.size),
+                            ),
+                            ...residents.map((user) => InkWell(
+                                  onTap: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChatPage(
+                                          residence: widget.residence,
+                                          idUserFrom: widget.uid,
+                                          idUserTo: user.uid,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: MessageUserTile(
+                                    residenceId: widget.residence,
+                                    radius: 23,
+                                    idUserFrom: widget.uid,
+                                    idUserTo: user.uid,
+                                  ),
+                                )),
+                          ],
+                        ],
                       ),
                     );
                   }
