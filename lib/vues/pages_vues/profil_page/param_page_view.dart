@@ -44,7 +44,6 @@ class _ParamPageState extends State<ParamPage> {
   String surname = "";
   String pseudo = "";
   String bio = "";
-  String job = "";
   String profilPic = "";
   bool privateAccount = true;
   String email = "";
@@ -103,7 +102,6 @@ class _ParamPageState extends State<ParamPage> {
           surname = fetchedUser.surname;
           pseudo = fetchedUser.pseudo ?? "";
           bio = fetchedUser.bio ?? "";
-          job = fetchedUser.profession ?? "";
           privateAccount = fetchedUser.private;
           profilPic = fetchedUser.profilPic ?? "";
         });

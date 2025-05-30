@@ -36,7 +36,6 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
   TextEditingController surname = TextEditingController();
   TextEditingController pseudo = TextEditingController();
   TextEditingController bio = TextEditingController();
-  TextEditingController profession = TextEditingController();
   DataBasesUserServices userServices = DataBasesUserServices();
   String? profilPic = "";
 
@@ -44,7 +43,6 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
   FocusNode surnameFocusNode = FocusNode();
   FocusNode pseudoFocusNode = FocusNode();
   FocusNode bioFocusNode = FocusNode();
-  FocusNode professionFocusNode = FocusNode();
 
   bool privateAccount = true;
 
@@ -58,14 +56,12 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
     pseudo.text = widget.user.pseudo!;
     bio.text = widget.user.bio!;
     profilPic = widget.user.profilPic;
-    profession.text = widget.user.profession!;
     privateAccount = widget.user.private; // Met à jour l'état du compte privé
 
     nameFocusNode.addListener(() => setState(() {}));
     surnameFocusNode.addListener(() => setState(() {}));
     pseudoFocusNode.addListener(() => setState(() {}));
     bioFocusNode.addListener(() => setState(() {}));
-    professionFocusNode.addListener(() => setState(() {}));
   }
 
   @override

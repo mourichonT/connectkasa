@@ -6,6 +6,7 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/my_tenant_folder.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/info_pers_page_modify.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/account_secu_modify.dart';
@@ -102,7 +103,6 @@ class _InfoPageViewState extends State<InfoPageView> {
           surname = fetchedUser.surname;
           pseudo = fetchedUser.pseudo ?? "";
           bio = fetchedUser.bio ?? "";
-          job = fetchedUser.profession ?? "";
           privateAccount = fetchedUser.private;
           profilPic = fetchedUser.profilPic ?? "";
         });
@@ -175,7 +175,18 @@ class _InfoPageViewState extends State<InfoPageView> {
                     refLot: widget.refLot,
                     text: "Mon dossier locataire",
                     icon: const Icon(Icons.euro, size: 22),
-                    press: () {},
+                    press: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => MyTenantFolder(
+                            uid: widget.uid,
+                            color: widget.color,
+                            refLot: widget.refLot,
+                          ),
+                        ),
+                      );
+                    },
                     isLogOut: false,
                   ),
                 ),

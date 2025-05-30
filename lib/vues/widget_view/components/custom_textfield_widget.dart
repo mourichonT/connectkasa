@@ -11,9 +11,11 @@ class CustomTextFieldWidget extends StatelessWidget {
   final String? field;
   final Function(String field, String label, String value)? onSubmit;
   final VoidCallback? refresh;
+  final VoidCallback? pickDate; // Ajout dans la classe
   final bool isEditable;
   final int maxLines;
   final int minLines;
+  final Function(String value)? onChanged;
 
   const CustomTextFieldWidget({
     Key? key,
@@ -28,6 +30,8 @@ class CustomTextFieldWidget extends StatelessWidget {
     this.isEditable = false,
     this.maxLines = 5,
     this.minLines = 1,
+    this.pickDate,
+    this.onChanged,
   }) : super(key: key);
 
   @override
@@ -49,6 +53,8 @@ class CustomTextFieldWidget extends StatelessWidget {
   }
 
   Widget _buildModifyTextField(BuildContext context) {
+    final isReadOnlyTapField = pickDate != null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -59,18 +65,41 @@ class CustomTextFieldWidget extends StatelessWidget {
               child: TextField(
                 controller: controller,
                 focusNode: focusNode,
-                maxLines: maxLines,
-                minLines: minLines,
-                decoration:
-                    InputDecoration(hintText: text, border: InputBorder.none),
+                readOnly: isReadOnlyTapField,
+                onTap: pickDate,
+                textAlign:
+                    isReadOnlyTapField ? TextAlign.center : TextAlign.start,
+                maxLines: isReadOnlyTapField ? 1 : maxLines,
+                minLines: isReadOnlyTapField ? 1 : minLines,
+                decoration: InputDecoration(
+                  hintText: text,
+                  border: InputBorder.none, // ✅ plus de contour
+                  enabledBorder:
+                      InputBorder.none, // ✅ supprime contour en mode actif
+                  focusedBorder:
+                      InputBorder.none, // ✅ supprime contour en mode focus
+                  prefixIcon: isReadOnlyTapField
+                      ? const Icon(Icons.calendar_today, size: 14)
+                      : null,
+                  suffixIcon: isReadOnlyTapField
+                      ? const Icon(Icons.arrow_drop_down, size: 23)
+                      : null,
+                  // ❌ PAS DE label NI hint pour les champs date
+                ),
                 style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: SizeFont.h3.size,
-                    fontWeight: FontWeight.w400),
-                onChanged: (value) => refresh?.call(),
+                  color: Colors.black87,
+                  fontSize: SizeFont.h3.size,
+                  fontWeight: FontWeight.w400,
+                ),
+                onChanged: isReadOnlyTapField
+                    ? null
+                    : (val) {
+                        onChanged?.call(val);
+                        refresh?.call();
+                      },
               ),
             ),
-            if (focusNode?.hasFocus ?? false)
+            if (!isReadOnlyTapField && (focusNode?.hasFocus ?? false))
               IconButton(
                 onPressed: () {
                   if (field != null && onSubmit != null && controller != null) {

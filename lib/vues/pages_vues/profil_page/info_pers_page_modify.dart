@@ -68,7 +68,6 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
     }
     bio.text = widget.user.bio!;
     profilPic = widget.user.profilPic;
-    profession.text = widget.user.profession!;
     privateAccount = widget.user.private; // Met à jour l'état du compte privé
 
     nameFocusNode.addListener(() => setState(() {}));
@@ -159,24 +158,6 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
                 field: "bio",
                 controller: bio,
                 focusNode: bioFocusNode,
-                isEditable: true,
-                onSubmit: (field, label, value) {
-                  SubmitUser.UpdateUser(
-                    context: context,
-                    uid: widget.uid,
-                    field: field,
-                    label: label,
-                    value: value,
-                  );
-                  widget.refresh();
-                },
-                refresh: () => setState(() {}),
-              ),
-              CustomTextFieldWidget(
-                label: "Profession",
-                field: "profession",
-                controller: profession,
-                focusNode: professionFocusNode,
                 isEditable: true,
                 onSubmit: (field, label, value) {
                   SubmitUser.UpdateUser(

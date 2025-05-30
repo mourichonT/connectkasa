@@ -11,7 +11,6 @@ class User {
   String placeOfborn;
   String? pseudo;
   String uid;
-  String? profession;
   String? bio;
   Timestamp? createdDate;
   bool approved;
@@ -29,7 +28,6 @@ class User {
     required this.nationality,
     required this.placeOfborn,
     required this.uid,
-    this.profession,
     this.pseudo,
     this.private = true,
     required this.approved,
@@ -77,7 +75,6 @@ class User {
       placeOfborn: map['placeOfborn'] ?? "",
       pseudo: map['pseudo'] ?? "",
       uid: map['uid'] ?? "",
-      profession: map['profession'] ?? "",
       bio: map['bio'] ?? "",
       private: map['private'] ?? false,
     );
@@ -97,7 +94,6 @@ class User {
       'placeOfborn': placeOfborn,
       'pseudo': pseudo,
       'uid': uid,
-      'profession': profession,
       'bio': bio,
       'private': private,
     };

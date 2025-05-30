@@ -54,7 +54,6 @@ class ShowProfilPage extends StatelessWidget {
         final String surname = user.surname;
         final String pseudo = user.pseudo ?? "";
         final String bio = user.bio ?? "";
-        final String job = user.profession ?? "";
         final bool privateAccount = user.private;
         final String userTo = user.uid;
 
@@ -130,16 +129,6 @@ class ShowProfilPage extends StatelessWidget {
                               );
                             }),
                       ),
-                      if (job.isNotEmpty)
-                        Visibility(
-                          visible: !privateAccount,
-                          child: MyTextStyle.lotDesc(
-                            job,
-                            SizeFont.h3.size,
-                            FontStyle.italic,
-                            FontWeight.normal,
-                          ),
-                        ),
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
                         child: Row(

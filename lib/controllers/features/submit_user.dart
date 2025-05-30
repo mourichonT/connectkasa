@@ -4,8 +4,10 @@ import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/pages_models/residence.dart';
 
@@ -135,6 +137,41 @@ class SubmitUser {
         SnackBar(
           content: Text('Erreur lors de la mise à jour du champ private: $e'),
         ),
+      );
+    }
+  }
+
+  static Future<void> submitTenantInfo({
+    required BuildContext context,
+    required UserInfo user,
+    required TextEditingController profession,
+    required String contactType,
+    required TextEditingController entryJobDate,
+    // tu peux ajouter ici d'autres paramètres comme la liste des revenus etc.
+  }) async {
+    final dataBasesUserServices = DataBasesUserServices();
+    if (user == null) return;
+
+    UserInfo updatedUser = user.copyWith(
+      profession: profession.text,
+      typeContract: contactType.isNotEmpty ? contactType : user.typeContract,
+      entryJobDate: entryJobDate.text.isNotEmpty
+          ? Timestamp.fromDate(
+              DateFormat('dd/MM/yyyy').parse(entryJobDate.text))
+          : user.entryJobDate,
+    );
+
+    bool success = await dataBasesUserServices.updateUserInfo(updatedUser);
+
+    if (success) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Informations enregistrées avec succès.")),
+      );
+    } else {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Erreur lors de l'enregistrement.")),
       );
     }
   }

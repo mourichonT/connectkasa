@@ -73,7 +73,6 @@ class _ProfilePageState extends State<ProfilePage> {
           surname = fetchedUser.surname;
           pseudo = fetchedUser.pseudo ?? "";
           bio = fetchedUser.bio ?? "";
-          job = fetchedUser.profession ?? "";
           privateAccount = fetchedUser.private;
           profilPic = fetchedUser.profilPic ?? "";
         });
@@ -154,15 +153,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         visible: pseudo.isNotEmpty,
                         child: MyTextStyle.lotDesc(
                           "@$pseudo",
-                          SizeFont.h3.size,
-                          FontStyle.italic,
-                          FontWeight.normal,
-                        ),
-                      ),
-                      Visibility(
-                        visible: job.isNotEmpty,
-                        child: MyTextStyle.lotDesc(
-                          "$job",
                           SizeFont.h3.size,
                           FontStyle.italic,
                           FontWeight.normal,

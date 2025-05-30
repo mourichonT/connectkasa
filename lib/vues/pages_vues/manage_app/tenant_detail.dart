@@ -189,16 +189,29 @@ class TenantDetailState extends State<TenantDetail> {
                   "Date début contrat",
                   DateFormat('dd/MM/yyyy')
                       .format(widget.tenant.entryJobDate!.toDate())),
-              lineToWrite(Icons.euro, "Salaire net", widget.tenant.salary),
-              if (widget.tenant.amountAdditionalRevenu.isNotEmpty)
-                lineToWrite(Icons.euro, "Revenu complémentaire",
-                    widget.tenant.amountAdditionalRevenu),
-              if (widget.tenant.amountHousingAllowance.isNotEmpty)
-                lineToWrite(Icons.euro, "Allocation logement",
-                    widget.tenant.amountHousingAllowance),
-              if (widget.tenant.amountFamilyAllowance.isNotEmpty)
-                lineToWrite(Icons.euro, "Allocations familiales",
-                    widget.tenant.amountFamilyAllowance),
+              _buildSectionHeader("Revenus"),
+              if (widget.tenant.incomes.isEmpty)
+                const Text("Aucun revenu renseigné")
+              else ...[
+                ...widget.tenant.incomes.map((income) {
+                  double amountDouble = double.tryParse(income.amount) ?? 0.0;
+                  return lineToWrite(
+                    null,
+                    income.label,
+                    "${amountDouble.toStringAsFixed(2)} €",
+                  );
+                }).toList(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: const Divider(),
+                ),
+                lineToWrite(
+                  Icons.euro,
+                  "Total des revenus",
+                  "${widget.tenant.incomes.map((e) => double.tryParse(e.amount) ?? 0.0).fold(0.0, (a, b) => a + b).toStringAsFixed(2)} €",
+                ),
+              ],
+
               _buildSectionHeader("Liste des documents & justificatifs"),
               _buildGridSection(),
               const SizedBox(
@@ -211,15 +224,16 @@ class TenantDetailState extends State<TenantDetail> {
     );
   }
 
-  Widget lineToWrite(IconData icon, String label, String value) {
+  Widget lineToWrite(IconData? icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
-          Icon(
-            icon,
-            color: Colors.black54,
-          ),
+          if (icon != null)
+            Icon(
+              icon,
+              color: Colors.black54,
+            ),
           const SizedBox(width: 10),
           MyTextStyle.lotDesc(label, SizeFont.h3.size, FontStyle.normal,
               FontWeight.bold, Colors.black54),

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/generate_ref_user_app.dart';
+import 'package:connect_kasa/models/enum/income_entry.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
@@ -101,6 +102,30 @@ class DataBasesUserServices {
         user = User.fromMap(docSnapshot.data()!);
       } else {
         throw Exception('Utilisateur non trouvé');
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération de l'utilisateur : $e");
+    }
+
+    return user;
+  }
+
+  static Future<UserInfo?> getUserInfosById(String uid) async {
+    UserInfo? user;
+    try {
+      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+          await FirebaseFirestore.instance
+              .collection("User")
+              .doc(uid)
+              .collection("profil_locataire")
+              .limit(1)
+              .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final data = querySnapshot.docs.first.data();
+        user = UserInfo.fromMap(data);
+      } else {
+        throw Exception('Aucun profil locataire trouvé pour cet utilisateur');
       }
     } catch (e) {
       print("Erreur lors de la récupération de l'utilisateur : $e");
@@ -238,23 +263,9 @@ class DataBasesUserServices {
 
         User user = User.fromMap(userMap);
 
-        // Récupérer l'utilisateur depuis Firebase Auth
-        String? email;
-        auth.User? firebaseUser = auth.FirebaseAuth.instance.currentUser;
-
-        if (firebaseUser != null && firebaseUser.uid == userId) {
-          email = firebaseUser.email;
-        } else {
-          print(
-              "L'utilisateur courant n'est pas celui recherché. Tentative de récupération directe...");
-          // Tentative de récupération de l'e-mail à partir de Firebase Admin (si autorisé).
-          // Nécessite un contexte serveur ou une configuration spéciale pour accéder à admin.auth().
-          // Exemple à adapter si Firebase Admin est disponible.
-        }
-
-        // Récupération des informations supplémentaires de la sous-collection
+        // Récupération des informations supplémentaires
         QuerySnapshot<Map<String, dynamic>> userInfoQuerySnapshot =
-            await userDoc.reference.collection("informationConf").get();
+            await userDoc.reference.collection("profil_locataire").get();
 
         Map<String, dynamic> userInfoMap = userInfoQuerySnapshot.docs.isNotEmpty
             ? userInfoQuerySnapshot.docs.first.data()
@@ -264,22 +275,22 @@ class DataBasesUserServices {
           privacyPolicy: user.privacyPolicy,
           name: user.name,
           surname: user.surname,
-          email: email ?? "Non spécifié",
+          email: user.email,
           uid: user.uid,
           pseudo: user.pseudo,
-          profession: user.profession,
+          profession: userInfoMap['profession'] ?? "",
           profilPic: user.profilPic ?? "",
           approved: user.approved,
-          birthday: userInfoMap['Birthday'] ??
-              Timestamp.fromDate(DateTime(1900, 1, 1)),
-          amountFamilyAllowance: userInfoMap['amount_FamilyAllowance'] ?? "",
-          amountAdditionalRevenu: userInfoMap['amount_additionalRevenu'] ?? "",
-          amountHousingAllowance: userInfoMap['amount_housingAllowance'] ?? "",
+          birthday: user.birthday,
+          incomes: (userInfoMap['revenus'] as List<dynamic>?)
+                  ?.map(
+                      (e) => IncomeEntry.fromMap(Map<String, dynamic>.from(e)))
+                  .toList() ??
+              [],
           dependent: userInfoMap['dependent'] ?? 0,
           familySituation: userInfoMap['familySituation'] ?? "",
           nationality: user.nationality,
           phone: userInfoMap['phone'] ?? "",
-          salary: userInfoMap['salary'] ?? "",
           typeContract: userInfoMap['typeContract'] ?? "",
           entryJobDate: userInfoMap['entryJobDate'] ??
               Timestamp.fromDate(DateTime(1900, 1, 1)),
@@ -361,6 +372,73 @@ class DataBasesUserServices {
     } catch (e) {
       print("Erreur lors de la récupération du lot : $e");
       return null;
+    }
+  }
+
+  Future<bool> updateUserInfo(UserInfo updatedUser) async {
+    try {
+      // 1. Rechercher le document "User" correspondant à l'UID
+      QuerySnapshot<Map<String, dynamic>> userQuery = await db
+          .collection("User")
+          .where("uid", isEqualTo: updatedUser.uid)
+          .get();
+
+      if (userQuery.docs.isEmpty) {
+        print("Aucun utilisateur trouvé avec l'UID '${updatedUser.uid}'.");
+        return false;
+      }
+
+      DocumentReference<Map<String, dynamic>> userDocRef =
+          userQuery.docs.first.reference;
+
+      // 2. Mettre à jour les données basiques dans la collection "User"
+      await userDocRef.update({
+        "email": updatedUser.email,
+        "name": updatedUser.name,
+        "surname": updatedUser.surname,
+        "pseudo": updatedUser.pseudo,
+        "approved": updatedUser.approved,
+        "profilPic": updatedUser.profilPic,
+        "privacyPolicy": updatedUser.privacyPolicy,
+        "birthday": updatedUser.birthday,
+        "sex": updatedUser.sex,
+        "nationality": updatedUser.nationality,
+        "placeOfborn": updatedUser.placeOfborn,
+        "private": updatedUser.private,
+        "bio": updatedUser.bio,
+        "createdDate": updatedUser.createdDate,
+      });
+
+      // 3. Préparer les données spécifiques à "profil_locataire"
+      Map<String, dynamic> profilLocataireData = {
+        "profession": updatedUser.profession ?? "",
+        "revenus": updatedUser.incomes.map((e) => e.toMap()).toList(),
+        "dependent": updatedUser.dependent,
+        "familySituation": updatedUser.familySituation,
+        "phone": updatedUser.phone,
+        "typeContract": updatedUser.typeContract,
+        "entryJobDate": updatedUser.entryJobDate,
+      };
+
+      // 4. Accéder à la sous-collection "profil_locataire" et mettre à jour ou créer le document
+      QuerySnapshot<Map<String, dynamic>> profilLocataireQuery =
+          await userDocRef.collection("profil_locataire").get();
+
+      if (profilLocataireQuery.docs.isNotEmpty) {
+        // Mettre à jour le premier document existant
+        await profilLocataireQuery.docs.first.reference
+            .update(profilLocataireData);
+      } else {
+        // Créer un nouveau document
+        await userDocRef
+            .collection("profil_locataire")
+            .add(profilLocataireData);
+      }
+
+      return true;
+    } catch (e) {
+      print("Erreur lors de la mise à jour de l'utilisateur : $e");
+      return false;
     }
   }
 }
