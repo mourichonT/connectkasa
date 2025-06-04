@@ -52,4 +52,10 @@ class TypeList {
     "Facture d'electricité",
     "Contrat de bail",
   ];
+
+  static List<String> sex = [
+    "H",
+    "F",
+    "ND",
+  ];
 }

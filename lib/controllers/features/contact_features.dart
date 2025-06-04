@@ -38,4 +38,6 @@ class ContactFeatures {
       debugPrint(e.toString());
     }
   }
+
+  static void openPdfFile(BuildContext context, url, String? name) {}
 }

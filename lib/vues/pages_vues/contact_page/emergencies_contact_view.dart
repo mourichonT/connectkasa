@@ -73,7 +73,10 @@ class EmergenciesContactsView extends StatelessWidget {
                       );
                     },
                     separatorBuilder: (BuildContext context, int index) =>
-                        const Divider())
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                          child: const Divider(),
+                        ))
               ],
             );
           }

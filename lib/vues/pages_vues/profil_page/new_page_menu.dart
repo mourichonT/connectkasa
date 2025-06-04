@@ -33,7 +33,7 @@ class ProfileMenu extends StatelessWidget {
           padding: EdgeInsets.all(isLogOut ? 12 : 20),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          backgroundColor: (isLogOut) ? Colors.red : Color(0xFFF5F6F9),
+          backgroundColor: (isLogOut) ? Colors.red[800]! : Color(0xFFF5F6F9),
         ),
         onPressed: press,
         child: Row(

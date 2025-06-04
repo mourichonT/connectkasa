@@ -9,67 +9,73 @@ class MyDropDownMenu extends StatefulWidget {
   final Lot? preferedLot;
   final double width;
   final String? label;
-  String hintText;
-  bool inverseColor;
+  final String hintText;
+  final bool inverseColor;
+  final double? height;
   final List<String> items;
   final Function(String) onValueChanged;
 
-  MyDropDownMenu(this.width, this.label, this.hintText, this.inverseColor,
+  const MyDropDownMenu(this.width, this.label, this.hintText, this.inverseColor,
       {super.key,
       this.preferedLot,
       required this.items,
-      required this.onValueChanged});
+      required this.onValueChanged,
+      this.height});
 
   @override
-  MyDropDownMenuState createState() => MyDropDownMenuState();
+  State<MyDropDownMenu> createState() => MyDropDownMenuState();
 }
 
 class MyDropDownMenuState extends State<MyDropDownMenu> {
+  String? selectedValue;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedValue = widget.hintText; // Aucune sélection par défaut
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
+      height: widget.height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
-        color: widget.inverseColor
-            ? Colors.white
-            : Color(0xFFF5F6F9), // Light background color for the container
+        color: widget.inverseColor ? Colors.white : const Color(0xFFF5F6F9),
       ),
       child: Padding(
         padding: const EdgeInsets.only(left: 20),
-        child: DropdownMenu<String>(
-          label: widget.label != null
-              ? MyTextStyle.lotName(widget.label!, Colors.black54)
-              : null,
-          inputDecorationTheme: const InputDecorationTheme(
-            border: InputBorder.none, // Supprime la bordure
-            enabledBorder: InputBorder
-                .none, // Supprime la bordure lorsque le champ est activé
-            focusedBorder: InputBorder
-                .none, // Supprime la bordure lorsque le champ est sélectionné
-            errorBorder:
-                InputBorder.none, // Supprime la bordure en cas d'erreur
-            focusedErrorBorder: InputBorder
-                .none, // Supprime la bordure en cas d'erreur et de focus
-            disabledBorder: InputBorder
-                .none, // Supprime la bordure lorsque le champ est désactivé
-          ),
-          hintText: widget.hintText,
-          onSelected: (String? value) {
-            if (value != null) {
-              setState(() {
-                widget.hintText = value;
+        child: Center(
+          child: DropdownMenu<String>(
+            initialSelection: selectedValue,
+            label: widget.label != null
+                ? MyTextStyle.lotName(widget.label!, Colors.black54)
+                : null,
+            inputDecorationTheme: const InputDecorationTheme(
+              border: InputBorder.none,
+            ),
+            hintText: widget.hintText,
+            textStyle: TextStyle(
+              color: Colors.black87,
+              fontSize: SizeFont.h3.size,
+              fontWeight: FontWeight.w400,
+            ), // Affiché quand initialSelection est null
+            onSelected: (String? value) {
+              if (value != null) {
+                setState(() {
+                  selectedValue = value;
+                });
                 widget.onValueChanged(value);
-              });
-            }
-          },
-          dropdownMenuEntries:
-              widget.items.map<DropdownMenuEntry<String>>((String value) {
-            return DropdownMenuEntry<String>(
-              value: value,
-              label: value,
-            );
-          }).toList(),
-          width: widget.width,
+              }
+            },
+            dropdownMenuEntries: widget.items.map((value) {
+              return DropdownMenuEntry<String>(
+                value: value,
+                label: value,
+              );
+            }).toList(),
+            width: widget.width,
+          ),
         ),
       ),
     );

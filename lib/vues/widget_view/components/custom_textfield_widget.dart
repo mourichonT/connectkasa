@@ -16,6 +16,7 @@ class CustomTextFieldWidget extends StatelessWidget {
   final int maxLines;
   final int minLines;
   final Function(String value)? onChanged;
+  final TextInputType? keyboardType;
 
   const CustomTextFieldWidget({
     Key? key,
@@ -32,6 +33,7 @@ class CustomTextFieldWidget extends StatelessWidget {
     this.minLines = 1,
     this.pickDate,
     this.onChanged,
+    this.keyboardType,
   }) : super(key: key);
 
   @override
@@ -63,6 +65,7 @@ class CustomTextFieldWidget extends StatelessWidget {
           children: [
             Expanded(
               child: TextField(
+                keyboardType: keyboardType ?? TextInputType.text,
                 controller: controller,
                 focusNode: focusNode,
                 readOnly: isReadOnlyTapField,

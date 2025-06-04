@@ -1,64 +1,55 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/income_entry.dart';
 import 'package:connect_kasa/controllers/features/job_entry.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:intl/intl.dart';
 
-// Assure-toi que JobEntry est bien défini quelque part
-class UserInfo extends User {
+class GuarantorInfo {
   final List<IncomeEntry> incomes;
   final List<JobEntry> jobIncomes;
-
+  final String? id;
   int dependent;
   String familySituation;
   String phone;
+  String email;
+  String name;
+  String surname;
+  Timestamp birthday;
+  String sex;
+  String nationality;
+  String placeOfborn;
 
-  UserInfo({
+  GuarantorInfo({
+    this.id,
     this.incomes = const [],
     this.jobIncomes = const [],
     this.dependent = 0,
     this.familySituation = "",
-    required super.nationality,
     this.phone = "",
-    required super.email,
-    required super.privacyPolicy,
-    required super.name,
-    required super.surname,
-    required super.birthday,
-    required super.sex,
-    required super.placeOfborn,
-    required super.uid,
-    super.pseudo,
-    super.private = true,
-    required super.approved,
-    super.createdDate,
-    super.bio,
-    super.profilPic,
+    required this.email,
+    required this.name,
+    required this.surname,
+    required this.birthday,
+    required this.sex,
+    required this.nationality,
+    required this.placeOfborn,
   });
 
-  factory UserInfo.fromMap(Map<String, dynamic> map) {
-    final List incomesFromMap = map['revenus'] ?? [];
-    final List jobIncomesFromMap = map['activities'] ?? [];
+  factory GuarantorInfo.fromMap(Map<String, dynamic> map, String docId) {
+    final List incomesFromMap = map['incomes'] ?? [];
+    final List jobIncomesFromMap = map['jobIncomes'] ?? [];
 
-    return UserInfo(
+    return GuarantorInfo(
+      id: docId,
       email: map['email'] ?? "",
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",
+      birthday: map['birthday'] as Timestamp,
       sex: map['sex'] ?? "",
       nationality: map['nationality'] ?? "",
       placeOfborn: map['placeOfborn'] ?? "",
-      pseudo: map['pseudo'] ?? "",
-      uid: map['uid'] ?? "",
-      approved: map['approved'] ?? false,
-      bio: map['bio'],
-      private: map['private'] ?? false,
-      createdDate: map['createdDate'] as Timestamp?,
-      profilPic: map['profilPic'] ?? "",
-      birthday: map['birthday'] as Timestamp,
       dependent: map['dependent'] ?? 0,
       familySituation: map['familySituation'] ?? "",
       phone: map['phone'] ?? "",
-      privacyPolicy: map['privacyPolicy'] ?? false,
       jobIncomes: jobIncomesFromMap
           .map((entry) => JobEntry.fromMap(Map<String, dynamic>.from(entry)))
           .toList(),
@@ -68,10 +59,15 @@ class UserInfo extends User {
     );
   }
 
-  @override
   Map<String, dynamic> toMap() {
     return {
-      ...super.toMap(),
+      'email': email,
+      'name': name,
+      'surname': surname,
+      'birthday': birthday,
+      'sex': sex,
+      'nationality': nationality,
+      'placeOfborn': placeOfborn,
       'dependent': dependent,
       'familySituation': familySituation,
       'phone': phone,
@@ -85,72 +81,49 @@ class UserInfo extends User {
       'email': email,
       'name': name,
       'surname': surname,
-      'pseudo': pseudo,
-      'uid': uid,
-      'profilPic': profilPic,
-      'approved': approved,
-      'createdDate': createdDate != null
-          ? DateFormat('dd/MM/yyyy').format(createdDate!.toDate())
-          : null,
-      'bio': bio,
-      'private': private,
       'birthday': birthday != null
           ? DateFormat('dd/MM/yyyy').format(birthday.toDate())
           : null,
+      'sex': sex,
+      'nationality': nationality,
+      'placeOfborn': placeOfborn,
       'dependent': dependent,
       'familySituation': familySituation,
-      'nationality': nationality,
       'phone': phone,
       'incomes': incomes.map((entry) => entry.toMap()).toList(),
       'jobIncomes': jobIncomes.map((entry) => entry.toMap()).toList(),
     };
   }
 
-  UserInfo copyWith({
+  GuarantorInfo copyWith({
+    String? id,
     String? email,
     List<IncomeEntry>? incomes,
     List<JobEntry>? jobIncomes,
     int? dependent,
     String? familySituation,
     String? phone,
-    String? typeContract,
-    Timestamp? entryJobDate,
-    String? profession,
-    bool? privacyPolicy,
     String? name,
     String? surname,
     Timestamp? birthday,
     String? sex,
     String? nationality,
     String? placeOfborn,
-    String? uid,
-    String? pseudo,
-    bool? private,
-    bool? approved,
-    String? bio,
-    String? profilPic,
   }) {
-    return UserInfo(
+    return GuarantorInfo(
+      id: id ?? this.id,
       email: email ?? this.email,
       incomes: incomes ?? this.incomes,
       jobIncomes: jobIncomes ?? this.jobIncomes,
       dependent: dependent ?? this.dependent,
       familySituation: familySituation ?? this.familySituation,
       phone: phone ?? this.phone,
-      privacyPolicy: privacyPolicy ?? this.privacyPolicy,
       name: name ?? this.name,
       surname: surname ?? this.surname,
       birthday: birthday ?? this.birthday,
       sex: sex ?? this.sex,
       nationality: nationality ?? this.nationality,
       placeOfborn: placeOfborn ?? this.placeOfborn,
-      uid: uid ?? this.uid,
-      pseudo: pseudo ?? this.pseudo,
-      private: private ?? this.private,
-      approved: approved ?? this.approved,
-      createdDate: createdDate ?? this.createdDate,
-      bio: bio ?? this.bio,
-      profilPic: profilPic!,
     );
   }
 }

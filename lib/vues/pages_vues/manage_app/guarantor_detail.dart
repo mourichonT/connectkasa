@@ -7,6 +7,7 @@ import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
+import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 //import 'package:connect_kasa/vues/components/locascore_header.dart';
@@ -16,24 +17,19 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class TenantDetail extends StatefulWidget {
-  final UserInfo tenant;
-  final String senderUid;
-  final String? residenceId;
-  final Color color;
+class GuarantorDetail extends StatefulWidget {
+  final GuarantorInfo garant;
 
-  const TenantDetail(
-      {super.key,
-      required this.tenant,
-      required this.color,
-      required this.senderUid,
-      this.residenceId});
+  const GuarantorDetail({
+    super.key,
+    required this.garant,
+  });
 
   @override
-  State<StatefulWidget> createState() => TenantDetailState();
+  State<StatefulWidget> createState() => GuarantorDetailState();
 }
 
-class TenantDetailState extends State<TenantDetail> {
+class GuarantorDetailState extends State<GuarantorDetail> {
   Future<List<Map<String, dynamic>>>? _documentsFuture;
   final DataBasesDocsServices dataBasesDocsServices = DataBasesDocsServices();
   final StorageServices _storageServices = StorageServices();
@@ -46,7 +42,7 @@ class TenantDetailState extends State<TenantDetail> {
   Future<List<Map<String, dynamic>>> fetchDocuments() async {
     final snapshot = await FirebaseFirestore.instance
         .collection('User')
-        .doc(widget.tenant.uid)
+        .doc(widget.garant.id)
         .collection('documents')
         .get();
 
@@ -62,131 +58,64 @@ class TenantDetailState extends State<TenantDetail> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
-      bottomSheet: Container(
-        width: width,
-        color: Theme.of(context)
-            .indicatorColor, // Changez cette couleur selon vos besoins
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            SizedBox(
-              width: 150,
-              child: ButtonAdd(
-                function: () {},
-                color: Colors.red,
-                icon: Icons.clear,
-                text: "Revoquer",
-                horizontal: 20,
-                vertical: 10,
-                size: SizeFont.h3.size,
-              ),
-            ),
-            SizedBox(
-              width: 150,
-              child: ButtonAdd(
-                function: () {
-                  Exportpdfhttp.ExportLocaScore(context, widget.tenant);
-                },
-                color: Theme.of(context).primaryColor,
-                icon: Icons.download,
-                text: "Télécharger",
-                horizontal: 20,
-                vertical: 10,
-                size: SizeFont.h3.size,
-              ),
-            ),
-          ],
-        ),
-      ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.only(bottom: 20.0, left: 20, right: 20),
+          padding: const EdgeInsets.all(10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Informations personnelles
               _buildSectionHeader("Informations personnelles"),
-
+              lineToWrite(Icons.cake, "Nom",
+                  " ${widget.garant.name} ${widget.garant.surname}"),
               lineToWrite(
                   Icons.cake,
                   "Date de naissance",
                   DateFormat('dd/MM/yyyy')
-                      .format(widget.tenant.birthday.toDate())),
-              lineToWrite(Icons.flag, "Nationalité", widget.tenant.nationality),
+                      .format(widget.garant.birthday.toDate())),
+              lineToWrite(Icons.flag, "Nationalité", widget.garant.nationality),
               lineToWrite(
-                  Icons.diamond, "Situation", widget.tenant.familySituation),
-              if (widget.tenant.dependent != 0)
+                  Icons.diamond, "Situation", widget.garant.familySituation),
+              if (widget.garant.dependent != 0)
                 lineToWrite(Icons.favorite_outlined, "Personne à charge",
-                    widget.tenant.dependent.toString()),
+                    widget.garant.dependent.toString()),
 
               //contact
-              _buildSectionHeader("Contact locataire"),
+              _buildSectionHeader("Contact du garant"),
               InkWell(
                 onTap: () {
-                  ContactFeatures.launchPhoneCall(widget.tenant.phone);
+                  ContactFeatures.launchPhoneCall(widget.garant.phone);
                 },
                 child:
-                    lineToWrite(Icons.phone, "Téléphone", widget.tenant.phone),
+                    lineToWrite(Icons.phone, "Téléphone", widget.garant.phone),
               ),
-              lineToWrite(Icons.email, "mail", widget.tenant.email),
-              if (widget.residenceId != "")
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      ButtonAdd(
-                        function: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ChatPage(
-                                residence: widget.residenceId ?? '',
-                                idUserFrom: widget.senderUid,
-                                idUserTo: widget.tenant.uid,
-                              ),
-                            ),
-                          );
-                        },
-                        borderColor: Theme.of(context).primaryColor,
-                        color: Colors.white,
-                        colorText: Theme.of(context).primaryColor,
-                        icon: Icons.mail,
-                        text: "Contacter",
-                        horizontal: 20,
-                        vertical: 5,
-                        size: SizeFont.h3.size,
-                      ),
-                    ],
-                  ),
-                ),
+              lineToWrite(Icons.email, "mail", widget.garant.email),
 
               // Profil locataire
-              _buildSectionHeader("Profil locataire"),
-              if (widget.tenant.jobIncomes.isEmpty)
+              _buildSectionHeader("Activités & emplois"),
+              if (widget.garant.jobIncomes.isEmpty)
                 const Text("Aucune activité renseignée")
               else ...[
-                for (int i = 0; i < widget.tenant.jobIncomes.length; i++) ...[
+                for (int i = 0; i < widget.garant.jobIncomes.length; i++) ...[
                   lineToWrite(
                     Icons.work_rounded,
                     "Profession",
-                    widget.tenant.jobIncomes[i].profession,
+                    widget.garant.jobIncomes[i].profession,
                   ),
                   lineToWrite(
                     Icons.file_open,
                     "Type de contrat",
-                    widget.tenant.jobIncomes[i].typeContract,
+                    widget.garant.jobIncomes[i].typeContract,
                   ),
                   lineToWrite(
                     Icons.calendar_month,
                     "Date début contrat",
                     DateFormat('dd/MM/yyyy').format(
-                      widget.tenant.jobIncomes[i].entryJobDate!.toDate(),
+                      widget.garant.jobIncomes[i].entryJobDate!.toDate(),
                     ),
                   ),
                   if (i <
-                      widget.tenant.jobIncomes.length -
+                      widget.garant.jobIncomes.length -
                           1) // 👈 uniquement avant le dernier
                     const Padding(
                       padding:
@@ -197,10 +126,10 @@ class TenantDetailState extends State<TenantDetail> {
               ],
 
               _buildSectionHeader("Revenus"),
-              if (widget.tenant.incomes.isEmpty)
+              if (widget.garant.incomes.isEmpty)
                 const Text("Aucun revenu renseigné")
               else ...[
-                ...widget.tenant.incomes.map((income) {
+                ...widget.garant.incomes.map((income) {
                   double amountDouble = double.tryParse(income.amount) ?? 0.0;
                   return lineToWrite(
                     null,
@@ -215,7 +144,7 @@ class TenantDetailState extends State<TenantDetail> {
                 lineToWrite(
                   Icons.euro,
                   "Total des revenus",
-                  "${widget.tenant.incomes.map((e) => double.tryParse(e.amount) ?? 0.0).fold(0.0, (a, b) => a + b).toStringAsFixed(2)} €",
+                  "${widget.garant.incomes.map((e) => double.tryParse(e.amount) ?? 0.0).fold(0.0, (a, b) => a + b).toStringAsFixed(2)} €",
                 ),
               ],
 

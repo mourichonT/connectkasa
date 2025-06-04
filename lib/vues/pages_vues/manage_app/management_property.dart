@@ -147,8 +147,9 @@ class ManagementPropertyState extends State<ManagementProperty> {
                         ],
                       ),
                       trailing: const Icon(
-                        Icons.arrow_right_outlined,
-                        size: 30,
+                        Icons.arrow_forward_ios,
+                        color: Color(0xFF757575),
+                        size: 22,
                       ),
                     ),
                   );

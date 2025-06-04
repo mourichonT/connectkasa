@@ -43,6 +43,7 @@ class SubmitUser {
     final dataBasesDocsServices = DataBasesDocsServices();
 
     final newUser = UserTemp(
+      createdDate: Timestamp.now(),
       privacyPolicy: privacyPolicy,
       email: emailUser,
       name: name,
@@ -144,24 +145,13 @@ class SubmitUser {
   static Future<void> submitTenantInfo({
     required BuildContext context,
     required UserInfo user,
-    required TextEditingController profession,
-    required String contactType,
-    required TextEditingController entryJobDate,
+
     // tu peux ajouter ici d'autres paramètres comme la liste des revenus etc.
   }) async {
     final dataBasesUserServices = DataBasesUserServices();
     if (user == null) return;
 
-    UserInfo updatedUser = user.copyWith(
-      profession: profession.text,
-      typeContract: contactType.isNotEmpty ? contactType : user.typeContract,
-      entryJobDate: entryJobDate.text.isNotEmpty
-          ? Timestamp.fromDate(
-              DateFormat('dd/MM/yyyy').parse(entryJobDate.text))
-          : user.entryJobDate,
-    );
-
-    bool success = await dataBasesUserServices.updateUserInfo(updatedUser);
+    bool success = await dataBasesUserServices.updateUserInfo(user);
 
     if (success) {
       if (!context.mounted) return;

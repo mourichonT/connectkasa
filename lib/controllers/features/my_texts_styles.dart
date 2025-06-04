@@ -87,15 +87,14 @@ class MyTextStyle {
     String text,
     double size,
     Color color, {
+    FontWeight? fontweight,
     TextAlign? textAlign,
   }) {
     return Text(
       text,
       textAlign: textAlign,
       style: GoogleFonts.roboto(
-        fontSize: size,
-        color: color,
-      ),
+          fontSize: size, color: color, fontWeight: fontweight),
     );
   }
 

@@ -78,14 +78,18 @@ class ContactView extends StatelessWidget {
                             subtitle: MyTextStyle.lotDesc(
                                 contact.phone, SizeFont.h3.size),
                             trailing: const Icon(
-                              Icons.arrow_right,
-                              size: 35,
+                              Icons.arrow_forward_ios,
+                              color: Color(0xFF757575),
+                              size: 22,
                             ),
                           ),
                         );
                       },
                       separatorBuilder: (BuildContext context, int index) =>
-                          const Divider()),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
+                            child: const Divider(),
+                          )),
                   EmergenciesContactsView(),
                 ]),
               ),

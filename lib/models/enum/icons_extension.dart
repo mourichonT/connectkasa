@@ -35,3 +35,24 @@ extension IconsExtensionAssets on IconsExtension {
     }
   }
 }
+
+IconsExtension? getFileType(String? extension) {
+  switch (extension) {
+    case 'doc':
+      return IconsExtension.doc;
+    case 'pdf':
+      return IconsExtension.pdf;
+    case 'jpg':
+      return IconsExtension.jpg;
+    case 'png':
+      return IconsExtension.png;
+    case 'xls':
+      return IconsExtension.xls;
+    case 'zip':
+      return IconsExtension.zip;
+    case 'mp3':
+      return IconsExtension.mp3;
+    default:
+      return null; // Handle unknown extensions
+  }
+}

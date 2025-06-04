@@ -1,10 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/generate_ref_user_app.dart';
-import 'package:connect_kasa/models/enum/income_entry.dart';
+import 'package:connect_kasa/controllers/features/income_entry.dart';
+import 'package:connect_kasa/controllers/features/job_entry.dart';
+import 'package:connect_kasa/models/pages_models/demande_loc.dart';
+import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 
@@ -278,7 +282,7 @@ class DataBasesUserServices {
           email: user.email,
           uid: user.uid,
           pseudo: user.pseudo,
-          profession: userInfoMap['profession'] ?? "",
+          // profession: userInfoMap['profession'] ?? "",
           profilPic: user.profilPic ?? "",
           approved: user.approved,
           birthday: user.birthday,
@@ -287,13 +291,17 @@ class DataBasesUserServices {
                       (e) => IncomeEntry.fromMap(Map<String, dynamic>.from(e)))
                   .toList() ??
               [],
+          jobIncomes: (userInfoMap['activities'] as List<dynamic>?)
+                  ?.map((e) => JobEntry.fromMap(Map<String, dynamic>.from(e)))
+                  .toList() ??
+              [],
           dependent: userInfoMap['dependent'] ?? 0,
           familySituation: userInfoMap['familySituation'] ?? "",
           nationality: user.nationality,
           phone: userInfoMap['phone'] ?? "",
-          typeContract: userInfoMap['typeContract'] ?? "",
-          entryJobDate: userInfoMap['entryJobDate'] ??
-              Timestamp.fromDate(DateTime(1900, 1, 1)),
+          //typeContract: userInfoMap['typeContract'] ?? "",
+          // entryJobDate: userInfoMap['entryJobDate'] ??
+          //     Timestamp.fromDate(DateTime(1900, 1, 1)),
           sex: user.sex,
           placeOfborn: user.placeOfborn,
         );
@@ -411,13 +419,11 @@ class DataBasesUserServices {
 
       // 3. Préparer les données spécifiques à "profil_locataire"
       Map<String, dynamic> profilLocataireData = {
-        "profession": updatedUser.profession ?? "",
         "revenus": updatedUser.incomes.map((e) => e.toMap()).toList(),
+        "activities": updatedUser.jobIncomes.map((e) => e.toMap()).toList(),
         "dependent": updatedUser.dependent,
         "familySituation": updatedUser.familySituation,
         "phone": updatedUser.phone,
-        "typeContract": updatedUser.typeContract,
-        "entryJobDate": updatedUser.entryJobDate,
       };
 
       // 4. Accéder à la sous-collection "profil_locataire" et mettre à jour ou créer le document
@@ -439,6 +445,247 @@ class DataBasesUserServices {
     } catch (e) {
       print("Erreur lors de la mise à jour de l'utilisateur : $e");
       return false;
+    }
+  }
+
+  static Future<String?> updateSingleGarant({
+    required GuarantorInfo garant,
+    required String uid,
+    String? garantDocId, // Nullable
+  }) async {
+    try {
+      final userQuery = await FirebaseFirestore.instance
+          .collection("User")
+          .where("uid", isEqualTo: uid)
+          .get();
+
+      if (userQuery.docs.isEmpty) {
+        print("Utilisateur non trouvé");
+        return null;
+      }
+
+      final userDocRef = userQuery.docs.first.reference;
+
+      final profilLocataireSnapshot =
+          await userDocRef.collection("profil_locataire").get();
+
+      if (profilLocataireSnapshot.docs.isEmpty) {
+        print("Aucun profil locataire trouvé");
+        return null;
+      }
+
+      final profilLocataireDocRef =
+          profilLocataireSnapshot.docs.first.reference;
+
+      final garantsCollection = profilLocataireDocRef.collection("garants");
+
+      if (garantDocId != null && garantDocId.isNotEmpty) {
+        await garantsCollection.doc(garantDocId).update(garant.toMap());
+        return garantDocId;
+      } else {
+        final newDocRef = await garantsCollection.add(garant.toMap());
+        return newDocRef.id;
+      }
+    } catch (e) {
+      print("Erreur lors de l’ajout ou la mise à jour du garant : $e");
+      return null;
+    }
+  }
+
+  static Future<void> removeListElementTenant({
+    required String uid,
+    required String docId,
+    required String field, // Le champ contenant la liste, ex: 'documents'
+    required dynamic element, // L’élément à supprimer
+  }) async {
+    try {
+      final docRef = FirebaseFirestore.instance
+          .collection('User')
+          .doc(uid)
+          .collection('profil_locataire')
+          .doc(docId);
+
+      await docRef.update({
+        field: FieldValue.arrayRemove([element]),
+      });
+
+      print("Élément '$element' supprimé de la liste '$field'.");
+    } catch (e) {
+      print("Erreur lors de la suppression de l’élément : $e");
+      rethrow;
+    }
+  }
+
+  static Future<String?> getFirstDocId(String uid) async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection("User")
+          .doc(uid)
+          .collection("profil_locataire")
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        return snapshot.docs.first.id;
+      }
+    } catch (e) {
+      print("Erreur récupération docId profil_locataire : $e");
+    }
+    return null;
+  }
+
+  static Future<List<GuarantorInfo>> getGarants(
+      String uid, String docId) async {
+    final List<GuarantorInfo> garants = [];
+
+    try {
+      final userQuery = await FirebaseFirestore.instance
+          .collection('User')
+          .where('uid', isEqualTo: uid)
+          .get();
+
+      if (userQuery.docs.isEmpty) return [];
+
+      final userDocRef = userQuery.docs.first.reference;
+
+      final garantDocs = await userDocRef
+          .collection('profil_locataire')
+          .doc(docId)
+          .collection('garants')
+          .get();
+
+      for (var doc in garantDocs.docs) {
+        garants.add(GuarantorInfo.fromMap(
+            doc.data(), doc.id)); // <-- on passe le docId ici
+      }
+    } catch (e) {
+      print('Erreur lors de la récupération des garants : $e');
+    }
+
+    return garants;
+  }
+
+  static Future<GuarantorInfo?> getGarantWithInfo(String uid) async {
+    try {
+      // Rechercher l'utilisateur dans Firestore
+      QuerySnapshot<Map<String, dynamic>> userDocRef = await FirebaseFirestore
+          .instance
+          .collection("User")
+          .where("uid", isEqualTo: uid)
+          .get();
+
+      if (userDocRef.docs.isNotEmpty) {
+        DocumentSnapshot<Map<String, dynamic>> userDoc = userDocRef.docs.first;
+        Map<String, dynamic> userMap = userDoc.data()!;
+
+        User user = User.fromMap(userMap);
+
+        // Récupération des informations supplémentaires
+        QuerySnapshot<Map<String, dynamic>> userInfoQuerySnapshot =
+            await userDoc.reference.collection("profil_locataire").get();
+
+        Map<String, dynamic> userInfoMap = userInfoQuerySnapshot.docs.isNotEmpty
+            ? userInfoQuerySnapshot.docs.first.data()
+            : {};
+
+        return GuarantorInfo(
+          name: user.name,
+          surname: user.surname,
+          email: user.email,
+          birthday: user.birthday,
+          incomes: (userInfoMap['revenus'] as List<dynamic>?)
+                  ?.map(
+                      (e) => IncomeEntry.fromMap(Map<String, dynamic>.from(e)))
+                  .toList() ??
+              [],
+          jobIncomes: (userInfoMap['activities'] as List<dynamic>?)
+                  ?.map((e) => JobEntry.fromMap(Map<String, dynamic>.from(e)))
+                  .toList() ??
+              [],
+          dependent: userInfoMap['dependent'] ?? 0,
+          familySituation: userInfoMap['familySituation'] ?? "",
+          nationality: user.nationality,
+          phone: userInfoMap['phone'] ?? "",
+          sex: user.sex,
+          placeOfborn: user.placeOfborn,
+        );
+      } else {
+        print("Aucun utilisateur trouvé avec l'ID '$uid'.");
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération de l'utilisateur : $e");
+    }
+
+    return null;
+  }
+
+  static Future<bool> deleteGarant(String uid, String garantId) async {
+    try {
+      final profilSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(uid)
+          .collection('profil_locataire')
+          .limit(1)
+          .get();
+
+      if (profilSnapshot.docs.isEmpty) {
+        print("Aucun profil locataire trouvé.");
+        return false;
+      }
+
+      final profilDocId = profilSnapshot.docs.first.id;
+
+      print("Suppression du garant $garantId dans profil $profilDocId");
+
+      await FirebaseFirestore.instance
+          .collection('User')
+          .doc(uid)
+          .collection('profil_locataire')
+          .doc(profilDocId)
+          .collection('garants')
+          .doc(garantId)
+          .delete();
+
+      print('Garant supprimé avec succès');
+      return true;
+    } catch (e) {
+      print('Erreur lors de la suppression du garant : $e');
+      return false;
+    }
+  }
+
+  static Future<void> shareFile(DemandeLoc demande, String uid) async {
+    try {
+      final docRef = FirebaseFirestore.instance
+          .collection('User')
+          .doc(uid)
+          .collection('demandes_loc')
+          .doc(); // Firestore génère un ID unique
+
+      await docRef.set(demande.toJson());
+
+      print('DemandeLoc ajoutée avec succès avec l\'ID ${docRef.id}');
+    } catch (e) {
+      print('Erreur lors de l\'ajout de la demande de location : $e');
+    }
+  }
+
+  static Future<List<DemandeLoc>> getDemande(String uid) async {
+    List<DemandeLoc> demandes = [];
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(uid)
+          .collection('demandes_loc')
+          .get();
+
+      for (var doc in querySnapshot.docs) {
+        demandes.add(DemandeLoc.fromJson(doc.data()));
+      }
+      return demandes;
+    } catch (e) {
+      print('Erreur lors de la récupération des demandes de location : $e');
+      return []; // retourne une liste vide en cas d'erreur
     }
   }
 }

@@ -6,7 +6,8 @@ import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/my_tenant_folder.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/management_folder_rent.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/my_infos_rent.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/info_pers_page_modify.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/account_secu_modify.dart';
@@ -179,10 +180,9 @@ class _InfoPageViewState extends State<InfoPageView> {
                       await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => MyTenantFolder(
+                          builder: (context) => ManagementFolderRent(
                             uid: widget.uid,
                             color: widget.color,
-                            refLot: widget.refLot,
                           ),
                         ),
                       );

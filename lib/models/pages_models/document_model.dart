@@ -6,7 +6,7 @@ class DocumentModel {
   Timestamp timeStamp;
   String _documentPathRecto = "";
   String? _documentPathVerso = "";
-  String? _lotId;
+  String? lotId;
   String? residenceId;
   String? extension;
   List<String>? destinataire;
@@ -18,13 +18,12 @@ class DocumentModel {
     this.name,
     String documentPathRecto = "",
     String documentPathVerso = "",
-    String lotId = "",
+    this.lotId,
     this.extension,
     this.destinataire,
   }) {
     _documentPathRecto = documentPathRecto;
     _documentPathVerso = documentPathVerso;
-    _lotId = lotId;
   }
 
   String get documentPathRecto {
@@ -36,10 +35,6 @@ class DocumentModel {
   //     _documentPathRecto = newUrl;
   //   }
   // }
-
-  String? get lotId {
-    return _lotId;
-  }
 
   String? get documentPathVerso {
     return _documentPathVerso;
@@ -76,7 +71,7 @@ class DocumentModel {
     return {
       if (name != null) 'name': name,
       if (documentPathVerso != null) 'documentPathVerso': documentPathVerso,
-      if (documentPathVerso != null) 'residenceId': residenceId,
+      if (residenceId != null) 'residenceId': residenceId,
       if (lotId != null) 'lotId': lotId,
       if (destinataire != null) 'destinataire': destinataire,
       'type': type,
