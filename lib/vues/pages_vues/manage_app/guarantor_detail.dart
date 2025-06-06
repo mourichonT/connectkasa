@@ -3,6 +3,7 @@ import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
@@ -18,11 +19,13 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class GuarantorDetail extends StatefulWidget {
-  final GuarantorInfo garant;
+  final String garantid;
+  final String tenantUid;
 
   const GuarantorDetail({
     super.key,
-    required this.garant,
+    required this.garantid,
+    required this.tenantUid,
   });
 
   @override
@@ -31,135 +34,107 @@ class GuarantorDetail extends StatefulWidget {
 
 class GuarantorDetailState extends State<GuarantorDetail> {
   Future<List<Map<String, dynamic>>>? _documentsFuture;
+  late Future<GuarantorInfo?> garant;
   final DataBasesDocsServices dataBasesDocsServices = DataBasesDocsServices();
   final StorageServices _storageServices = StorageServices();
   @override
   void initState() {
     super.initState();
-    _documentsFuture = fetchDocuments();
-  }
+    //  _documentsFuture = fetchDocuments();
 
-  Future<List<Map<String, dynamic>>> fetchDocuments() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('User')
-        .doc(widget.garant.id)
-        .collection('documents')
-        .get();
+    _documentsFuture = DataBasesDocsServices.fetchGarantDocuments(
+        widget.tenantUid, widget.garantid);
 
-    return snapshot.docs.map((doc) {
-      return {
-        'id': doc.id,
-        'document': DocumentModel.fromJson(doc.data()),
-      };
-    }).toList();
+    garant = DataBasesUserServices.getUniqueGarant(
+        widget.tenantUid, widget.garantid);
   }
 
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Informations personnelles
-              _buildSectionHeader("Informations personnelles"),
-              lineToWrite(Icons.cake, "Nom",
-                  " ${widget.garant.name} ${widget.garant.surname}"),
-              lineToWrite(
-                  Icons.cake,
-                  "Date de naissance",
-                  DateFormat('dd/MM/yyyy')
-                      .format(widget.garant.birthday.toDate())),
-              lineToWrite(Icons.flag, "Nationalité", widget.garant.nationality),
-              lineToWrite(
-                  Icons.diamond, "Situation", widget.garant.familySituation),
-              if (widget.garant.dependent != 0)
-                lineToWrite(Icons.favorite_outlined, "Personne à charge",
-                    widget.garant.dependent.toString()),
+      body: FutureBuilder<GuarantorInfo?>(
+        future: garant,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Erreur : ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text("Aucun garant trouvé."));
+          }
 
-              //contact
-              _buildSectionHeader("Contact du garant"),
-              InkWell(
-                onTap: () {
-                  ContactFeatures.launchPhoneCall(widget.garant.phone);
-                },
-                child:
-                    lineToWrite(Icons.phone, "Téléphone", widget.garant.phone),
-              ),
-              lineToWrite(Icons.email, "mail", widget.garant.email),
+          final g = snapshot.data!;
 
-              // Profil locataire
-              _buildSectionHeader("Activités & emplois"),
-              if (widget.garant.jobIncomes.isEmpty)
-                const Text("Aucune activité renseignée")
-              else ...[
-                for (int i = 0; i < widget.garant.jobIncomes.length; i++) ...[
-                  lineToWrite(
-                    Icons.work_rounded,
-                    "Profession",
-                    widget.garant.jobIncomes[i].profession,
-                  ),
-                  lineToWrite(
-                    Icons.file_open,
-                    "Type de contrat",
-                    widget.garant.jobIncomes[i].typeContract,
-                  ),
-                  lineToWrite(
-                    Icons.calendar_month,
-                    "Date début contrat",
-                    DateFormat('dd/MM/yyyy').format(
-                      widget.garant.jobIncomes[i].entryJobDate!.toDate(),
-                    ),
-                  ),
-                  if (i <
-                      widget.garant.jobIncomes.length -
-                          1) // 👈 uniquement avant le dernier
-                    const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      child: Divider(),
-                    ),
-                ]
-              ],
-
-              _buildSectionHeader("Revenus"),
-              if (widget.garant.incomes.isEmpty)
-                const Text("Aucun revenu renseigné")
-              else ...[
-                ...widget.garant.incomes.map((income) {
-                  double amountDouble = double.tryParse(income.amount) ?? 0.0;
-                  return lineToWrite(
-                    null,
-                    income.label,
-                    "${amountDouble.toStringAsFixed(2)} €",
-                  );
-                }).toList(),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(10.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildSectionHeader("Informations personnelles"),
+                lineToWrite(Icons.person, "Nom", "${g.name} ${g.surname}"),
+                lineToWrite(Icons.cake, "Date de naissance",
+                    DateFormat('dd/MM/yyyy').format(g.birthday.toDate())),
+                lineToWrite(Icons.flag, "Nationalité", g.nationality),
+                lineToWrite(Icons.diamond, "Situation", g.familySituation),
+                if (g.dependent != 0)
+                  lineToWrite(Icons.favorite_outlined, "Personne à charge",
+                      g.dependent.toString()),
+                _buildSectionHeader("Contact du garant"),
+                InkWell(
+                  onTap: () => ContactFeatures.launchPhoneCall(g.phone),
+                  child: lineToWrite(Icons.phone, "Téléphone", g.phone),
+                ),
+                lineToWrite(Icons.email, "Mail", g.email),
+                _buildSectionHeader("Activités & emplois"),
+                if (g.jobIncomes.isEmpty)
+                  const Text("Aucune activité renseignée")
+                else ...[
+                  for (int i = 0; i < g.jobIncomes.length; i++) ...[
+                    lineToWrite(Icons.work_rounded, "Profession",
+                        g.jobIncomes[i].profession),
+                    lineToWrite(Icons.file_open, "Type de contrat",
+                        g.jobIncomes[i].typeContract),
+                    lineToWrite(
+                        Icons.calendar_month,
+                        "Date début contrat",
+                        DateFormat('dd/MM/yyyy')
+                            .format(g.jobIncomes[i].entryJobDate!.toDate())),
+                    if (i < g.jobIncomes.length - 1)
+                      const Padding(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        child: Divider(),
+                      ),
+                  ],
+                ],
+                _buildSectionHeader("Revenus"),
+                if (g.incomes.isEmpty)
+                  const Text("Aucun revenu renseigné")
+                else ...[
+                  ...g.incomes.map((income) {
+                    double amount = double.tryParse(income.amount) ?? 0.0;
+                    return lineToWrite(
+                      null,
+                      income.label,
+                      "${amount.toStringAsFixed(2)} €",
+                    );
+                  }).toList(),
+                  const Divider(),
+                  lineToWrite(Icons.euro, "Total des revenus",
+                      "${g.incomes.map((e) => double.tryParse(e.amount) ?? 0.0).fold(0.0, (a, b) => a + b).toStringAsFixed(2)} €"),
+                ],
+                _buildSectionHeader("Liste des documents & justificatifs"),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: const Divider(),
+                  padding: const EdgeInsets.symmetric(vertical: 30),
+                  child: _buildGridSection(),
                 ),
-                lineToWrite(
-                  Icons.euro,
-                  "Total des revenus",
-                  "${widget.garant.incomes.map((e) => double.tryParse(e.amount) ?? 0.0).fold(0.0, (a, b) => a + b).toStringAsFixed(2)} €",
-                ),
+                const SizedBox(height: 50),
               ],
-
-              _buildSectionHeader("Liste des documents & justificatifs"),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 30),
-                child: _buildGridSection(),
-              ),
-              const SizedBox(
-                height: 50,
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -202,71 +177,76 @@ class GuarantorDetailState extends State<GuarantorDetail> {
         } else if (snapshot.hasError) {
           return Center(child: Text('Erreur : ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('Aucun document trouvé.'));
+          return const Center(child: Text('Aucun document trouvéICI.'));
         } else {
           final documentList = snapshot.data!;
-          return GridView.builder(
+          return ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // 2 cartes par ligne
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 3 / 2,
-            ),
             itemCount: documentList.length,
+            separatorBuilder: (context, index) => const Divider(),
             itemBuilder: (context, index) {
               final docMap = documentList[index];
               final String docId = docMap['id'];
               final DocumentModel doc = docMap['document'];
 
-              final fileType = getFileType(doc.extension);
+              IconsExtension? fileType = getFileType(doc.extension);
 
-              return Card(
-                elevation: 3,
-                child: InkWell(
-                  onTap: () async {
-                    final url = Uri.parse(doc.documentPathRecto);
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(url);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content:
-                              Text("Impossible de télécharger le document"),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        fileType != null
-                            ? Container(width: 30, child: fileType.icon)
-                            : Image.asset(
-                                'images/icon_extension/default.png',
-                                height: 30,
-                              ),
-                        Text(
-                          doc.type ?? "",
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
+              return ListTile(
+                leading: fileType != null
+                    ? fileType.icon
+                    : Image.asset('images/icon_extension/default.png'),
+                title: Text(doc.type ?? ""),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.download_rounded),
+                      onPressed: () async {
+                        final url = Uri.parse(doc.documentPathRecto);
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content:
+                                  Text("Impossible de télécharger le document"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      },
                     ),
-                  ),
+                    IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () => _removeDoc(
+                            doc.documentPathRecto, widget.tenantUid, docId)),
+                  ],
                 ),
               );
             },
           );
         }
       },
+    );
+  }
+
+  Future<void> _removeDoc(
+    String url,
+    String uid,
+    String docId,
+  ) async {
+    await _storageServices.removeFileFromUrl(url);
+    await dataBasesDocsServices.deleteGarantDocuments(
+      uid, widget.garantid, docId, // <- L'ID récupéré depuis Firestore
+    );
+    setState(() {
+      _documentsFuture = DataBasesDocsServices.fetchGarantDocuments(
+          widget.tenantUid, widget.garantid);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Document supprimé avec succès")),
     );
   }
 }

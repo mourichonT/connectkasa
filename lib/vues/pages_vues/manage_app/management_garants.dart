@@ -8,7 +8,7 @@ import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/my_info_garant.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/my_infos_rent.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail_withheader.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -68,8 +68,10 @@ class ManagementGarantsState extends State<ManagementGarants> {
                 }
                 return ListTile(
                   leading: const Icon(Icons.person),
-                  title: Text('${garant.surname} ${garant.name}'),
-                  subtitle: Text(garant.email ?? ''),
+                  title: MyTextStyle.lotName('${garant.surname} ${garant.name}',
+                      Colors.black87, SizeFont.h3.size),
+                  subtitle: MyTextStyle.lotName(garant.email, Colors.black87,
+                      SizeFont.h3.size, FontWeight.normal),
                   trailing: const Icon(Icons.arrow_forward_ios,
                       color: Color(0xFF757575), size: 22),
                   onTap: () async {

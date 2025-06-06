@@ -1,25 +1,28 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
+// import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
+// import 'package:connect_kasa/models/pages_models/user_info.dart';
 
 class DemandeLoc {
   final Timestamp? timestamp;
-  final UserInfo? tenant;
-  final List<GuarantorInfo?>? garant;
+  final String? tenantId;
+  final List<String>? garantId;
+  // final UserInfo? tenant;
+  //final List<GuarantorInfo?>? garant;
 
   DemandeLoc({
     this.timestamp,
-    this.tenant,
-    this.garant,
+    this.tenantId,
+    this.garantId,
   });
 
   factory DemandeLoc.fromJson(Map<String, dynamic> json) {
     return DemandeLoc(
       timestamp: json['timestamp'] ?? Timestamp.now(),
-      tenant: UserInfo.fromMap(json['tenant']),
-      garant: (json['garant'] as List<dynamic>)
-          .map((e) => GuarantorInfo.fromMap(
-              Map<String, dynamic>.from(e), '')) // ID vide par défaut
+      tenantId: json['tenantId'] ?? "",
+      //garantId: json['garantId'] ?? [],
+      // tenant: UserInfo.fromMap(json['tenant']),
+      garantId: (json['garantId'] as List<dynamic>?)
+          ?.map((e) => e.toString())
           .toList(),
     );
   }
@@ -27,8 +30,10 @@ class DemandeLoc {
   Map<String, dynamic> toJson() {
     return {
       'timestamp': timestamp,
-      'tenant': tenant!.toMap(),
-      'garant': garant!.map((e) => e!.toMap()).toList(),
+      'tenantId': tenantId,
+      'garantId': garantId,
+      // 'tenant': tenant!.toMap(),
+      // 'garant': garant!.map((e) => e!.toMap()).toList(),
     };
   }
 }

@@ -6,6 +6,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail_withheader.dart';
 import 'package:flutter/cupertino.dart';
@@ -153,12 +154,11 @@ class ManagementTenantState extends State<ManagementTenant>
                                 Navigator.push(
                                   context,
                                   CupertinoPageRoute(
-                                    builder: (context) =>
-                                        TenantDetailWithHeader(
-                                      residenceId: tenantMap['residence'],
-                                      senderUid: widget.uid,
+                                    builder: (context) => TenantController(
                                       tenant: tenant,
                                       color: widget.color,
+                                      uid: widget.uid,
+                                      residenceId: tenantMap['residence'],
                                     ),
                                   ),
                                 );
@@ -208,23 +208,40 @@ class ManagementTenantState extends State<ManagementTenant>
                     itemCount: demandes.length,
                     itemBuilder: (context, index) {
                       DemandeLoc demande = demandes[index];
-                      return ListTile(
-                        leading: const Icon(Icons.mail_outline),
-                        title: Text(
-                            '${demande.tenant!.name} ${demande.tenant!.surname}'),
-                        subtitle: Text('Email: ${demande.tenant!.email}'),
-                        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                              builder: (context) => TenantController(
-                                tenant: demande.tenant!,
-                                color: widget.color,
-                                uid: widget.uid,
-                                residenceId: '',
-                              ),
-                            ),
+
+                      return FutureBuilder<UserInfo?>(
+                        future: userServices
+                            .getUserWithInfo(demande.tenantId ?? ""),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return const ListTile(
+                              title: Text('Chargement du locataire...'),
+                            );
+                          }
+
+                          final tenantInfo = snapshot.data!;
+                          return ListTile(
+                            leading: const Icon(Icons.mail_outline),
+                            title: MyTextStyle.lotName(
+                                '${tenantInfo.surname} ${tenantInfo.name}',
+                                Colors.black87,
+                                SizeFont.h3.size,
+                                FontWeight.normal),
+                            trailing:
+                                const Icon(Icons.arrow_forward_ios, size: 16),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                CupertinoPageRoute(
+                                  builder: (context) => TenantController(
+                                    tenant: tenantInfo,
+                                    color: widget.color,
+                                    uid: widget.uid,
+                                    residenceId: '',
+                                  ),
+                                ),
+                              );
+                            },
                           );
                         },
                       );
@@ -238,18 +255,21 @@ class ManagementTenantState extends State<ManagementTenant>
           ),
         ],
       ),
-      bottomSheet: Container(
-        height: 50,
-        color: Colors.transparent,
-        width: MediaQuery.of(context).size.width,
-        child: Center(
-          child: ButtonAdd(
-            function: () {},
-            text: "Rattacher un locataire",
-            color: widget.color,
-            horizontal: 30,
-            vertical: 10,
-            size: SizeFont.h3.size,
+      bottomSheet: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Container(
+          height: 50,
+          color: Colors.transparent,
+          width: MediaQuery.of(context).size.width,
+          child: Center(
+            child: ButtonAdd(
+              function: () {},
+              text: "Rattacher un locataire",
+              color: widget.color,
+              horizontal: 30,
+              vertical: 10,
+              size: SizeFont.h3.size,
+            ),
           ),
         ),
       ),

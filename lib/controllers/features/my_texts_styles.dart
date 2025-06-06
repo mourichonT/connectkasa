@@ -62,10 +62,11 @@ class MyTextStyle {
         padding);
   }
 
-  static Text lotName(String text, Color color, [double? size]) {
+  static Text lotName(String text, Color color,
+      [double? size, FontWeight? fontweight]) {
     return Text(text,
         style: GoogleFonts.robotoCondensed(
-          fontWeight: FontWeight.w600,
+          fontWeight: fontweight ?? FontWeight.w600,
           fontSize: size ?? SizeFont.h3.size,
           color: color,
         ));

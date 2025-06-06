@@ -34,12 +34,12 @@ class GuarantorInfo {
     required this.placeOfborn,
   });
 
-  factory GuarantorInfo.fromMap(Map<String, dynamic> map, String docId) {
+  factory GuarantorInfo.fromMap(Map<String, dynamic> map) {
     final List incomesFromMap = map['incomes'] ?? [];
     final List jobIncomesFromMap = map['jobIncomes'] ?? [];
 
     return GuarantorInfo(
-      id: docId,
+      id: map['id'] ?? "",
       email: map['email'] ?? "",
       name: map['name'] ?? "",
       surname: map['surname'] ?? "",
@@ -61,6 +61,7 @@ class GuarantorInfo {
 
   Map<String, dynamic> toMap() {
     return {
+      if (id != null) 'id': id,
       'email': email,
       'name': name,
       'surname': surname,
@@ -68,11 +69,11 @@ class GuarantorInfo {
       'sex': sex,
       'nationality': nationality,
       'placeOfborn': placeOfborn,
+      'incomes': incomes.map((e) => e.toMap()).toList(),
+      'jobIncomes': jobIncomes.map((e) => e.toMap()).toList(),
       'dependent': dependent,
       'familySituation': familySituation,
       'phone': phone,
-      'incomes': incomes.map((entry) => entry.toMap()).toList(),
-      'jobIncomes': jobIncomes.map((entry) => entry.toMap()).toList(),
     };
   }
 

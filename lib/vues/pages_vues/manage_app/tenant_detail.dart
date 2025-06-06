@@ -311,7 +311,7 @@ class TenantDetailState extends State<TenantDetail> {
                     }
                   },
                   child: Padding(
-                    padding: const EdgeInsets.all(20.0),
+                    padding: const EdgeInsets.all(15.0),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -319,16 +319,12 @@ class TenantDetailState extends State<TenantDetail> {
                             ? Container(width: 30, child: fileType.icon)
                             : Image.asset(
                                 'images/icon_extension/default.png',
-                                height: 30,
+                                height: 20,
                               ),
-                        Text(
-                          doc.type ?? "",
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
+                        MyTextStyle.postDesc(
+                            doc.type, SizeFont.h3.size, Colors.black87,
+                            fontweight: FontWeight.normal,
+                            textAlign: TextAlign.center),
                       ],
                     ),
                   ),

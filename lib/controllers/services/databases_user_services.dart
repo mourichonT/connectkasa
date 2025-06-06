@@ -451,7 +451,7 @@ class DataBasesUserServices {
   static Future<String?> updateSingleGarant({
     required GuarantorInfo garant,
     required String uid,
-    String? garantDocId, // Nullable
+    String? garantDocId,
   }) async {
     try {
       final userQuery = await FirebaseFirestore.instance
@@ -476,7 +476,6 @@ class DataBasesUserServices {
 
       final profilLocataireDocRef =
           profilLocataireSnapshot.docs.first.reference;
-
       final garantsCollection = profilLocataireDocRef.collection("garants");
 
       if (garantDocId != null && garantDocId.isNotEmpty) {
@@ -484,6 +483,10 @@ class DataBasesUserServices {
         return garantDocId;
       } else {
         final newDocRef = await garantsCollection.add(garant.toMap());
+
+        // 💡 Ajout de l'ID dans le document après création
+        await newDocRef.update({'id': newDocRef.id});
+
         return newDocRef.id;
       }
     } catch (e) {
@@ -555,14 +558,48 @@ class DataBasesUserServices {
           .get();
 
       for (var doc in garantDocs.docs) {
-        garants.add(GuarantorInfo.fromMap(
-            doc.data(), doc.id)); // <-- on passe le docId ici
+        garants.add(
+            GuarantorInfo.fromMap(doc.data())); // <-- on passe le docId ici
       }
     } catch (e) {
       print('Erreur lors de la récupération des garants : $e');
     }
 
     return garants;
+  }
+
+  static Future<GuarantorInfo?> getUniqueGarant(
+      String uid, String garantId) async {
+    try {
+      // Récupérer le document User correspondant au uid
+      final userQuery = await FirebaseFirestore.instance
+          .collection('User')
+          .where('uid', isEqualTo: uid)
+          .get();
+
+      if (userQuery.docs.isEmpty) return null;
+
+      final userDocRef = userQuery.docs.first.reference;
+
+      // Récupérer un seul document dans la sous-collection 'profil_locataire'
+      final profilQuery =
+          await userDocRef.collection('profil_locataire').limit(1).get();
+
+      if (profilQuery.docs.isEmpty) return null;
+
+      final profilDocRef = profilQuery.docs.first.reference;
+
+      // Accéder à la sous-collection 'garants' de ce profil, et récupérer le garant par son ID
+      final garantDoc =
+          await profilDocRef.collection('garants').doc(garantId).get();
+
+      if (!garantDoc.exists) return null;
+
+      return GuarantorInfo.fromMap(garantDoc.data()!);
+    } catch (e) {
+      print('Erreur lors de la récupération du garant unique : $e');
+      return null;
+    }
   }
 
   static Future<GuarantorInfo?> getGarantWithInfo(String uid) async {
@@ -682,6 +719,8 @@ class DataBasesUserServices {
       for (var doc in querySnapshot.docs) {
         demandes.add(DemandeLoc.fromJson(doc.data()));
       }
+
+      print("demande : $demandes");
       return demandes;
     } catch (e) {
       print('Erreur lors de la récupération des demandes de location : $e');

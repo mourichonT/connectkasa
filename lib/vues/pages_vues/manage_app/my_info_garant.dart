@@ -656,7 +656,6 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
   void saveGarantInfo() async {
     FocusScope.of(context).unfocus();
 
-    // ✅ Vérification des champs obligatoires
     if (name.text.isEmpty ||
         surname.text.isEmpty ||
         mail.text.isEmpty ||
@@ -674,34 +673,51 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
       return;
     }
 
-    GuarantorInfo newGarant = GuarantorInfo(
-      email: mail.text,
-      name: name.text,
-      surname: surname.text,
-      birthday: birthdayValue!,
-      sex: sex,
-      nationality: nationality.text,
-      placeOfborn: placeOfBorn.text,
-      incomes: incomeEntries,
-      jobIncomes: jobEntries,
-      dependent: 0,
-      familySituation: '',
-      phone: phone.text,
-    );
-
     String? newGarantId;
 
     if (currentGarant != null) {
-      // 🔁 Mise à jour d’un garant existant
+      // Mise à jour existante
+      GuarantorInfo updatedGarant = GuarantorInfo(
+        id: currentGarant!.id,
+        email: mail.text,
+        name: name.text,
+        surname: surname.text,
+        birthday: birthdayValue!,
+        sex: sex,
+        nationality: nationality.text,
+        placeOfborn: placeOfBorn.text,
+        incomes: incomeEntries,
+        jobIncomes: jobEntries,
+        dependent: 0,
+        familySituation: '',
+        phone: phone.text,
+      );
+
       newGarantId = await DataBasesUserServices.updateSingleGarant(
-        garant: newGarant,
+        garant: updatedGarant,
         uid: widget.uid,
         garantDocId: currentGarant!.id!,
       );
     } else {
-      // ➕ Création d’un nouveau garant
+      // Création d’un nouveau garant (sans ID au début)
+      GuarantorInfo tempGarant = GuarantorInfo(
+        id: null,
+        email: mail.text,
+        name: name.text,
+        surname: surname.text,
+        birthday: birthdayValue!,
+        sex: sex,
+        nationality: nationality.text,
+        placeOfborn: placeOfBorn.text,
+        incomes: incomeEntries,
+        jobIncomes: jobEntries,
+        dependent: 0,
+        familySituation: '',
+        phone: phone.text,
+      );
+
       newGarantId = await DataBasesUserServices.updateSingleGarant(
-        garant: newGarant,
+        garant: tempGarant,
         uid: widget.uid,
       );
     }
@@ -716,7 +732,7 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
       return;
     }
 
-    // ✅ Ajout des documents justificatifs
+    // Enregistre les documents associés
     for (final doc in documents) {
       if (doc.docType.isNotEmpty && doc.fileUrl?.isNotEmpty == true) {
         final newDocJustif = DocumentModel(
@@ -737,11 +753,23 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
       const SnackBar(content: Text("Garant et documents enregistrés")),
     );
 
-    // ✅ Met à jour le garant local et réinitialise l'état du bloc
+    // Mets à jour le garant local avec l’ID Firestore
     setState(() {
-      if (newGarantId != null) {
-        currentGarant = newGarant.copyWith(id: newGarantId);
-      }
+      currentGarant = GuarantorInfo(
+        id: newGarantId,
+        email: mail.text,
+        name: name.text,
+        surname: surname.text,
+        birthday: birthdayValue!,
+        sex: sex,
+        nationality: nationality.text,
+        placeOfborn: placeOfBorn.text,
+        incomes: incomeEntries,
+        jobIncomes: jobEntries,
+        dependent: 0,
+        familySituation: '',
+        phone: phone.text,
+      );
 
       _documentsFuture = DataBasesDocsServices.fetchGarantDocuments(
         widget.uid,

@@ -446,6 +446,8 @@ class _MyInfosRentState extends State<MyInfosRent> {
     );
   }
 
+  shareFolder() {}
+
   sendFile(BuildContext context) async {
     if (widget.docId == null) {
       print("Erreur : docId est null !");
@@ -454,47 +456,23 @@ class _MyInfosRentState extends State<MyInfosRent> {
       print("DOC ID : ${widget.docId}");
     }
 
-    final selectedGarants = await showGuarantorSelectionDialog(
-        context, tenantUser!.uid, widget.docId!);
+    await showGuarantorSelectionDialog(context, tenantUser!.uid, widget.docId!);
 
-    // if (selectedGarants.length != 2) {
-    //   print('Sélection invalide des garants.');
-    //   return;
-    // }
+    // List<String>? selectedGarantIds =
+    //     selectedGarants.map((g) => g.id!).toList();
+    // demande = DemandeLoc(
+    //   timestamp: Timestamp.now(),
+    //   tenantId: tenantUser!.uid,
+    //   garantId: selectedGarantIds,
+    // );
 
-    UserInfo updatedUser = UserInfo(
-      uid: tenantUser!.uid,
-      email: tenantUser!.email,
-      name: tenantUser!.name,
-      surname: tenantUser!.surname,
-      pseudo: tenantUser!.pseudo,
-      approved: tenantUser!.approved,
-      profilPic: tenantUser!.profilPic ?? '',
-      privacyPolicy: tenantUser!.privacyPolicy,
-      birthday: tenantUser!.birthday,
-      sex: tenantUser!.sex,
-      nationality: tenantUser!.nationality,
-      placeOfborn: tenantUser!.placeOfborn,
-      incomes: incomeEntries,
-      jobIncomes: jobEntries,
-      dependent: tenantUser!.dependent,
-      familySituation: tenantUser!.familySituation,
-      phone: tenantUser!.phone,
-    );
+    // await FirebaseFirestore.instance
+    //     .collection('User')
+    //     .doc(tenantUser!.uid)
+    //     .collection('demandes_loc')
+    //     .add(demande.toJson());
 
-    demande = DemandeLoc(
-      timestamp: Timestamp.now(),
-      tenant: updatedUser,
-      garant: selectedGarants,
-    );
-
-    await FirebaseFirestore.instance
-        .collection('User')
-        .doc(tenantUser!.uid)
-        .collection('demandes_loc')
-        .add(demande.toJson());
-
-    print('DemandeLoc envoyée avec succès !');
+    // print('DemandeLoc envoyée avec succès !');
   }
 
   void saveUserInfo() async {
@@ -649,7 +627,7 @@ class _MyInfosRentState extends State<MyInfosRent> {
       BuildContext context, String uid, String docId) async {
     List<GuarantorInfo> allGarants =
         await DataBasesUserServices.getGarants(uid, docId);
-    List<GuarantorInfo> selected = [];
+    List<String> selected = [];
 
     print('Garants disponibles:');
     allGarants.forEach((g) {
@@ -664,7 +642,8 @@ class _MyInfosRentState extends State<MyInfosRent> {
             return StatefulBuilder(
               builder: (context, setState) {
                 return AlertDialog(
-                  title: Text('Sélectionnez 2 garants'),
+                  title: MyTextStyle.lotName('Sélectionnez 2 garants',
+                      Colors.black87, SizeFont.h1.size, FontWeight.bold),
                   content: SizedBox(
                     width: double.maxFinite,
                     child: ListView(
@@ -672,13 +651,17 @@ class _MyInfosRentState extends State<MyInfosRent> {
                       children: allGarants.map((g) {
                         bool isSelected = selected.contains(g);
                         return CheckboxListTile(
-                          title: Text('${g.name} ${g.surname}'),
+                          title: MyTextStyle.lotName(
+                              '${g.name} ${g.surname}',
+                              Colors.black87,
+                              SizeFont.h3.size,
+                              FontWeight.normal),
                           subtitle: Text(g.email),
                           value: isSelected,
                           onChanged: (bool? value) {
                             setState(() {
                               if (value == true) {
-                                if (selected.length <= 2) {
+                                if (selected.length <= 1) {
                                   selected.add(g);
                                 } else {
                                   ScaffoldMessenger.of(context)
@@ -699,13 +682,29 @@ class _MyInfosRentState extends State<MyInfosRent> {
                   ),
                   actions: [
                     TextButton(
-                      onPressed: () =>
-                          Navigator.pop<List<GuarantorInfo>>(context, []),
+                      onPressed: () => Navigator.pop(context),
                       child: Text('Annuler'),
                     ),
                     TextButton(
                       onPressed: () async {
                         Navigator.pop(context, selected);
+                        List<String>? selectedGarantIds =
+                            selected.map((g) => g.id!).toList();
+
+                        demande = DemandeLoc(
+                          timestamp: Timestamp.now(),
+                          tenantId: tenantUser!.uid,
+                          garantId: selectedGarantIds,
+                        );
+
+                        // await FirebaseFirestore.instance
+                        //     .collection('User')
+                        //     .doc(tenantUser!.uid)
+                        //     .collection('demandes_loc')
+                        //     .add(demande.toJson());
+
+                        print('DemandeLoc envoyée avec succès !');
+
                         await DataBasesUserServices.shareFile(demande, uid);
                       },
                       child: Text('Valider'),
