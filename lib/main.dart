@@ -37,7 +37,6 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  await FirebaseApi().initNotification();
   await FirebaseAppCheck.instance.activate(
     androidProvider: AndroidProvider.debug,
   );
@@ -56,26 +55,38 @@ void main() async {
   ));
 }
 
-class MyApp extends StatelessWidget {
-  MyApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _initialized = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_initialized) {
+      FirebaseApi().initNotification(context); // <-- ici on a un vrai context
+      _initialized = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<ColorProvider>(
       builder: (context, colorProvider, child) {
-        // Détermine la luminosité de la couleur principale
         final brightness = ThemeData.estimateBrightnessForColor(
             Color.lerp(colorProvider.color, Colors.white, 0.90) ??
                 Colors.white);
         final isDark = brightness == Brightness.dark;
 
-        // Définit le style des icônes système (Android + iOS)
         SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness:
-              isDark ? Brightness.light : Brightness.dark, // Android
-          statusBarBrightness:
-              isDark ? Brightness.dark : Brightness.light, // iOS
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
         ));
 
         return MaterialApp(
@@ -83,7 +94,9 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             tabBarTheme: const TabBarTheme(
-                dividerColor: Colors.black38, dividerHeight: 0.5),
+              dividerColor: Colors.black38,
+              dividerHeight: 0.5,
+            ),
             dividerTheme: const DividerThemeData(
               color: Colors.black38,
               thickness: 0.5,
@@ -102,9 +115,7 @@ class MyApp extends StatelessWidget {
             ),
             useMaterial3: true,
           ),
-          home: LoginPageView(
-            firestore: FirebaseFirestore.instance,
-          ),
+          home: LoginPageView(firestore: FirebaseFirestore.instance),
           onGenerateRoute: (settings) {
             if (settings.name == '/ChatPage') {
               final args = settings.arguments as Map<String, dynamic>;
@@ -116,6 +127,7 @@ class MyApp extends StatelessWidget {
                 ),
               );
             }
+
             if (settings.name == '/MyNavBar') {
               return PageRouteBuilder(
                 settings: settings,
@@ -137,6 +149,7 @@ class MyApp extends StatelessWidget {
                 },
               );
             }
+
             return null;
           },
         );

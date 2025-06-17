@@ -32,6 +32,8 @@ class ManagementTenantState extends State<ManagementTenant>
   late Future<List<Map<String, dynamic>>> tenantsAndLots;
   late TabController _tabController;
 
+  int _unseenDemandCount = 0;
+
   @override
   void initState() {
     super.initState();
@@ -43,14 +45,26 @@ class ManagementTenantState extends State<ManagementTenant>
   }
 
   Future<List<Lot?>> _fetchLotsByUser() async {
-    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
+    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid).then((lots) {
+      return lots.where((lot) {
+        // Vérifie que le lot est non nul et que le uid est dans idProprietaire
+        return lot != null &&
+            lot.idProprietaire != null &&
+            lot.idProprietaire!.contains(widget.uid);
+      }).toList();
+    });
+
     return await _lotByUser;
   }
 
   Future<List<DemandeLoc>> _fetchDemande() async {
     _allDemand = DataBasesUserServices.getDemande(widget.uid);
+    final demandes = await _allDemand;
+    setState(() {
+      _unseenDemandCount = demandes.where((d) => d.open == false).length;
+    });
 
-    return await _allDemand;
+    return demandes;
   }
 
   void initializeTenants() {
@@ -87,7 +101,7 @@ class ManagementTenantState extends State<ManagementTenant>
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-          'Gestion des Locataires',
+          'Gestion des locataires',
           Colors.black87,
           SizeFont.h1.size,
         ),
@@ -96,9 +110,33 @@ class ManagementTenantState extends State<ManagementTenant>
           labelColor: widget.color,
           unselectedLabelColor: Colors.grey,
           indicatorColor: widget.color,
-          tabs: const [
-            Tab(text: 'Actuels'),
-            Tab(text: 'Demande'),
+          tabs: [
+            const Tab(text: 'Actuels'),
+            Tab(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Demande'),
+                  if (_unseenDemandCount > 0) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: widget.color,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '$_unseenDemandCount',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ]
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -204,10 +242,21 @@ class ManagementTenantState extends State<ManagementTenant>
                   return const Center(child: Text('Aucune demande trouvée.'));
                 } else {
                   List<DemandeLoc> demandes = demandesSnapshot.data!;
+                  demandes.sort((a, b) {
+                    if (a.open == b.open) {
+                      return a.timestamp!.compareTo(b.timestamp!);
+                    } else if (!a.open) {
+                      return -1;
+                    } else {
+                      return 1;
+                    }
+                  });
                   return ListView.separated(
                     itemCount: demandes.length,
                     itemBuilder: (context, index) {
-                      DemandeLoc demande = demandes[index];
+                      final demande = demandes[index];
+                      final demandeId =
+                          demandesSnapshot.data![index].id; // <-- À ajouter
 
                       return FutureBuilder<UserInfo?>(
                         future: userServices
@@ -226,7 +275,9 @@ class ManagementTenantState extends State<ManagementTenant>
                                 '${tenantInfo.surname} ${tenantInfo.name}',
                                 Colors.black87,
                                 SizeFont.h3.size,
-                                FontWeight.normal),
+                                !demande.open
+                                    ? FontWeight.bold
+                                    : FontWeight.normal),
                             trailing:
                                 const Icon(Icons.arrow_forward_ios, size: 16),
                             onTap: () {
@@ -238,6 +289,9 @@ class ManagementTenantState extends State<ManagementTenant>
                                     color: widget.color,
                                     uid: widget.uid,
                                     residenceId: '',
+                                    refreshUnseeCounter:
+                                        refreshUnseenDemandCount,
+                                    demandeId: demandeId,
                                   ),
                                 ),
                               );
@@ -255,24 +309,10 @@ class ManagementTenantState extends State<ManagementTenant>
           ),
         ],
       ),
-      bottomSheet: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Container(
-          height: 50,
-          color: Colors.transparent,
-          width: MediaQuery.of(context).size.width,
-          child: Center(
-            child: ButtonAdd(
-              function: () {},
-              text: "Rattacher un locataire",
-              color: widget.color,
-              horizontal: 30,
-              vertical: 10,
-              size: SizeFont.h3.size,
-            ),
-          ),
-        ),
-      ),
     );
+  }
+
+  void refreshUnseenDemandCount() {
+    _fetchDemande(); // Cette méthode recharge les demandes et met à jour _unseenDemandCount
   }
 }

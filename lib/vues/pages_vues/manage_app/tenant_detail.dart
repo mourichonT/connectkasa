@@ -3,6 +3,8 @@ import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
+import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
@@ -12,6 +14,7 @@ import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 //import 'package:connect_kasa/vues/components/locascore_header.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
+import 'package:connect_kasa/vues/widget_view/components/share_rent_folder.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,14 +23,18 @@ class TenantDetail extends StatefulWidget {
   final UserInfo tenant;
   final String senderUid;
   final String? residenceId;
+  final String? demandeId;
   final Color color;
+  Function()? refreshUnseeCounter;
 
-  const TenantDetail(
+  TenantDetail(
       {super.key,
+      this.refreshUnseeCounter,
       required this.tenant,
       required this.color,
       required this.senderUid,
-      this.residenceId});
+      this.residenceId,
+      this.demandeId});
 
   @override
   State<StatefulWidget> createState() => TenantDetailState();
@@ -37,6 +44,7 @@ class TenantDetailState extends State<TenantDetail> {
   Future<List<Map<String, dynamic>>>? _documentsFuture;
   final DataBasesDocsServices dataBasesDocsServices = DataBasesDocsServices();
   final StorageServices _storageServices = StorageServices();
+  final DataBasesLotServices _dataBasesLotServices = DataBasesLotServices();
   @override
   void initState() {
     super.initState();
@@ -70,32 +78,52 @@ class TenantDetailState extends State<TenantDetail> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            SizedBox(
-              width: 150,
-              child: ButtonAdd(
-                function: () {},
-                color: Colors.red,
-                icon: Icons.clear,
-                text: "Revoquer",
-                horizontal: 20,
-                vertical: 10,
-                size: SizeFont.h3.size,
-              ),
+            ButtonAdd(
+              function: () async {
+                if (widget.residenceId != null &&
+                    widget.residenceId!.isNotEmpty) {
+                  await _dataBasesLotServices
+                      .removeUserFromAllLots(widget.tenant.uid);
+                } else {
+                  await ShareRentFolder.showLotSelectionDialog(
+                      context, widget.senderUid, widget.tenant.uid);
+                }
+              },
+              color:
+                  (widget.residenceId != null && widget.residenceId!.isNotEmpty)
+                      ? Colors.red[800]!
+                      : Theme.of(context).primaryColor,
+              icon:
+                  (widget.residenceId != null && widget.residenceId!.isNotEmpty)
+                      ? Icons.clear
+                      : Icons.add,
+              text:
+                  (widget.residenceId != null && widget.residenceId!.isNotEmpty)
+                      ? "Revoquer"
+                      : "Ajouter",
+              horizontal: 20,
+              vertical: 10,
+              size: SizeFont.h3.size,
             ),
-            SizedBox(
-              width: 150,
-              child: ButtonAdd(
-                function: () {
-                  Exportpdfhttp.ExportLocaScore(context, widget.tenant);
-                },
-                color: Theme.of(context).primaryColor,
-                icon: Icons.download,
-                text: "Télécharger",
-                horizontal: 20,
-                vertical: 10,
-                size: SizeFont.h3.size,
+            if (widget.residenceId == null || widget.residenceId!.isEmpty)
+              Visibility(
+                child: ButtonAdd(
+                  function: () async {
+                    await DataBasesUserServices.deleteDemande(
+                        widget.senderUid, widget.demandeId!);
+                    if (widget.refreshUnseeCounter != null) {
+                      widget.refreshUnseeCounter!();
+                    }
+                    Navigator.pop(context);
+                  },
+                  color: Colors.red[800]!,
+                  icon: Icons.clear,
+                  text: "Refuser",
+                  horizontal: 20,
+                  vertical: 10,
+                  size: SizeFont.h3.size,
+                ),
               ),
-            ),
           ],
         ),
       ),

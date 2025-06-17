@@ -18,6 +18,7 @@ import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.da
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/import_docs.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:connect_kasa/vues/widget_view/components/share_rent_folder.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -446,8 +447,6 @@ class _MyInfosRentState extends State<MyInfosRent> {
     );
   }
 
-  shareFolder() {}
-
   sendFile(BuildContext context) async {
     if (widget.docId == null) {
       print("Erreur : docId est null !");
@@ -456,23 +455,8 @@ class _MyInfosRentState extends State<MyInfosRent> {
       print("DOC ID : ${widget.docId}");
     }
 
-    await showGuarantorSelectionDialog(context, tenantUser!.uid, widget.docId!);
-
-    // List<String>? selectedGarantIds =
-    //     selectedGarants.map((g) => g.id!).toList();
-    // demande = DemandeLoc(
-    //   timestamp: Timestamp.now(),
-    //   tenantId: tenantUser!.uid,
-    //   garantId: selectedGarantIds,
-    // );
-
-    // await FirebaseFirestore.instance
-    //     .collection('User')
-    //     .doc(tenantUser!.uid)
-    //     .collection('demandes_loc')
-    //     .add(demande.toJson());
-
-    // print('DemandeLoc envoyée avec succès !');
+    await ShareRentFolder.showGuarantorSelectionDialog(
+        context, tenantUser!.uid, widget.docId!);
   }
 
   void saveUserInfo() async {
@@ -621,100 +605,5 @@ class _MyInfosRentState extends State<MyInfosRent> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Document supprimé avec succès")),
     );
-  }
-
-  Future<List<GuarantorInfo>> showGuarantorSelectionDialog(
-      BuildContext context, String uid, String docId) async {
-    List<GuarantorInfo> allGarants =
-        await DataBasesUserServices.getGarants(uid, docId);
-    List<String> selected = [];
-
-    print('Garants disponibles:');
-    allGarants.forEach((g) {
-      print('Garant: ${g.name} ${g.surname} - ${g.email}');
-    });
-
-    return await showDialog<List<GuarantorInfo>>(
-          context: context,
-          builder: (context) {
-            List<GuarantorInfo> selected = [];
-
-            return StatefulBuilder(
-              builder: (context, setState) {
-                return AlertDialog(
-                  title: MyTextStyle.lotName('Sélectionnez 2 garants',
-                      Colors.black87, SizeFont.h1.size, FontWeight.bold),
-                  content: SizedBox(
-                    width: double.maxFinite,
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: allGarants.map((g) {
-                        bool isSelected = selected.contains(g);
-                        return CheckboxListTile(
-                          title: MyTextStyle.lotName(
-                              '${g.name} ${g.surname}',
-                              Colors.black87,
-                              SizeFont.h3.size,
-                              FontWeight.normal),
-                          subtitle: Text(g.email),
-                          value: isSelected,
-                          onChanged: (bool? value) {
-                            setState(() {
-                              if (value == true) {
-                                if (selected.length <= 1) {
-                                  selected.add(g);
-                                } else {
-                                  ScaffoldMessenger.of(context)
-                                      .showSnackBar(SnackBar(
-                                    content: Text(
-                                        'Vous ne pouvez sélectionner que 2 garants.'),
-                                    duration: Duration(seconds: 2),
-                                  ));
-                                }
-                              } else {
-                                selected.remove(g);
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Annuler'),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.pop(context, selected);
-                        List<String>? selectedGarantIds =
-                            selected.map((g) => g.id!).toList();
-
-                        demande = DemandeLoc(
-                          timestamp: Timestamp.now(),
-                          tenantId: tenantUser!.uid,
-                          garantId: selectedGarantIds,
-                        );
-
-                        // await FirebaseFirestore.instance
-                        //     .collection('User')
-                        //     .doc(tenantUser!.uid)
-                        //     .collection('demandes_loc')
-                        //     .add(demande.toJson());
-
-                        print('DemandeLoc envoyée avec succès !');
-
-                        await DataBasesUserServices.shareFile(demande, uid);
-                      },
-                      child: Text('Valider'),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        ) ??
-        [];
   }
 }

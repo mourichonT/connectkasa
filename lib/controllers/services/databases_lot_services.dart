@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 
@@ -214,7 +216,168 @@ class DataBasesLotServices {
     }
   }
 
+  Future<bool> addTenant(BuildContext context, String residenceId,
+      String refLot, String tenantId) async {
+    try {
+      QuerySnapshot querySnapshot = await db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("lot")
+          .where('refLot', isEqualTo: refLot)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentSnapshot lotDoc = querySnapshot.docs[0];
+        DocumentReference lotRef = lotDoc.reference;
+
+        List<dynamic> currentLocataires =
+            List.from(lotDoc.get('idLocataire') ?? []);
+
+        // Si le locataire est déjà dans la liste, on peut directement ignorer
+        if (currentLocataires.contains(tenantId)) {
+          print("Le locataire $tenantId est déjà présent dans le lot.");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Ce locataire est déjà ajouté.")),
+          );
+          return false;
+        }
+
+        if (currentLocataires.isNotEmpty) {
+          // Afficher le dialogue
+          final result = await showDialog<String>(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: MyTextStyle.lotName(
+                    "Locataire déjà présent", Colors.black87, SizeFont.h2.size),
+                content: MyTextStyle.lotName(
+                    "Souhaitez-vous remplacer le locataire actuel ou ajouter un colocataire ?",
+                    Colors.black87,
+                    SizeFont.h3.size,
+                    FontWeight.normal),
+                actions: [
+                  TextButton(
+                    onPressed: () async {
+                      await DataBasesUserServices.addLotToUser(
+                          userId: tenantId,
+                          lotId: "$residenceId-$refLot",
+                          statutResident: "Locataire",
+                          entryDate: Timestamp.now());
+
+                      Navigator.pop(context, 'replace');
+                    },
+                    child: Text("Remplacer"),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      await DataBasesUserServices.addLotToUser(
+                          userId: tenantId,
+                          lotId: "$residenceId-$refLot",
+                          statutResident: "Locataire",
+                          entryDate: Timestamp.now());
+                      Navigator.pop(context, 'add');
+                    },
+                    child: Text("Ajouter"),
+                  ),
+                ],
+              );
+            },
+          );
+
+          if (result == 'replace') {
+            await lotRef.update({
+              'idLocataire': [tenantId]
+            });
+            print("Locataire remplacé par $tenantId.");
+            return true;
+          } else if (result == 'add') {
+            await lotRef.update({
+              'idLocataire': FieldValue.arrayUnion([tenantId])
+            });
+            print("Ajout de $tenantId comme co-locataire.");
+            return true;
+          } else {
+            print("Action annulée par l'utilisateur.");
+            return false;
+          }
+        } else {
+          // Liste vide : ajouter directement
+          await DataBasesUserServices.addLotToUser(
+              userId: tenantId,
+              lotId: "$residenceId-$refLot",
+              statutResident: "Locataire",
+              entryDate: Timestamp.now());
+          await lotRef.update({
+            'idLocataire': FieldValue.arrayUnion([tenantId])
+          });
+          print("Ajout de $tenantId comme premier locataire.");
+          return true;
+        }
+      } else {
+        print(
+            "Aucun lot trouvé avec la référence $refLot dans la résidence $residenceId.");
+        return false;
+      }
+    } catch (e) {
+      print("Erreur lors de l’ajout du locataire : $e");
+      rethrow;
+    }
+  }
+
   String extractHexFromColor(Color color) {
     return color.value.toRadixString(16).padLeft(8, '0');
+  }
+
+  Future<void> removeUserFromAllLots(String userID) async {
+    List<Lot> lots = await getLotByIdUser(userID);
+
+    for (Lot lot in lots) {
+      // Vérifie que l'utilisateur est bien dans la liste des locataires
+      if (lot.idLocataire != null &&
+          ((lot.idLocataire is List && lot.idLocataire!.contains(userID)) ||
+              (lot.idLocataire is String && lot.idLocataire == userID))) {
+        // Appelle la méthode de suppression
+        await removeIdLocataire(lot.residenceId!, lot.refLot!, userID);
+      }
+    }
+  }
+
+  Future<void> removeIdLocataire(
+      String residenceId, String refLot, String idLocataireToRemove) async {
+    try {
+      // Requête pour trouver le document correspondant au lot
+      QuerySnapshot querySnapshot = await db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("lot")
+          .where('refLot', isEqualTo: refLot)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        DocumentReference lotRef = querySnapshot.docs[0].reference;
+
+        // Récupère les données actuelles du document
+        Map<String, dynamic> lotData =
+            querySnapshot.docs[0].data() as Map<String, dynamic>;
+
+        // Récupère la liste actuelle des ID de locataires
+        List<dynamic> idLocataires = List.from(lotData['idLocataire'] ?? []);
+
+        // Supprime l'ID à retirer
+        idLocataires.remove(idLocataireToRemove);
+
+        // Met à jour le champ 'idLocataire' avec la nouvelle liste
+        await lotRef.update({'idLocataire': idLocataires});
+
+        print(
+            'L\'ID $idLocataireToRemove a été supprimé de la liste des locataires du lot $refLot.');
+      } else {
+        print(
+            'Aucun lot trouvé avec la référence $refLot dans la résidence $residenceId.');
+      }
+    } catch (e) {
+      print('Erreur lors de la mise à jour du lot $refLot : $e');
+      rethrow;
+    }
   }
 }

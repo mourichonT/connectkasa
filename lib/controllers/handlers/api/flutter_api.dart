@@ -1,11 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/pages_controllers/tenant_controller.dart';
 import 'package:connect_kasa/main.dart';
+import 'package:connect_kasa/models/pages_models/user_info.dart';
+import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/material.dart';
 
 class FirebaseApi {
   // Instance de Firebase Messaging
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
-  Future<void> initNotification() async {
+  Future<void> initNotification(BuildContext context) async {
     // Demande la permission de l'utilisateur (nécessaire sur iOS et Android 13+)
     NotificationSettings settings =
         await _firebaseMessaging.requestPermission();
@@ -25,7 +30,7 @@ class FirebaseApi {
       print('Message reçu en foreground : ${message.notification?.title}');
     });
 // permet l'ouverture a l'endroit de la notification
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
       final data = message.data;
 
       if (data['type'] == 'message') {
@@ -41,6 +46,34 @@ class FirebaseApi {
               'idUserTo': idUserTo,
               'residence': residence,
             },
+          );
+        }
+      }
+
+      // Nouveau cas pour les demandes de location
+      else if (data['type'] == 'demande_loc') {
+        final tenantId = data['tenantId'];
+        final senderUid = data['senderUid'];
+
+        if (tenantId != null && senderUid != null) {
+          final userDoc = await FirebaseFirestore.instance
+              .collection('User')
+              .doc(tenantId)
+              .get();
+          if (!userDoc.exists) return;
+
+          final userData = userDoc.data()!;
+          final tenant = UserInfo.fromMap(userData);
+
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (_) => TenantController(
+                tenant: tenant,
+                uid: senderUid,
+                color: Theme.of(context)
+                    .primaryColor, // ou autre couleur de ton thème
+              ),
+            ),
           );
         }
       }

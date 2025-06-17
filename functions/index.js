@@ -189,6 +189,61 @@ exports.notifyNewMessage = onDocumentCreated(
         return null;
       }
     },
+
+
+);
+
+
+exports.notifyDemandeLoc = onDocumentCreated(
+    {document: "User/{proprietaireUid}/demandes_loc/{demandeId}"},
+    async (event) => {
+      const snapshot = event.data;
+      const demandeData = snapshot.data();
+      const db = admin.firestore();
+      const messaging = admin.messaging();
+
+      const proprietaireUid = event.params.proprietaireUid;
+
+      if (!demandeData || !demandeData.tenantId) {
+        console.log("Données de demande incomplètes :", demandeData);
+        return null;
+      }
+
+      try {
+        const userDoc = await db.collection("User").doc(proprietaireUid).get();
+
+        if (!userDoc.exists || !userDoc.data().token) {
+          console.log("Token FCM manquant pour le propriétaire.");
+          return null;
+        }
+
+        const token = userDoc.data().token;
+
+        const notificationPayload = {
+          notification: {
+            title: "Nouvelle demande de location",
+            body: `Vous avez reçu une nouvelle demande 
+            de location pour l'un de vos biens`,
+          },
+          data: {
+            type: "demande_loc",
+            click_action: "FLUTTER_NOTIFICATION_CLICK",
+            tenantId: demandeData.tenantId,
+            senderUid: event.params.proprietaireUid,
+          },
+          token,
+          android: {priority: "high"},
+          apns: {headers: {"apns-priority": "10"}},
+        };
+
+        await messaging.send(notificationPayload);
+        console.log("Notification envoyée au propriétaire :", proprietaireUid);
+        return null;
+      } catch (error) {
+        console.error("Erreur lors de l'envoi de la notification :", error);
+        return null;
+      }
+    },
 );
 
 

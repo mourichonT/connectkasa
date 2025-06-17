@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -9,36 +10,63 @@ import 'package:connect_kasa/vues/pages_vues/manage_app/guarantor_detail.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 
-class TenantController extends StatelessWidget {
+class TenantController extends StatefulWidget {
   final UserInfo tenant;
   final String uid;
   final String? residenceId;
   final Color color;
+  Function()? refreshUnseeCounter;
+  final String? demandeId;
 
-  const TenantController({
+  TenantController({
     super.key,
     required this.tenant,
     required this.uid,
     this.residenceId,
     required this.color,
+    this.refreshUnseeCounter,
+    this.demandeId,
   });
+
+  @override
+  State<TenantController> createState() => _TenantControllerState();
+}
+
+class _TenantControllerState extends State<TenantController> {
+  late Future<List<DemandeLoc>> _demandesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _demandesFuture = fetchDemandesLoc();
+    if (widget.demandeId != null && widget.demandeId!.isNotEmpty) {
+      openDemande();
+      print("demandeID : ${widget.demandeId}");
+    }
+  }
+
+  Future<void> openDemande() async {
+    await DataBasesUserServices.markDemandeAsRead(
+        widget.uid, widget.demandeId!);
+    widget.refreshUnseeCounter!(); // Appelle la fonction callback du parent
+  }
 
   Future<List<DemandeLoc>> fetchDemandesLoc() async {
     final snapshot = await FirebaseFirestore.instance
         .collection('User')
-        .doc(uid)
+        .doc(widget.uid)
         .collection('demandes_loc')
         .get();
 
     return snapshot.docs.map((doc) {
-      return DemandeLoc.fromJson(doc.data());
+      return DemandeLoc.fromJson(doc.data(), id: doc.id);
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<DemandeLoc>>(
-      future: fetchDemandesLoc(),
+      future: _demandesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -56,27 +84,32 @@ class TenantController extends StatelessWidget {
         final DemandeLoc? firstDemande =
             demandes.isNotEmpty ? demandes.first : null;
         final List<String>? garants = firstDemande?.garantId ?? [];
-        //final List<GuarantorInfo?> garants = firstDemande?.garant ?? [];
 
         final tabs = <Tab>[
-          Tab(text: residenceId!.isNotEmpty ? 'Locataire' : 'Demandeur'),
+          Tab(
+              text:
+                  (widget.residenceId != null && widget.residenceId!.isNotEmpty)
+                      ? 'Locataire'
+                      : 'Demandeur'),
           if (garants!.isNotEmpty) const Tab(text: 'Garant 1'),
           if (garants.length > 1) const Tab(text: 'Garant 2'),
         ];
 
         final tabViews = <Widget>[
           TenantDetail(
-            residenceId: residenceId,
-            senderUid: uid,
-            tenant: tenant,
-            color: color,
+            demandeId: widget.demandeId,
+            residenceId: widget.residenceId,
+            senderUid: widget.uid,
+            tenant: widget.tenant,
+            color: widget.color,
+            refreshUnseeCounter: widget.refreshUnseeCounter,
           ),
           if (garants.isNotEmpty && garants[0] != null)
-            GuarantorDetail(tenantUid: tenant.uid, garantid: garants[0]!)
+            GuarantorDetail(tenantUid: widget.tenant.uid, garantid: garants[0]!)
           else
             const Center(child: Text("Aucun garant 1")),
           if (garants.length > 1 && garants[1] != null)
-            GuarantorDetail(tenantUid: tenant.uid, garantid: garants[1]!)
+            GuarantorDetail(tenantUid: widget.tenant.uid, garantid: garants[1]!)
           else if (garants.length > 1)
             const Center(child: Text("Aucun garant 2")),
         ];
@@ -103,7 +136,8 @@ class TenantController extends StatelessWidget {
                                     top: 0, bottom: 40, left: 30),
                                 child: Row(
                                   children: [
-                                    ProfilTile(tenant.uid, 35, 30, 35, false),
+                                    ProfilTile(
+                                        widget.tenant.uid, 35, 30, 35, false),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
@@ -112,13 +146,13 @@ class TenantController extends StatelessWidget {
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           MyTextStyle.lotDesc(
-                                            "${tenant.name} ${tenant.surname}",
+                                            "${widget.tenant.name} ${widget.tenant.surname}",
                                             SizeFont.h3.size,
                                             FontStyle.normal,
                                             FontWeight.bold,
                                           ),
                                           MyTextStyle.lotDesc(
-                                            "@${tenant.pseudo}",
+                                            "@${widget.tenant.pseudo}",
                                             SizeFont.h3.size,
                                             FontStyle.italic,
                                             FontWeight.normal,
@@ -145,8 +179,8 @@ class TenantController extends StatelessWidget {
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                            ProfilTile(
-                                                tenant.uid, 55, 35, 55, false),
+                                            ProfilTile(widget.tenant.uid, 55,
+                                                35, 55, false),
                                           ],
                                         ),
                                         const SizedBox(height: 10),
@@ -154,7 +188,7 @@ class TenantController extends StatelessWidget {
                                           child: Column(
                                             children: [
                                               MyTextStyle.postDesc(
-                                                "${tenant.name} ${tenant.surname}",
+                                                "${widget.tenant.name} ${widget.tenant.surname}",
                                                 SizeFont.h3.size,
                                                 Colors.black87,
                                                 textAlign: TextAlign.center,
@@ -162,7 +196,7 @@ class TenantController extends StatelessWidget {
                                               ),
                                               const SizedBox(height: 5),
                                               MyTextStyle.lotDesc(
-                                                "@${tenant.pseudo}",
+                                                "@${widget.tenant.pseudo}",
                                                 SizeFont.h3.size,
                                                 FontStyle.italic,
                                                 FontWeight.normal,

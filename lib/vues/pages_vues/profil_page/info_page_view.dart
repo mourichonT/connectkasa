@@ -19,12 +19,14 @@ class InfoPageView extends StatefulWidget {
   final String uid;
   final Color color;
   final String refLot;
+  final List<Lot>? lots;
 
   const InfoPageView({
     super.key,
     required this.uid,
     required this.color,
     required this.refLot,
+    this.lots,
   });
 
   @override
@@ -38,9 +40,10 @@ class _InfoPageViewState extends State<InfoPageView> {
 
   User? user;
   Future<List<Lot?>>? _lotByUser;
+  List<Lot>? _lotsList;
   int nbrLot = 0;
   int nbrLoc = 0;
-  bool loca = false;
+  //bool loca = false;
   String name = "";
   String surname = "";
   String pseudo = "";
@@ -58,40 +61,6 @@ class _InfoPageViewState extends State<InfoPageView> {
 
   void _initializeUserData() {
     _loadUser(widget.uid);
-    _loadLotsData();
-  }
-
-  void _loadLotsData() {
-    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
-    _lotByUser!.then((lots) {
-      setState(() {
-        nbrLot = lots.length;
-      });
-
-      for (Lot? lot in lots) {
-        if (lot != null) {
-          if (lot.idLocataire!.contains(widget.uid)) {
-            setState(() {
-              loca = true;
-            });
-            break;
-          } else if (lot.idProprietaire!.contains(widget.uid)) {
-            setState(() {
-              loca = false;
-            });
-            break;
-          }
-        }
-      }
-    });
-
-    _databasesLotServices
-        .countLocatairesExcludingUser(widget.uid)
-        .then((tenants) {
-      setState(() {
-        nbrLoc = tenants;
-      });
-    });
   }
 
   Future<void> _loadUser(String uid) async {
@@ -136,22 +105,6 @@ class _InfoPageViewState extends State<InfoPageView> {
         backgroundColor: Colors.white,
         title: MyTextStyle.lotName(
             "Mes informations", Colors.black87, SizeFont.h1.size),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // Lorsque l'utilisateur appuie sur la flèche de retour,
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfilePage(
-                  uid: widget.uid,
-                  color: widget.color,
-                  refLot: widget.refLot,
-                ),
-              ),
-            ); // Renvoie l'utilisateur avec les nouvelles données
-          },
-        ),
       ),
       body: Column(
         children: [

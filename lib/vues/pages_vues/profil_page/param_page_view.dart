@@ -36,7 +36,7 @@ class _ParamPageState extends State<ParamPage> {
   final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
 
   User? user;
-  Future<List<Lot?>>? _lotByUser;
+  //Future<List<Lot?>>? _lotByUser;
   int nbrLot = 0;
   int nbrLoc = 0;
   bool loca = false;
@@ -56,40 +56,6 @@ class _ParamPageState extends State<ParamPage> {
 
   void _initializeUserData() {
     _loadUser(widget.uid);
-    _loadLotsData();
-  }
-
-  void _loadLotsData() {
-    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
-    _lotByUser!.then((lots) {
-      setState(() {
-        nbrLot = lots.length;
-      });
-
-      for (Lot? lot in lots) {
-        if (lot != null) {
-          if (lot.idLocataire!.contains(widget.uid)) {
-            setState(() {
-              loca = true;
-            });
-            break;
-          } else if (lot.idProprietaire!.contains(widget.uid)) {
-            setState(() {
-              loca = false;
-            });
-            break;
-          }
-        }
-      }
-    });
-
-    _databasesLotServices
-        .countLocatairesExcludingUser(widget.uid)
-        .then((tenants) {
-      setState(() {
-        nbrLoc = tenants;
-      });
-    });
   }
 
   Future<void> _loadUser(String uid) async {
@@ -134,22 +100,6 @@ class _ParamPageState extends State<ParamPage> {
         backgroundColor: Colors.white,
         title:
             MyTextStyle.lotName("Paramètres", Colors.black87, SizeFont.h1.size),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // Lorsque l'utilisateur appuie sur la flèche de retour,
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfilePage(
-                  uid: widget.uid,
-                  color: widget.color,
-                  refLot: widget.refLot,
-                ),
-              ),
-            );
-          },
-        ),
       ),
       body: Column(
         children: [

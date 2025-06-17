@@ -39,6 +39,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   final _loadPreferedData = LoadPreferedData();
   late final MyTabBarController tabController;
   double _calculatedAppBarHeight = 0;
+  List<Lot>? _lotsList;
 
   Lot? _preferedLot;
   Lot _defaultLot = Lot(
@@ -56,6 +57,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+
     tabController = MyTabBarController(length: 5, vsync: this);
     _initializeLot();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -67,6 +69,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   }
 
   Future<void> _initializeLot() async {
+    _lotsList = await _databasesLotServices.getLotByIdUser(widget.uid);
     _preferedLot = await _loadPreferedData.loadPreferedLot();
     if (_preferedLot == null) {
       _defaultLot = await _databasesLotServices.getFirstLotByUserId(widget.uid);
@@ -90,19 +93,6 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
     }
   }
 
-  // Future<void> _initializeLot() async {
-  //   _preferedLot = await _loadPreferedData.loadPreferedLot();
-  //   if (_preferedLot == null) {
-  //     _defaultLot = await _databasesLotServices.getFirstLotByUserId(widget.uid);
-  //     final color = _defaultLot.userLotDetails['colorSelected'];
-  //     if (color != null) {
-  //       Provider.of<ColorProvider>(context, listen: false).updateColor(color);
-  //     }
-  //   }
-  //   _updateCsMemberStatus(_preferedLot ?? _defaultLot);
-  //   setState(() {});
-  // }
-
   void _updateCsMemberStatus(Lot lot) {
     final csMembers = List<String>.from(lot.residenceData['csmembers'] ?? []);
     _isCsMember = csMembers.contains(widget.uid);
@@ -114,10 +104,10 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
       backgroundColor: Colors.white,
       showDragHandle: true,
       builder: (_) => LotBottomSheet(
-        uid: widget.uid,
-        selectedLot: _preferedLot ?? _defaultLot,
-        onRefresh: _initializeLot,
-      ),
+          uid: widget.uid,
+          selectedLot: _preferedLot ?? _defaultLot,
+          onRefresh: _initializeLot,
+          lots: _lotsList ?? []),
     );
   }
 
@@ -306,11 +296,14 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
       ),
 
       // END DRAWER
-      endDrawer: ProfilePage(
-        uid: widget.uid,
-        refLot: lot.refLot,
-        color: color,
-      ),
+      endDrawer: _lotsList == null
+          ? const Center(child: CircularProgressIndicator())
+          : ProfilePage(
+              uid: widget.uid,
+              refLot: lot.refLot,
+              color: color,
+              lots: _lotsList,
+            ),
 
       // BOUTON FLOTANT
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

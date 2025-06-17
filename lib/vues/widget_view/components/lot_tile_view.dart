@@ -48,12 +48,30 @@ class _LotTileViewState extends State<LotTileView> {
               children: [
                 Row(children: [
                   MyTextStyle.lotName(
-                      widget.lot.userLotDetails['nameLot'] == null ||
-                              widget.lot.userLotDetails['nameLot'] == ""
-                          ? "${widget.lot.residenceData["name"]} ${widget.lot.batiment}${widget.lot.lot}"
-                          : widget.lot.userLotDetails['nameLot'],
-                      Colors.black87,
-                      SizeFont.h2.size),
+                    (widget.lot.userLotDetails['nameLot'] == null ||
+                            widget.lot.userLotDetails['nameLot']
+                                .toString()
+                                .trim()
+                                .isEmpty)
+                        ? ((widget.lot.residenceData["name"] ?? "")
+                                    .toString()
+                                    .trim()
+                                    .isNotEmpty ||
+                                (widget.lot.batiment ?? "")
+                                    .toString()
+                                    .trim()
+                                    .isNotEmpty ||
+                                (widget.lot.lot ?? "")
+                                    .toString()
+                                    .trim()
+                                    .isNotEmpty)
+                            ? "${widget.lot.residenceData["name"] ?? ""} ${widget.lot.batiment ?? ""}${widget.lot.lot ?? ""}"
+                                .trim()
+                            : ""
+                        : widget.lot.userLotDetails['nameLot'].toString(),
+                    Colors.black87,
+                    SizeFont.h2.size,
+                  ),
                   Container(padding: const EdgeInsets.only(left: 2)),
                 ]),
                 Row(

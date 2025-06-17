@@ -1,39 +1,56 @@
-class AgencyDept {
-  String fonction;
-  String id;
-  String mail;
-  String name;
-  String surname;
-  String phone;
+class Agent {
+  final String nameAgent;
+  final String surnameAgent;
 
-  AgencyDept({
-    required this.fonction,
-    required this.id,
-    required this.mail,
-    required this.name,
-    required this.phone,
-    required this.surname,
+  Agent({
+    required this.nameAgent,
+    required this.surnameAgent,
   });
 
-  factory AgencyDept.fromJson(Map<String, dynamic> json) {
-    return AgencyDept(
-      fonction: json["fonction"] ?? "",
-      id: json["id"] ?? "",
-      mail: json["mail"] ?? "",
-      name: json["name"] ?? "",
-      phone: json["phone"] ?? "",
-      surname: json["surname"] ?? "",
+  factory Agent.fromJson(Map<String, dynamic> json) {
+    return Agent(
+      nameAgent: json['name_agent'] ?? '',
+      surnameAgent: json['surname_agent'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      "fonction": fonction,
-      "id": id,
-      "mail": mail,
-      "name": name,
-      "phone": phone,
-      "surname": surname,
+      'name_agent': nameAgent,
+      'surname_agent': surnameAgent,
+    };
+  }
+}
+
+class AgencyDept {
+  final List<Agent> agents;
+  final String mail;
+  final String phone;
+
+  AgencyDept({
+    required this.agents,
+    required this.mail,
+    required this.phone,
+  });
+
+  factory AgencyDept.fromJson(Map<String, dynamic> json) {
+    var agentsJson = json['agents'] as List<dynamic>? ?? [];
+    List<Agent> agentsList = agentsJson
+        .map((agentJson) => Agent.fromJson(agentJson as Map<String, dynamic>))
+        .toList();
+
+    return AgencyDept(
+      agents: agentsList,
+      mail: json['mail'] ?? '',
+      phone: json['phone'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'agents': agents.map((agent) => agent.toJson()).toList(),
+      'mail': mail,
+      'phone': phone,
     };
   }
 }

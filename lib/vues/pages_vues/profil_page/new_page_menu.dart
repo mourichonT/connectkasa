@@ -6,7 +6,7 @@ import 'package:flutter_svg/svg.dart';
 class ProfileMenu extends StatelessWidget {
   final String uid;
   final Color color;
-  final String refLot;
+  final String? refLot;
   final bool isLogOut;
   final String text;
   final Icon icon;
@@ -19,7 +19,7 @@ class ProfileMenu extends StatelessWidget {
       this.press,
       required this.uid,
       required this.color,
-      required this.refLot,
+      this.refLot,
       required this.isLogOut})
       : super(key: key);
 

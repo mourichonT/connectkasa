@@ -123,13 +123,13 @@ class CustomTextFieldWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MyTextStyle.lotName(label, Colors.black54),
+        MyTextStyle.lotName(label, Colors.black45),
         Padding(
-          padding: const EdgeInsets.only(left: 10.0),
+          padding: const EdgeInsets.only(left: 0.0, top: 10, bottom: 10),
           child: Text(
             value ?? '',
             style: TextStyle(
-                color: Colors.black54,
+                color: Colors.black45,
                 fontSize: SizeFont.h3.size,
                 fontWeight: FontWeight.w400),
           ),

@@ -25,7 +25,7 @@ class DataBasesUserServices {
       String? fcmToken) async {
     try {
       // Génère `refUserApp` unique
-      String refUserApp = await generateUniqueRefUserApp(db, newUser.uid);
+      String refUserApp = await generateUniqueRefUserApp(db, newUser);
 
       // Ajoute refUserApp à l'objet utilisateur
       Map<String, dynamic> userData = newUser.toMap();
@@ -34,6 +34,7 @@ class DataBasesUserServices {
       Map<String, dynamic> fullUserData = {
         ...userData,
         "informationsCorrectes": informationsCorrectes,
+        if (fcmToken != null) 'token': fcmToken,
       };
 
 // Envoi vers Firestore avec fusion
@@ -55,7 +56,6 @@ class DataBasesUserServices {
           if (companyName != null) "companyName": companyName,
           if (intentedFor != null) "intendedFor": intentedFor,
           "StatutResident": statutResident,
-          if (fcmToken != null) 'token': fcmToken,
         }, SetOptions(merge: true));
       }
     } catch (e) {
@@ -717,7 +717,7 @@ class DataBasesUserServices {
           .get();
 
       for (var doc in querySnapshot.docs) {
-        demandes.add(DemandeLoc.fromJson(doc.data()));
+        demandes.add(DemandeLoc.fromJson(doc.data(), id: doc.id));
       }
 
       print("demande : $demandes");
@@ -725,6 +725,112 @@ class DataBasesUserServices {
     } catch (e) {
       print('Erreur lors de la récupération des demandes de location : $e');
       return []; // retourne une liste vide en cas d'erreur
+    }
+  }
+
+  static Future<void> deleteDemande(String uid, String demandeId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('User')
+          .doc(uid)
+          .collection('demandes_loc')
+          .doc(demandeId)
+          .delete();
+      print('Demande supprimée avec succès : $demandeId');
+    } catch (e) {
+      print('Erreur lors de la suppression de la demande : $e');
+      // Tu peux aussi propager l'erreur si besoin avec throw
+    }
+  }
+
+  static Future<User?> getUserWithEmailOrRefApp(
+      String? destinataireEmail, String? refAPP) async {
+    try {
+      // Recherche par email si fourni
+      if (destinataireEmail != null && destinataireEmail.isNotEmpty) {
+        QuerySnapshot<Map<String, dynamic>> emailQuery = await FirebaseFirestore
+            .instance
+            .collection("User")
+            .where("email", isEqualTo: destinataireEmail)
+            .limit(1)
+            .get();
+
+        if (emailQuery.docs.isNotEmpty) {
+          return User.fromMap(emailQuery.docs.first.data());
+        }
+      }
+
+      // Sinon recherche par refAPP si fourni
+      if (refAPP != null && refAPP.isNotEmpty) {
+        QuerySnapshot<Map<String, dynamic>> refAppQuery =
+            await FirebaseFirestore.instance
+                .collection("User")
+                .where("refUserApp", isEqualTo: refAPP)
+                .limit(1)
+                .get();
+
+        if (refAppQuery.docs.isNotEmpty) {
+          return User.fromMap(refAppQuery.docs.first.data());
+        }
+      }
+
+      // Si rien trouvé
+      return null;
+    } catch (e) {
+      print("Erreur lors de la recherche de l'utilisateur : $e");
+      return null;
+    }
+  }
+
+  static Future<void> addLotToUser({
+    required String userId,
+    required String lotId,
+    String? companyName,
+    String? intendedFor,
+    String? statutResident,
+    Timestamp? entryDate,
+    String colorSelected = "ff48775b",
+    String nameLot = "",
+  }) async {
+    try {
+      final userLotRef = FirebaseFirestore.instance
+          .collection("User")
+          .doc(userId)
+          .collection("lots")
+          .doc(lotId);
+
+      Map<String, dynamic> lotData = {
+        "lotId": lotId,
+        "colorSelected": colorSelected,
+        "nameLot": nameLot,
+        if (companyName != null) "companyName": companyName,
+        if (intendedFor != null) "intendedFor": intendedFor,
+        if (statutResident != null) "StatutResident": statutResident,
+        if (entryDate != null) "entryDate": entryDate,
+      };
+
+      await userLotRef.set(lotData, SetOptions(merge: true));
+
+      print(
+          "Lot $lotId ajouté ou mis à jour avec succès pour l'utilisateur $userId.");
+    } catch (e) {
+      print("Erreur lors de l'ajout du lot à l'utilisateur : $e");
+      rethrow;
+    }
+  }
+
+  static Future<void> markDemandeAsRead(String userId, String demandeId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('User')
+          .doc(userId)
+          .collection('demandes_loc')
+          .doc(demandeId)
+          .update({'open': true});
+
+      print('le champs open a été mise a jour');
+    } catch (e) {
+      print('Erreur lors de la mise à jour de open : $e');
     }
   }
 }
