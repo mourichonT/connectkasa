@@ -23,14 +23,14 @@ class FilterAllPostController extends StatefulWidget {
   final String residenceSelected;
   final String uid;
   final FilterCallback onFilterUpdate;
-  final ShowFilterCallback updateShowFilter; // Corrigé ici
+  final ShowFilterCallback updateShowFilter;
 
   const FilterAllPostController({
     super.key,
     required this.residenceSelected,
     required this.uid,
     required this.onFilterUpdate,
-    required this.updateShowFilter, // Corrigé ici
+    required this.updateShowFilter,
   });
 
   @override
@@ -42,7 +42,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
   final TextEditingController _dateToController = TextEditingController();
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
   final DataBasesResidenceServices _ResServices = DataBasesResidenceServices();
-  late Future<List<String?>> _allLocationsFuture;
+  late Future<List<Map<String, String>>> _allLocationsFuture;
   late Post post;
   final TypeList _typeList = TypeList();
   final GlobalKey<FormFieldState> _multiSelectKey = GlobalKey<FormFieldState>();
@@ -96,7 +96,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              FutureBuilder<List<String?>>(
+              FutureBuilder<List<Map<String, String>>>(
                 future: _allLocationsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
@@ -104,15 +104,19 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                   } else if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');
                   } else {
-                    List<String?> items = (snapshot.data ?? []).cast<String?>();
+                    // ⚠️ Mise à jour ici : List<Map<String, String>>
+                    List<Map<String, String>> items = snapshot.data ?? [];
+
                     return MyMultiSelectedDropDown(
                       fontSize: SizeFont.para.size,
                       myKey: _multiSelectKey,
                       width: sizeDate,
                       label: "Localisation",
                       color: color,
+                      // ⚠️ Ici on prend uniquement les labels
                       items: items
-                          .map((item) => MultiSelectItem<String?>(item, item!))
+                          .map((item) => MultiSelectItem<String?>(
+                              item["label"], item["label"]!))
                           .toList(),
                       onConfirm: (values) {
                         setState(() {
@@ -120,6 +124,14 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                               .where((element) => element != null)
                               .map((element) => element!)
                               .toList();
+
+                          // Si tu veux aussi récupérer les `id`, tu peux ici :
+                          List<String> selectedIds = items
+                              .where((item) => values.contains(item["label"]))
+                              .map((item) => item["id"]!)
+                              .toList();
+
+                          // Tu peux les stocker si tu veux (ajoute une variable `List<String>` par ex.)
                           _updateFilters();
                         });
                       },

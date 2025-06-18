@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
+import 'package:connect_kasa/models/pages_models/structure_residence.dart';
 
 class DataBasesResidenceServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -106,46 +107,112 @@ class DataBasesResidenceServices {
     return res!;
   }
 
-  Future<List<String>> getAllLocalisation(String residence) async {
-    List<String> allLocalisation = [];
+  // Future<List<String>> getAllLocalisation(String residence) async {
+  //   List<String> allLocalisation = [];
+  //   try {
+  //     // Obtenez une référence au document spécifique dans la collection "Residence"
+  //     DocumentReference documentReference =
+  //         FirebaseFirestore.instance.collection("Residence").doc(residence);
+
+  //     // Effectuer la requête de recherche
+  //     DocumentSnapshot documentSnapshot = await documentReference.get();
+
+  //     // Vérifiez si le document existe
+  //     if (documentSnapshot.exists) {
+  //       // Récupérez les données du document
+  //       Map<String, dynamic> data =
+  //           (documentSnapshot.data() as Map<String, dynamic>);
+
+  //       // Vérifiez si le champ "localisation" existe et s'il est non nul
+  //       if (data.containsKey("localistation") &&
+  //           data["localistation"] != null) {
+  //         // Récupérez la liste des localisations
+  //         List<dynamic> localisations = data["localistation"];
+
+  //         // Parcourir la liste et ajouter chaque localisation à la liste _allLocalisation
+  //         for (var loc in localisations) {
+  //           if (loc is String) {
+  //             allLocalisation.add(loc);
+  //           }
+  //         }
+  //       } else {
+  //         print(
+  //             "Le champ 'localisation' est manquant ou nul dans le document '$residence'");
+  //       }
+  //     } else {
+  //       print(
+  //           "Le document '$residence' n'existe pas dans la collection 'Residence'");
+  //     }
+  //   } catch (e) {
+  //     // Gérer les erreurs ici, si nécessaire
+  //     print("Une erreur s'est produite : $e");
+  //   }
+  //   return allLocalisation;
+  // }
+
+  Future<List<Map<String, String>>> getAllLocalisation(
+      String residenceId) async {
+    List<Map<String, String>> allLocalisation = [];
+
     try {
-      // Obtenez une référence au document spécifique dans la collection "Residence"
-      DocumentReference documentReference =
-          FirebaseFirestore.instance.collection("Residence").doc(residence);
+      CollectionReference structureRef = FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("structure");
 
-      // Effectuer la requête de recherche
-      DocumentSnapshot documentSnapshot = await documentReference.get();
+      QuerySnapshot querySnapshot = await structureRef.get();
 
-      // Vérifiez si le document existe
-      if (documentSnapshot.exists) {
-        // Récupérez les données du document
-        Map<String, dynamic> data =
-            (documentSnapshot.data() as Map<String, dynamic>);
+      for (var doc in querySnapshot.docs) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        StructureResidence structure = StructureResidence.fromJson(data);
 
-        // Vérifiez si le champ "localisation" existe et s'il est non nul
-        if (data.containsKey("localistation") &&
-            data["localistation"] != null) {
-          // Récupérez la liste des localisations
-          List<dynamic> localisations = data["localistation"];
-
-          // Parcourir la liste et ajouter chaque localisation à la liste _allLocalisation
-          for (var loc in localisations) {
-            if (loc is String) {
-              allLocalisation.add(loc);
-            }
-          }
-        } else {
-          print(
-              "Le champ 'localisation' est manquant ou nul dans le document '$residence'");
+        if (structure.name.isNotEmpty && structure.type.isNotEmpty) {
+          allLocalisation.add({
+            'id': doc.id,
+            'label': "${structure.type} ${structure.name}",
+          });
         }
+      }
+
+      // Supprimer les doublons
+      allLocalisation =
+          {for (var loc in allLocalisation) loc['label']!: loc}.values.toList();
+
+      // Trier par longueur puis alphabétiquement
+      allLocalisation.sort((a, b) {
+        if (a['label']!.length != b['label']!.length) {
+          return a['label']!.length.compareTo(b['label']!.length);
+        }
+        return a['label']!.compareTo(b['label']!);
+      });
+    } catch (e) {
+      print("Erreur lors de la récupération des localisations : $e");
+    }
+
+    return allLocalisation;
+  }
+
+  Future<StructureResidence?> getDetailLocalisation(
+      String residenceId, String locId) async {
+    try {
+      DocumentSnapshot doc = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("structure")
+          .doc(locId)
+          .get();
+
+      if (doc.exists) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        return StructureResidence.fromJson(data);
       } else {
-        print(
-            "Le document '$residence' n'existe pas dans la collection 'Residence'");
+        print("Document $locId non trouvé dans la résidence $residenceId.");
+        return null;
       }
     } catch (e) {
-      // Gérer les erreurs ici, si nécessaire
-      print("Une erreur s'est produite : $e");
+      print(
+          "Erreur lors de la récupération des détails de la localisation : $e");
+      return null;
     }
-    return allLocalisation;
   }
 }

@@ -1,7 +1,9 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
+import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:connect_kasa/models/pages_models/structure_residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
@@ -31,12 +33,43 @@ class SinistreForm extends StatefulWidget {
 class SinistreFormState extends State<SinistreForm> {
   late TextEditingController title;
   late TextEditingController desc;
+  final DataBasesResidenceServices _ResServices = DataBasesResidenceServices();
+  List<Map<String, String>> itemsLocalisation = [];
+  List<String> itemsEtage = [];
+  String? localisationId;
 
   @override
   void initState() {
     super.initState();
     title = TextEditingController();
     desc = TextEditingController();
+    _loadLocalisations();
+  }
+
+  Future<void> _loadLocalisations() async {
+    if (widget.preferedLot != null) {
+      final locs = await _ResServices.getAllLocalisation(
+        widget.preferedLot!.residenceId,
+      );
+      setState(() {
+        itemsLocalisation = locs;
+      });
+    }
+  }
+
+  Future<void> _getLocDetails() async {
+    if (widget.preferedLot != null && localisationId != null) {
+      final StructureResidence? loc = await _ResServices.getDetailLocalisation(
+        widget.preferedLot!.residenceId,
+        localisationId!, // ID du document dans "structure"
+      );
+
+      if (loc != null) {
+        setState(() {
+          itemsEtage = loc.etage!; // ou ce que tu veux faire avec
+        });
+      }
+    }
   }
 
   String localisation = "";
@@ -64,10 +97,9 @@ class SinistreFormState extends State<SinistreForm> {
 
   @override
   Widget build(BuildContext context) {
-    List<String> itemsLocalisation =
-        List<String>.from(widget.preferedLot!.residenceData["localistation"]);
-    List<String> itemsEtage =
-        List<String>.from(widget.preferedLot!.residenceData["etage"]);
+    // List<String>.from(widget.preferedLot!.residenceData["localistation"]);
+    // List<String> itemsEtage =
+    //     List<String>.from(widget.preferedLot!.residenceData["etage"]);
     List<String> itemsElements =
         List<String>.from(widget.preferedLot!.residenceData["elements"]);
 
@@ -84,12 +116,21 @@ class SinistreFormState extends State<SinistreForm> {
           "Choisir une localisation",
           false,
           preferedLot: widget.preferedLot!,
-          items: itemsLocalisation,
-          onValueChanged: (String value) {
+          items: itemsLocalisation.map((e) => e['label']!).toList(),
+          onValueChanged: (String value) async {
+            final selected =
+                itemsLocalisation.firstWhere((e) => e['label'] == value);
+            final selectedId = selected['id'];
+
             setState(() {
               localisation = value;
+              localisationId = selectedId;
               updateItem(localisation);
+              itemsEtage =
+                  []; // vider temporairement pendant le chargement si besoin
             });
+
+            await _getLocDetails(); // 🔥 Récupère les étages dynamiquement ici
           },
         ),
         const SizedBox(height: 15),
