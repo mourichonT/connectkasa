@@ -36,6 +36,7 @@ class SinistreFormState extends State<SinistreForm> {
   final DataBasesResidenceServices _ResServices = DataBasesResidenceServices();
   List<Map<String, String>> itemsLocalisation = [];
   List<String> itemsEtage = [];
+  List<String> itemsElements = [];
   String? localisationId;
 
   @override
@@ -66,7 +67,8 @@ class SinistreFormState extends State<SinistreForm> {
 
       if (loc != null) {
         setState(() {
-          itemsEtage = loc.etage!; // ou ce que tu veux faire avec
+          itemsEtage = loc.etage!;
+          itemsElements = loc.elements!; // ou ce que tu veux faire avec
         });
       }
     }
@@ -97,19 +99,13 @@ class SinistreFormState extends State<SinistreForm> {
 
   @override
   Widget build(BuildContext context) {
-    // List<String>.from(widget.preferedLot!.residenceData["localistation"]);
-    // List<String> itemsEtage =
-    //     List<String>.from(widget.preferedLot!.residenceData["etage"]);
-    List<String> itemsElements =
-        List<String>.from(widget.preferedLot!.residenceData["elements"]);
-
     final double width = MediaQuery.of(context).size.width;
 
     return Column(
       children: [
         const SizedBox(height: 15),
 
-        /// 🏠 **Localisation**
+        /// **Localisation**
         MyDropDownMenu(
           width,
           "Localisation",
@@ -130,161 +126,171 @@ class SinistreFormState extends State<SinistreForm> {
                   []; // vider temporairement pendant le chargement si besoin
             });
 
-            await _getLocDetails(); // 🔥 Récupère les étages dynamiquement ici
+            await _getLocDetails(); // Récupère les étages dynamiquement ici
           },
         ),
         const SizedBox(height: 15),
 
-        /// 🏢 **Étage**
-        MyDropDownMenu(
-          width,
-          "Etage",
-          "Choisir un étage",
-          false,
-          preferedLot: widget.preferedLot!,
-          items: itemsEtage,
-          onValueChanged: (String value) {
-            setState(() {
-              etage = value;
-              updateItem(etage);
-            });
-          },
-        ),
-
-        /// 🛠 **Sélection d'éléments**
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 40),
-          child: MyTextStyle.lotName(
-              "Apportez des précisions pour localiser le sinistre:",
-              Colors.black87,
-              SizeFont.h3.size),
-        ),
-        Center(
-          child: Wrap(
-            spacing: 5.0,
-            children: itemsElements.map((String itemsElement) {
-              return FilterChip(
-                label: MyTextStyle.lotDesc(itemsElement, SizeFont.h3.size),
-                selected: filters.contains(itemsElement),
-                onSelected: (bool selected) {
-                  setState(() {
-                    if (selected) {
-                      filters.add(itemsElement);
-                    } else {
-                      filters.remove(itemsElement);
-                    }
-                  });
-                },
-                backgroundColor:
-                    Color(0xFFF5F6F9), // couleur de fond quand non sélectionné
-                selectedColor:
-                    Theme.of(context).primaryColor, // couleur quand sélectionné
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20), // angle arrondi
-                ),
-                side: BorderSide(
-                  color: filters.contains(itemsElement)
-                      ? Theme.of(context).primaryColor
-                      : Color(0xFFF5F6F9), // couleur de la bordure
-                  width: 2, // épaisseur de la bordure
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-
-        /// 📸 **Ajout de photo**
-        Center(
-          child: CameraOrFiles(
-            residence: widget.preferedLot!.residenceId,
-            racineFolder: widget.racineFolder,
-            folderName: widget.folderName,
-            title: title.text,
-            onImageUploaded: downloadImagePath,
-            cardOverlay: false,
-          ),
-        ),
-
-        /// 📝 **Titre (Remplacé par CustomTextFieldWidget)**
-        CustomTextFieldWidget(
-          label: "Titre",
-          text: "Définissez un titre pour votre post",
-          controller: title,
-          isEditable: true,
-          minLines: 1,
-          maxLines: 1,
-        ),
-
-        /// 📝 **Description (Remplacé par CustomTextFieldWidget)**
-        CustomTextFieldWidget(
-            label: "Description",
-            controller: desc,
-            isEditable: true,
-            minLines: 6,
-            maxLines: 6,
-            text: "Donnez des précisions sur la déclaration"),
-
-        /// 🔄 **Anonymat**
-        Padding(
-          padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ///  **Étage**
+        Visibility(
+          visible: localisationId != null,
+          child: Column(
             children: [
-              MyTextStyle.lotDesc("Publier anonymement?  ", SizeFont.h3.size),
-              Switch(
-                value: anonymPost,
-                onChanged: (bool value) {
+              MyDropDownMenu(
+                width,
+                "Etage",
+                "Choisir un étage",
+                false,
+                preferedLot: widget.preferedLot!,
+                items: itemsEtage,
+                onValueChanged: (String value) {
                   setState(() {
-                    anonymPost = value;
-                    updateBool(anonymPost);
+                    etage = value;
+                    updateItem(etage);
                   });
                 },
               ),
-            ],
-          ),
-        ),
 
-        const SizedBox(height: 40),
+              ///  **Sélection d'éléments**
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: MyTextStyle.lotName(
+                    "Apportez des précisions pour localiser le sinistre:",
+                    Colors.black87,
+                    SizeFont.h3.size),
+              ),
+              Center(
+                child: Wrap(
+                  spacing: 5.0,
+                  children: itemsElements.map((String itemsElement) {
+                    return FilterChip(
+                      label:
+                          MyTextStyle.lotDesc(itemsElement, SizeFont.h3.size),
+                      selected: filters.contains(itemsElement),
+                      onSelected: (bool selected) {
+                        setState(() {
+                          if (selected) {
+                            filters.add(itemsElement);
+                          } else {
+                            filters.remove(itemsElement);
+                          }
+                        });
+                      },
+                      backgroundColor: Color(
+                          0xFFF5F6F9), // couleur de fond quand non sélectionné
+                      selectedColor: Theme.of(context)
+                          .primaryColor, // couleur quand sélectionné
+                      shape: RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(20), // angle arrondi
+                      ),
+                      side: BorderSide(
+                        color: filters.contains(itemsElement)
+                            ? Theme.of(context).primaryColor
+                            : Color(0xFFF5F6F9), // couleur de la bordure
+                        width: 2, // épaisseur de la bordure
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
 
-        /// 🚀 **Bouton Soumettre**
-        Center(
-          child: ElevatedButton(
-            onPressed: () {
-              if (localisation.isEmpty ||
-                  etage.isEmpty ||
-                  title.text.isEmpty ||
-                  desc.text.isEmpty ||
-                  imagePath.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: Colors.red,
-                    content: Text(
-                      'Tous les champs sont requis!',
-                      style: TextStyle(color: Colors.white),
+              /// 📸 **Ajout de photo**
+              Center(
+                child: CameraOrFiles(
+                  residence: widget.preferedLot!.residenceId,
+                  racineFolder: widget.racineFolder,
+                  folderName: widget.folderName,
+                  title: title.text,
+                  onImageUploaded: downloadImagePath,
+                  cardOverlay: false,
+                ),
+              ),
+
+              ///  **Titre (Remplacé par CustomTextFieldWidget)**
+              CustomTextFieldWidget(
+                label: "Titre",
+                text: "Définissez un titre pour votre post",
+                controller: title,
+                isEditable: true,
+                minLines: 1,
+                maxLines: 1,
+              ),
+
+              ///  **Description (Remplacé par CustomTextFieldWidget)**
+              CustomTextFieldWidget(
+                  label: "Description",
+                  controller: desc,
+                  isEditable: true,
+                  minLines: 6,
+                  maxLines: 6,
+                  text: "Donnez des précisions sur la déclaration"),
+
+              /// 🔄 **Anonymat**
+              Padding(
+                padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    MyTextStyle.lotDesc(
+                        "Publier anonymement?  ", SizeFont.h3.size),
+                    Switch(
+                      value: anonymPost,
+                      onChanged: (bool value) {
+                        setState(() {
+                          anonymPost = value;
+                          updateBool(anonymPost);
+                        });
+                      },
                     ),
-                  ),
-                );
-                return;
-              }
+                  ],
+                ),
+              ),
 
-              SubmitPostController.addPostAfterChecking(
-                uid: widget.uid,
-                docRes: widget.preferedLot!.residenceId,
-                idPost: widget.idPost,
-                selectedLabel: widget.folderName,
-                imagePath: imagePath,
-                title: title,
-                desc: desc,
-                anonymPost: anonymPost,
-                localisation: localisation,
-                etage: etage,
-                element: filters,
-              );
+              const SizedBox(height: 40),
 
-              Navigator.pop(context);
-            },
-            child: MyTextStyle.lotName(
-                "Soumettre", Theme.of(context).primaryColor, SizeFont.h2.size),
+              /// **Bouton Soumettre**
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (localisation.isEmpty ||
+                        etage.isEmpty ||
+                        title.text.isEmpty ||
+                        desc.text.isEmpty ||
+                        imagePath.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text(
+                            'Tous les champs sont requis!',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      );
+                      return;
+                    }
+
+                    SubmitPostController.addPostAfterChecking(
+                      uid: widget.uid,
+                      docRes: widget.preferedLot!.residenceId,
+                      idPost: widget.idPost,
+                      selectedLabel: widget.folderName,
+                      imagePath: imagePath,
+                      title: title,
+                      desc: desc,
+                      anonymPost: anonymPost,
+                      localisation: localisation,
+                      etage: etage,
+                      element: filters,
+                    );
+
+                    Navigator.pop(context);
+                  },
+                  child: MyTextStyle.lotName("Soumettre",
+                      Theme.of(context).primaryColor, SizeFont.h2.size),
+                ),
+              ),
+            ],
           ),
         ),
 

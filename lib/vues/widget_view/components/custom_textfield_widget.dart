@@ -3,7 +3,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextFieldWidget extends StatelessWidget {
-  final String label;
+  final String? label;
   final String? value;
   final String? text;
   final TextEditingController? controller;
@@ -21,7 +21,7 @@ class CustomTextFieldWidget extends StatelessWidget {
   const CustomTextFieldWidget({
     Key? key,
     this.text,
-    required this.label,
+    this.label,
     this.value,
     this.controller,
     this.focusNode,
@@ -60,7 +60,8 @@ class CustomTextFieldWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MyTextStyle.lotName(label, Colors.black54),
+        if (label != null && label!.isNotEmpty)
+          MyTextStyle.lotName(label!, Colors.black54),
         Row(
           children: [
             Expanded(
@@ -105,8 +106,11 @@ class CustomTextFieldWidget extends StatelessWidget {
             if (!isReadOnlyTapField && (focusNode?.hasFocus ?? false))
               IconButton(
                 onPressed: () {
-                  if (field != null && onSubmit != null && controller != null) {
-                    onSubmit!(field!, label, controller!.text);
+                  if (label! != null &&
+                      field != null &&
+                      onSubmit != null &&
+                      controller != null) {
+                    onSubmit!(field!, label!, controller!.text);
                   }
                   focusNode?.unfocus();
                   refresh?.call();
@@ -123,7 +127,8 @@ class CustomTextFieldWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        MyTextStyle.lotName(label, Colors.black45),
+        if (label != null && label!.isEmpty)
+          MyTextStyle.lotName(label!, Colors.black45),
         Padding(
           padding: const EdgeInsets.only(left: 0.0, top: 10, bottom: 10),
           child: Text(

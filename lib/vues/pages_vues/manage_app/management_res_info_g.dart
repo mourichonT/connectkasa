@@ -5,6 +5,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/agency_dept.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
+import 'package:connect_kasa/vues/widget_view/components/agency_search_result_list.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
@@ -317,44 +318,22 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
                 children: [
                   const SizedBox(height: 30),
                   buildField("Recherchez votre syndic", "lookup"),
-                  if (isSearching)
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: CircularProgressIndicator(),
-                    )
-                  else if (searchResults.isNotEmpty)
-                    Container(
-                      height: 150,
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey),
-                        borderRadius: BorderRadius.circular(5),
-                        color: Colors.white,
-                      ),
-                      child: ListView.builder(
-                        itemCount: searchResults.length,
-                        itemBuilder: (context, index) {
-                          final agency = searchResults[index];
-                          return ListTile(
-                            title: Text(agency.name),
-                            onTap: () {
-                              setState(() {
-                                _controllers["lookup"]!.text = agency.name;
-                                _itemSelected = true;
-                                searchResults = [];
+                  AgencySearchResultList(
+                    isSearching: isSearching,
+                    searchResults: searchResults,
+                    onSelect: (agency) {
+                      setState(() {
+                        _controllers["lookup"]!.text = agency.name;
+                        _itemSelected = true;
+                        searchResults = [];
+                        _controllers["agencyName"]!.text = agency.name;
 
-                                _controllers["agencyName"]!.text = agency.name;
-
-                                // TODO: charger agents liés à cette agence si possible
-                                // Ici on peut appeler un service pour récupérer les agents selon l'agence sélectionnée
-                                // Pour l'exemple, on vide la liste d'agents
-                                agents = [];
-                                selectedAgent = null;
-                              });
-                            },
-                          );
-                        },
-                      ),
-                    ),
+                        // Tu peux aussi gérer ici le chargement des agents liés
+                        agents = [];
+                        selectedAgent = null;
+                      });
+                    },
+                  ),
                 ],
               ),
             ),

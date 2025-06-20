@@ -60,22 +60,6 @@ class _ManagementFolderRentState extends State<ManagementFolderRent> {
         backgroundColor: Colors.white,
         title: MyTextStyle.lotName(
             "Mon dossier locataire", Colors.black87, SizeFont.h1.size),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            // Lorsque l'utilisateur appuie sur la flèche de retour,
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfilePage(
-                  uid: widget.uid,
-                  color: widget.color,
-                  refLot: "",
-                ),
-              ),
-            ); // Renvoie l'utilisateur avec les nouvelles données
-          },
-        ),
       ),
       body: Column(
         children: [

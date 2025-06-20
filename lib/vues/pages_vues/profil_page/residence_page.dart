@@ -1,5 +1,6 @@
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/management_res_info_g.dart';
+import 'package:connect_kasa/vues/pages_vues/residence_page/manage_structure.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -61,7 +62,13 @@ class _ResidencePageState extends State<ResidencePage> {
                   text: "Configuration des bâtiments",
                   icon: const Icon(Icons.apartment, size: 22),
                   press: () {
-                    // Naviguer vers la gestion structurelle
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ManageStructure(
+                            color: widget.color, residence: widget.residence),
+                      ),
+                    );
                   },
                   isLogOut: false,
                 ),
