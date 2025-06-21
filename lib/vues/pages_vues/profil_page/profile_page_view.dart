@@ -17,6 +17,7 @@ import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/new_profil_pic.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/param_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/info_pers_page_modify.dart';
+import 'package:connect_kasa/vues/pages_vues/residence_page/residence_page_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -339,6 +340,20 @@ class _ProfilePageState extends State<ProfilePage> {
                                         uid: widget.uid,
                                         color: widget.color,
                                         residence: residenceObjects[0],
+                                      ),
+                                    ),
+                                  );
+                                } else {
+                                  print("residenceIds.length > 1 ");
+                                }
+                                if (residenceObjects.length > 1) {
+                                  Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                      builder: (context) => ResidencePageRoute(
+                                        uid: widget.uid,
+                                        color: widget.color,
+                                        residences: residenceObjects,
                                       ),
                                     ),
                                   );

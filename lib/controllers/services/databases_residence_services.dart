@@ -107,49 +107,6 @@ class DataBasesResidenceServices {
     return res!;
   }
 
-  // Future<List<String>> getAllLocalisation(String residence) async {
-  //   List<String> allLocalisation = [];
-  //   try {
-  //     // Obtenez une référence au document spécifique dans la collection "Residence"
-  //     DocumentReference documentReference =
-  //         FirebaseFirestore.instance.collection("Residence").doc(residence);
-
-  //     // Effectuer la requête de recherche
-  //     DocumentSnapshot documentSnapshot = await documentReference.get();
-
-  //     // Vérifiez si le document existe
-  //     if (documentSnapshot.exists) {
-  //       // Récupérez les données du document
-  //       Map<String, dynamic> data =
-  //           (documentSnapshot.data() as Map<String, dynamic>);
-
-  //       // Vérifiez si le champ "localisation" existe et s'il est non nul
-  //       if (data.containsKey("localistation") &&
-  //           data["localistation"] != null) {
-  //         // Récupérez la liste des localisations
-  //         List<dynamic> localisations = data["localistation"];
-
-  //         // Parcourir la liste et ajouter chaque localisation à la liste _allLocalisation
-  //         for (var loc in localisations) {
-  //           if (loc is String) {
-  //             allLocalisation.add(loc);
-  //           }
-  //         }
-  //       } else {
-  //         print(
-  //             "Le champ 'localisation' est manquant ou nul dans le document '$residence'");
-  //       }
-  //     } else {
-  //       print(
-  //           "Le document '$residence' n'existe pas dans la collection 'Residence'");
-  //     }
-  //   } catch (e) {
-  //     // Gérer les erreurs ici, si nécessaire
-  //     print("Une erreur s'est produite : $e");
-  //   }
-  //   return allLocalisation;
-  // }
-
   Future<List<Map<String, String>>> getAllLocalisation(
       String residenceId) async {
     List<Map<String, String>> allLocalisation = [];
@@ -214,5 +171,44 @@ class DataBasesResidenceServices {
           "Erreur lors de la récupération des détails de la localisation : $e");
       return null;
     }
+  }
+
+  /// Récupère tous les documents de la sous-collection "structure" pour une résidence donnée.
+  /// Prend l'ID de la résidence en paramètre.
+  /// Retourne une liste d'objets StructureResidence.
+  Future<List<StructureResidence>> getStructuresByResidence(
+      String residenceId) async {
+    List<StructureResidence> structures = [];
+    try {
+      // Accède à la sous-collection "structure" de la résidence spécifiée
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("structure")
+          .get();
+
+      // Parcourt chaque document et le convertit en objet StructureResidence
+      for (var docSnapshot in querySnapshot.docs) {
+        structures.add(StructureResidence.fromJson(docSnapshot.data()));
+      }
+
+      // Trie la liste des structures
+      structures.sort((a, b) {
+        // Tri d'abord par la longueur du nom (du plus court au plus long)
+        final lengthComparison = a.name.length.compareTo(b.name.length);
+        if (lengthComparison != 0) {
+          return lengthComparison;
+        }
+        // Si les longueurs sont égales, trie alphabétiquement par le nom
+        return a.name.compareTo(b.name);
+      });
+
+      print(
+          "Structures récupérées et triées avec succès pour la résidence $residenceId.");
+    } catch (e) {
+      print(
+          "Erreur lors de la récupération et du tri des structures pour la résidence $residenceId: $e");
+    }
+    return structures;
   }
 }

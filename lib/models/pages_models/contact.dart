@@ -1,3 +1,5 @@
+import 'package:connect_kasa/models/pages_models/agency.dart'; // Assurez-vous d'importer Agency si vous l'utilisez ailleurs
+
 class Contact {
   String name;
   String service;
@@ -8,6 +10,7 @@ class Contact {
   String? city;
   String? zipcode;
   String? web;
+  bool isExpanded; // NOUVELLE PROPRIÉTÉ: pour gérer l'état replié/déplié
 
   Contact({
     required this.name,
@@ -19,7 +22,9 @@ class Contact {
     this.zipcode,
     this.mail,
     this.web,
+    this.isExpanded = true, // Initialise à true (déplié) par défaut
   });
+
   factory Contact.fromJson(Map<String, dynamic> json) {
     return Contact(
       name: json['name'],
@@ -31,6 +36,8 @@ class Contact {
       city: json['city'],
       zipcode: json['zipcode'],
       web: json['web'],
+      isExpanded:
+          json['isExpanded'] ?? true, // Récupère la valeur ou true par défaut
     );
   }
 
@@ -41,10 +48,11 @@ class Contact {
       'phone': phone,
       'mail': mail,
       'num': num,
-      'stree': street,
+      'street': street, // Correction: 'stree' -> 'street'
       'zipcode': zipcode,
       'city': city,
-      'web': web
+      'web': web,
+      'isExpanded': isExpanded, // Inclure dans la conversion JSON
     };
   }
 }

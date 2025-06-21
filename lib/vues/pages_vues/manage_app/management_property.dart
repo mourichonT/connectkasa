@@ -108,7 +108,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
                             ? "${lot.residenceData["name"]} ${lot.batiment}${lot.lot}"
                             : lot.userLotDetails['nameLot'],
                         Colors.black87,
-                        SizeFont.h1.size,
+                        SizeFont.h2.size,
                       ),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
