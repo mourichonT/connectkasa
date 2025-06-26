@@ -58,4 +58,20 @@ class TypeList {
     "F",
     "ND",
   ];
+
+  static List<String> typeLot = [
+    "Appartement",
+    "Maison/Villa",
+    "Place de parking",
+    "Box/Garage",
+    "Cave",
+    "Grenier/Combles",
+    "Local commercial",
+    "Bureau",
+    "Cellier",
+    "Jardin privatif",
+    "Atelier",
+    "Hangar/Entrepôt",
+    "Terrain nu",
+  ];
 }

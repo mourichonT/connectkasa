@@ -1,15 +1,18 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_agency_services.dart'; // Gardez si nécessaire pour d'autres fonctionnalités
+import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart'; // Importez votre modèle Contact
+import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
 
 class ManageContact extends StatefulWidget {
   final Color color; // La couleur peut être passée de la page parente
+  final Residence residence;
 
-  ManageContact({super.key, required this.color});
+  ManageContact({super.key, required this.color, required this.residence});
 
   @override
   State<ManageContact> createState() => ManageContactState();
@@ -18,6 +21,8 @@ class ManageContact extends StatefulWidget {
 class ManageContactState extends State<ManageContact> {
   // Liste des contacts à gérer. Initialisez-la avec des données si vous en chargez depuis une base.
   List<Contact> contacts = [];
+  final DataBasesResidenceServices _residenceServices =
+      DataBasesResidenceServices();
 
   // Map pour stocker les contrôleurs et les focus nodes dynamiques pour chaque champ de chaque contact
   final Map<String, TextEditingController> _controllers = {};
@@ -26,8 +31,26 @@ class ManageContactState extends State<ManageContact> {
   @override
   void initState() {
     super.initState();
+    _loadContacts();
     // Vous pouvez initialiser 'contacts' ici avec des données existantes si vous en avez.
     // Par exemple: contacts = await _contactService.getContacts();
+  }
+
+  Future<void> _loadContacts() async {
+    if (widget.residence.id != null) {
+      // Récupère les structures en utilisant la nouvelle fonction du service
+      final fetchedBuildings =
+          await _residenceServices.getContactByResidence(widget.residence.id);
+      // S'assure que toutes les cartes sont fermées lors du chargement
+      for (var contact in fetchedBuildings) {
+        contact.isExpanded = false;
+      }
+      setState(() {
+        contacts = fetchedBuildings;
+      });
+    } else {
+      contacts = []; // Si pas d'ID de résidence, initialise la liste comme vide
+    }
   }
 
   // Fonction utilitaire pour initialiser et récupérer un TextEditingController et son FocusNode
@@ -121,8 +144,6 @@ class ManageContactState extends State<ManageContact> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            MyTextStyle.lotName("Contacts", Colors.black, SizeFont.h2.size),
-            const SizedBox(height: 20),
             // Affichage de chaque contact sous forme de "portefeuille"
             ...contacts.asMap().entries.map((entry) {
               final index = entry.key;
