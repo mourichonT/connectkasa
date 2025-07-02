@@ -84,13 +84,14 @@ class _ManageListLotState extends State<ManageListLot> {
     setState(() {
       lots.add(
         Lot(
+          batiment: '',
           refLot: '',
           typeLot: '',
           type: '',
           idProprietaire: [],
           residenceId: widget.residence.id!,
           residenceData: {},
-          userLotDetails: {'isExpanded': true},
+          userLotDetails: {},
         ),
       );
     });
@@ -112,23 +113,6 @@ class _ManageListLotState extends State<ManageListLot> {
 
     setState(() {
       lots.removeAt(index);
-    });
-  }
-
-  void _saveLots() {
-    for (var lot in lots) {
-      print(lot.toJson());
-      // Ajouter logique Firestore ici
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Lots enregistrés avec succès")),
-    );
-
-    setState(() {
-      for (var lot in lots) {
-        lot.userLotDetails['isExpanded'] = false;
-      }
     });
   }
 
@@ -349,5 +333,72 @@ class _ManageListLotState extends State<ManageListLot> {
         ),
       ),
     );
+  }
+
+  void _saveLots() async {
+    final Set<String> refLotSet = {};
+    final Set<String> batimentLotSet = {};
+    final List<String> duplicateErrors = [];
+
+    for (int i = 0; i < lots.length; i++) {
+      final lot = lots[i];
+
+      final refLot = lot.refLot?.trim() ?? '';
+      final building = lot.batiment?.trim() ?? '';
+      final number = lot.lot?.trim() ?? '';
+      final combo = "$building-$number";
+
+      // Vérifie refLot
+      if (refLot.isEmpty) {
+        duplicateErrors.add("Le lot à l’index $i n’a pas de 'refLot'");
+      } else if (!refLotSet.add(refLot)) {
+        duplicateErrors.add("Doublon de 'refLot' : $refLot");
+      }
+
+      // Vérifie batiment + lot
+      if (building.isEmpty || number.isEmpty) {
+        duplicateErrors
+            .add("Le lot à l’index $i est incomplet (bâtiment ou numéro vide)");
+      } else if (!batimentLotSet.add(combo)) {
+        duplicateErrors.add("Doublon : bâtiment '$building', lot '$number'");
+      }
+    }
+
+    if (duplicateErrors.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erreurs détectées :\n${duplicateErrors.join('\n')}"),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 6),
+        ),
+      );
+      return;
+    }
+
+    // Tous les lots sont valides, on peut les enregistrer
+    try {
+      for (var lot in lots) {
+        await _lotServices.createOrUpdateLot(widget.residence.id!, lot);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Lots enregistrés avec succès"),
+        ),
+      );
+
+      setState(() {
+        for (var lot in lots) {
+          lot.userLotDetails['isExpanded'] = false;
+        }
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erreur lors de l'enregistrement : $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

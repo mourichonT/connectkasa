@@ -756,6 +756,7 @@ class DataBasesUserServices {
             .get();
 
         if (emailQuery.docs.isNotEmpty) {
+          print("UTITLISATEUR TROUVE");
           return User.fromMap(emailQuery.docs.first.data());
         }
       }
@@ -777,6 +778,7 @@ class DataBasesUserServices {
       // Si rien trouvé
       return null;
     } catch (e) {
+      print("UTITLISATEUR NON TROUVE");
       print("Erreur lors de la recherche de l'utilisateur : $e");
       return null;
     }

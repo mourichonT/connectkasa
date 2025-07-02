@@ -211,4 +211,34 @@ class DataBasesResidenceServices {
     }
     return structures;
   }
+
+  Future<void> removeCsMember(String residenceId, String uidToRemove) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Residence')
+          .doc(residenceId)
+          .update({
+        'csmembers': FieldValue.arrayRemove([uidToRemove])
+      });
+
+      print("UID $uidToRemove supprimé avec succès de csmembers.");
+    } catch (e) {
+      print("Erreur lors de la suppression de l'UID $uidToRemove : $e");
+    }
+  }
+
+  Future<void> addCsMember(String residenceId, String uidToAdd) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('Residence')
+          .doc(residenceId)
+          .update({
+        'csmembers': FieldValue.arrayUnion([uidToAdd])
+      });
+
+      print("UID $uidToAdd ajouté avec succès à csmembers.");
+    } catch (e) {
+      print("Erreur lors de l'ajout de l'UID $uidToAdd : $e");
+    }
+  }
 }

@@ -1,4 +1,7 @@
+import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_text_fied.dart';
@@ -15,7 +18,7 @@ class LookUpUser {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Destinataire'),
+          title: MyTextStyle.lotName("Destinataire", Colors.black87),
           content: MyTextField(
               hintText: "Mail ou N° utilisateur",
               osbcureText: false,
@@ -58,6 +61,106 @@ class LookUpUser {
                     context: context,
                     builder: (context) => AlertDialog(
                       title: Text('Erreur'),
+                      content: Text(
+                          "Aucun utilisateur trouvé avec ces informations."),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('OK'),
+                        )
+                      ],
+                    ),
+                  );
+                }
+              },
+              child: Text('Valider'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  static Future<String?> searchNewCSMembreForm(
+    BuildContext context,
+    String residenceId,
+    void Function(User newUser) onUserAdded,
+  ) {
+    final TextEditingController emailController = TextEditingController();
+
+    return showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: MyTextStyle.lotName(
+              "Ajouter un membre", Colors.black87, SizeFont.h2.size),
+          content: MyTextField(
+              hintText: "Mail ou N° utilisateur",
+              osbcureText: false,
+              padding: 0,
+              autofocus: false,
+              controller: emailController),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(null); // L'utilisateur annule
+              },
+              child: Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () async {
+                String input = emailController.text.trim();
+                if (input.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            'Veuillez entrer une adresse email ou un N° utilisateur')),
+                  );
+                  return; // Ne pas fermer le dialog
+                }
+
+                // Recherche utilisateur
+                User? user =
+                    await DataBasesUserServices.getUserWithEmailOrRefApp(
+                        input, input);
+
+                if (user != null) {
+                  // L'utilisateur existe -> partage du fichier
+                  // await DataBasesUserServices.shareFile(
+                  //     demande, user.uid); // ou autre clé selon ton modèle User
+
+                  await DataBasesResidenceServices()
+                      .addCsMember(residenceId, user.uid);
+                  onUserAdded(user);
+                  Navigator.of(context).pop(input); // Fermer avec succès
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: MyTextStyle.lotName('Ajouté!',
+                          Theme.of(context).primaryColor, SizeFont.h1.size),
+                      content: MyTextStyle.postDesc(
+                        '${user.name} ${user.surname} a été ajouté avec succès !',
+                        SizeFont.h3.size,
+                        Colors.black54,
+                        fontweight: FontWeight.normal,
+                        textAlign: TextAlign.justify,
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text('OK'),
+                        )
+                      ],
+                    ),
+                  );
+                  print(
+                      '${user.name} ${user.surname} a été ajouté avec succès !');
+                } else {
+                  // Aucun utilisateur trouvé
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: MyTextStyle.lotName('Erreur', Colors.red[800]!),
                       content: Text(
                           "Aucun utilisateur trouvé avec ces informations."),
                       actions: [

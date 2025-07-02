@@ -1,6 +1,7 @@
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/management_res_info_g.dart';
 import 'package:connect_kasa/vues/pages_vues/residence_page/manage_contact.dart';
+import 'package:connect_kasa/vues/pages_vues/residence_page/manage_cs_members.dart';
 import 'package:connect_kasa/vues/pages_vues/residence_page/manage_list_lot.dart';
 import 'package:connect_kasa/vues/pages_vues/residence_page/manage_structure.dart';
 import 'package:flutter/material.dart';
@@ -114,6 +115,13 @@ class _ResidencePageState extends State<ResidencePage> {
                   icon: const Icon(Icons.group_outlined, size: 22),
                   press: () {
                     // Naviguer vers la gestion du conseil syndical
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ManageCsMembers(
+                            color: widget.color, residence: widget.residence),
+                      ),
+                    );
                   },
                   isLogOut: false,
                 ),

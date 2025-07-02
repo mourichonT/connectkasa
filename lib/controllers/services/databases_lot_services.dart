@@ -380,4 +380,29 @@ class DataBasesLotServices {
       rethrow;
     }
   }
+
+  Future<void> createOrUpdateLot(String residenceId, Lot lot) async {
+    try {
+      final lotRef = FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("lot");
+
+      // Vérifier si un lot avec le même refLot existe déjà
+      final query =
+          await lotRef.where("refLot", isEqualTo: lot.refLot).limit(1).get();
+
+      if (query.docs.isNotEmpty) {
+        // Mise à jour
+        final docId = query.docs.first.id;
+        await lotRef.doc(docId).update(lot.toJson());
+      } else {
+        // Création
+        await lotRef.add(lot.toJsonForDb());
+      }
+    } catch (e) {
+      print("Erreur Firestore createOrUpdateLot: $e");
+      rethrow;
+    }
+  }
 }

@@ -119,4 +119,18 @@ class Lot {
           : {},
     );
   }
+  Map<String, dynamic> toJsonForDb() {
+    return {
+      if (refLot.isNotEmpty) "refLot": refLot,
+      if (refGerance != null) "refGerance": refGerance,
+      if (batiment != null) "batiment": batiment,
+      if (lot != null) "lot": lot,
+      if (typeLot.isNotEmpty) "typeLot": typeLot,
+      if (type.isNotEmpty) "type": type,
+      if (idProprietaire != null) "idProprietaire": idProprietaire,
+      if (idLocataire != null) "idLocataire": idLocataire,
+      if (residenceId.isNotEmpty) "residenceId": residenceId,
+      // NOTE : On ne met PAS userLotDetails ni residenceData
+    };
+  }
 }
