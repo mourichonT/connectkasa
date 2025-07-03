@@ -405,4 +405,28 @@ class DataBasesLotServices {
       rethrow;
     }
   }
+
+  Future<void> deleteLot(String residenceId, String refLot) async {
+    try {
+      final lotRef = FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("lot");
+
+      // Trouver le document à supprimer par refLot
+      final query =
+          await lotRef.where("refLot", isEqualTo: refLot).limit(1).get();
+
+      if (query.docs.isNotEmpty) {
+        final docId = query.docs.first.id;
+        await lotRef.doc(docId).delete();
+        print("Lot avec refLot '$refLot' supprimé.");
+      } else {
+        print("Aucun lot trouvé avec refLot '$refLot'.");
+      }
+    } catch (e) {
+      print("Erreur Firestore deleteLot: $e");
+      rethrow;
+    }
+  }
 }

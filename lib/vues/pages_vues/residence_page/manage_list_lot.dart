@@ -53,11 +53,18 @@ class _ManageListLotState extends State<ManageListLot> {
           .getStructuresByResidence(widget.residence.id!);
       if (mounted) {
         setState(() {
-          buildings = fetched;
           nameBuildings = fetched
               .where((b) => b.type != null && b.name != null)
               .map((b) => "${b.type} ${b.name}")
-              .toList();
+              .toList()
+            ..sort((a, b) {
+              // Trier par longueur d'abord, puis alphabétiquement si égalité
+              if (a.length != b.length) {
+                return a.length.compareTo(b.length);
+              }
+              return a.compareTo(b);
+            });
+
           print("Nom des bâtiments : $nameBuildings");
         });
       }
@@ -97,7 +104,7 @@ class _ManageListLotState extends State<ManageListLot> {
     });
   }
 
-  void _removeLot(int index) {
+  void _removeLot(int index, String lot) async {
     final prefix = 'lot_$index';
     for (final field in [
       'refLot',
@@ -107,8 +114,14 @@ class _ManageListLotState extends State<ManageListLot> {
       'lot',
       'refGerance',
     ]) {
-      _controllers['${prefix}_$field']?.dispose();
-      _focusNodes['${prefix}_$field']?.dispose();
+      final controllerKey = '${prefix}_$field';
+      _controllers[controllerKey]?.dispose();
+      _controllers.remove(controllerKey); // 🔧 Supprime la clé
+
+      _focusNodes[controllerKey]?.dispose();
+      _focusNodes.remove(controllerKey); // 🔧 Supprime la clé
+
+      await _lotServices.deleteLot(widget.residence.id!, lot);
     }
 
     setState(() {
@@ -146,18 +159,6 @@ class _ManageListLotState extends State<ManageListLot> {
       lotsGroupedByBuilding.putIfAbsent(key, () => []);
       lotsGroupedByBuilding[key]!.add(lot);
     }
-
-    // Trier les groupes selon l’ordre de buildingNamesOnly
-    final sortedEntries = lotsGroupedByBuilding.entries.toList()
-      ..sort((a, b) {
-        int indexA = buildingNamesOnly.indexOf(a.key);
-        int indexB = buildingNamesOnly.indexOf(b.key);
-        if (indexA == -1) indexA = 9999;
-        if (indexB == -1) indexB = 9999;
-        return indexA.compareTo(indexB);
-      });
-
-    // Fonction pour afficher le nom complet (type + nom) à partir du nom
     String getFullBuildingName(String buildingName) {
       final index = buildings.indexWhere((b) => b.name.trim() == buildingName);
       if (index != -1) {
@@ -165,6 +166,20 @@ class _ManageListLotState extends State<ManageListLot> {
       }
       return buildingName; // fallback
     }
+
+    // Trier les groupes selon l’ordre de buildingNamesOnly
+    final sortedEntries = lotsGroupedByBuilding.entries.toList()
+      ..sort((a, b) {
+        final nameA = getFullBuildingName(a.key);
+        final nameB = getFullBuildingName(b.key);
+
+        if (nameA.length != nameB.length) {
+          return nameA.length.compareTo(nameB.length);
+        }
+        return nameA.compareTo(nameB);
+      });
+
+    // Fonction pour afficher le nom complet (type + nom) à partir du nom
 
     return Scaffold(
       appBar: AppBar(
@@ -189,14 +204,9 @@ class _ManageListLotState extends State<ManageListLot> {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    getFullBuildingName(buildingName),
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                  MyTextStyle.lotName(getFullBuildingName(buildingName),
+                      Colors.black87, SizeFont.h1.size),
+                  const SizedBox(height: 20),
                   ...lotsForBuilding.asMap().entries.map((lotEntry) {
                     final index = lots.indexOf(lotEntry.value);
                     final lot = lotEntry.value;
@@ -274,7 +284,7 @@ class _ManageListLotState extends State<ManageListLot> {
                                   onChanged: (val) => lot.lot = val,
                                 ),
                                 const SizedBox(height: 10),
-                                _removeLotButton(index),
+                                _removeLotButton(index, lot),
                               ],
                             ),
                           ),
@@ -282,6 +292,7 @@ class _ManageListLotState extends State<ManageListLot> {
                       ),
                     );
                   }).toList(),
+                  const SizedBox(height: 30),
                 ],
               );
             }).toList(),
@@ -320,11 +331,23 @@ class _ManageListLotState extends State<ManageListLot> {
     );
   }
 
-  Widget _removeLotButton(int index) {
+  Widget _removeLotButton(int index, Lot lot) {
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton.icon(
-        onPressed: () => _removeLot(index),
+        onPressed: () {
+          lot.idProprietaire == null || lot.idProprietaire!.isEmpty
+              ? _removeLot(index, lot.refLot)
+              : ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      "Le lot est déjà rattaché à un propriétaire, il n'est plus possible de le supprimer.",
+                    ),
+                    backgroundColor: Colors.orange,
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+        },
         icon: const Icon(Icons.delete_forever, color: Colors.black54),
         label: MyTextStyle.postDesc(
           "Supprimer le lot",
@@ -367,7 +390,8 @@ class _ManageListLotState extends State<ManageListLot> {
     if (duplicateErrors.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text("Erreurs détectées :\n${duplicateErrors.join('\n')}"),
+          content:
+              Text("Veuillez remplir tout les champs du lot pour enregistrer"),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 6),
         ),

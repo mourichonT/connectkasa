@@ -241,4 +241,58 @@ class DataBasesResidenceServices {
       print("Erreur lors de l'ajout de l'UID $uidToAdd : $e");
     }
   }
+
+  Future<void> addContact(String residenceId, Contact contact) async {
+    try {
+      final docRef = await db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("contacts")
+          .add(contact.toJson());
+
+      // On récupère le doc.id généré automatiquement par Firestore
+      contact.id = docRef.id;
+
+      // (Optionnel) On le met à jour dans Firestore si tu veux que l'ID apparaisse aussi dans les données du document
+      await docRef.update({'id': contact.id});
+
+      print("Contact ajouté avec succès avec ID : ${contact.id}");
+    } catch (e) {
+      print("Erreur lors de l'ajout du contact : $e");
+    }
+  }
+
+  Future<void> updateContact(String residenceId, Contact contact) async {
+    try {
+      if (contact.id!.isEmpty) {
+        throw Exception("L'identifiant du contact est manquant.");
+      }
+
+      await db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("contacts")
+          .doc(contact.id)
+          .update(contact.toJson());
+
+      print("Contact mis à jour avec succès : ${contact.id}");
+    } catch (e) {
+      print("Erreur lors de la mise à jour du contact : $e");
+    }
+  }
+
+  // Suppression d'un contact par son document ID dans la sous-collection "contacts"
+  Future<void> removeContact(String residenceId, String contactDocId) async {
+    try {
+      await db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("contacts")
+          .doc(contactDocId)
+          .delete();
+      print("Contact supprimé avec succès");
+    } catch (e) {
+      print("Erreur lors de la suppression du contact : $e");
+    }
+  }
 }

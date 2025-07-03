@@ -71,46 +71,90 @@ class ManageContactState extends State<ManageContact> {
   }
 
   // Supprime un contact de la liste et dispose de ses contrôleurs
-  void removeContact(int index) {
+  void removeContact(int index, String contact) async {
     setState(() {
-      // Dispose de tous les contrôleurs associés à ce contact avant de le supprimer
-      // C'est crucial pour éviter les fuites de mémoire.
       final contactPrefix = 'contact_$index';
+      // Dispose et supprime des maps
       _controllers['${contactPrefix}_name']?.dispose();
+      _controllers.remove('${contactPrefix}_name');
       _focusNodes['${contactPrefix}_name']?.dispose();
-      _controllers['${contactPrefix}_service']?.dispose();
-      _focusNodes['${contactPrefix}_service']?.dispose();
-      _controllers['${contactPrefix}_phone']?.dispose();
-      _focusNodes['${contactPrefix}_phone']?.dispose();
-      _controllers['${contactPrefix}_mail']?.dispose();
-      _focusNodes['${contactPrefix}_mail']?.dispose();
-      _controllers['${contactPrefix}_num']?.dispose();
-      _focusNodes['${contactPrefix}_num']?.dispose();
-      _controllers['${contactPrefix}_street']?.dispose();
-      _focusNodes['${contactPrefix}_street']?.dispose();
-      _controllers['${contactPrefix}_city']?.dispose();
-      _focusNodes['${contactPrefix}_city']?.dispose();
-      _controllers['${contactPrefix}_zipcode']?.dispose();
-      _focusNodes['${contactPrefix}_zipcode']?.dispose();
-      _controllers['${contactPrefix}_web']?.dispose();
-      _focusNodes['${contactPrefix}_web']?.dispose();
+      _focusNodes.remove('${contactPrefix}_name');
 
+      _controllers['${contactPrefix}_service']?.dispose();
+      _controllers.remove('${contactPrefix}_service');
+      _focusNodes['${contactPrefix}_service']?.dispose();
+      _focusNodes.remove('${contactPrefix}_service');
+
+      _controllers['${contactPrefix}_phone']?.dispose();
+      _controllers.remove('${contactPrefix}_phone');
+      _focusNodes['${contactPrefix}_phone']?.dispose();
+      _focusNodes.remove('${contactPrefix}_phone');
+
+      _controllers['${contactPrefix}_mail']?.dispose();
+      _controllers.remove('${contactPrefix}_mail');
+      _focusNodes['${contactPrefix}_mail']?.dispose();
+      _focusNodes.remove('${contactPrefix}_mail');
+
+      _controllers['${contactPrefix}_num']?.dispose();
+      _controllers.remove('${contactPrefix}_num');
+      _focusNodes['${contactPrefix}_num']?.dispose();
+      _focusNodes.remove('${contactPrefix}_num');
+
+      _controllers['${contactPrefix}_street']?.dispose();
+      _controllers.remove('${contactPrefix}_street');
+      _focusNodes['${contactPrefix}_street']?.dispose();
+      _focusNodes.remove('${contactPrefix}_street');
+
+      _controllers['${contactPrefix}_city']?.dispose();
+      _controllers.remove('${contactPrefix}_city');
+      _focusNodes['${contactPrefix}_city']?.dispose();
+      _focusNodes.remove('${contactPrefix}_city');
+
+      _controllers['${contactPrefix}_zipcode']?.dispose();
+      _controllers.remove('${contactPrefix}_zipcode');
+      _focusNodes['${contactPrefix}_zipcode']?.dispose();
+      _focusNodes.remove('${contactPrefix}_zipcode');
+
+      _controllers['${contactPrefix}_web']?.dispose();
+      _controllers.remove('${contactPrefix}_web');
+      _focusNodes['${contactPrefix}_web']?.dispose();
+      _focusNodes.remove('${contactPrefix}_web');
       contacts.removeAt(index);
     });
+    await _residenceServices.removeContact(widget.residence.id!, contact);
   }
 
-  // Simule la sauvegarde des contacts (vous pouvez y ajouter votre logique Firestore)
-  void saveContacts() {
+  void saveContacts() async {
+    if (widget.residence.id == null) return;
+
     for (var contact in contacts) {
-      print(contact.toJson());
-      // Logique d'envoi à Firestore ici, par exemple:
-      // _databaseService.saveContact(contact);
+      if ((contact.name.trim().isEmpty ||
+          contact.phone.trim().isEmpty ||
+          contact.service.trim().isEmpty)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text("Les champs nom, service et téléphone sont obligatoires"),
+          ),
+        );
+        return;
+      }
+
+      if (contact.id == null) {
+        // Nouveau contact : ajouter
+        await _residenceServices.addContact(widget.residence.id!, contact);
+      } else {
+        // Contact existant : mettre à jour
+        await _residenceServices.updateContact(contact.id!, contact);
+      }
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Contacts mis à jour avec succès")),
     );
-    // Optionnel: replier tous les contacts après sauvegarde
+
+    await _loadContacts();
+
     setState(() {
       for (var contact in contacts) {
         contact.isExpanded = false;
@@ -323,7 +367,9 @@ class ManageContactState extends State<ManageContact> {
                           ),
                           const SizedBox(height: 20),
                           _removeContactButton(
-                              index), // Bouton supprimer pour chaque contact
+                              index,
+                              contact
+                                  .id!), // Bouton supprimer pour chaque contact
                         ],
                       ),
                     ),
@@ -368,11 +414,11 @@ class ManageContactState extends State<ManageContact> {
   }
 
   // Widget utilitaire pour le bouton de suppression
-  Widget _removeContactButton(int index) {
+  Widget _removeContactButton(int index, String contactId) {
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton.icon(
-        onPressed: () => removeContact(index),
+        onPressed: () => removeContact(index, contactId),
         icon: const Icon(Icons.delete_forever, color: Colors.black54),
         label: MyTextStyle.postDesc(
           "Supprimer le contact",

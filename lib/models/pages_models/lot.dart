@@ -128,8 +128,8 @@ class Lot {
       if (typeLot.isNotEmpty) "typeLot": typeLot,
       if (type.isNotEmpty) "type": type,
       if (idProprietaire != null) "idProprietaire": idProprietaire,
-      if (idLocataire != null) "idLocataire": idLocataire,
-      if (residenceId.isNotEmpty) "residenceId": residenceId,
+      //if (idLocataire != null) "idLocataire": idLocataire,
+      //if (residenceId.isNotEmpty) "residenceId": residenceId,
       // NOTE : On ne met PAS userLotDetails ni residenceData
     };
   }
