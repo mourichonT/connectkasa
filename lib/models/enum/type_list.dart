@@ -74,4 +74,19 @@ class TypeList {
     "Hangar/Entrepôt",
     "Terrain nu",
   ];
+
+  static List<String> servicePrestaList = [
+    "Nettoyage",
+    "Espaces verts",
+    "Électricité",
+    "Entretiens Ascenseur",
+    "Chauffage collectif",
+    "Plomberie",
+    "Ventilation (VMC)",
+    "Portes et portails",
+    "Vidéosurveillance",
+    "Sécurité incendie",
+    "Gestion administrative",
+    "Toiture / étanchéité",
+  ];
 }

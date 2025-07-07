@@ -121,7 +121,8 @@ class DataBasesResidenceServices {
 
       for (var doc in querySnapshot.docs) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        StructureResidence structure = StructureResidence.fromJson(data);
+        StructureResidence structure =
+            StructureResidence.fromJson(data, doc.id);
 
         if (structure.name.isNotEmpty && structure.type.isNotEmpty) {
           allLocalisation.add({
@@ -161,7 +162,7 @@ class DataBasesResidenceServices {
 
       if (doc.exists) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-        return StructureResidence.fromJson(data);
+        return StructureResidence.fromJson(data, doc.id);
       } else {
         print("Document $locId non trouvé dans la résidence $residenceId.");
         return null;
@@ -189,7 +190,8 @@ class DataBasesResidenceServices {
 
       // Parcourt chaque document et le convertit en objet StructureResidence
       for (var docSnapshot in querySnapshot.docs) {
-        structures.add(StructureResidence.fromJson(docSnapshot.data()));
+        structures.add(
+            StructureResidence.fromJson(docSnapshot.data(), docSnapshot.id));
       }
 
       // Trie la liste des structures
@@ -293,6 +295,45 @@ class DataBasesResidenceServices {
       print("Contact supprimé avec succès");
     } catch (e) {
       print("Erreur lors de la suppression du contact : $e");
+    }
+  }
+
+  /// Enregistre une structure dans la sous-collection "structure" d'une résidence.
+  /// Si la structure n'a pas d'ID, elle est ajoutée. Sinon, elle est mise à jour.
+  Future<void> saveStructure(
+      String residenceId, StructureResidence structure) async {
+    try {
+      final collectionRef =
+          db.collection("Residence").doc(residenceId).collection("structure");
+
+      if (structure.id == null || structure.id!.isEmpty) {
+        // Nouvelle structure : ajouter un nouveau document
+        final docRef = await collectionRef.add(structure.toJson());
+        // L'ID du document généré par Firestore est maintenant l'ID de notre objet
+        structure.id = docRef.id;
+        print(
+            "Nouvelle structure ajoutée avec succès avec l'ID : ${structure.id}");
+      } else {
+        // Structure existante : mettre à jour le document en utilisant son ID existant
+        await collectionRef.doc(structure.id).update(structure.toJson());
+        print("Structure mise à jour avec succès : ${structure.id}");
+      }
+    } catch (e) {
+      print("Erreur lors de l'enregistrement de la structure : $e");
+    }
+  }
+
+  Future<void> removeStructure(String residenceId, String structureId) async {
+    try {
+      await db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("structure")
+          .doc(structureId)
+          .delete();
+      print("Sutructure supprimé avec succès");
+    } catch (e) {
+      print("Erreur lors de la suppression de la structure : $e");
     }
   }
 }

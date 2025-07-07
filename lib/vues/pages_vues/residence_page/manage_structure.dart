@@ -45,11 +45,25 @@ class ManageStructureState extends State<ManageStructure> {
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
 
+  // Contrôleur pour le champ de recherche d'agence
+  final TextEditingController _lookupController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
     _loadBuildings(); // Appel pour charger les structures existantes
-    _initFields();
+    _lookupController.addListener(() {
+      final text = _lookupController.text.toLowerCase();
+      if (text.isEmpty) {
+        setState(() {
+          searchResults = [];
+          isSearching = false;
+          _itemSelected = false;
+        });
+      } else {
+        searchAgencyByEmail(text);
+      }
+    });
     itemsElements = ElementsList.elements();
   }
 
@@ -72,34 +86,6 @@ class ManageStructureState extends State<ManageStructure> {
     }
   }
 
-  void _initFields() {
-    final fields = [
-      "agencyName",
-      "nameAgent",
-      "surnameAgent",
-      "lookup",
-      "selectedAgent",
-    ];
-
-    for (var field in fields) {
-      _controllers[field] = TextEditingController();
-      _focusNodes[field] = FocusNode();
-    }
-
-    _controllers["lookup"]!.addListener(() {
-      final text = _controllers["lookup"]!.text.toLowerCase();
-      if (text.isEmpty) {
-        setState(() {
-          searchResults = [];
-          isSearching = false;
-          _itemSelected = false;
-        });
-      } else {
-        searchAgencyByEmail(text);
-      }
-    });
-  }
-
   Future<void> searchAgencyByEmail(String emailPart) async {
     setState(() {
       isSearching = true;
@@ -116,46 +102,80 @@ class ManageStructureState extends State<ManageStructure> {
   void addBuilding() {
     setState(() {
       // Un nouveau bâtiment est ajouté, par défaut isExpanded = true
-      buildings.add(StructureResidence(name: '', type: ''));
+      buildings.add(StructureResidence(
+          name: '',
+          type: '',
+          isExpanded: true)); // Ajout de isExpanded pour le nouvel élément
     });
   }
 
-  void removeBuilding(int index) {
-    setState(() {
-      // Dispose des contrôleurs spécifiques au bâtiment pour éviter les fuites de mémoire
-      _controllers['building_name_$index']?.dispose();
-      _focusNodes['building_name_$index']?.dispose();
-      _controllers['building_elements_$index']?.dispose();
-      _focusNodes['building_elements_$index']?.dispose();
-      _controllers['building_etage_$index']?.dispose();
-      _focusNodes['building_etage_$index']?.dispose();
-      _controllers['building_undergroundLevel_$index']?.dispose();
-      _focusNodes['building_undergroundLevel_$index']?.dispose();
+  void disposeControllerForBuilding(int index) {
+    _controllers['building_name_$index']?.dispose();
+    _focusNodes['building_name_$index']?.dispose();
+    _controllers['building_elements_$index']?.dispose();
+    _focusNodes['building_elements_$index']?.dispose();
+    _controllers['building_etage_$index']?.dispose();
+    _focusNodes['building_etage_$index']?.dispose();
+    _controllers['building_undergroundLevel_$index']?.dispose();
+    _focusNodes['building_undergroundLevel_$index']?.dispose();
+    _controllers['building_ref_gerance_$index']
+        ?.dispose(); // Correction du nom de la clé
+    _focusNodes['building_ref_gerance_$index']
+        ?.dispose(); // Correction du nom de la clé
+  }
 
+  void removeBuilding(int index, String? structureId) async {
+    // Made structureId nullable
+    setState(() {
+      disposeControllerForBuilding(
+          index); // Utiliser la fonction pour un bâtiment spécifique
       buildings.removeAt(index);
     });
+    if (structureId != null) {
+      // Only attempt to remove from DB if structureId exists
+      await _residenceServices.removeStructure(
+          widget.residence.id!, structureId);
+    }
   }
 
-  void saveBuildings() {
-    // La logique de sauvegarde de chaque StructureResidence vers Firestore doit être implémentée ici.
-    // Cela impliquerait d'itérer sur 'buildings' et d'utiliser addDoc pour les nouvelles structures,
-    // ou setDoc/updateDoc pour celles qui existent déjà, en fonction de si elles ont un ID Firestore.
-    // Pour l'instant, nous affichons juste les données dans la console.
-    for (var building in buildings) {
-      print(building.toJson());
-      // Exemple de sauvegarde (nécessiterait une fonction de sauvegarde dans DataBasesResidenceServices)
-      // _residenceServices.saveStructure(widget.residence.id!, building);
+  // MODIFICATION MAJEURE ICI
+  Future<void> saveBuildings() async {
+    // Supprimer l'argument 'index'
+    if (widget.residence.id == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content:
+                Text("Impossible de sauvegarder : ID de résidence manquant.")),
+      );
+      return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Structures mises à jour avec succès")),
-    );
-    // Optionnel: Replier tous les bâtiments après sauvegarde
-    setState(() {
+    try {
       for (var building in buildings) {
-        building.isExpanded = false;
+        print(building.toJson());
+        // Assurez-vous que votre service 'DataBasesResidenceServices' a une méthode pour sauvegarder ou mettre à jour une structure.
+        // Par exemple, vous pouvez avoir une méthode 'addOrUpdateStructure' qui gère la création et la mise à jour.
+        await _residenceServices.saveStructure(widget.residence.id!,
+            building); // Utilisez la fonction de sauvegarde appropriée
       }
-    });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Structures mises à jour avec succès")),
+      );
+
+      // Optionnel: Replier tous les bâtiments après sauvegarde et recharger pour s'assurer que les IDs sont à jour si nécessaire
+      setState(() {
+        for (var building in buildings) {
+          building.isExpanded = false;
+        }
+      });
+      _loadBuildings(); // Recharger les bâtiments pour obtenir les IDs Firestore si de nouveaux ont été ajoutés
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text("Erreur lors de la sauvegarde des structures : $e")),
+      );
+    }
   }
 
   final WidgetStateProperty<Icon?> thumbIcon =
@@ -172,6 +192,7 @@ class ManageStructureState extends State<ManageStructure> {
   void dispose() {
     _controllers.forEach((key, controller) => controller.dispose());
     _focusNodes.forEach((key, focusNode) => focusNode.dispose());
+    _lookupController.dispose(); // Disposez du contrôleur de recherche
     super.dispose();
   }
 
@@ -189,7 +210,7 @@ class ManageStructureState extends State<ManageStructure> {
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
-          "Gestion de la structure",
+          "Configuration de la résidence",
           Colors.black87,
           SizeFont.h1.size,
         ),
@@ -219,10 +240,13 @@ class ManageStructureState extends State<ManageStructure> {
               final elementsController = _initAndGetController(
                   'building_elements_$index', building.elements?.join(', '));
               final etageController = _initAndGetController(
-                  'building_etage_$index', building.etage?.join(', '));
+                  'building_etage_$index', building.etage?.length.toString());
               final undergroundLevelController = _initAndGetController(
                   'building_undergroundLevel_$index',
-                  building.undergroundLevel?.join(', '));
+                  building.undergroundLevel?.length.toString());
+              // Contrôleur pour le champ de référence de gérance spécifique à chaque bâtiment
+              final refGeranceController = _initAndGetController(
+                  'building_ref_gerance_$index', building.refGerance);
 
               return Card(
                 // Ajoute une carte pour l'effet "portefeuille"
@@ -359,14 +383,43 @@ class ManageStructureState extends State<ManageStructure> {
                                 child: Padding(
                                   padding: const EdgeInsets.only(left: 10),
                                   child: CustomTextFieldWidget(
-                                    keyboardType: TextInputType.number,
-                                    controller: etageController,
-                                    isEditable: true,
-                                    onChanged: (val) => building.etage = val
-                                        .split(',')
-                                        .map((e) => e.trim())
-                                        .toList(),
-                                  ),
+                                      keyboardType: TextInputType.number,
+                                      controller: etageController,
+                                      isEditable: true,
+                                      onChanged: (val) {
+                                        // Tente de convertir la valeur en un entier
+                                        int? numberOfFloors =
+                                            int.tryParse(val.trim());
+
+                                        if (numberOfFloors != null &&
+                                            numberOfFloors >= 0) {
+                                          List<String> floors = [];
+                                          // Crée une liste pour stocker les noms des étages
+
+                                          // Ajoute le "RDC" si le nombre d'étages est supérieur ou égal à 1
+                                          if (numberOfFloors >= 1) {
+                                            floors.add("RDC");
+                                          }
+
+                                          // Ajoute les étages numérotés (étage1, étage2, ...)
+                                          for (int i = 1;
+                                              i < numberOfFloors;
+                                              i++) {
+                                            floors.add("étage $i");
+                                          }
+                                          // Assurez-vous que l'étage est null si le nombre est 0 ou non valide, ou si on veut une liste vide
+                                          if (numberOfFloors == 0) {
+                                            building.etage = [
+                                              "RDC"
+                                            ]; // Ou null si vous préférez un champ vide
+                                          } else {
+                                            building.etage = floors;
+                                          }
+                                        } else {
+                                          // Si la valeur n'est pas un nombre valide, vide la liste des étages
+                                          building.etage = ["RDC"];
+                                        }
+                                      }),
                                 ),
                               ),
                             ],
@@ -434,10 +487,25 @@ class ManageStructureState extends State<ManageStructure> {
                                               undergroundLevelController,
                                           isEditable: true,
                                           onChanged: (val) {
-                                            building.undergroundLevel = val
-                                                .split(',')
-                                                .map((e) => e.trim())
-                                                .toList();
+                                            int? numberOfUndergroundLevels =
+                                                int.tryParse(val.trim());
+
+                                            if (numberOfUndergroundLevels !=
+                                                    null &&
+                                                numberOfUndergroundLevels >=
+                                                    0) {
+                                              List<String> levels = [];
+                                              for (int i = 1;
+                                                  i <=
+                                                      numberOfUndergroundLevels;
+                                                  i++) {
+                                                levels.add("Sous-sol -$i");
+                                              }
+                                              building.undergroundLevel =
+                                                  levels;
+                                            } else {
+                                              building.undergroundLevel = [];
+                                            }
                                           },
                                         ),
                                       ),
@@ -475,7 +543,8 @@ class ManageStructureState extends State<ManageStructure> {
                                     setState(() {
                                       building.hasDifferentSyndic = value;
                                       if (!value) {
-                                        _controllers["lookup"]!.clear();
+                                        _lookupController
+                                            .clear(); // Utilisez le contrôleur dédié
                                         building.syndicAgency = null;
                                         building.refGerance = null;
                                         searchResults = [];
@@ -492,25 +561,26 @@ class ManageStructureState extends State<ManageStructure> {
                             child: Column(
                               children: [
                                 CustomTextFieldWidget(
-                                  label: "Recherche agence",
-                                  controller: _controllers["lookup"],
+                                  label: "Mail de l'agence",
+                                  controller:
+                                      _lookupController, // Utilisez le contrôleur dédié
                                   isEditable: true,
                                 ),
                                 const SizedBox(height: 10),
+                                // Uncomment and adapt this part if you intend to use it for searching agencies
                                 AgencySearchResultList(
                                   isSearching: isSearching,
                                   searchResults: searchResults,
                                   onSelect: (agency) {
                                     setState(() {
-                                      _controllers["lookup"]!.text =
-                                          agency.name;
+                                      _lookupController.text = agency
+                                          .name; // Use the dedicated controller
                                       _itemSelected = true;
                                       searchResults = [];
                                       building.syndicAgency = agency;
                                       building.refGerance = agency.name;
 
-                                      _controllers["agencyName"]!.text =
-                                          agency.name;
+                                      // _controllers["agencyName"]!.text = agency.name; // This line seems superfluous or incorrect here
                                       agents = [];
                                       selectedAgent = null;
                                     });
@@ -531,7 +601,8 @@ class ManageStructureState extends State<ManageStructure> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          _remove("la structure", index),
+                          // Pass `building.id` directly, which can be null for new buildings
+                          _remove("la structure", index, building.id),
                           const SizedBox(height: 15),
                         ],
                       ),
@@ -567,7 +638,7 @@ class ManageStructureState extends State<ManageStructure> {
                   vertical: 10,
                   colorText: Colors.white,
                   borderColor: Colors.transparent,
-                  function: saveBuildings,
+                  function: saveBuildings, // Appel sans les parenthèses
                 ),
               ),
             ),
@@ -577,11 +648,12 @@ class ManageStructureState extends State<ManageStructure> {
     );
   }
 
-  Widget _remove(String object, int index) {
+  Widget _remove(String object, int index, String? structureId) {
+    // Made structureId nullable here
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton.icon(
-        onPressed: () => removeBuilding(index),
+        onPressed: () => removeBuilding(index, structureId),
         icon: const Icon(Icons.delete_forever, color: Colors.black54),
         label: MyTextStyle.postDesc(
           "Supprimer $object",

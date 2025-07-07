@@ -62,7 +62,7 @@ class _ResidencePageState extends State<ResidencePage> {
                 ProfileMenu(
                   uid: widget.uid,
                   color: widget.color,
-                  text: "Configuration des bâtiments",
+                  text: "Configuration de la résidence",
                   icon: const Icon(Icons.apartment, size: 22),
                   press: () {
                     Navigator.push(

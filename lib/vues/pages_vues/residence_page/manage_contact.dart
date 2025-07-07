@@ -2,10 +2,12 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_agency_services.dart'; // Gardez si nécessaire pour d'autres fonctionnalités
 import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart'; // Importez votre modèle Contact
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 
 class ManageContact extends StatefulWidget {
@@ -273,11 +275,21 @@ class ManageContactState extends State<ManageContact> {
                             onChanged: (val) => contact.name = val,
                           ),
                           const SizedBox(height: 10),
-                          CustomTextFieldWidget(
-                            label: "Service",
-                            controller: serviceController,
-                            isEditable: true,
-                            onChanged: (val) => contact.service = val,
+
+                          MyDropDownMenu(
+                            height: 90,
+                            width,
+                            "Service",
+                            contact
+                                .service, // Utilise la propriété 'type' du bâtiment
+                            false,
+                            items: TypeList.servicePrestaList,
+                            onValueChanged: (value) {
+                              setState(() {
+                                contact.service =
+                                    value!; // Met à jour la propriété 'type' du bâtiment
+                              });
+                            },
                           ),
                           const SizedBox(height: 10),
                           CustomTextFieldWidget(
@@ -369,7 +381,7 @@ class ManageContactState extends State<ManageContact> {
                           _removeContactButton(
                               index,
                               contact
-                                  .id!), // Bouton supprimer pour chaque contact
+                                  .id), // Bouton supprimer pour chaque contact
                         ],
                       ),
                     ),
@@ -414,11 +426,19 @@ class ManageContactState extends State<ManageContact> {
   }
 
   // Widget utilitaire pour le bouton de suppression
-  Widget _removeContactButton(int index, String contactId) {
+  Widget _removeContactButton(int index, String? contactId) {
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton.icon(
-        onPressed: () => removeContact(index, contactId),
+        onPressed: () {
+          if (contactId != null) {
+            removeContact(index, contactId);
+          } else {
+            setState(() {
+              contacts.removeAt(index);
+            });
+          }
+        },
         icon: const Icon(Icons.delete_forever, color: Colors.black54),
         label: MyTextStyle.postDesc(
           "Supprimer le contact",
