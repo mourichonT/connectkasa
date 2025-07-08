@@ -565,9 +565,11 @@ class ManageStructureState extends State<ManageStructure> {
                                   controller:
                                       _lookupController, // Utilisez le contrôleur dédié
                                   isEditable: true,
+                                  // onChanged: (val) =>
+                                  //     building.refGerance = val
                                 ),
                                 const SizedBox(height: 10),
-                                // Uncomment and adapt this part if you intend to use it for searching agencies
+                                //Uncomment and adapt this part if you intend to use it for searching agencies
                                 AgencySearchResultList(
                                   isSearching: isSearching,
                                   searchResults: searchResults,
@@ -578,7 +580,6 @@ class ManageStructureState extends State<ManageStructure> {
                                       _itemSelected = true;
                                       searchResults = [];
                                       building.syndicAgency = agency;
-                                      building.refGerance = agency.name;
 
                                       // _controllers["agencyName"]!.text = agency.name; // This line seems superfluous or incorrect here
                                       agents = [];
@@ -586,17 +587,6 @@ class ManageStructureState extends State<ManageStructure> {
                                     });
                                   },
                                 ),
-                                if (building.refGerance != null &&
-                                    building.refGerance!.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 10),
-                                    child: MyTextStyle.lotName(
-                                      "Syndic sélectionné (Réf. Gérance) : ${building.refGerance}",
-                                      widget.color,
-                                      SizeFont.h3.size,
-                                    ),
-                                  ),
                               ],
                             ),
                           ),

@@ -62,7 +62,7 @@ class StructureResidence {
           ? Agency.fromJson(json['syndicAgency'])
           : null,
       refGerance: json['refGerance'],
-      isExpanded: json['isExpanded'] ?? true,
+      // isExpanded: json['isExpanded'] ?? true,
     );
   }
 }

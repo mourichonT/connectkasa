@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
+import 'package:connect_kasa/models/pages_models/agency_dept.dart';
 
 class DatabasesAgencyServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -62,6 +63,9 @@ class DatabasesAgencyServices {
       List<Agency> results = [];
 
       for (final doc in querySnapshot.docs) {
+        // doc.data() contient les données de 'serviceSyndic'
+        final Map<String, dynamic> syndicData = doc.data();
+
         final parentRef = doc.reference.parent.parent;
         Map<String, dynamic>? parentData;
 
@@ -69,6 +73,9 @@ class DatabasesAgencyServices {
           final parentSnap = await parentRef.get();
           parentData = parentSnap.data() as Map<String, dynamic>?;
         }
+
+        // Créer l'instance AgencyDept à partir de syndicData
+        final AgencyDept? syndic = AgencyDept.fromJson(syndicData);
 
         results.add(Agency(
           id: parentRef?.id ?? '',
@@ -78,9 +85,12 @@ class DatabasesAgencyServices {
           street: parentData?['street'] ?? '',
           voie: parentData?['voie'] ?? '',
           zipCode: parentData?['zipCode'] ?? '',
+          syndic: syndic, // Assigner l'objet AgencyDept ici
         ));
       }
-      print("AGENCE TROUVEE : ${results[0].name}");
+      if (results.isNotEmpty) {
+        print("AGENCE TROUVEE : ${results[0].name}");
+      }
 
       return results;
     } catch (e) {
@@ -88,58 +98,45 @@ class DatabasesAgencyServices {
       return [];
     }
   }
+  // Future<List<Agency>> searchAgencyByEmail(String emailPart) async {
+  //   if (emailPart.isEmpty) return [];
 
-  // Future<List<DocumentSnapshot<Map<String, dynamic>>>> getDeptByRefId(
-  //     String refId, String dept) async {
-  //   List<DocumentSnapshot<Map<String, dynamic>>> deptDetails =
-  //       []; // Liste pour stocker les documents correspondants
   //   try {
-  //     // Récupérer la référence de la collection "Gerance"
-  //     CollectionReference geranceRef = db.collection("Gerance");
+  //     final querySnapshot = await db
+  //         .collectionGroup('serviceSyndic')
+  //         .where('mail', isGreaterThanOrEqualTo: emailPart)
+  //         .where('mail', isLessThanOrEqualTo: emailPart + '\uf8ff')
+  //         .limit(10)
+  //         .get();
 
-  //     // Appeler une fonction récursive pour parcourir les sous-collections
-  //     await _getDeptRecursively(geranceRef, refId, dept, deptDetails);
-  //   } catch (e) {
-  //     print("Impossible de récupérer l'id $e");
-  //   }
-  //   return deptDetails;
-  // }
+  //     List<Agency> results = [];
 
-  // Future<void> _getDeptRecursively(
-  //     CollectionReference collectionRef,
-  //     String refId,
-  //     String dept,
-  //     List<DocumentSnapshot<Map<String, dynamic>>> deptDetails) async {
-  //   try {
-  //     // Récupérer les documents de la collection actuelle
-  //     QuerySnapshot<Map<String, dynamic>> querySnapshot =
-  //         await collectionRef.get() as QuerySnapshot<Map<String, dynamic>>;
+  //     for (final doc in querySnapshot.docs) {
+  //       final parentRef = doc.reference.parent.parent;
+  //       Map<String, dynamic>? parentData;
 
-  //     // Parcourir chaque document de la collection actuelle
-  //     for (QueryDocumentSnapshot<Map<String, dynamic>> doc
-  //         in querySnapshot.docs) {
-  //       // Vérifier si le champ "id" correspond à "refId"
-  //       if (doc.data()['id'] == refId) {
-  //         deptDetails.add(doc);
-  //         // Récupérer le document parent
-  //         DocumentSnapshot<Map<String, dynamic>> parentDoc =
-  //             await collectionRef.parent!.get();
-  //         deptDetails.add(parentDoc);
+  //       if (parentRef != null) {
+  //         final parentSnap = await parentRef.get();
+  //         parentData = parentSnap.data() as Map<String, dynamic>?;
   //       }
-  //     }
 
-  //     // Parcourir chaque sous-collection de la collection actuelle
-  //     for (QueryDocumentSnapshot<Map<String, dynamic>> doc
-  //         in querySnapshot.docs) {
-  //       // Si le document a une sous-collection
-  //       if (doc.reference.collection(dept).id == dept) {
-  //         // Appeler récursivement cette fonction pour cette sous-collection
-  //         await _getDeptRecursively(
-  //             doc.reference.collection(dept), refId, dept, deptDetails);
-  //       }
+  //       results.add(Agency(
+  //         id: parentRef?.id ?? '',
+  //         name: parentData?['name'] ?? '',
+  //         city: parentData?['city'] ?? '',
+  //         numeros: parentData?['numeros'] ?? '',
+  //         street: parentData?['street'] ?? '',
+  //         voie: parentData?['voie'] ?? '',
+  //         zipCode: parentData?['zipCode'] ?? '',
+  //         syndic:
+  //       ));
   //     }
+  //     print("AGENCE TROUVEE : ${results[0].name}");
+
+  //     return results;
   //   } catch (e) {
-  //     print("Impossible de récupérer l'id $e");
+  //     print("Erreur recherche agence: $e");
+  //     return [];
   //   }
   // }
 

@@ -1,3 +1,5 @@
+import 'package:connect_kasa/models/pages_models/agency_dept.dart';
+
 class Agency {
   String city;
   String id;
@@ -6,6 +8,7 @@ class Agency {
   String street;
   String voie;
   String zipCode;
+  AgencyDept? syndic;
 
   Agency({
     required this.city,
@@ -15,6 +18,7 @@ class Agency {
     required this.street,
     required this.voie,
     required this.zipCode,
+    this.syndic,
   });
 
   factory Agency.fromJson(Map<String, dynamic> json) {
@@ -26,6 +30,9 @@ class Agency {
       street: json["street"] ?? "",
       voie: json["voie"] ?? "",
       zipCode: json["zipCode"] ?? "",
+      syndic: json["syndic"] != null
+          ? AgencyDept.fromJson(json["syndic"] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -38,6 +45,7 @@ class Agency {
       "street": street,
       "voie": voie,
       "zipCode": zipCode,
+      "syndic": syndic?.toJson(),
     };
   }
 }
