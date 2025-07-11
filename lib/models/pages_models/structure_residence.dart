@@ -7,11 +7,9 @@ class StructureResidence {
   String type;
   List<String>? elements;
   List<String>? etage;
-  List<String>? undergroundLevel;
   bool hasUnderground;
   bool hasDifferentSyndic;
   Agency? syndicAgency;
-  String? refGerance;
   bool isExpanded;
 
   StructureResidence({
@@ -20,11 +18,9 @@ class StructureResidence {
     required this.type,
     this.elements,
     this.etage,
-    this.undergroundLevel,
     this.hasUnderground = false,
     this.hasDifferentSyndic = false,
     this.syndicAgency,
-    this.refGerance,
     this.isExpanded = true,
   });
 
@@ -36,11 +32,9 @@ class StructureResidence {
       'type': type,
       'elements': elements,
       'etage': etage,
-      'undergroundLevel': undergroundLevel,
       'hasUnderground': hasUnderground,
       'hasDifferentSyndic': hasDifferentSyndic,
       'syndicAgency': syndicAgency?.toJson(),
-      'refGerance': refGerance,
       'isExpanded': isExpanded,
     };
   }
@@ -53,15 +47,12 @@ class StructureResidence {
       type: json['type'],
       elements: (json['elements'] as List?)?.map((e) => e.toString()).toList(),
       etage: (json['etage'] as List?)?.map((e) => e.toString()).toList(),
-      undergroundLevel: (json['undergroundLevel'] as List?)
-          ?.map((e) => e.toString())
-          .toList(),
+
       hasUnderground: json['hasUnderground'] ?? false,
       hasDifferentSyndic: json['hasDifferentSyndic'] ?? false,
       syndicAgency: json['syndicAgency'] != null
           ? Agency.fromJson(json['syndicAgency'])
           : null,
-      refGerance: json['refGerance'],
       // isExpanded: json['isExpanded'] ?? true,
     );
   }

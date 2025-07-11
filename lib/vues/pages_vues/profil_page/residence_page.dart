@@ -1,5 +1,5 @@
 import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/management_res_info_g.dart';
+import 'package:connect_kasa/vues/pages_vues/residence_page/management_res_info_g.dart';
 import 'package:connect_kasa/vues/pages_vues/residence_page/manage_contact.dart';
 import 'package:connect_kasa/vues/pages_vues/residence_page/manage_cs_members.dart';
 import 'package:connect_kasa/vues/pages_vues/residence_page/manage_list_lot.dart';

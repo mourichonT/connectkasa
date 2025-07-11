@@ -12,11 +12,6 @@ import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // Gardez cette importation si elle est utilisée ailleurs
-
-// Note: Vous devrez mettre à jour votre fichier 'structure_residence.dart'
-// pour inclure les nouvelles propriétés 'hasUnderground', 'hasDifferentSyndic', et 'syndicAgency'.
-// Voir la section "Mettez à jour votre modèle StructureResidence" ci-dessous.
 
 class ManageStructure extends StatefulWidget {
   final Residence residence;
@@ -31,7 +26,7 @@ class ManageStructure extends StatefulWidget {
 class ManageStructureState extends State<ManageStructure> {
   final DatabasesAgencyServices _agencyServices = DatabasesAgencyServices();
   final DataBasesResidenceServices _residenceServices =
-      DataBasesResidenceServices(); // Nouvelle instance du service
+      DataBasesResidenceServices();
   List<Agent> agents = [];
   List<StructureResidence> buildings = [];
   List<Agency> searchResults = [];
@@ -45,35 +40,17 @@ class ManageStructureState extends State<ManageStructure> {
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
 
-  // Contrôleur pour le champ de recherche d'agence
-  final TextEditingController _lookupController = TextEditingController();
-
   @override
   void initState() {
     super.initState();
-    _loadBuildings(); // Appel pour charger les structures existantes
-    _lookupController.addListener(() {
-      final text = _lookupController.text.toLowerCase();
-      if (text.isEmpty) {
-        setState(() {
-          searchResults = [];
-          isSearching = false;
-          _itemSelected = false;
-        });
-      } else {
-        searchAgencyByEmail(text);
-      }
-    });
+    _loadBuildings();
     itemsElements = ElementsList.elements();
   }
 
-  // Fonction asynchrone pour charger les structures depuis Firestore
   Future<void> _loadBuildings() async {
     if (widget.residence.id != null) {
-      // Récupère les structures en utilisant la nouvelle fonction du service
       final fetchedBuildings = await _residenceServices
           .getStructuresByResidence(widget.residence.id!);
-      // S'assure que toutes les cartes sont fermées lors du chargement
       for (var building in fetchedBuildings) {
         building.isExpanded = false;
       }
@@ -81,12 +58,12 @@ class ManageStructureState extends State<ManageStructure> {
         buildings = fetchedBuildings;
       });
     } else {
-      buildings =
-          []; // Si pas d'ID de résidence, initialise la liste comme vide
+      buildings = [];
     }
   }
 
-  Future<void> searchAgencyByEmail(String emailPart) async {
+  Future<void> searchAgencyByEmail(
+      String emailPart, StructureResidence building) async {
     setState(() {
       isSearching = true;
     });
@@ -94,18 +71,33 @@ class ManageStructureState extends State<ManageStructure> {
     final results = await _agencyServices.searchAgencyByEmail(emailPart);
 
     setState(() {
-      searchResults = results;
+      if (results.isEmpty) {
+        building.syndicAgency = Agency(
+          city: '',
+          id: '',
+          name: emailPart,
+          numeros: '',
+          street: '',
+          voie: '',
+          zipCode: '',
+          syndic: AgencyDept(
+            agents: [],
+            mail: emailPart,
+            phone: '',
+          ),
+        );
+        searchResults = [building.syndicAgency!];
+        _itemSelected = true;
+      } else {
+        searchResults = results;
+      }
       isSearching = false;
     });
   }
 
   void addBuilding() {
     setState(() {
-      // Un nouveau bâtiment est ajouté, par défaut isExpanded = true
-      buildings.add(StructureResidence(
-          name: '',
-          type: '',
-          isExpanded: true)); // Ajout de isExpanded pour le nouvel élément
+      buildings.add(StructureResidence(name: '', type: '', isExpanded: true));
     });
   }
 
@@ -118,29 +110,23 @@ class ManageStructureState extends State<ManageStructure> {
     _focusNodes['building_etage_$index']?.dispose();
     _controllers['building_undergroundLevel_$index']?.dispose();
     _focusNodes['building_undergroundLevel_$index']?.dispose();
-    _controllers['building_ref_gerance_$index']
-        ?.dispose(); // Correction du nom de la clé
-    _focusNodes['building_ref_gerance_$index']
-        ?.dispose(); // Correction du nom de la clé
+    _controllers['building_ref_gerance_$index']?.dispose();
+    _focusNodes['building_ref_gerance_$index']?.dispose();
+    _controllers['agency_search_controller_$index']?.dispose();
+    _focusNodes['agency_search_controller_$index']?.dispose();
   }
 
   void removeBuilding(int index, String? structureId) async {
-    // Made structureId nullable
     setState(() {
-      disposeControllerForBuilding(
-          index); // Utiliser la fonction pour un bâtiment spécifique
       buildings.removeAt(index);
     });
     if (structureId != null) {
-      // Only attempt to remove from DB if structureId exists
       await _residenceServices.removeStructure(
           widget.residence.id!, structureId);
     }
   }
 
-  // MODIFICATION MAJEURE ICI
   Future<void> saveBuildings() async {
-    // Supprimer l'argument 'index'
     if (widget.residence.id == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -150,26 +136,53 @@ class ManageStructureState extends State<ManageStructure> {
       return;
     }
 
+    for (int i = 0; i < buildings.length; i++) {
+      final building = buildings[i];
+
+      final nameController = _controllers['building_name_$i'];
+      final typeController = building.type;
+
+      if (nameController == null || nameController.text.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Le nom de la structure ne peut pas être vide."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          building.isExpanded = true;
+        });
+        return;
+      }
+
+      if (typeController.trim().isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                "Le type de la structure '${building.name}' ne peut pas être vide."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          building.isExpanded = true;
+        });
+        return;
+      }
+    }
     try {
       for (var building in buildings) {
         print(building.toJson());
-        // Assurez-vous que votre service 'DataBasesResidenceServices' a une méthode pour sauvegarder ou mettre à jour une structure.
-        // Par exemple, vous pouvez avoir une méthode 'addOrUpdateStructure' qui gère la création et la mise à jour.
-        await _residenceServices.saveStructure(widget.residence.id!,
-            building); // Utilisez la fonction de sauvegarde appropriée
+        await _residenceServices.saveStructure(widget.residence.id!, building);
+        building.isExpanded = false;
       }
+
+      setState(() {});
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Structures mises à jour avec succès")),
       );
 
-      // Optionnel: Replier tous les bâtiments après sauvegarde et recharger pour s'assurer que les IDs sont à jour si nécessaire
-      setState(() {
-        for (var building in buildings) {
-          building.isExpanded = false;
-        }
-      });
-      _loadBuildings(); // Recharger les bâtiments pour obtenir les IDs Firestore si de nouveaux ont été ajoutés
+      _loadBuildings();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -192,17 +205,23 @@ class ManageStructureState extends State<ManageStructure> {
   void dispose() {
     _controllers.forEach((key, controller) => controller.dispose());
     _focusNodes.forEach((key, focusNode) => focusNode.dispose());
-    _lookupController.dispose(); // Disposez du contrôleur de recherche
     super.dispose();
   }
 
-  // Fonction utilitaire pour initialiser et récupérer un TextEditingController et son FocusNode
   TextEditingController _initAndGetController(String key, String? initialText) {
-    _controllers.putIfAbsent(key, () => TextEditingController());
-    _controllers[key]!.text = initialText ?? '';
+    if (!_controllers.containsKey(key)) {
+      _controllers[key] = TextEditingController(text: initialText ?? '');
+    }
     _focusNodes.putIfAbsent(key, () => FocusNode());
     return _controllers[key]!;
   }
+
+  // TextEditingController _initAndGetController(String key, String? initialText) {
+  //   _controllers.putIfAbsent(key, () => TextEditingController());
+  //   _controllers[key]!.text = initialText ?? '';
+  //   _focusNodes.putIfAbsent(key, () => FocusNode());
+  //   return _controllers[key]!;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -229,34 +248,45 @@ class ManageStructureState extends State<ManageStructure> {
                 fontweight: FontWeight.normal,
                 textAlign: TextAlign.justify),
             const SizedBox(height: 20),
-            // Utilisation de .toList() pour s'assurer que la liste est construite avant d'être utilisée
             ...buildings.asMap().entries.map((entry) {
               final index = entry.key;
               final building = entry.value;
 
-              // Utilisation de la fonction utilitaire pour initialiser les contrôleurs
               final nameController =
                   _initAndGetController('building_name_$index', building.name);
               final elementsController = _initAndGetController(
                   'building_elements_$index', building.elements?.join(', '));
+
+              // Calculer la longueur initiale des étages pour l'affichage dans le champ
+              final initialEtageLength =
+                  (building.etage?.contains("RDC") ?? false)
+                      ? (building.etage?.length ?? 0)
+                      : (building.etage?.length ?? 0) +
+                          1; // Si RDC n'existe pas, ajoutez-le virtuellement
               final etageController = _initAndGetController(
-                  'building_etage_$index', building.etage?.length.toString());
+                  'building_etage_$index', initialEtageLength.toString());
+
+              // Le contrôleur pour undergroundLevel n'est plus directement lié à une propriété séparée
               final undergroundLevelController = _initAndGetController(
                   'building_undergroundLevel_$index',
-                  building.undergroundLevel?.length.toString());
-              // Contrôleur pour le champ de référence de gérance spécifique à chaque bâtiment
-              final refGeranceController = _initAndGetController(
-                  'building_ref_gerance_$index', building.refGerance);
+                  building.etage
+                      ?.where((e) => e.startsWith("Sous-sol"))
+                      .length
+                      .toString());
 
+              final _lookupController = _initAndGetController(
+                  'building_ref_gerance_$index',
+                  building.syndicAgency?.syndic?.mail ?? "");
+
+              final agencySearchController = _initAndGetController(
+                  'agency_search_controller_$index',
+                  building.syndicAgency?.syndic?.mail ?? "");
               return Card(
-                // Ajoute une carte pour l'effet "portefeuille"
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 elevation: 2.0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                // CORRECTION CLÉ 2: Utiliser ObjectKey pour une clé stable basée sur l'identité de l'objet.
-                // Cela résout l'erreur "A GlobalKey was used multiple times".
                 child: ExpansionTile(
                   key: ObjectKey(building),
                   initiallyExpanded: building.isExpanded,
@@ -275,7 +305,6 @@ class ManageStructureState extends State<ManageStructure> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             MyTextStyle.lotName(
-                              // Affiche le type et le nom du bâtiment
                               building.name.isNotEmpty
                                   ? "${building.type} ${building.name}"
                                   : "Nouveau Bâtiment",
@@ -293,8 +322,6 @@ class ManageStructureState extends State<ManageStructure> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Les champs de nom et de type sont maintenant dans le titre de l'ExpansionTile
-                          // Si vous voulez aussi les afficher quand la tuile est dépliée pour modification:
                           CustomTextFieldWidget(
                             label: "Nom du Bâtiment",
                             controller: nameController,
@@ -306,14 +333,12 @@ class ManageStructureState extends State<ManageStructure> {
                             height: 90,
                             width,
                             "Type de structure",
-                            building
-                                .type, // Utilise la propriété 'type' du bâtiment
+                            building.type,
                             false,
                             items: ElementsList.structureType(),
                             onValueChanged: (value) {
                               setState(() {
-                                building.type =
-                                    value!; // Met à jour la propriété 'type' du bâtiment
+                                building.type = value!;
                               });
                             },
                           ),
@@ -327,45 +352,128 @@ class ManageStructureState extends State<ManageStructure> {
                                 SizeFont.h3.size),
                           ),
                           const SizedBox(height: 10),
-                          Center(
-                            child: Wrap(
-                              spacing: 5.0,
-                              children:
-                                  itemsElements.map((String itemsElement) {
-                                return FilterChip(
-                                  label: MyTextStyle.lotDesc(
-                                      itemsElement, SizeFont.h3.size),
-                                  selected: building.elements
-                                          ?.contains(itemsElement) ??
-                                      false,
-                                  onSelected: (bool selected) {
-                                    setState(() {
-                                      building.elements ??= [];
-                                      if (selected) {
-                                        building.elements!.add(itemsElement);
-                                      } else {
-                                        building.elements!.remove(itemsElement);
-                                      }
-                                      elementsController.text =
-                                          building.elements!.join(', ');
-                                    });
-                                  },
-                                  backgroundColor: const Color(0xFFF5F6F9),
-                                  selectedColor: Theme.of(context).primaryColor,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  side: BorderSide(
-                                    color: (building.elements
-                                                ?.contains(itemsElement) ??
-                                            false)
-                                        ? Theme.of(context).primaryColor
-                                        : const Color(0xFFF5F6F9),
-                                    width: 2,
-                                  ),
-                                );
-                              }).toList(),
-                            ),
+                          Column(
+                            children: [
+                              Center(
+                                child: Wrap(
+                                  spacing: 5.0,
+                                  children:
+                                      itemsElements.map((String itemsElement) {
+                                    return FilterChip(
+                                      label: MyTextStyle.lotDesc(
+                                          itemsElement, SizeFont.h3.size),
+                                      selected: building.elements
+                                              ?.contains(itemsElement) ??
+                                          false,
+                                      onSelected: (bool selected) {
+                                        setState(() {
+                                          building.elements ??= [];
+                                          if (selected) {
+                                            building.elements!
+                                                .add(itemsElement);
+                                          } else {
+                                            building.elements!
+                                                .remove(itemsElement);
+                                          }
+                                          elementsController.text =
+                                              building.elements!.join(', ');
+                                        });
+                                      },
+                                      backgroundColor: const Color(0xFFF5F6F9),
+                                      selectedColor:
+                                          Theme.of(context).primaryColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      side: BorderSide(
+                                        color: (building.elements
+                                                    ?.contains(itemsElement) ??
+                                                false)
+                                            ? Theme.of(context).primaryColor
+                                            : const Color(0xFFF5F6F9),
+                                        width: 2,
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      TextEditingController newItemController =
+                                          TextEditingController();
+                                      return AlertDialog(
+                                        title: MyTextStyle.lotName(
+                                            'Ajouter des éléments',
+                                            Colors.black87,
+                                            SizeFont.h3.size),
+                                        content: TextField(
+                                          controller: newItemController,
+                                          decoration: const InputDecoration(
+                                            hintText:
+                                                'Entrez un nouvel élément',
+                                          ),
+                                        ),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: MyTextStyle.lotName(
+                                                'Annuler',
+                                                Colors.black54,
+                                                SizeFont.h3.size,
+                                                FontWeight.normal),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                          TextButton(
+                                            child: MyTextStyle.lotName(
+                                                'Ajouter',
+                                                Theme.of(context).primaryColor),
+                                            onPressed: () {
+                                              setState(() {
+                                                if (newItemController
+                                                    .text.isNotEmpty) {
+                                                  // Assurez-vous que building.elements est initialisé
+                                                  building.elements ??= [];
+                                                  // Ajoutez le nouvel élément à la liste des éléments du bâtiment
+                                                  building.elements!.add(
+                                                      newItemController.text);
+                                                  // Mettez à jour itemsElements si nécessaire pour que le FilterChip soit disponible
+                                                  // Ceci est important si vous voulez que le nouvel élément apparaisse comme un FilterChip sélectionnable
+                                                  // Si itemsElements est une liste fixe, vous devrez peut-être la rendre dynamique
+                                                  if (!itemsElements.contains(
+                                                      newItemController.text)) {
+                                                    itemsElements.add(
+                                                        newItemController.text);
+                                                  }
+                                                  // Mettez à jour le contrôleur de texte principal si vous l'utilisez
+                                                  elementsController.text =
+                                                      building.elements!
+                                                          .join(', ');
+                                                }
+                                              });
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add),
+                                    MyTextStyle.lotName(
+                                        'Ajouter des éléments',
+                                        Theme.of(context).primaryColor,
+                                        SizeFont.h3.size),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(height: 20),
                           Row(
@@ -387,38 +495,36 @@ class ManageStructureState extends State<ManageStructure> {
                                       controller: etageController,
                                       isEditable: true,
                                       onChanged: (val) {
-                                        // Tente de convertir la valeur en un entier
                                         int? numberOfFloors =
                                             int.tryParse(val.trim());
 
-                                        if (numberOfFloors != null &&
-                                            numberOfFloors >= 0) {
-                                          List<String> floors = [];
-                                          // Crée une liste pour stocker les noms des étages
+                                        setState(() {
+                                          building.etage ??= [];
+                                          // Retirer les anciens étages "RDC" et "étage X"
+                                          building.etage!.removeWhere(
+                                              (element) =>
+                                                  element == "RDC" ||
+                                                  element.startsWith("étage "));
 
-                                          // Ajoute le "RDC" si le nombre d'étages est supérieur ou égal à 1
-                                          if (numberOfFloors >= 1) {
-                                            floors.add("RDC");
-                                          }
-
-                                          // Ajoute les étages numérotés (étage1, étage2, ...)
-                                          for (int i = 1;
-                                              i < numberOfFloors;
-                                              i++) {
-                                            floors.add("étage $i");
-                                          }
-                                          // Assurez-vous que l'étage est null si le nombre est 0 ou non valide, ou si on veut une liste vide
-                                          if (numberOfFloors == 0) {
-                                            building.etage = [
-                                              "RDC"
-                                            ]; // Ou null si vous préférez un champ vide
+                                          if (numberOfFloors != null &&
+                                              numberOfFloors >= 0) {
+                                            if (numberOfFloors >= 1) {
+                                              building.etage!.add("RDC");
+                                            }
+                                            for (int i = 1;
+                                                i < numberOfFloors;
+                                                i++) {
+                                              building.etage!.add("étage $i");
+                                            }
                                           } else {
-                                            building.etage = floors;
+                                            // Si la valeur n'est pas un nombre valide, ou 0, réinitialise avec juste "RDC"
+                                            if (building.etage!.isEmpty &&
+                                                (numberOfFloors == null ||
+                                                    numberOfFloors == 0)) {
+                                              building.etage = ["RDC"];
+                                            }
                                           }
-                                        } else {
-                                          // Si la valeur n'est pas un nombre valide, vide la liste des étages
-                                          building.etage = ["RDC"];
-                                        }
+                                        });
                                       }),
                                 ),
                               ),
@@ -453,7 +559,9 @@ class ManageStructureState extends State<ManageStructure> {
                                     setState(() {
                                       building.hasUnderground = value;
                                       if (!value) {
-                                        building.undergroundLevel = null;
+                                        // Si hasUnderground devient false, retire les sous-sols de la liste 'etage'
+                                        building.etage?.removeWhere((element) =>
+                                            element.startsWith("Sous-sol"));
                                         undergroundLevelController.clear();
                                       }
                                     });
@@ -490,22 +598,26 @@ class ManageStructureState extends State<ManageStructure> {
                                             int? numberOfUndergroundLevels =
                                                 int.tryParse(val.trim());
 
-                                            if (numberOfUndergroundLevels !=
-                                                    null &&
-                                                numberOfUndergroundLevels >=
-                                                    0) {
-                                              List<String> levels = [];
-                                              for (int i = 1;
-                                                  i <=
-                                                      numberOfUndergroundLevels;
-                                                  i++) {
-                                                levels.add("Sous-sol -$i");
+                                            setState(() {
+                                              building.etage ??= [];
+                                              // Retirer les anciens sous-sols
+                                              building.etage!.removeWhere(
+                                                  (element) => element
+                                                      .startsWith("Sous-sol"));
+
+                                              if (numberOfUndergroundLevels !=
+                                                      null &&
+                                                  numberOfUndergroundLevels >=
+                                                      0) {
+                                                for (int i = 1;
+                                                    i <=
+                                                        numberOfUndergroundLevels;
+                                                    i++) {
+                                                  building.etage!
+                                                      .add("Sous-sol -$i");
+                                                }
                                               }
-                                              building.undergroundLevel =
-                                                  levels;
-                                            } else {
-                                              building.undergroundLevel = [];
-                                            }
+                                            });
                                           },
                                         ),
                                       ),
@@ -516,7 +628,7 @@ class ManageStructureState extends State<ManageStructure> {
                             ),
                           ),
                           MyTextStyle.postDesc(
-                              "Pour un souterrain composé de 2 niveaux en souterrain, veuillez noter 2",
+                              "Pour un souterrain composé de 2 niveaux, veuillez noter 2",
                               SizeFont.para.size,
                               Colors.black54,
                               fontweight: FontWeight.normal,
@@ -543,10 +655,8 @@ class ManageStructureState extends State<ManageStructure> {
                                     setState(() {
                                       building.hasDifferentSyndic = value;
                                       if (!value) {
-                                        _lookupController
-                                            .clear(); // Utilisez le contrôleur dédié
+                                        _lookupController.clear();
                                         building.syndicAgency = null;
-                                        building.refGerance = null;
                                         searchResults = [];
                                       }
                                     });
@@ -562,26 +672,32 @@ class ManageStructureState extends State<ManageStructure> {
                               children: [
                                 CustomTextFieldWidget(
                                   label: "Mail de l'agence",
-                                  controller:
-                                      _lookupController, // Utilisez le contrôleur dédié
+                                  controller: agencySearchController,
                                   isEditable: true,
-                                  // onChanged: (val) =>
-                                  //     building.refGerance = val
+                                  onChanged: (val) {
+                                    if (val.isEmpty) {
+                                      setState(() {
+                                        searchResults = [];
+                                        isSearching = false;
+                                        _itemSelected = false;
+                                        building.syndicAgency = null;
+                                      });
+                                    } else {
+                                      searchAgencyByEmail(val, building);
+                                    }
+                                  },
                                 ),
                                 const SizedBox(height: 10),
-                                //Uncomment and adapt this part if you intend to use it for searching agencies
                                 AgencySearchResultList(
                                   isSearching: isSearching,
                                   searchResults: searchResults,
                                   onSelect: (agency) {
                                     setState(() {
-                                      _lookupController.text = agency
-                                          .name; // Use the dedicated controller
+                                      agencySearchController.text = agency.name;
                                       _itemSelected = true;
                                       searchResults = [];
                                       building.syndicAgency = agency;
 
-                                      // _controllers["agencyName"]!.text = agency.name; // This line seems superfluous or incorrect here
                                       agents = [];
                                       selectedAgent = null;
                                     });
@@ -591,7 +707,6 @@ class ManageStructureState extends State<ManageStructure> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          // Pass `building.id` directly, which can be null for new buildings
                           _remove("la structure", index, building.id),
                           const SizedBox(height: 15),
                         ],
@@ -628,7 +743,7 @@ class ManageStructureState extends State<ManageStructure> {
                   vertical: 10,
                   colorText: Colors.white,
                   borderColor: Colors.transparent,
-                  function: saveBuildings, // Appel sans les parenthèses
+                  function: saveBuildings,
                 ),
               ),
             ),
@@ -639,7 +754,6 @@ class ManageStructureState extends State<ManageStructure> {
   }
 
   Widget _remove(String object, int index, String? structureId) {
-    // Made structureId nullable here
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton.icon(

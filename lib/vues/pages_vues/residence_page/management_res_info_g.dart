@@ -372,4 +372,57 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
       ),
     );
   }
+
+  // Future<void> saveResidence() async {
+  //   try {
+  //     final docRef = FirebaseFirestore.instance
+  //         .collection('residences')
+  //         .doc(widget.residence.id);
+
+  //     Map<String, dynamic> updateData = {
+  //       'mailContact': _controllers["mail_contact"]!.text,
+  //       'name': _controllers["name"]!.text,
+  //       'numero': _controllers["numero"]!.text,
+  //       'voie': _controllers["voie"]!.text,
+  //       'street': _controllers["street"]!.text,
+  //       'zipCode': _controllers["zipCode"]!.text,
+  //       'city': _controllers["city"]!.text,
+  //     };
+
+  //     if (delegated) {
+  //       if (_itemSelected) {
+  //         // L’utilisateur vient de sélectionner une nouvelle agence
+  //         final agencyName = _controllers["agencyName"]!.text;
+  //         final Agency? agency = searchResults.firstWhere(
+  //             (a) => a.name == agencyName,
+  //             orElse: () => Agency(id: "", name: ""));
+
+  //         if (agency.id.isNotEmpty) {
+  //           updateData['refGerance'] = agency.id;
+  //           updateData['id_gestionnaire'] =
+  //               "0"; // par défaut, pas encore choisi
+  //         }
+  //       } else if (selectedAgent != null) {
+  //         // Mise à jour de l'agent si déjà sélectionné
+  //         updateData['id_gestionnaire'] =
+  //             agents.indexOf(selectedAgent!).toString();
+  //       }
+  //     } else {
+  //       // Pas de délégation, on vide refGerance et id_gestionnaire
+  //       updateData['refGerance'] = "";
+  //       updateData['id_gestionnaire'] = "";
+  //     }
+
+  //     await docRef.update(updateData);
+
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Résidence mise à jour")),
+  //     );
+  //   } catch (e) {
+  //     print("Erreur lors de la sauvegarde : $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Erreur lors de la sauvegarde")),
+  //     );
+  //   }
+  // }
 }
