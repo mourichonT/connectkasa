@@ -54,39 +54,48 @@ class ModifyPostFormState extends State<ModifyPostForm> {
   @override
   void initState() {
     super.initState();
+    // Récupération des types de déclaration
     List<List<String>> declarationType = _typeList.typeDeclaration();
-    labelsType = declarationType.asMap().entries.map((entry) {
-      return entry.value[1];
-    }).toList();
-    labelsType = labelsType.toSet().toList();
+    labelsType = declarationType.map((e) => e[1]).toSet().toList();
+
     textEditingController = TextEditingController();
+
+    // Récupération de la résidence depuis la base
     getResidence =
         residenceServices.getResidenceByRef(widget.post.refResidence);
+
     getResidence.then((residence) {
       setState(() {
-        locationElements = residence.localisation!;
-        locationsFloor = residence.etage!;
-        locationDetails = residence.elements!;
+        // Liste des bâtiments (noms des structures)
+        locationElements = residence.structures?.values
+                .map((structure) => '${structure.type} ${structure.name}')
+                .toList() ??
+            [];
+        print(locationElements);
+
+        locationsFloor = residence.structures?.values
+                .expand((structure) => structure.etage ?? [])
+                .map((e) => e.toString()) // <- cast explicite en String
+                .toSet()
+                .toList() ??
+            [];
+
+        locationDetails = residence.structures?.values
+                .expand((structure) => structure.elements ?? [])
+                .map((e) => e.toString()) // <- cast explicite en String
+                .toSet()
+                .toList() ??
+            [];
+
+        // Initialisation des valeurs sélectionnées en fonction du post actuel
+        type = labelsType.contains(widget.post.type) ? widget.post.type : null;
+        localisation = locationElements.contains(widget.post.location_element)
+            ? widget.post.location_element
+            : null;
+        etage = locationsFloor.contains(widget.post.location_floor)
+            ? widget.post.location_floor
+            : null;
       });
-
-      // Ensure initial values are valid
-      if (!labelsType.contains(widget.post.type)) {
-        type = null;
-      } else {
-        type = widget.post.type;
-      }
-
-      if (!locationElements.contains(widget.post.location_element)) {
-        localisation = null;
-      } else {
-        localisation = widget.post.location_element;
-      }
-
-      if (!locationsFloor.contains(widget.post.location_floor)) {
-        etage = null;
-      } else {
-        etage = widget.post.location_floor;
-      }
     });
 
     title = TextEditingController(text: widget.post.title);
@@ -160,12 +169,13 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                     padding: const EdgeInsets.only(
                       top: 10,
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Expanded(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           child: DropdownButtonFormField<String>(
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
                             decoration: InputDecoration(
                               isDense: true,
                               contentPadding: const EdgeInsets.symmetric(
@@ -186,9 +196,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                                     value: value,
                                     child: Text(
                                       value,
-                                      style: TextStyle(
-                                        fontSize: fontSize,
-                                      ),
+                                      style: TextStyle(fontSize: fontSize),
                                     ),
                                   );
                                 })
@@ -196,11 +204,10 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                                 .toList(),
                           ),
                         ),
-                        SizedBox(
-                          width: 160,
-                          //padding: EdgeInsets.symmetric(horizontal: 1),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           child: DropdownButtonFormField<String>(
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
                             decoration: InputDecoration(
                               isDense: true,
                               contentPadding: const EdgeInsets.only(
@@ -221,17 +228,16 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                                 value: value,
                                 child: Text(
                                   value,
-                                  style: TextStyle(
-                                    fontSize: fontSize,
-                                  ),
+                                  style: TextStyle(fontSize: fontSize),
                                 ),
                               );
                             }).toList(),
                           ),
                         ),
-                        Expanded(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           child: DropdownButtonFormField<String>(
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
                             decoration: InputDecoration(
                               isDense: true,
                               contentPadding: const EdgeInsets.symmetric(
@@ -252,9 +258,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                                 value: value,
                                 child: Text(
                                   value,
-                                  style: TextStyle(
-                                    fontSize: fontSize,
-                                  ),
+                                  style: TextStyle(fontSize: fontSize),
                                 ),
                               );
                             }).toList(),

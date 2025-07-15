@@ -1,4 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/features/search_agency_module.dart';
 import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
 import 'package:connect_kasa/controllers/services/databases_residence_services.dart'; // Importation ajoutée
 import 'package:connect_kasa/models/enum/elements_list.dart';
@@ -215,13 +216,6 @@ class ManageStructureState extends State<ManageStructure> {
     _focusNodes.putIfAbsent(key, () => FocusNode());
     return _controllers[key]!;
   }
-
-  // TextEditingController _initAndGetController(String key, String? initialText) {
-  //   _controllers.putIfAbsent(key, () => TextEditingController());
-  //   _controllers[key]!.text = initialText ?? '';
-  //   _focusNodes.putIfAbsent(key, () => FocusNode());
-  //   return _controllers[key]!;
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -666,45 +660,34 @@ class ManageStructureState extends State<ManageStructure> {
                             ],
                           ),
                           const SizedBox(height: 10),
-                          Visibility(
+                          buildAgencySearchSection(
                             visible: building.hasDifferentSyndic,
-                            child: Column(
-                              children: [
-                                CustomTextFieldWidget(
-                                  label: "Mail de l'agence",
-                                  controller: agencySearchController,
-                                  isEditable: true,
-                                  onChanged: (val) {
-                                    if (val.isEmpty) {
-                                      setState(() {
-                                        searchResults = [];
-                                        isSearching = false;
-                                        _itemSelected = false;
-                                        building.syndicAgency = null;
-                                      });
-                                    } else {
-                                      searchAgencyByEmail(val, building);
-                                    }
-                                  },
-                                ),
-                                const SizedBox(height: 10),
-                                AgencySearchResultList(
-                                  isSearching: isSearching,
-                                  searchResults: searchResults,
-                                  onSelect: (agency) {
-                                    setState(() {
-                                      agencySearchController.text = agency.name;
-                                      _itemSelected = true;
-                                      searchResults = [];
-                                      building.syndicAgency = agency;
+                            isSearching: isSearching,
+                            searchResults: searchResults,
+                            controller: agencySearchController,
+                            onSelect: (Agency agency) {
+                              setState(() {
+                                agencySearchController.text = agency.name;
+                                _itemSelected = true;
+                                searchResults = [];
+                                building.syndicAgency = agency;
 
-                                      agents = [];
-                                      selectedAgent = null;
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
+                                agents = [];
+                                selectedAgent = null;
+                              });
+                            },
+                            onChanged: (String val) {
+                              if (val.isEmpty) {
+                                setState(() {
+                                  searchResults = [];
+                                  isSearching = false;
+                                  _itemSelected = false;
+                                  building.syndicAgency = null;
+                                });
+                              } else {
+                                searchAgencyByEmail(val, building);
+                              }
+                            },
                           ),
                           const SizedBox(height: 10),
                           _remove("la structure", index, building.id),

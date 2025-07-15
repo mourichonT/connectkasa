@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/controllers/features/search_agency_module.dart';
 import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
+import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/agency_dept.dart';
@@ -34,6 +36,8 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
   List<Agency> searchResults = [];
   bool isSearching = false;
   final DatabasesAgencyServices _agencyServices = DatabasesAgencyServices();
+  final DataBasesResidenceServices _residenceServices =
+      DataBasesResidenceServices();
 
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
@@ -60,7 +64,6 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
       "surnameAgent",
       "email",
       "phone",
-      "lookup",
       "selectedAgent", // Ajouté pour afficher nom complet agent
     ];
     // module de recherche
@@ -68,22 +71,10 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
       _controllers[field] = TextEditingController();
       _focusNodes[field] = FocusNode();
     }
-
-    // Ajouter listener sur le champ 'lookup' pour la recherche
-    _controllers["lookup"]!.addListener(() {
-      final text = _controllers["lookup"]!.text.toLowerCase();
-      searchAgencyByEmail(text);
-    });
   }
 
-  Future<void> searchAgencyByEmail(String emailPart) async {
-    if (emailPart.isEmpty) {
-      setState(() {
-        searchResults = [];
-      });
-      return;
-    }
-
+  Future<void> searchAgencyByEmail(
+      String emailPart, Residence residence) async {
     setState(() {
       isSearching = true;
     });
@@ -91,7 +82,26 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
     final results = await _agencyServices.searchAgencyByEmail(emailPart);
 
     setState(() {
-      searchResults = results;
+      if (results.isEmpty) {
+        residence.syndicAgency = Agency(
+          city: '',
+          id: '',
+          name: emailPart,
+          numeros: '',
+          street: '',
+          voie: '',
+          zipCode: '',
+          syndic: AgencyDept(
+            agents: [],
+            mail: emailPart,
+            phone: '',
+          ),
+        );
+        searchResults = [residence.syndicAgency!];
+        _itemSelected = true;
+      } else {
+        searchResults = results;
+      }
       isSearching = false;
     });
   }
@@ -109,7 +119,7 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
 
       // Champs de la résidence
       _controllers["name"]!.text = r.name;
-      _controllers["mail_contact"]!.text = r.mailContact ?? "";
+      _controllers["mail_contact"]!.text = r.syndicAgency?.syndic?.mail ?? "";
       _controllers["numero"]!.text = r.numero;
       _controllers["voie"]!.text = r.voie;
       _controllers["street"]!.text = r.street;
@@ -142,29 +152,6 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
               surnameAgent: map['surname_agent'] ?? '',
             );
           }).toList();
-
-          final indexStr = r.id_gestionnaire;
-          print("id_gestionnaire (raw): $indexStr");
-
-          int? index;
-          if (indexStr != null && indexStr.isNotEmpty) {
-            index = int.tryParse(indexStr);
-            print("id_gestionnaire (parsed index): $index");
-          } else {
-            print("id_gestionnaire est null ou vide");
-            index = null;
-          }
-
-          if (index != null && index >= 0 && index < agents.length) {
-            selectedAgent = agents[index];
-            print(
-                "Agent sélectionné via index: ${selectedAgent!.nameAgent} ${selectedAgent!.surnameAgent}");
-          } else {
-            print("Index invalide ou hors limites, fallback...");
-            selectedAgent = agents.isNotEmpty
-                ? agents.first
-                : Agent(nameAgent: '', surnameAgent: '');
-          }
 
           if (selectedAgent != null) {
             _controllers["nameAgent"]!.text = selectedAgent!.nameAgent;
@@ -299,43 +286,33 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
               ],
             ),
             const SizedBox(height: 30),
-            Visibility(
-              visible: !delegated,
-              child: Column(
-                children: [
-                  buildField("Mail de contact", "mail_contact"),
-                  MyTextStyle.annonceDesc(
-                      "Si vous ne deleguez pas la gestion de votre coproprité, merci de saisir un mail de contact pour recevoir toutes les demandes de la plateforme ",
-                      SizeFont.h3.size,
-                      5),
-                  const SizedBox(height: 30),
-                ],
-              ),
-            ),
-            Visibility(
-              visible: delegated && widget.residence.refGerance.isEmpty,
-              child: Column(
-                children: [
-                  const SizedBox(height: 30),
-                  buildField("Recherchez votre syndic", "lookup"),
-                  AgencySearchResultList(
-                    isSearching: isSearching,
-                    searchResults: searchResults,
-                    onSelect: (agency) {
-                      setState(() {
-                        _controllers["lookup"]!.text = agency.name;
-                        _itemSelected = true;
-                        searchResults = [];
-                        _controllers["agencyName"]!.text = agency.name;
-
-                        // Tu peux aussi gérer ici le chargement des agents liés
-                        agents = [];
-                        selectedAgent = null;
-                      });
-                    },
-                  ),
-                ],
-              ),
+            buildAgencySearchSection(
+              visible: true,
+              isSearching: isSearching,
+              searchResults: searchResults,
+              controller: _controllers["agencyName"]!,
+              onSelect: (Agency agency) {
+                setState(() {
+                  _controllers["agencyName"]!.text = agency.name;
+                  _itemSelected = true;
+                  searchResults = [];
+                  widget.residence.syndicAgency = agency;
+                });
+              },
+              onChanged: (String val) {
+                if (val.isEmpty) {
+                  setState(() {
+                    searchResults = [];
+                    isSearching = false;
+                    _itemSelected = false;
+                    widget.residence.syndicAgency = null;
+                  });
+                } else {
+                  print("Recherche déclenchée avec: $val");
+                  searchAgencyByEmail(val,
+                      widget.residence); // ou juste val si méthode centralisée
+                }
+              },
             ),
             Visibility(
               visible: widget.residence.refGerance.isNotEmpty && delegated,
@@ -364,7 +341,7 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
                 horizontal: 20,
                 vertical: 10,
                 size: SizeFont.h3.size,
-                function: () {},
+                function: saveResidence,
               ),
             )
           ],
@@ -373,56 +350,61 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
     );
   }
 
-  // Future<void> saveResidence() async {
-  //   try {
-  //     final docRef = FirebaseFirestore.instance
-  //         .collection('residences')
-  //         .doc(widget.residence.id);
+  Future<void> saveResidence() async {
+    final String refResidence = widget.residence.id;
 
-  //     Map<String, dynamic> updateData = {
-  //       'mailContact': _controllers["mail_contact"]!.text,
-  //       'name': _controllers["name"]!.text,
-  //       'numero': _controllers["numero"]!.text,
-  //       'voie': _controllers["voie"]!.text,
-  //       'street': _controllers["street"]!.text,
-  //       'zipCode': _controllers["zipCode"]!.text,
-  //       'city': _controllers["city"]!.text,
-  //     };
+    Map<String, dynamic> updatedData = {
+      'mail_contact': _controllers["mail_contact"]?.text ?? '',
+      'name': _controllers["name"]?.text ?? '',
+      'numero': _controllers["numero"]?.text ?? '',
+      'voie': _controllers["voie"]?.text ?? '',
+      'street': _controllers["street"]?.text ?? '',
+      'zipCode': _controllers["zipCode"]?.text ?? '',
+      'city': _controllers["city"]?.text ?? '',
+      // 'hasDifferentSyndic': delegated, // 🔥 correspond au bool de ta classe
+    };
 
-  //     if (delegated) {
-  //       if (_itemSelected) {
-  //         // L’utilisateur vient de sélectionner une nouvelle agence
-  //         final agencyName = _controllers["agencyName"]!.text;
-  //         final Agency? agency = searchResults.firstWhere(
-  //             (a) => a.name == agencyName,
-  //             orElse: () => Agency(id: "", name: ""));
+    if (delegated) {
+      if (_itemSelected) {
+        // L'utilisateur a sélectionné une nouvelle agence
+        final agencyName = _controllers["agencyName"]?.text ?? '';
+        final selectedAgency = searchResults.firstWhere(
+          (a) => a.name == agencyName,
+          orElse: () => Agency(
+            id: '',
+            name: '',
+            city: '',
+            numeros: '',
+            street: '',
+            voie: '',
+            zipCode: '',
+          ),
+        );
+      } else if (selectedAgent != null) {
+        //updatedData['id_gestionnaire'] =
+        //  agents.indexOf(selectedAgent!).toString();
+        //updatedData['refGerance'] = widget.residence.refGerance;
+        updatedData['syndicAgency'] = widget.residence.syndicAgency
+            ?.toJson(); // 🔁 conserve l’agence actuelle
+      }
+    } else {
+      // Pas de délégation
+      //  updatedData['refGerance'] = '';
+      //  updatedData['id_gestionnaire'] = '';
+      updatedData['syndicAgency'] = null;
+    }
 
-  //         if (agency.id.isNotEmpty) {
-  //           updateData['refGerance'] = agency.id;
-  //           updateData['id_gestionnaire'] =
-  //               "0"; // par défaut, pas encore choisi
-  //         }
-  //       } else if (selectedAgent != null) {
-  //         // Mise à jour de l'agent si déjà sélectionné
-  //         updateData['id_gestionnaire'] =
-  //             agents.indexOf(selectedAgent!).toString();
-  //       }
-  //     } else {
-  //       // Pas de délégation, on vide refGerance et id_gestionnaire
-  //       updateData['refGerance'] = "";
-  //       updateData['id_gestionnaire'] = "";
-  //     }
+    bool success =
+        await _residenceServices.updateResidence(refResidence, updatedData);
 
-  //     await docRef.update(updateData);
-
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text("Résidence mise à jour")),
-  //     );
-  //   } catch (e) {
-  //     print("Erreur lors de la sauvegarde : $e");
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text("Erreur lors de la sauvegarde")),
-  //     );
-  //   }
-  // }
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Résidence mise à jour avec succès")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Erreur lors de la mise à jour")),
+      );
+    }
+  }
 }

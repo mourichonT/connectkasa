@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/models/pages_models/agency.dart';
+import 'package:connect_kasa/models/pages_models/structure_residence.dart';
 
 class Residence {
   String name;
@@ -9,35 +11,32 @@ class Residence {
   String city;
   String refGerance;
   String id;
-  String? id_gestionnaire;
-  List<String>? elements;
-  List<String>? etage;
-  List<String>? localisation;
   int nombreLot;
-  String? mailContact;
   List<String>? csmembers;
+  Agency? syndicAgency;
 
-  Residence(
-      {required this.name,
-      required this.numero,
-      required this.voie,
-      required this.street,
-      required this.zipCode,
-      required this.city,
-      required this.refGerance,
-      required this.id,
-      this.csmembers,
-      this.elements,
-      this.etage,
-      this.localisation,
-      this.nombreLot = 0,
-      this.id_gestionnaire,
-      this.mailContact});
+  /// Plusieurs bâtiments identifiés par leur nom (ex: 'batA')
+  Map<String, StructureResidence>? structures;
+
+  Residence({
+    required this.name,
+    required this.numero,
+    required this.voie,
+    required this.street,
+    required this.zipCode,
+    required this.city,
+    required this.refGerance,
+    required this.id,
+    this.csmembers,
+    this.nombreLot = 0,
+    this.syndicAgency,
+    this.structures,
+  });
 
   factory Residence.fromJson(Map<String, dynamic> json) {
+    final structuresData = json['structures'] as Map<String, dynamic>?;
+
     return Residence(
-      mailContact: json['mail_contact'] ?? '',
-      id_gestionnaire: json['id_gestionnaire'] ?? '',
       name: json['name'] ?? '',
       numero: json['numero'] ?? '',
       voie: json['voie'] ?? '',
@@ -49,13 +48,10 @@ class Residence {
       csmembers: json['csmembers'] != null
           ? List<String>.from(json['csmembers'])
           : null,
-      elements:
-          json['elements'] != null ? List<String>.from(json['elements']) : null,
-      etage: json['etage'] != null ? List<String>.from(json['etage']) : null,
-      localisation: json['localistation'] != null
-          ? List<String>.from(json['localistation'])
-          : null,
       nombreLot: json['nombreLot'] ?? 0,
+      syndicAgency: json['syndicAgency'] != null
+          ? Agency.fromJson(json['syndicAgency'])
+          : null,
     );
   }
 
@@ -64,52 +60,78 @@ class Residence {
     SnapshotOptions? options,
   ) {
     final data = snapshot.data();
+
     return Residence(
-      mailContact: data?['mail_contact'] ?? '',
-      id_gestionnaire: data?['id_gestionnaire'] ?? '',
-      name: data?["name"] ?? '',
-      numero: data?["numero"] ?? '',
-      voie: data?["voie"] ?? '',
-      street: data?["street"] ?? '',
-      zipCode: data?["zipCode"] ?? '',
-      city: data?["city"] ?? '',
-      refGerance: data?["refGerance"] ?? '',
-      id: data?["id"] ?? '',
-      csmembers: data?["csmembers"] != null
-          ? List<String>.from(data?["csmembers"])
+      name: data?['name'] ?? '',
+      numero: data?['numero'] ?? '',
+      voie: data?['voie'] ?? '',
+      street: data?['street'] ?? '',
+      zipCode: data?['zipCode'] ?? '',
+      city: data?['city'] ?? '',
+      refGerance: data?['refGerance'] ?? '',
+      id: snapshot.id,
+      csmembers: data?['csmembers'] != null
+          ? List<String>.from(data!['csmembers'])
           : null,
-      elements: data?["elements"] != null
-          ? List<String>.from(data?["elements"])
+      nombreLot: data?['nombreLot'] ?? 0,
+      syndicAgency: data?['syndicAgency'] != null
+          ? Agency.fromJson(data!['syndicAgency'])
           : null,
-      etage: data?["etage"] != null ? List<String>.from(data?["etage"]) : null,
-      localisation: data?["localistation"] != null
-          ? List<String>.from(data?["localistation"])
-          : null,
-      nombreLot: data?["nombreLot"] ?? 0,
     );
   }
 
-  factory Residence.fromMap(Map<String, dynamic> map) {
-    return Residence(
-      mailContact: map['mail_contact'] ?? '',
-      id_gestionnaire: map['id_gestionnaire'] ?? '',
-      name: map['name'] ?? '',
-      numero: map['numero'] ?? '',
-      voie: map['voie'] ?? '',
-      street: map['street'] ?? '',
-      zipCode: map['zipCode'] ?? '',
-      city: map['city'] ?? '',
-      refGerance: map['refGerance'] ?? '',
-      id: map['id'] ?? '',
-      csmembers:
-          map['csmembers'] != null ? List<String>.from(map['csmembers']) : null,
-      elements:
-          map['elements'] != null ? List<String>.from(map['elements']) : null,
-      etage: map['etage'] != null ? List<String>.from(map['etage']) : null,
-      localisation: map['localistation'] != null
-          ? List<String>.from(map['localistation'])
-          : null,
-      nombreLot: map['nombreLot'] ?? 0,
-    );
+  /// Charge la sous-collection "structure" et la place dans la map `structures`
+  Future<void> loadStructures() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection("Residence")
+        .doc(id)
+        .collection("structure")
+        .get();
+
+    final Map<String, StructureResidence> loadedStructures = {};
+
+    for (var doc in querySnapshot.docs) {
+      loadedStructures[doc.id] =
+          StructureResidence.fromJson(doc.data(), doc.id);
+    }
+
+    // Trie par longueur du nom puis alphabétique
+    final sortedEntries = loadedStructures.entries.toList()
+      ..sort((a, b) {
+        int cmp = a.value.name.length.compareTo(b.value.name.length);
+        if (cmp != 0) return cmp;
+        return a.value.name.compareTo(b.value.name);
+      });
+
+    structures = Map.fromEntries(sortedEntries);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'numero': numero,
+      'voie': voie,
+      'street': street,
+      'zipCode': zipCode,
+      'city': city,
+      'refGerance': refGerance,
+      'id': id,
+      'csmembers': csmembers,
+      'nombreLot': nombreLot,
+      'syndicAgency': syndicAgency?.toJson(),
+      'structures': structures?.map(
+        (key, structure) => MapEntry(key, structure.toJson()),
+      ),
+    };
+  }
+
+  /// Crée une instance Residence et charge ses structures en même temps
+  static Future<Residence> fromFirestoreWithStructures(
+    DocumentSnapshot<Map<String, dynamic>> snapshot,
+    SnapshotOptions? options,
+  ) async {
+    final residence = Residence.fromFirestore(snapshot, options);
+    await residence.loadStructures();
+    return residence;
   }
 }

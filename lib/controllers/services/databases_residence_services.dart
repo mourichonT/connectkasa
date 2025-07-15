@@ -55,7 +55,7 @@ class DataBasesResidenceServices {
     for (var doc in querySnapshot.docs) {
       // Convertir les données en un objet Residence
       Residence residence =
-          Residence.fromMap(doc.data()! as Map<String, dynamic>);
+          Residence.fromJson(doc.data()! as Map<String, dynamic>);
 
       // Vérifier si les champs requis contiennent la saisie
       if ((residence.name.toLowerCase().contains(saisie.toLowerCase())) ||
@@ -71,40 +71,49 @@ class DataBasesResidenceServices {
     return residencesTrouvees;
   }
 
-  Future<Residence> getResidenceByRef(String residence) async {
-    Residence? res; // Initialiser res à null
-
+  Future<Residence> getResidenceByRef(String residenceId) async {
     try {
-      DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
-          await FirebaseFirestore.instance
-              .collection("Residence")
-              .doc(residence)
-              .get();
+      final docSnapshot = await FirebaseFirestore.instance
+          .collection("Residence")
+          .doc(residenceId)
+          .get();
 
-      if (documentSnapshot.exists) {
-        // Si le document existe dans la base de données
-        Map<String, dynamic> data = documentSnapshot
-            .data()!; // Utilisation de l'opérateur de nullabilité pour indiquer que 'data' ne sera pas nul
+      if (!docSnapshot.exists) {
+        throw Exception("Résidence non trouvée pour l'id $residenceId");
+      }
 
-        // Initialisez les propriétés de l'objet Residence en utilisant toutes les données récupérées
-        res = Residence.fromJson(data);
-        // Utilisez une méthode ou un constructeur pour initialiser l'objet Residence avec toutes les données
+      final residence =
+          await Residence.fromFirestoreWithStructures(docSnapshot, null);
+      print(residence.structures);
+      return residence;
+    } catch (e) {
+      print("Une erreur s'est produite : $e");
+      // Gérer l’erreur comme tu veux, ici on lance une exception
+      rethrow;
+    }
+  }
+
+  Future<bool> updateResidence(
+      String refResidence, Map<String, dynamic> updatedData) async {
+    try {
+      DocumentReference<Map<String, dynamic>> docRef =
+          FirebaseFirestore.instance.collection("Residence").doc(refResidence);
+
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await docRef.get();
+
+      if (snapshot.exists) {
+        // Mise à jour des champs du document
+        await docRef.update(updatedData);
+        print("Résidence mise à jour avec succès.");
+        return true;
       } else {
-        print("la fonction getResidenceByRef renvoie null");
-
-        // Si le document n'existe pas, vous pouvez choisir de renvoyer une valeur par défaut ou de gérer cela d'une autre manière selon votre logique métier
-        // Ici, nous attribuons null à 'res' car le document n'existe pas
-        res = null;
+        print("La résidence avec la référence '$refResidence' n'existe pas.");
+        return false;
       }
     } catch (e) {
-      // Gérez les erreurs éventuelles ici
-      print("Une erreur s'est produite : $e");
-      // Ici, vous pouvez choisir de renvoyer une valeur par défaut ou de gérer l'erreur d'une autre manière
-      // Par exemple, attribuer null à 'res' en cas d'erreur
-      res = null;
+      print("Erreur lors de la mise à jour de la résidence : $e");
+      return false;
     }
-
-    return res!;
   }
 
   Future<List<Map<String, String>>> getAllLocalisation(
