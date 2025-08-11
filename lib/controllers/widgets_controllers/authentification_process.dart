@@ -10,6 +10,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/features/load_user_controller.dart';
+import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
+import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/vues/pages_vues/no_approval_page.dart';
+import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart' as Firebase;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
 class AuthentificationProcess {
   final BuildContext context;
   final FirebaseFirestore firestore;

@@ -7,6 +7,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/agency_dept.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
+import 'package:connect_kasa/vues/widget_view/components/agenc_search_dialog.dart';
 import 'package:connect_kasa/vues/widget_view/components/agency_search_result_list.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
@@ -47,7 +48,7 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
     super.initState();
     _initFields();
     _loadResidenceData();
-    delegated = widget.residence.refGerance.isNotEmpty;
+    delegated = widget.residence.syndicAgency!.name.isNotEmpty ?? false;
   }
 
   void _initFields() {
@@ -125,47 +126,32 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
       _controllers["street"]!.text = r.street;
       _controllers["zipCode"]!.text = r.zipCode;
       _controllers["city"]!.text = r.city;
+      final results = await _agencyServices
+          .searchAgencyByEmail(r.syndicAgency?.syndic?.mail ?? "");
 
-      final docs =
-          await _agencyServices.getDeptByRefId(r.refGerance, "serviceSyndic");
-
-      final agencyDoc = docs.isNotEmpty ? docs.last : null;
-      final agentDoc = docs.isNotEmpty ? docs.first : null;
-
-      final agencyData = agencyDoc?.data();
-      final accountantData = agentDoc?.data();
-
-      if (agencyData != null) {
-        _controllers["agencyName"]!.text = agencyData['name'] ?? '';
-      }
-
-      if (accountantData != null) {
-        _controllers["email"]!.text = accountantData['mail'] ?? '';
-        _controllers["phone"]!.text = accountantData['phone'] ?? '';
-        final agentList = accountantData['agents'] as List<dynamic>?;
-
-        if (agentList != null) {
-          agents = agentList.map((a) {
-            final map = a as Map<String, dynamic>;
-            return Agent(
-              nameAgent: map['name_agent'] ?? '',
-              surnameAgent: map['surname_agent'] ?? '',
-            );
-          }).toList();
-
-          if (selectedAgent != null) {
-            _controllers["nameAgent"]!.text = selectedAgent!.nameAgent;
-            _controllers["surnameAgent"]!.text = selectedAgent!.surnameAgent;
-
-            _controllers["selectedAgent"]!.text =
-                "${selectedAgent!.nameAgent} ${selectedAgent!.surnameAgent}";
-            print(
-                "Champ gestionnaire mis à jour: ${_controllers["selectedAgent"]!.text}");
-          } else {
-            print("Pas d'agent sélectionné");
-          }
+      setState(() {
+        if (results.isEmpty) {
+          r.syndicAgency = Agency(
+            city: '',
+            id: '',
+            name: r.syndicAgency?.syndic?.mail ?? "",
+            numeros: '',
+            street: '',
+            voie: '',
+            zipCode: '',
+            syndic: AgencyDept(
+              agents: [],
+              mail: r.syndicAgency?.syndic?.mail ?? "",
+              phone: '',
+            ),
+          );
+          searchResults = [r.syndicAgency!];
+          _itemSelected = true;
+        } else {
+          searchResults = results;
         }
-      }
+        isSearching = false;
+      });
     } catch (e) {
       print("Erreur: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -287,7 +273,7 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
             ),
             const SizedBox(height: 30),
             buildAgencySearchSection(
-              visible: true,
+              visible: delegated,
               isSearching: isSearching,
               searchResults: searchResults,
               controller: _controllers["agencyName"]!,
@@ -314,8 +300,10 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
                 }
               },
             ),
+           
             Visibility(
-              visible: widget.residence.refGerance.isNotEmpty && delegated,
+              visible:
+                  (delegated && widget.residence.syndicAgency!.name.isNotEmpty),
               child: Column(
                 children: [
                   buildField("Nom de l'agence", "agencyName", editable: false),
@@ -329,14 +317,8 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
             Padding(
               padding: const EdgeInsets.all(20.0),
               child: ButtonAdd(
-                icon: (widget.residence.refGerance.isEmpty ||
-                        widget.residence.refGerance == null)
-                    ? Icons.add
-                    : Icons.edit,
-                text: (widget.residence.refGerance.isEmpty ||
-                        widget.residence.refGerance == null)
-                    ? "Ajouter"
-                    : "Modifier",
+                icon: Icons.save,
+                text: "Enregistrer",
                 color: Theme.of(context).primaryColor,
                 horizontal: 20,
                 vertical: 10,
@@ -380,12 +362,6 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
             zipCode: '',
           ),
         );
-      } else if (selectedAgent != null) {
-        //updatedData['id_gestionnaire'] =
-        //  agents.indexOf(selectedAgent!).toString();
-        //updatedData['refGerance'] = widget.residence.refGerance;
-        updatedData['syndicAgency'] = widget.residence.syndicAgency
-            ?.toJson(); // 🔁 conserve l’agence actuelle
       }
     } else {
       // Pas de délégation

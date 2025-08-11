@@ -1,0 +1,1 @@
+C:\Dev\connect_kasa\android\app\build\intermediates\cxx\Debug\t392i234\obj\x86_64

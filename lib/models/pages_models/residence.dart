@@ -9,7 +9,7 @@ class Residence {
   String street;
   String zipCode;
   String city;
-  String refGerance;
+  //String refGerance;
   String id;
   int nombreLot;
   List<String>? csmembers;
@@ -25,7 +25,7 @@ class Residence {
     required this.street,
     required this.zipCode,
     required this.city,
-    required this.refGerance,
+    //required this.refGerance,
     required this.id,
     this.csmembers,
     this.nombreLot = 0,
@@ -43,7 +43,7 @@ class Residence {
       street: json['street'] ?? '',
       zipCode: json['zipCode'] ?? '',
       city: json['city'] ?? '',
-      refGerance: json['refGerance'] ?? '',
+      //refGerance: json['refGerance'] ?? '',
       id: json['id'] ?? '',
       csmembers: json['csmembers'] != null
           ? List<String>.from(json['csmembers'])
@@ -68,7 +68,7 @@ class Residence {
       street: data?['street'] ?? '',
       zipCode: data?['zipCode'] ?? '',
       city: data?['city'] ?? '',
-      refGerance: data?['refGerance'] ?? '',
+      //  refGerance: data?['refGerance'] ?? '',
       id: snapshot.id,
       csmembers: data?['csmembers'] != null
           ? List<String>.from(data!['csmembers'])
@@ -114,7 +114,7 @@ class Residence {
       'street': street,
       'zipCode': zipCode,
       'city': city,
-      'refGerance': refGerance,
+      //'refGerance': refGerance,
       'id': id,
       'csmembers': csmembers,
       'nombreLot': nombreLot,

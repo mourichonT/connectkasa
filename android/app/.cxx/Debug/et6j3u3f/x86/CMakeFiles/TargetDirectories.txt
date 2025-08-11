@@ -1,2 +1,0 @@
-C:/Dev/connect_kasa/android/app/.cxx/Debug/et6j3u3f/x86/CMakeFiles/edit_cache.dir
-C:/Dev/connect_kasa/android/app/.cxx/Debug/et6j3u3f/x86/CMakeFiles/rebuild_cache.dir

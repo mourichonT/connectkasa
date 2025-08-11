@@ -12,7 +12,7 @@
 
     <application
         android:label="connect_kasa"
-        android:name="${applicationName}"
+         android:name="android.app.Application"
         android:icon="@mipmap/ic_launcher">
        
         <provider
