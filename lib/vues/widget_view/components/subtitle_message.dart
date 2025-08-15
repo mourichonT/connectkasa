@@ -251,14 +251,12 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                   widget.selectedLot!,
                   "serviceSyndic",
                   uid: widget.uid,
-                  //refGerance: widget.selectedLot!.residenceData["refGerance"],
                 )
               else if (widget.selectedLot?.refGerance != "")
                 CardContactController(
                   widget.selectedLot!,
                   "geranceLocative",
                   uid: widget.uid,
-                  //refGerance: widget.selectedLot!.residenceData["refGerance"],
                 )
               else
                 Card(
@@ -302,7 +300,6 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                   widget.selectedLot!,
                   "geranceLocative",
                   uid: widget.uid,
-                  refGerance: widget.selectedLot!.residenceData["refGerance"],
                 )
               else if (nbrTab == 3 && loca == true)
                 Padding(
