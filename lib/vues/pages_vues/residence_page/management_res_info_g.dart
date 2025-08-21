@@ -134,7 +134,8 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
   Future<void> _searchAgencyByEmail(String emailPart) async {
     setState(() => isSearching = true);
 
-    final results = await _agencyServices.searchAgencyByEmail(emailPart);
+    final results =
+        await _agencyServices.searchAgencyByEmail('serviceSyndic', emailPart);
 
     setState(() {
       if (results.isEmpty) {
@@ -185,22 +186,17 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
   );
 
   Future<void> _updateField(String field, String label, String value) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('residences')
-          .doc(widget.residence.id)
-          .update({field: value});
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$label mis à jour')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erreur lors de la mise à jour de $label")),
-        );
-      }
+    final success =
+        await _residenceServices.updateField(widget.residence.id, field, value);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success
+              ? "$label mis à jour"
+              : "Erreur lors de la mise à jour de $label"),
+        ),
+      );
     }
   }
 

@@ -68,7 +68,17 @@ class ManageContactState extends State<ManageContact> {
   void addContact() {
     setState(() {
       // Un nouveau contact est ajouté, par défaut isExpanded = true
-      contacts.add(Contact(name: '', service: '', phone: ''));
+      contacts.add(Contact(
+          name: '',
+          service: '',
+          phone: '',
+          web: '',
+          mail: '',
+          num: '',
+          street: '',
+          city: '',
+          zipcode: '',
+          isExpanded: false));
     });
   }
 

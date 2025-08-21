@@ -3,7 +3,7 @@ import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
 
 class AgencySearchDialog {
-  static Future<Agency?> show(BuildContext context) async {
+  static Future<Agency?> show(BuildContext context, String service) async {
     final TextEditingController searchController = TextEditingController();
     final DatabasesAgencyServices _agencyServices = DatabasesAgencyServices();
     List<Agency> dialogResults = [];
@@ -35,8 +35,8 @@ class AgencySearchDialog {
                           isDialogSearching = true;
                         });
 
-                        final results =
-                            await _agencyServices.searchAgencyByEmail(val);
+                        final results = await _agencyServices
+                            .searchAgencyByEmail(service, val);
 
                         setState(() {
                           dialogResults = results;

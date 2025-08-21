@@ -49,12 +49,13 @@ class DatabasesAgencyServices {
     }
   }
 
-  Future<List<Agency>> searchAgencyByEmail(String emailPart) async {
+  Future<List<Agency>> searchAgencyByEmail(
+      String service, String emailPart) async {
     if (emailPart.isEmpty) return [];
 
     try {
       final querySnapshot = await db
-          .collectionGroup('serviceSyndic')
+          .collectionGroup(service)
           .where('mail', isGreaterThanOrEqualTo: emailPart)
           .where('mail', isLessThanOrEqualTo: emailPart + '\uf8ff')
           .limit(10)
@@ -87,9 +88,6 @@ class DatabasesAgencyServices {
           zipCode: parentData?['zipCode'] ?? '',
           syndic: syndic, // Assigner l'objet AgencyDept ici
         ));
-      }
-      if (results.isNotEmpty) {
-        print("AGENCE TROUVEE : ${results[0].name}");
       }
 
       return results;
