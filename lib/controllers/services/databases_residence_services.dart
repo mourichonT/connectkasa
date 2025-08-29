@@ -116,6 +116,10 @@ class DataBasesResidenceServices {
     }
   }
 
+  Future<bool> updateField(String refResidence, String field, dynamic value) {
+    return updateResidence(refResidence, {field: value});
+  }
+
   Future<List<Map<String, String>>> getAllLocalisation(
       String residenceId) async {
     List<Map<String, String>> allLocalisation = [];

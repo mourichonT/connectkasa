@@ -9,7 +9,7 @@ class Residence {
   String street;
   String zipCode;
   String city;
-  //String refGerance;
+  String? mail_contact;
   String id;
   int nombreLot;
   List<String>? csmembers;
@@ -25,14 +25,15 @@ class Residence {
     required this.street,
     required this.zipCode,
     required this.city,
-    //required this.refGerance,
     required this.id,
+    this.mail_contact,
     this.csmembers,
     this.nombreLot = 0,
     this.syndicAgency,
     this.structures,
   });
 
+  /// Création à partir d'un JSON
   factory Residence.fromJson(Map<String, dynamic> json) {
     final structuresData = json['structures'] as Map<String, dynamic>?;
 
@@ -43,18 +44,20 @@ class Residence {
       street: json['street'] ?? '',
       zipCode: json['zipCode'] ?? '',
       city: json['city'] ?? '',
-      //refGerance: json['refGerance'] ?? '',
       id: json['id'] ?? '',
-      csmembers: json['csmembers'] != null
-          ? List<String>.from(json['csmembers'])
-          : null,
+      mail_contact: json['mail_contact'] ?? null,
+      csmembers: (json['csmembers'] as List?)?.cast<String>(),
       nombreLot: json['nombreLot'] ?? 0,
       syndicAgency: json['syndicAgency'] != null
           ? Agency.fromJson(json['syndicAgency'])
           : null,
+      structures: structuresData?.map(
+        (key, value) => MapEntry(key, StructureResidence.fromJson(value, key)),
+      ),
     );
   }
 
+  /// Création à partir d'un document Firestore
   factory Residence.fromFirestore(
     DocumentSnapshot<Map<String, dynamic>> snapshot,
     SnapshotOptions? options,
@@ -68,11 +71,9 @@ class Residence {
       street: data?['street'] ?? '',
       zipCode: data?['zipCode'] ?? '',
       city: data?['city'] ?? '',
-      //  refGerance: data?['refGerance'] ?? '',
       id: snapshot.id,
-      csmembers: data?['csmembers'] != null
-          ? List<String>.from(data!['csmembers'])
-          : null,
+      mail_contact: data?['mail_contact'] ?? null,
+      csmembers: (data?['csmembers'] as List?)?.cast<String>(),
       nombreLot: data?['nombreLot'] ?? 0,
       syndicAgency: data?['syndicAgency'] != null
           ? Agency.fromJson(data!['syndicAgency'])
@@ -106,6 +107,7 @@ class Residence {
     structures = Map.fromEntries(sortedEntries);
   }
 
+  /// Sérialisation en JSON
   Map<String, dynamic> toJson() {
     return {
       'name': name,
@@ -114,7 +116,7 @@ class Residence {
       'street': street,
       'zipCode': zipCode,
       'city': city,
-      //'refGerance': refGerance,
+      'mail_contact': mail_contact,
       'id': id,
       'csmembers': csmembers,
       'nombreLot': nombreLot,

@@ -112,7 +112,6 @@ class _ManageListLotState extends State<ManageListLot> {
       'type',
       'batiment',
       'lot',
-      'refGerance',
     ]) {
       final controllerKey = '${prefix}_$field';
       _controllers[controllerKey]?.dispose();

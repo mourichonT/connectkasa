@@ -1,3 +1,5 @@
+import 'package:connect_kasa/models/pages_models/agency.dart';
+
 class Lot {
   String refLot;
   String? batiment;
@@ -10,6 +12,7 @@ class Lot {
   String residenceId;
   Map<String, dynamic> residenceData;
   Map<String, dynamic> userLotDetails;
+  Agency? syndicAgency; // <-- nouveau champ
 
   Lot({
     String nameProp = "",
@@ -25,6 +28,7 @@ class Lot {
     required this.residenceId,
     required this.residenceData,
     required this.userLotDetails,
+    this.syndicAgency, // <-- ajouté
   });
 
   factory Lot.fromJson(Map<String, dynamic> json) {
@@ -49,6 +53,9 @@ class Lot {
       userLotDetails: json["userLotDetails"] != null
           ? Map<String, dynamic>.from(json["userLotDetails"])
           : {},
+      syndicAgency: json["syndicAgency"] != null
+          ? Agency.fromJson(json["syndicAgency"])
+          : null, // <-- ajouté
     );
   }
 
@@ -65,6 +72,7 @@ class Lot {
       "residenceId": residenceId,
       "residenceData": residenceData,
       'userLotDetails': userLotDetails,
+      'syndicAgency': syndicAgency?.toJson(), // <-- ajouté
     };
   }
 
@@ -84,21 +92,23 @@ class Lot {
     idProprietaire?.add(newValue);
   }
 
-  Map<String, dynamic> toFirestore() {
-    return {
-      if (refLot.isNotEmpty) "refLot": refLot,
-      "refGerance": refGerance,
-      if (batiment != null) "batiment": batiment,
-      if (lot != null) "lot": lot,
-      "typeLot": typeLot,
-      if (type.isNotEmpty) "type": type,
-      if (idProprietaire != null) "idProprietaire": idProprietaire,
-      if (idLocataire != null) "idLocataire": idLocataire,
-      "residenceId": residenceId,
-      "residenceData": residenceData,
-      'userLotDetails': userLotDetails,
-    };
-  }
+  // Map<String, dynamic> toFirestore() {
+  //   return {
+  //     if (refLot.isNotEmpty) "refLot": refLot,
+  //     "refGerance": refGerance,
+  //     if (batiment != null) "batiment": batiment,
+  //     if (lot != null) "lot": lot,
+  //     "typeLot": typeLot,
+  //     if (type.isNotEmpty) "type": type,
+  //     if (idProprietaire != null) "idProprietaire": idProprietaire,
+  //     if (idLocataire != null) "idLocataire": idLocataire,
+  //     //"residenceId": residenceId,
+  //     //"residenceData": residenceData,
+  //     //'userLotDetails': userLotDetails,
+  //     if (syndicAgency != null)
+  //       'syndicAgency': syndicAgency!.toJson(), // <-- ajouté
+  //   };
+  // }
 
   factory Lot.fromMap(Map<String, dynamic> map) {
     return Lot(
@@ -117,8 +127,12 @@ class Lot {
       userLotDetails: map["userLotDetails"] != null
           ? Map<String, dynamic>.from(map["userLotDetails"])
           : {},
+      syndicAgency: map['syndicAgency'] != null
+          ? Agency.fromJson(map['syndicAgency'])
+          : null, // <-- ajouté
     );
   }
+
   Map<String, dynamic> toJsonForDb() {
     return {
       if (refLot.isNotEmpty) "refLot": refLot,
@@ -128,9 +142,9 @@ class Lot {
       if (typeLot.isNotEmpty) "typeLot": typeLot,
       if (type.isNotEmpty) "type": type,
       if (idProprietaire != null) "idProprietaire": idProprietaire,
-      //if (idLocataire != null) "idLocataire": idLocataire,
-      //if (residenceId.isNotEmpty) "residenceId": residenceId,
-      // NOTE : On ne met PAS userLotDetails ni residenceData
+      if (syndicAgency != null)
+        "syndicAgency": syndicAgency!.toJson(), // <-- ajouté
+      // On ne met pas userLotDetails ni residenceData ici
     };
   }
 }

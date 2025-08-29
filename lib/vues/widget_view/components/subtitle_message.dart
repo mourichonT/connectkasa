@@ -49,7 +49,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
 
   getNbrTab() {
     if (widget.selectedLot!.idProprietaire!.contains(widget.uid) &&
-        widget.selectedLot?.refGerance != "") {
+        widget.selectedLot!.syndicAgency != null) {
       setState(() {
         nbrTab = 3;
         loca = false;
@@ -58,7 +58,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
         widget.selectedLot!.idLocataire != null &&
         widget.selectedLot!.idLocataire!
             .isNotEmpty && // Ajout de cette vérification
-        widget.selectedLot?.refGerance == "") {
+        widget.selectedLot!.syndicAgency == null) {
       setState(() {
         nbrTab = 3;
         loca = true;
@@ -125,7 +125,8 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                     if (widget.selectedLot!.idProprietaire!
                         .contains(widget.uid))
                       const Tab(text: 'Mon syndic')
-                    else if (widget.selectedLot?.refGerance != "")
+                    else if (widget.selectedLot?.syndicAgency?.syndic?.mail !=
+                        "")
                       const Tab(text: 'Mon agence')
                     else
                       (widget.selectedLot?.idProprietaire!.length ?? 0) > 1
@@ -145,7 +146,8 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                     if (widget.selectedLot!.idProprietaire!
                         .contains(widget.uid))
                       const Tab(text: 'Mon syndic')
-                    else if (widget.selectedLot?.refGerance != "")
+                    else if (widget.selectedLot?.syndicAgency?.syndic?.mail !=
+                        "")
                       const Tab(text: 'Mon agence')
                     else
                       (widget.selectedLot?.idProprietaire!.length ?? 0) > 1
@@ -251,14 +253,12 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                   widget.selectedLot!,
                   "serviceSyndic",
                   uid: widget.uid,
-                  //refGerance: widget.selectedLot!.residenceData["refGerance"],
                 )
-              else if (widget.selectedLot?.refGerance != "")
+              else if (widget.selectedLot?.syndicAgency?.syndic?.mail != "")
                 CardContactController(
                   widget.selectedLot!,
                   "geranceLocative",
                   uid: widget.uid,
-                  //refGerance: widget.selectedLot!.residenceData["refGerance"],
                 )
               else
                 Card(
@@ -302,7 +302,6 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                   widget.selectedLot!,
                   "geranceLocative",
                   uid: widget.uid,
-                  refGerance: widget.selectedLot!.residenceData["refGerance"],
                 )
               else if (nbrTab == 3 && loca == true)
                 Padding(

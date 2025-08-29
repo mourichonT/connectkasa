@@ -189,8 +189,8 @@ class DataBasesLotServices {
     }
   }
 
-  Future<void> updateLot(
-      String residenceId, String refLot, String field, String upDate) async {
+  Future<bool> updateLot(
+      String residenceId, String refLot, String field, dynamic upDate) async {
     try {
       QuerySnapshot querySnapshot = await db
           .collection("Residence")
@@ -206,9 +206,11 @@ class DataBasesLotServices {
 
         print(
             'Le champ $field du lot $refLot mis à jour avec succès par $upDate.');
+        return true;
       } else {
         print(
             'Aucun lot trouvé avec la référence $refLot dans la résidence $residenceId.');
+        return false;
       }
     } catch (e) {
       print('Erreur lors de la mise à jour du champ du lot $refLot : $e');
@@ -395,7 +397,7 @@ class DataBasesLotServices {
       if (query.docs.isNotEmpty) {
         // Mise à jour
         final docId = query.docs.first.id;
-        await lotRef.doc(docId).update(lot.toJson());
+        await lotRef.doc(docId).update(lot.toJsonForDb());
       } else {
         // Création
         await lotRef.add(lot.toJsonForDb());

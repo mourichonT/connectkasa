@@ -69,7 +69,8 @@ class ManageStructureState extends State<ManageStructure> {
       isSearching = true;
     });
 
-    final results = await _agencyServices.searchAgencyByEmail(emailPart);
+    final results =
+        await _agencyServices.searchAgencyByEmail('serviceSyndic', emailPart);
 
     setState(() {
       if (results.isEmpty) {

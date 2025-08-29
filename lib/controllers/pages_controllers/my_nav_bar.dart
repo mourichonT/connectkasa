@@ -104,12 +104,53 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
       backgroundColor: Colors.white,
       showDragHandle: true,
       builder: (_) => LotBottomSheet(
-          uid: widget.uid,
-          selectedLot: _preferedLot ?? _defaultLot,
-          onRefresh: _initializeLot,
-          lots: _lotsList ?? []),
+        uid: widget.uid,
+        selectedLot: _preferedLot ?? _defaultLot,
+        // nouveau callback:
+        onLotSelected: (Lot newLot) async {
+          // 1) Appliquer immédiatement le nouveau lot localement
+          setState(() {
+            _preferedLot = newLot;
+            _updateCsMemberStatus(newLot);
+          });
+
+          // 2) Mettre à jour la couleur (si présente) — parent s'en charge
+          final colorString = newLot.userLotDetails['colorSelected'];
+          if (colorString != null) {
+            Provider.of<ColorProvider>(context, listen: false)
+                .updateColor(colorString);
+          }
+
+          // 3) (optionnel) rafraîchir la liste des lots et relancer l'écoute messages
+          _lotsList = await _databasesLotServices.getLotByIdUser(widget.uid);
+
+          final residenceId = newLot.residenceId;
+          if (residenceId.isNotEmpty) {
+            final messageProvider =
+                Provider.of<MessageProvider>(context, listen: false);
+            messageProvider.listenForMessages(
+              residenceId: residenceId,
+              currentUserId: widget.uid,
+            );
+          }
+        },
+        lots: _lotsList ?? [],
+      ),
     );
   }
+
+  // void _showLotSelector() {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     backgroundColor: Colors.white,
+  //     showDragHandle: true,
+  //     builder: (_) => LotBottomSheet(
+  //         uid: widget.uid,
+  //         selectedLot: _preferedLot ?? _defaultLot,
+  //         onRefresh: _initializeLot,
+  //         lots: _lotsList ?? []),
+  //   );
+  // }
 
   void _navigateToPostForm() {
     Navigator.of(context).push(
