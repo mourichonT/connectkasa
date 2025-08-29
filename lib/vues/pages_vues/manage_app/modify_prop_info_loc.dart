@@ -445,20 +445,6 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
     );
   }
 
-  // Future<void> _updateField(String field, String label, String value) async {
-  //   final success = await lotServices.updateLot(
-  //       widget.lot.residenceId, widget.lot.refLot, field, value);
-
-  //   if (mounted) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text(success
-  //             ? "$label mis à jour"
-  //             : "Erreur lors de la mise à jour de $label"),
-  //       ),
-  //     );
-  //   }
-  // }
   void _loadProperty() {
     selectedStatut = widget.lot.type;
     delegated = widget.lot.syndicAgency != null;

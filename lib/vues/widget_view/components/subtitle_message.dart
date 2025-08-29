@@ -49,7 +49,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
 
   getNbrTab() {
     if (widget.selectedLot!.idProprietaire!.contains(widget.uid) &&
-        widget.selectedLot?.syndicAgency?.syndic?.mail != "") {
+        widget.selectedLot!.syndicAgency != null) {
       setState(() {
         nbrTab = 3;
         loca = false;
@@ -58,7 +58,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
         widget.selectedLot!.idLocataire != null &&
         widget.selectedLot!.idLocataire!
             .isNotEmpty && // Ajout de cette vérification
-        widget.selectedLot?.syndicAgency?.syndic?.mail == "") {
+        widget.selectedLot!.syndicAgency == null) {
       setState(() {
         nbrTab = 3;
         loca = true;
