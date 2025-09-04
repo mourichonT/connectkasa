@@ -64,26 +64,30 @@ class _ProfilePageState extends State<ProfilePage> {
   bool isMemberCS = false;
   List<Residence> residenceObjects = [];
 
+  bool _isLoading = true; // ✅ loading global
+
   @override
   void initState() {
     super.initState();
     _initializeUserData();
   }
 
-  void _initializeUserData() {
-    _loadUser(widget.uid);
+  Future<void> _initializeUserData() async {
+    await _loadUser(widget.uid);
+    setState(() {
+      _isLoading =
+          false; // ✅ on affiche le contenu seulement quand tout est prêt
+    });
   }
 
   void _checkOwnership() {
     if (widget.lots != null) {
-      setState(() {
-        isOwner =
-            widget.lots!.any((lot) => lot.idProprietaire!.contains(widget.uid));
-      });
+      isOwner =
+          widget.lots!.any((lot) => lot.idProprietaire!.contains(widget.uid));
     }
   }
 
-  void _checkCSMember() async {
+  Future<void> _checkCSMember() async {
     if (widget.lots != null) {
       final csResidences = widget.lots!
           .where((lot) =>
@@ -92,13 +96,10 @@ class _ProfilePageState extends State<ProfilePage> {
                   .contains(widget.uid))
           .toList();
 
-      // Liste des ID des résidences
       final List<String> csResidenceIds =
           csResidences.map((lot) => lot.residenceId).toList();
 
-      // Récupération des objets Residence correspondants
       List<Residence> csResidenceObjects = [];
-
       for (String residenceId in csResidenceIds) {
         Residence? res =
             await _basesResidenceServices.getResidenceByRef(residenceId);
@@ -107,13 +108,9 @@ class _ProfilePageState extends State<ProfilePage> {
         }
       }
 
-      print("Résidences CS trouvées : ${csResidenceObjects.length}");
-
-      setState(() {
-        isMemberCS = csResidenceObjects.isNotEmpty;
-        nbrCS = csResidenceObjects.length;
-        residenceObjects = csResidenceObjects; // <-- à déclarer
-      });
+      isMemberCS = csResidenceObjects.isNotEmpty;
+      nbrCS = csResidenceObjects.length;
+      residenceObjects = csResidenceObjects;
     }
   }
 
@@ -121,31 +118,29 @@ class _ProfilePageState extends State<ProfilePage> {
     if (uid.isNotEmpty) {
       User? fetchedUser = await DataBasesUserServices.getUserById(uid);
       if (fetchedUser != null) {
-        setState(() {
-          user = fetchedUser;
-          name = fetchedUser.name;
-          surname = fetchedUser.surname;
-          pseudo = fetchedUser.pseudo ?? "";
-          bio = fetchedUser.bio ?? "";
-          privateAccount = fetchedUser.private;
-          profilPic = fetchedUser.profilPic ?? "";
-        });
+        user = fetchedUser;
+        name = fetchedUser.name;
+        surname = fetchedUser.surname;
+        pseudo = fetchedUser.pseudo ?? "";
+        bio = fetchedUser.bio ?? "";
+        privateAccount = fetchedUser.private;
+        profilPic = fetchedUser.profilPic ?? "";
         _checkOwnership();
-        _checkCSMember();
+        await _checkCSMember();
       }
       email = await LoadUserController.getUserEmail(uid);
     }
   }
 
   void _navigateToModifyPage() async {
-    final updatedUser = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => InfoPersoPageModify(
           email: email,
           uid: widget.uid,
           color: widget.color,
-          refresh: _initializeUserData, // Passer la fonction de mise à jour
+          refresh: _initializeUserData,
           user: user!,
           refLot: widget.refLot,
         ),
@@ -168,256 +163,260 @@ class _ProfilePageState extends State<ProfilePage> {
           },
         ),
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: constraints.maxHeight),
-              child: IntrinsicHeight(
-                child: Column(
-                  children: [
-                    Expanded(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator()) // ✅ Loader global
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints:
+                        BoxConstraints(minHeight: constraints.maxHeight),
+                    child: IntrinsicHeight(
                       child: Column(
                         children: [
-                          ProfilePic(
-                            imagePath: profilPic,
-                            uid: widget.uid,
-                            color: widget.color,
-                            refLot: widget.refLot,
-                            refresh: _initializeUserData,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 20),
+                          Expanded(
                             child: Column(
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    MyTextStyle.lotDesc(
-                                      name,
-                                      SizeFont.h3.size,
-                                      FontStyle.normal,
-                                      FontWeight.bold,
-                                    ),
-                                    const SizedBox(width: 5),
-                                    MyTextStyle.lotDesc(
-                                      surname,
-                                      SizeFont.h3.size,
-                                      FontStyle.normal,
-                                      FontWeight.bold,
-                                    ),
-                                  ],
-                                ),
-                                Visibility(
-                                  visible: pseudo.isNotEmpty,
-                                  child: MyTextStyle.lotDesc(
-                                    "@$pseudo",
-                                    SizeFont.h3.size,
-                                    FontStyle.italic,
-                                    FontWeight.normal,
-                                  ),
+                                ProfilePic(
+                                  imagePath: profilPic,
+                                  uid: widget.uid,
+                                  color: widget.color,
+                                  refLot: widget.refLot,
+                                  refresh: _initializeUserData,
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.only(top: 20),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 20),
+                                  child: Column(
                                     children: [
-                                      Icon(
-                                        privateAccount
-                                            ? Icons.lock_outlined
-                                            : Icons.public,
-                                        size: SizeFont.h3.size,
-                                        color: Colors.black54,
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          MyTextStyle.lotDesc(
+                                            name,
+                                            SizeFont.h3.size,
+                                            FontStyle.normal,
+                                            FontWeight.bold,
+                                          ),
+                                          const SizedBox(width: 5),
+                                          MyTextStyle.lotDesc(
+                                            surname,
+                                            SizeFont.h3.size,
+                                            FontStyle.normal,
+                                            FontWeight.bold,
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(width: 10),
-                                      MyTextStyle.lotDesc(
-                                        privateAccount
-                                            ? "Ce compte est privé"
-                                            : "Ce compte est public",
-                                        SizeFont.h3.size,
-                                        FontStyle.normal,
-                                        FontWeight.w600,
+                                      Visibility(
+                                        visible: pseudo.isNotEmpty,
+                                        child: MyTextStyle.lotDesc(
+                                          "@$pseudo",
+                                          SizeFont.h3.size,
+                                          FontStyle.italic,
+                                          FontWeight.normal,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 20),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              privateAccount
+                                                  ? Icons.lock_outlined
+                                                  : Icons.public,
+                                              size: SizeFont.h3.size,
+                                              color: Colors.black54,
+                                            ),
+                                            const SizedBox(width: 10),
+                                            MyTextStyle.lotDesc(
+                                              privateAccount
+                                                  ? "Ce compte est privé"
+                                                  : "Ce compte est public",
+                                              SizeFont.h3.size,
+                                              FontStyle.normal,
+                                              FontWeight.w600,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
                                 ),
+                                Padding(
+                                  padding: const EdgeInsets.only(
+                                      left: 20, right: 15, bottom: 30),
+                                  child: MyTextStyle.lotDesc(
+                                    bio,
+                                    SizeFont.h3.size,
+                                    FontStyle.normal,
+                                    FontWeight.normal,
+                                  ),
+                                ),
+                                ProfileMenu(
+                                  uid: widget.uid,
+                                  color: widget.color,
+                                  refLot: widget.refLot,
+                                  text: "Mes informations",
+                                  icon: const Icon(Icons.person_2_rounded,
+                                      size: 22),
+                                  press: () {
+                                    Navigator.push(
+                                      context,
+                                      CupertinoPageRoute(
+                                        builder: (context) => InfoPageView(
+                                          lots: widget.lots,
+                                          refLot: widget.refLot,
+                                          uid: widget.uid,
+                                          color: widget.color,
+                                        ),
+                                      ),
+                                    ).then((_) => _initializeUserData());
+                                  },
+                                  isLogOut: false,
+                                ),
+                                ProfileMenu(
+                                  uid: widget.uid,
+                                  color: widget.color,
+                                  refLot: widget.refLot,
+                                  text: "Ma gestion immobilière",
+                                  icon: const Icon(Icons.home_work_outlined,
+                                      size: 22),
+                                  press: () {
+                                    Navigator.push(
+                                      context,
+                                      CupertinoPageRoute(
+                                        builder: (context) =>
+                                            ManagementProperty(
+                                          refLot: widget.refLot,
+                                          uid: widget.uid,
+                                          color: widget.color,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  isLogOut: false,
+                                ),
+                                Visibility(
+                                  visible: isOwner,
+                                  child: ProfileMenu(
+                                    uid: widget.uid,
+                                    color: widget.color,
+                                    refLot: widget.refLot,
+                                    text: "Mes locataires",
+                                    icon: const Icon(Icons.group_outlined,
+                                        size: 22),
+                                    press: () {
+                                      Navigator.push(
+                                        context,
+                                        CupertinoPageRoute(
+                                          builder: (context) =>
+                                              ManagementTenant(
+                                            uid: widget.uid,
+                                            color: widget.color,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    isLogOut: false,
+                                  ),
+                                ),
+                                Visibility(
+                                  visible: isMemberCS,
+                                  child: ProfileMenu(
+                                    uid: widget.uid,
+                                    color: widget.color,
+                                    refLot: widget.refLot,
+                                    text: nbrCS > 1
+                                        ? "Mes résidences"
+                                        : "Ma résidence",
+                                    icon: const Icon(Icons.business_outlined,
+                                        size: 22),
+                                    press: () {
+                                      if (residenceObjects.length == 1) {
+                                        Navigator.push(
+                                          context,
+                                          CupertinoPageRoute(
+                                            builder: (context) => ResidencePage(
+                                              uid: widget.uid,
+                                              color: widget.color,
+                                              residence: residenceObjects[0],
+                                            ),
+                                          ),
+                                        );
+                                      } else if (residenceObjects.length > 1) {
+                                        Navigator.push(
+                                          context,
+                                          CupertinoPageRoute(
+                                            builder: (context) =>
+                                                ResidencePageRoute(
+                                              uid: widget.uid,
+                                              color: widget.color,
+                                              residences: residenceObjects,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    isLogOut: false,
+                                  ),
+                                ),
+                                ProfileMenu(
+                                  uid: widget.uid,
+                                  color: widget.color,
+                                  refLot: widget.refLot,
+                                  text: "Paramètres",
+                                  icon: const Icon(Icons.settings_outlined,
+                                      size: 22),
+                                  press: () {
+                                    Navigator.push(
+                                      context,
+                                      CupertinoPageRoute(
+                                        builder: (context) => ParamPage(
+                                          refLot: widget.refLot,
+                                          uid: widget.uid,
+                                          color: widget.color,
+                                        ),
+                                      ),
+                                    ).then((_) => _initializeUserData());
+                                  },
+                                  isLogOut: false,
+                                ),
                               ],
                             ),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 20, right: 15, bottom: 30),
-                            child: MyTextStyle.lotDesc(
-                              bio,
-                              SizeFont.h3.size,
-                              FontStyle.normal,
-                              FontWeight.normal,
-                            ),
-                          ),
-                          ProfileMenu(
-                            uid: widget.uid,
-                            color: widget.color,
-                            refLot: widget.refLot,
-                            text: "Mes informations",
-                            icon: const Icon(Icons.person_2_rounded, size: 22),
-                            press: () {
-                              Navigator.push(
-                                context,
-                                CupertinoPageRoute(
-                                  builder: (context) => InfoPageView(
-                                    lots: widget.lots,
-                                    refLot: widget.refLot,
-                                    uid: widget.uid,
-                                    color: widget.color,
-                                  ),
-                                ),
-                              ).then((_) {
-                                // Cette fonction sera appelée au retour
-                                _initializeUserData(); // Remets à jour les données
-                              });
-                            },
-                            isLogOut: false,
-                          ),
-                          ProfileMenu(
-                            uid: widget.uid,
-                            color: widget.color,
-                            refLot: widget.refLot,
-                            text: "Ma gestion immobilière",
-                            icon:
-                                const Icon(Icons.home_work_outlined, size: 22),
-                            press: () {
-                              Navigator.push(
-                                context,
-                                CupertinoPageRoute(
-                                  builder: (context) => ManagementProperty(
-                                    refLot: widget.refLot,
-                                    uid: widget.uid,
-                                    color: widget.color,
-                                  ),
-                                ),
-                              );
-                            },
-                            isLogOut: false,
-                          ),
-                          Visibility(
-                            visible: isOwner,
+
+                          /// BOUTON DE DÉCONNEXION EN BAS
+                          Align(
+                            alignment: Alignment.bottomCenter,
                             child: ProfileMenu(
                               uid: widget.uid,
                               color: widget.color,
                               refLot: widget.refLot,
-                              text: "Mes locataires",
-                              icon: const Icon(Icons.group_outlined, size: 22),
+                              text: "Déconnexion",
+                              icon: const Icon(Icons.power_settings_new_rounded,
+                                  color: Colors.white, size: 22),
                               press: () {
-                                Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(
-                                    builder: (context) => ManagementTenant(
-                                      uid: widget.uid,
-                                      color: widget.color,
-                                    ),
-                                  ),
-                                );
+                                LoadPreferedData.clearSharedPreferences();
+                                _loadUserController.handleGoogleSignOut();
+                                Navigator.popUntil(
+                                    context, ModalRoute.withName('/'));
+                                Provider.of<ColorProvider>(context,
+                                        listen: false)
+                                    .updateColor("ff48775b");
                               },
-                              isLogOut: false,
+                              isLogOut: true,
                             ),
-                          ),
-                          Visibility(
-                            visible: isMemberCS,
-                            child: ProfileMenu(
-                              uid: widget.uid,
-                              color: widget.color,
-                              refLot: widget.refLot,
-                              text:
-                                  nbrCS > 1 ? "Mes résidences" : "Ma résidence",
-                              icon:
-                                  const Icon(Icons.business_outlined, size: 22),
-                              press: () {
-                                if (residenceObjects.length <= 1) {
-                                  Navigator.push(
-                                    context,
-                                    CupertinoPageRoute(
-                                      builder: (context) => ResidencePage(
-                                        uid: widget.uid,
-                                        color: widget.color,
-                                        residence: residenceObjects[0],
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  print("residenceIds.length > 1 ");
-                                }
-                                if (residenceObjects.length > 1) {
-                                  Navigator.push(
-                                    context,
-                                    CupertinoPageRoute(
-                                      builder: (context) => ResidencePageRoute(
-                                        uid: widget.uid,
-                                        color: widget.color,
-                                        residences: residenceObjects,
-                                      ),
-                                    ),
-                                  );
-                                } else {
-                                  print("residenceIds.length > 1 ");
-                                }
-                              },
-                              isLogOut: false,
-                            ),
-                          ),
-                          ProfileMenu(
-                            uid: widget.uid,
-                            color: widget.color,
-                            refLot: widget.refLot,
-                            text: "Paramètres",
-                            icon: const Icon(Icons.settings_outlined, size: 22),
-                            press: () {
-                              Navigator.push(
-                                context,
-                                CupertinoPageRoute(
-                                  builder: (context) => ParamPage(
-                                    refLot: widget.refLot,
-                                    uid: widget.uid,
-                                    color: widget.color,
-                                  ),
-                                ),
-                              ).then((_) {
-                                // Cette fonction sera appelée au retour
-                                _initializeUserData(); // Remets à jour les données
-                              });
-                            },
-                            isLogOut: false,
                           ),
                         ],
                       ),
                     ),
-
-                    // BOUTON DE DÉCONNEXION EN BAS FIXÉ
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: ProfileMenu(
-                        uid: widget.uid,
-                        color: widget.color,
-                        refLot: widget.refLot,
-                        text: "Déconnexion",
-                        icon: const Icon(Icons.power_settings_new_rounded,
-                            color: Colors.white, size: 22),
-                        press: () {
-                          LoadPreferedData.clearSharedPreferences();
-                          _loadUserController.handleGoogleSignOut();
-                          Navigator.popUntil(context, ModalRoute.withName('/'));
-                          Provider.of<ColorProvider>(context, listen: false)
-                              .updateColor("ff48775b");
-                        },
-                        isLogOut: true,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }

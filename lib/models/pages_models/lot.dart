@@ -92,24 +92,6 @@ class Lot {
     idProprietaire?.add(newValue);
   }
 
-  // Map<String, dynamic> toFirestore() {
-  //   return {
-  //     if (refLot.isNotEmpty) "refLot": refLot,
-  //     "refGerance": refGerance,
-  //     if (batiment != null) "batiment": batiment,
-  //     if (lot != null) "lot": lot,
-  //     "typeLot": typeLot,
-  //     if (type.isNotEmpty) "type": type,
-  //     if (idProprietaire != null) "idProprietaire": idProprietaire,
-  //     if (idLocataire != null) "idLocataire": idLocataire,
-  //     //"residenceId": residenceId,
-  //     //"residenceData": residenceData,
-  //     //'userLotDetails': userLotDetails,
-  //     if (syndicAgency != null)
-  //       'syndicAgency': syndicAgency!.toJson(), // <-- ajouté
-  //   };
-  // }
-
   factory Lot.fromMap(Map<String, dynamic> map) {
     return Lot(
       refLot: map['refLot'] ?? "",

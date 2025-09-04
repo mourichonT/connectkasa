@@ -17,13 +17,14 @@ class CustomHeaderRow extends StatelessWidget {
   final bool isCsMember;
   final Function updatePostsList;
 
-  CustomHeaderRow(
-      {super.key,
-      this.colorStatut,
-      required this.post,
-      required this.isCsMember,
-      required this.updatePostsList,
-      required this.lot});
+  CustomHeaderRow({
+    super.key,
+    this.colorStatut,
+    required this.post,
+    required this.isCsMember,
+    required this.updatePostsList,
+    required this.lot,
+  });
 
   String getType(Post post) {
     for (var type in typeList) {
@@ -53,7 +54,8 @@ class CustomHeaderRow extends StatelessWidget {
           MyTextStyle.statuColor(post.statu!, colorStatut),
           Visibility(
               visible: isCsMember,
-              child: IconModifyOrDelette(post, lot!, context, updatePostsList))
+              child: IconModifyOrDelette(post, lot!, context, updatePostsList,
+                  lot.residenceData['mail_contact'])),
         ],
       ),
     );

@@ -167,7 +167,8 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     //final double appBarHeight = MediaQuery.of(context).size.height * 0.26;
-    final color = context.watch<ColorProvider>().color;
+    // final color = context.watch<ColorProvider>().color;
+    final lotColor = context.watch<ColorProvider>().color;
     final lot = _preferedLot ?? _defaultLot;
     final residenceId = lot.residenceId;
     final residenceName = lot.residenceData['name'] ?? "";
@@ -196,7 +197,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     uid: widget.uid,
                     residenceSelected: residenceId,
                     upDatescrollController: widget.scrollController,
-                    colorStatut: color,
+                    colorStatut: lotColor,
                     preferedLot: lot,
                     isCsMember: _isCsMember,
                   ),
@@ -209,7 +210,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     key: UniqueKey(),
                     uid: widget.uid,
                     residenceId: residenceId,
-                    colorStatut: color,
+                    colorStatut: lotColor,
                     argument1: "sinistres",
                     argument2: "incivilites",
                     argument3: "communication",
@@ -224,7 +225,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     type: "events",
                     preferedLot: lot,
                     residenceSelected: residenceId,
-                    colorStatut: color,
+                    colorStatut: lotColor,
                   ),
                 ),
                 Padding(
@@ -236,7 +237,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     uid: widget.uid,
                     residenceSelected: residenceId,
                     type: "annonces",
-                    colorStatut: color,
+                    colorStatut: lotColor,
                     scrollController: widget.scrollController ?? 0,
                   ),
                 ),
@@ -248,7 +249,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     key: UniqueKey(),
                     uid: widget.uid,
                     lotSelected: lot,
-                    colorStatut: color,
+                    colorStatut: lotColor,
                     isCsMember: _isCsMember,
                   ),
                 ),
@@ -282,8 +283,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Image.asset(
-                              SetLogoColor.getLogoPath(
-                                  Theme.of(context).primaryColor),
+                              SetLogoColor.getLogoPath(lotColor),
                               width: MediaQuery.of(context).size.width / 2.5,
                               fit: BoxFit.fitWidth,
                             ),
@@ -342,7 +342,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
           : ProfilePage(
               uid: widget.uid,
               refLot: lot.refLot,
-              color: color,
+              color: lotColor,
               lots: _lotsList,
             ),
 
@@ -362,8 +362,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
             ),
             child: Transform.rotate(
               angle: 330 * pi / 180,
-              child: Icon(Icons.campaign,
-                  size: 50, color: Theme.of(context).primaryColor),
+              child: Icon(Icons.campaign, size: 50, color: lotColor),
             ),
           ),
         ),

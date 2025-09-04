@@ -208,7 +208,7 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
       focusNode: _focusNodes[field],
       isEditable: editable,
       value: editable ? null : _controllers[field]?.text,
-      onSubmit: _updateField,
+      onSubmit: (_, __, ___) => saveResidence(),
       refresh: () => setState(() {}),
     );
   }

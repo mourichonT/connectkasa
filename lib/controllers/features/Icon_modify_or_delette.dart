@@ -16,8 +16,8 @@ import 'package:flutter/material.dart';
 
 FetchPdfreport fetchPDFreport = FetchPdfreport();
 final DatabasesMailServices _mailChatServices = DatabasesMailServices();
-Widget IconModifyOrDelette(
-    Post post, Lot lot, BuildContext context, Function updatePostsList) {
+Widget IconModifyOrDelette(Post post, Lot lot, BuildContext context,
+    Function updatePostsList, String mail) {
   return Container(
     padding: const EdgeInsets.only(left: 20, right: 10),
     child: GestureDetector(
@@ -83,7 +83,7 @@ Widget IconModifyOrDelette(
                         await sendCustomEmail(
                           lot: lot!,
                           post: post,
-                          email: 'mourichon.thibault@gmail.com',
+                          email: mail,
                           subjectMail: 'Nouveau signalement ConnectKasa',
                         );
 
