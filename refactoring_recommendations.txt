@@ -1,0 +1,602 @@
+========================================================
+  CONNECTKASA — RECOMMANDATIONS DE REFACTORISATION
+  Généré le 30/06/2026
+========================================================
+
+
+════════════════════════════════════════════════════════
+  SECTION 1 — BUGS CRITIQUES (à corriger en priorité)
+════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────
+BUG 1 — Cast incorrect sur un Future (crash garanti)
+Fichier : lib/controllers/services/databases_agency_services.dart
+Méthode : getDeptByResidence()
+──────────────────────────────────────────────────────
+PROBLÈME :
+  .get() retourne un Future<QuerySnapshot>, pas un QuerySnapshot.
+  Le cast "as QuerySnapshot" est appliqué sur un Future, ce qui
+  provoque un TypeError à l'exécution à chaque appel.
+  La méthode est entièrement cassée et ne retourne jamais de données.
+
+CODE ACTUEL (cassé) :
+  QuerySnapshot residenceRef = db
+      .collection("Residence")
+      .where('id', isEqualTo: refId)
+      .get() as QuerySnapshot;
+
+CORRECTION :
+  QuerySnapshot residenceRef = await db
+      .collection("Residence")
+      .where('id', isEqualTo: refId)
+      .get();
+
+
+──────────────────────────────────────────────────────
+BUG 2 — Toutes les écritures Firestore ignorées dans submitUser
+Fichier : lib/controllers/features/submit_user.dart
+Méthode : submitUser()
+──────────────────────────────────────────────────────
+PROBLÈME :
+  La méthode n'est pas async. Toutes les écritures Firestore sont
+  lancées sans await (fire-and-forget). Les erreurs sont silencieuses,
+  le caller ne peut pas attendre la fin de l'opération, et il est
+  impossible de savoir si la création de l'utilisateur a réussi.
+
+CODE ACTUEL (cassé) :
+  static submitUser({...}) {   // pas de async
+    dataBasesUserServices.setUser(...);      // pas de await
+    dataBasesDocsServices.setDocument(...); // pas de await
+    dataBasesDocsServices.setDocument(...); // pas de await
+  }
+
+CORRECTION :
+  static Future<void> submitUser({...}) async {
+    await dataBasesUserServices.setUser(...);
+    await dataBasesDocsServices.setDocument(...);
+    await dataBasesDocsServices.setDocument(...);
+  }
+
+
+──────────────────────────────────────────────────────
+BUG 3 — Force-unwrap qui plante dans UserInfo.copyWith
+Fichier : lib/models/pages_models/user_info.dart
+Ligne   : ~153
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Le paramètre nullable "profilPic" est force-unwrappé (!) au lieu
+  de faire un fallback sur this.profilPic. Si copyWith() est appelé
+  sans ce paramètre, cela lève une exception
+  "Null check operator used on a null value".
+
+CODE ACTUEL (cassé) :
+  profilPic: profilPic!,
+
+CORRECTION :
+  profilPic: profilPic ?? this.profilPic,
+
+
+──────────────────────────────────────────────────────
+BUG 4 — Transaction financière non-atomique
+Fichier : lib/controllers/services/transaction_services.dart
+Méthode : effectuerTransaction()
+Lignes  : ~52-63
+──────────────────────────────────────────────────────
+PROBLÈME :
+  3 appels .update() séquentiels sont effectués hors d'un
+  runTransaction Firestore. Si le 2e ou 3e échoue après que le
+  1er a réussi, l'argent est perdu ou créé. Les opérations
+  financières doivent être atomiques.
+
+CORRECTION :
+  Envelopper les 3 updates dans :
+  await FirebaseFirestore.instance.runTransaction((transaction) async {
+    transaction.update(ref1, data1);
+    transaction.update(ref2, data2);
+    transaction.update(ref3, data3);
+  });
+
+
+════════════════════════════════════════════════════════
+  SECTION 2 — VIOLATIONS D'ARCHITECTURE
+════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────
+ARCHI 1 — BuildContext dans la couche service
+Fichier : lib/controllers/services/databases_lot_services.dart
+Méthode : addTenant(BuildContext context, ...)
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Un service de données accepte un BuildContext, appelle showDialog()
+  et ScaffoldMessenger. Cela couple la couche données à l'arbre de
+  widgets, rend les tests impossibles et empêche la réutilisation.
+
+CORRECTION :
+  Le service retourne un résultat (ex: bool ou enum).
+  C'est le controller/UI qui interprète ce résultat et affiche
+  les dialogs ou snackbars.
+
+
+──────────────────────────────────────────────────────
+ARCHI 2 — ChatServices extends ChangeNotifier inutilement
+Fichier : lib/controllers/services/chat_services.dart
+Ligne   : 6
+──────────────────────────────────────────────────────
+PROBLÈME :
+  La classe hérite de ChangeNotifier mais n'a aucun état,
+  n'appelle jamais notifyListeners(), et n'est pas fournie
+  via Provider. L'héritage est trompeur et doit être supprimé.
+
+CORRECTION :
+  class ChatServices {   // supprimer "extends ChangeNotifier"
+
+
+──────────────────────────────────────────────────────
+ARCHI 3 — Méthodes statiques et d'instance mélangées sans logique
+Fichiers : lib/controllers/services/databases_user_services.dart
+           lib/controllers/services/databases_docs_services.dart
+           lib/controllers/services/transaction_services.dart
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Des méthodes statiques recréent FirebaseFirestore.instance en
+  interne tandis que d'autres utilisent le champ "db" de l'instance.
+  La séparation est arbitraire et incohérente.
+
+CORRECTION :
+  Choisir une seule approche :
+  - Soit toutes les méthodes sont d'instance (préférable pour les tests)
+  - Soit la classe est un singleton statique
+
+
+════════════════════════════════════════════════════════
+  SECTION 3 — DUPLICATIONS IMPORTANTES
+════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────
+DUPLI 1 — Pattern like/participant copié-collé 6 fois
+Fichiers : lib/controllers/services/databases_post_services.dart
+           lib/controllers/services/databases_comment_services.dart
+Méthodes : updatePostLikes, removePostLike,
+           updatePostParticipants, removePostParticipants,
+           updateCommentLikes, removeCommentLike
+──────────────────────────────────────────────────────
+PROBLÈME :
+  ~40 lignes identiques répétées 6 fois :
+  1. Query collection avec .where("id", ...).get()
+  2. Vérifier docs.isNotEmpty
+  3. Charger la liste depuis les données
+  4. Ajouter ou retirer l'élément
+  5. update() sur le DOCUMENT ENTIER (risque de race condition)
+
+  De plus, mettre à jour le document entier au lieu du seul champ
+  modifié peut écraser des modifications concurrentes.
+
+CORRECTION :
+  Firestore fournit des opérations atomiques pour ça :
+  // Ajouter
+  await postRef.update({'like': FieldValue.arrayUnion([userId])});
+  // Retirer
+  await postRef.update({'like': FieldValue.arrayRemove([userId])});
+
+  Ces 2 lignes remplacent ~160 lignes de code dupliqué.
+
+
+──────────────────────────────────────────────────────
+DUPLI 2 — Scan complet de la base pour trouver les lots d'un user
+Fichiers : lib/controllers/services/databases_user_services.dart
+           lib/controllers/services/databases_lot_services.dart
+Méthodes : getLotByIdUser(), _fetchLotsByUser()
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Les deux méthodes chargent TOUTES les résidences et TOUS les lots
+  depuis Firestore pour filtrer localement. Complexité O(résidences × lots).
+  Non scalable, coûteux en lectures Firestore, et dupliqué.
+
+  De plus, les deux méthodes utilisent des transactions Firestore pour
+  de simples lectures, ce qui est un usage incorrect des transactions.
+
+CORRECTION :
+  Ajouter un champ "idUser" directement dans les documents de lot,
+  puis utiliser une query directe :
+  await db.collectionGroup('lot')
+          .where('idLocataire', isEqualTo: userId)
+          .get();
+
+
+──────────────────────────────────────────────────────
+DUPLI 3 — signInWithGoogle et signUpWithGoogle identiques
+Fichier : lib/controllers/services/authentification_service.dart
+Lignes  : ~39 et ~65
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Les deux méthodes font le même flux OAuth Google (signIn → null check
+  → getAuthCredential → signInWithCredential). Firebase ne distingue
+  pas sign-in et sign-up pour Google. Seul signUpWithGoogle a un
+  try-catch en plus.
+
+CORRECTION :
+  signUpWithGoogle() doit appeler signInWithGoogle() :
+  Future<UserCredential?> signUpWithGoogle() async {
+    try {
+      return await signInWithGoogle();
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
+
+
+──────────────────────────────────────────────────────
+DUPLI 4 — Construction de Post dupliquée (20+ paramètres)
+Fichier : lib/controllers/features/submit_post_controller.dart
+Méthodes : submitForm() et addPostAfterChecking()
+Lignes  : ~37-65 et ~111-139
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Le constructeur Post(...) avec 20+ paramètres est copié-collé
+  verbatim entre les deux méthodes.
+
+CORRECTION :
+  Extraire une méthode privée :
+  Post _buildPost({required String title, ...}) {
+    return Post(title: title, ...);
+  }
+
+
+──────────────────────────────────────────────────────
+DUPLI 5 — Aucune constante pour les chemins Firestore
+Fichiers : Tous les fichiers de service (13 fichiers)
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Les chaînes "User", "Residence", "lot", "post", "comments", "chat",
+  "messages", "documents", "transaction", "mail", etc. sont éparpillées
+  dans 13 fichiers de service. Une faute de frappe crée silencieusement
+  une nouvelle collection vide dans Firestore.
+
+CORRECTION :
+  Créer lib/controllers/services/firestore_paths.dart :
+
+  abstract class FirestorePaths {
+    static const String users        = 'User';
+    static const String residences   = 'Residence';
+    static const String lots         = 'lot';
+    static const String posts        = 'post';
+    static const String comments     = 'comments';
+    static const String replies      = 'replies';
+    static const String chat         = 'chat';
+    static const String messages     = 'messages';
+    static const String documents    = 'documents';
+    static const String transactions = 'transaction';
+    static const String mail         = 'mail';
+    static const String events       = 'events';
+    static const String contacts     = 'contacts';
+    static const String structure    = 'structure';
+    static const String garants      = 'garants';
+    static const String signalements = 'signalements';
+  }
+
+
+──────────────────────────────────────────────────────
+DUPLI 6 — Parsing de couleur hex dupliqué dans 3 endroits
+Fichiers : lib/controllers/providers/color_provider.dart
+           lib/controllers/handlers/colors_utils.dart
+           lib/controllers/features/color_controller.dart
+──────────────────────────────────────────────────────
+PROBLÈME :
+  La même expression de conversion hex→Color est répétée dans
+  3 fichiers. ColorUtils a été créé pour centraliser ça mais
+  n'est pas utilisé de façon cohérente.
+
+CORRECTION :
+  Utiliser systématiquement ColorUtils.fromHex() partout.
+
+
+════════════════════════════════════════════════════════
+  SECTION 4 — GESTION D'ERREURS INCOHÉRENTE
+════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────
+ERR 1 — Pas de contrat d'erreur cohérent entre les services
+Fichiers : Tous les fichiers de service
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Chaque service gère les erreurs différemment, sans convention :
+
+  - databases_user_services.dart  setUser()        → catch + retourne
+                                                     l'objet original
+                                                     (masque l'échec)
+  - databases_lot_services.dart   getLotByResidence → catch + retourne
+                                                     liste vide
+                                                     (indistinguable de
+                                                     "pas de lots")
+  - databases_lot_services.dart   updateLotColor()  → rethrow après print
+  - databases_residence_services  removeStructure() → swallow silencieux
+  - databases_post_services.dart  getAllPosts()     → catch + liste vide
+  - databases_post_services.dart  getPost()        → rethrow après print
+  - storage_services.dart         removeFolder()   → erreur silencieuse
+  - storage_services.dart         removeFile()     → print + swallow
+
+  Il n'y a pas de type d'erreur partagé, pas de wrapper Result,
+  et les callers ne savent pas ce qu'ils doivent gérer.
+
+CORRECTION :
+  Choisir une convention unique et l'appliquer partout.
+  Option recommandée : rethrow systématique dans les services,
+  gestion dans les controllers.
+
+
+════════════════════════════════════════════════════════
+  SECTION 5 — BUGS DE DONNÉES / MODÈLES
+════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────
+DATA 1 — Typo dans Event.fromJson : eventType toujours vide
+Fichier : lib/models/pages_models/event.dart
+Ligne   : ~22
+──────────────────────────────────────────────────────
+PROBLÈME :
+  fromJson lit json['eventTyp'] (manque le 'e' final),
+  mais toJson() écrit 'eventType'. Résultat : les événements
+  rechargés depuis Firestore ont toujours une liste eventType vide.
+
+CODE ACTUEL (cassé) :
+  eventType: List<String>.from(json['eventTyp'] ?? []),
+
+CORRECTION :
+  eventType: List<String>.from(json['eventType'] ?? []),
+
+
+──────────────────────────────────────────────────────
+DATA 2 — Typo dans Message.fromJsom
+Fichier : lib/models/pages_models/message.dart
+Ligne   : ~16
+──────────────────────────────────────────────────────
+PROBLÈME :
+  La factory s'appelle "fromJsom" au lieu de "fromJson".
+  Une 2e factory "fromFirestore" existe et fait la même chose.
+
+CORRECTION :
+  Renommer en fromJson() et supprimer fromFirestore() ou l'inverse.
+
+
+──────────────────────────────────────────────────────
+DATA 3 — Mail.toJson et fromJson asymétriques
+Fichier : lib/models/pages_models/mail.dart
+──────────────────────────────────────────────────────
+PROBLÈME :
+  fromJson lit depuis json['delivery']['startTime'] (format Firebase
+  Email Extension, structure imbriquée), mais toJson() écrit
+  'startTime' à plat. La structure est différente en lecture et
+  en écriture. Les deux pointent aussi vers des collections
+  Firestore différentes.
+
+CORRECTION :
+  Aligner la structure : décider d'un format unique et s'y tenir
+  dans toJson() et fromJson().
+
+
+──────────────────────────────────────────────────────
+DATA 4 — Clés Firestore incohérentes pour les revenus
+Fichiers : lib/models/pages_models/user_info.dart
+           lib/models/pages_models/guarantor_info.dart
+           lib/controllers/services/databases_user_services.dart
+──────────────────────────────────────────────────────
+PROBLÈME :
+  UserInfo utilise les clés Firestore 'revenus' et 'activities'.
+  GuarantorInfo utilise 'incomes' et 'jobIncomes' pour le même concept.
+  databases_user_services.dart écrit vers 'revenus' et 'activities'.
+  Les clés sont incohérentes entre les chemins user et garant.
+
+CORRECTION :
+  Uniformiser les noms de clés Firestore pour ce concept
+  (ex: toujours 'revenus' et 'activities').
+
+
+──────────────────────────────────────────────────────
+DATA 5 — Lot.fromJson et Lot.fromMap divergent
+Fichier : lib/models/pages_models/lot.dart
+──────────────────────────────────────────────────────
+PROBLÈME :
+  fromJson() gère le champ 'syndicAgency', fromMap() ne le gère pas.
+  Les données chargées via l'un sont incomplètes par rapport à l'autre.
+
+CORRECTION :
+  Fusionner les deux factories en une seule (fromJson) qui gère
+  tous les champs, ou faire que l'une appelle l'autre.
+
+
+──────────────────────────────────────────────────────
+DATA 6 — Nommage incohérent des méthodes de sérialisation
+Fichiers : Tous les modèles
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Pas de convention uniforme :
+  - fromMap()/toMap() : User, UserInfo, Post, Comment, Message
+  - fromJson()/toJson() : Contact, Event, Residence, Agency, Mail
+  - Lot a les quatre : fromJson(), fromMap(), toJson(), toJsonForDb()
+
+CORRECTION :
+  Choisir une seule convention (recommandé : fromJson/toJson)
+  et l'appliquer à tous les modèles.
+
+
+════════════════════════════════════════════════════════
+  SECTION 6 — SÉCURITÉ / CONFIGURATION
+════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────
+SEC 1 — UID de wallet hardcodé dans le code source
+Fichier : lib/controllers/services/transaction_services.dart
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Un UID utilisateur réel de production est hardcodé en clair
+  dans le code source versionné sur Git.
+
+  String uidWallet = "0hR1IOPOcuTujkZTOP6Bwuqa3K13";
+
+CORRECTION :
+  Le projet utilise déjà flutter_dotenv. Déplacer dans .env :
+  WALLET_UID=0hR1IOPOcuTujkZTOP6Bwuqa3K13
+
+  Et lire avec : dotenv.env['WALLET_UID']!
+
+
+──────────────────────────────────────────────────────
+SEC 2 — Clé VAPID dupliquée deux fois dans le code
+Fichier : lib/controllers/handlers/api/flutter_api.dart
+Lignes  : ~22 et ~85
+──────────────────────────────────────────────────────
+PROBLÈME :
+  La même longue clé VAPID est dupliquée à deux endroits.
+
+CORRECTION :
+  Extraire en constante en haut du fichier ou dans .env,
+  puis référencer la constante aux deux endroits.
+
+
+──────────────────────────────────────────────────────
+SEC 3 — Handler FCM sans gestion d'erreur, contexte potentiellement invalide
+Fichier : lib/controllers/handlers/api/flutter_api.dart
+Lignes  : ~56-79
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Le handler onMessageOpenedApp appelle Firestore sans try/catch,
+  et utilise Theme.of(context) avec un contexte capturé qui peut
+  ne plus être valide. Cela peut échouer silencieusement en arrière-plan.
+
+CORRECTION :
+  Envelopper dans un try/catch et vérifier que le contexte
+  est encore monté avant utilisation.
+
+
+════════════════════════════════════════════════════════
+  SECTION 7 — PERFORMANCES
+════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────
+PERF 1 — N+1 queries dans getComments
+Fichier : lib/controllers/services/databases_comment_services.dart
+Méthode : getComments()
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Pour chaque commentaire, une requête Firestore séparée est faite
+  pour vérifier les réponses. Avec N commentaires = N+2 lectures
+  Firestore par vue de post.
+
+  De plus, le document commentaire est rechargé via get() alors
+  que commentsSnapshot.docs contient déjà les données.
+
+CORRECTION :
+  Accéder directement à la sous-collection replies depuis la référence
+  du document sans recharger le document parent :
+  final replies = await commentSnapshot.reference
+      .collection('replies').get();
+
+
+════════════════════════════════════════════════════════
+  SECTION 8 — NETTOYAGE / HOUSEKEEPING
+════════════════════════════════════════════════════════
+
+──────────────────────────────────────────────────────
+CLEAN 1 — Fichier entièrement commenté (code mort)
+Fichier : lib/controllers/handlers/envent_interaction_handler.dart
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Le fichier entier est commenté. Il s'agit de code mort.
+
+CORRECTION :
+  Supprimer le fichier, ou intégrer le code s'il est encore utile.
+
+
+──────────────────────────────────────────────────────
+CLEAN 2 — print() partout, aucun framework de logging
+Fichiers : Tous les fichiers de service
+──────────────────────────────────────────────────────
+PROBLÈME :
+  Des centaines d'appels bare print() sont disséminés dans tout le code,
+  dont des messages de debug comme :
+  - print("UTITLISATEUR TROUVE")  (faute d'orthographe)
+  - print("je suis dans la condition IF")
+  - print(" USER : $userUid, REFLOT: $refLot, newCOLOR : $newColor ")
+
+  Ces logs ne sont pas désactivables en production.
+
+CORRECTION :
+  Remplacer par dart:developer log() qui ne s'affiche qu'en debug :
+  import 'dart:developer';
+  log('message', name: 'NomDuService');
+
+
+──────────────────────────────────────────────────────
+CLEAN 3 — Noms de fichiers avec fautes de frappe
+Dossier : lib/controllers/pages_controllers/
+──────────────────────────────────────────────────────
+PROBLÈME :
+  - filter_allannounced_controller..dart  (double point)
+  - my_bottomnavbar_ controller.dart      (espace dans le nom)
+
+CORRECTION :
+  Renommer :
+  - filter_allannounced_controller.dart
+  - my_bottomnavbar_controller.dart
+  (et mettre à jour les imports correspondants)
+
+
+──────────────────────────────────────────────────────
+CLEAN 4 — Null-check redondant sur un paramètre non-nullable
+Fichier : lib/controllers/features/submit_user.dart
+──────────────────────────────────────────────────────
+PROBLÈME :
+  if (docTypeID != null && ...) — docTypeID est déclaré String
+  (non-nullable), donc ce check est toujours vrai et trompe le lecteur.
+
+CORRECTION :
+  Supprimer la condition sur docTypeID.
+
+
+──────────────────────────────────────────────────────
+CLEAN 5 — ChatServices sans état hérite de ChangeNotifier
+Fichier : lib/controllers/services/chat_services.dart
+(voir aussi ARCHI 2 — mentionné ici pour le nettoyage)
+──────────────────────────────────────────────────────
+
+
+════════════════════════════════════════════════════════
+  TABLEAU RÉCAPITULATIF
+════════════════════════════════════════════════════════
+
+N°    | Catégorie  | Description                                    | Sévérité
+------+------------+------------------------------------------------+---------
+BUG 1 | Critique   | Cast Future→QuerySnapshot (crash runtime)       | CRITIQUE
+BUG 2 | Critique   | submitUser sans async/await (fire-and-forget)   | CRITIQUE
+BUG 3 | Critique   | Force-unwrap dans UserInfo.copyWith             | CRITIQUE
+BUG 4 | Critique   | Transaction financière non-atomique             | CRITIQUE
+ARQ 1 | Archi      | BuildContext dans la couche service (addTenant) | HAUTE
+ARQ 2 | Archi      | ChatServices extends ChangeNotifier inutile     | HAUTE
+ARQ 3 | Archi      | Méthodes statiques/instance mélangées           | HAUTE
+DUP 1 | Duplication| Pattern like/participant copié 6 fois           | HAUTE
+DUP 2 | Duplication| Scan complet BDD pour les lots (N+1)           | HAUTE
+DUP 3 | Duplication| signInWithGoogle == signUpWithGoogle            | MOYENNE
+DUP 4 | Duplication| Construction Post() dupliquée (~20 params)     | MOYENNE
+DUP 5 | Duplication| Pas de constantes chemins Firestore             | MOYENNE
+DUP 6 | Duplication| Parsing couleur hex dupliqué ×3                | BASSE
+ERR 1 | Erreurs    | Pas de contrat d'erreur cohérent               | MOYENNE
+DAT 1 | Données    | Typo 'eventTyp' → eventType toujours vide      | MOYENNE
+DAT 2 | Données    | Typo 'fromJsom' dans Message                   | BASSE
+DAT 3 | Données    | Mail.toJson/fromJson asymétriques               | MOYENNE
+DAT 4 | Données    | Clés Firestore différentes revenus/garants      | MOYENNE
+DAT 5 | Données    | Lot.fromJson et fromMap divergent               | MOYENNE
+DAT 6 | Données    | fromJson/fromMap/toJson/toMap sans convention   | BASSE
+SEC 1 | Sécurité   | UID wallet hardcodé dans le code source         | HAUTE
+SEC 2 | Sécurité   | Clé VAPID dupliquée ×2                         | BASSE
+SEC 3 | Sécurité   | Handler FCM sans gestion d'erreur              | MOYENNE
+PER 1 | Perf       | N+1 queries dans getComments                   | MOYENNE
+CLN 1 | Nettoyage  | Fichier entièrement commenté à supprimer        | BASSE
+CLN 2 | Nettoyage  | print() partout, pas de logging structuré       | BASSE
+CLN 3 | Nettoyage  | Noms de fichiers avec fautes de frappe          | BASSE
+CLN 4 | Nettoyage  | Null-check redondant sur String non-nullable    | BASSE
+
+========================================================
+  Total : 28 recommandations
+  Critiques : 4  |  Hautes : 6  |  Moyennes : 11  |  Basses : 7
+========================================================

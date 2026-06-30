@@ -20,7 +20,7 @@ class Event {
       title: json['title'],
       description: json['description'],
       date: json['date'], // Assurez-vous que le formatage Timestamp est correct
-      eventType: List<String>.from(json['eventTyp'] ?? []),
+      eventType: List<String>.from(json['eventType'] ?? []),
       participants: List<String>.from(json['participants'] ?? []),
     );
   }

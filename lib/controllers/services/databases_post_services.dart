@@ -375,51 +375,17 @@ class DataBasesPostServices {
   Future<void> updatePostLikes(
       String residenceId, String postId, String userId) async {
     try {
-      // Obtenez une référence à la publication dans la base de données
-      QuerySnapshot postQuery = await FirebaseFirestore.instance
+      final postQuery = await FirebaseFirestore.instance
           .collection("Residence")
           .doc(residenceId)
           .collection("post")
           .where("id", isEqualTo: postId)
           .get();
 
-      // Vérifiez s'il y a un document correspondant à l'ID donné
-      if (postQuery.docs.isNotEmpty) {
-        // Récupérez la référence du premier document (il devrait y en avoir un seul)
-        DocumentReference postRef = postQuery.docs.first.reference;
+      if (postQuery.docs.isEmpty) throw Exception("Post not found!");
 
-        // Récupérez les données du document
-        DocumentSnapshot postSnapshot = await postRef.get();
-
-        // Vérifiez si la publication existe
-        if (postSnapshot.exists) {
-          // Convertissez les données en Map<String, dynamic> de manière sûre
-          Map<String, dynamic> postData =
-              postSnapshot.data() as Map<String, dynamic>;
-
-          // Obtenez la liste de likes actuelle
-          List<dynamic> likes = postData['like'] ?? [];
-
-          // Vérifiez si l'utilisateur est déjà dans la liste de likes
-          bool userLiked = likes.contains(userId);
-
-          // Ajoutez ou supprimez l'utilisateur de la liste de likes
-          if (!userLiked) {
-            // L'utilisateur n'a pas encore aimé la publication, alors ajoutez-le à la liste
-            likes.add(userId);
-          }
-
-          // Mettez à jour la liste de likes dans les données de la publication
-          postData['like'] = likes;
-
-          // Mettez à jour la publication dans la base de données
-          await postRef.update(postData);
-        } else {
-          throw Exception("Post not found!");
-        }
-      } else {
-        throw Exception("Post not found!");
-      }
+      await postQuery.docs.first.reference
+          .update({'like': FieldValue.arrayUnion([userId])});
     } catch (e) {
       print("Error updating likes for post $postId: $e");
       rethrow;
@@ -429,50 +395,17 @@ class DataBasesPostServices {
   Future<void> removePostLike(
       String residenceId, String postId, String userId) async {
     try {
-      // Obtenez une référence à la publication dans la base de données
-      QuerySnapshot postQuery = await FirebaseFirestore.instance
+      final postQuery = await FirebaseFirestore.instance
           .collection("Residence")
           .doc(residenceId)
           .collection("post")
           .where("id", isEqualTo: postId)
           .get();
 
-      // Vérifiez s'il y a un document correspondant à l'ID donné
-      if (postQuery.docs.isNotEmpty) {
-        // Récupérez la référence du premier document (il devrait y en avoir un seul)
-        DocumentReference postRef = postQuery.docs.first.reference;
+      if (postQuery.docs.isEmpty) throw Exception("Post not found!");
 
-        // Récupérez les données du document
-        DocumentSnapshot postSnapshot = await postRef.get();
-
-        // Vérifiez si la publication existe
-        if (postSnapshot.exists) {
-          // Convertissez les données en Map<String, dynamic> de manière sûre
-          Map<String, dynamic> postData =
-              postSnapshot.data() as Map<String, dynamic>;
-
-          // Obtenez la liste de likes actuelle
-          List<dynamic> likes = postData['like'] ?? [];
-
-          // Vérifiez si l'utilisateur est déjà dans la liste de likes
-          if (likes.contains(userId)) {
-            // Retirez l'utilisateur de la liste de likes
-            likes.remove(userId);
-
-            // Mettez à jour la liste de likes dans les données de la publication
-            postData['like'] = likes;
-
-            // Mettez à jour la publication dans la base de données
-            await postRef.update(postData);
-          } else {
-            print("User $userId did not like post $postId");
-          }
-        } else {
-          throw Exception("Post not found!");
-        }
-      } else {
-        throw Exception("Post not found!");
-      }
+      await postQuery.docs.first.reference
+          .update({'like': FieldValue.arrayRemove([userId])});
     } catch (e) {
       print("Error removing like for post $postId by user $userId: $e");
       rethrow;
@@ -550,51 +483,17 @@ class DataBasesPostServices {
   Future<void> updatePostParticipants(
       String residenceId, String postId, String userId) async {
     try {
-      // Obtenez une référence à la publication dans la base de données
-      QuerySnapshot postQuery = await FirebaseFirestore.instance
+      final postQuery = await FirebaseFirestore.instance
           .collection("Residence")
           .doc(residenceId)
           .collection("post")
           .where("id", isEqualTo: postId)
           .get();
 
-      // Vérifiez s'il y a un document correspondant à l'ID donné
-      if (postQuery.docs.isNotEmpty) {
-        // Récupérez la référence du premier document (il devrait y en avoir un seul)
-        DocumentReference postRef = postQuery.docs.first.reference;
+      if (postQuery.docs.isEmpty) throw Exception("Post not found!");
 
-        // Récupérez les données du document
-        DocumentSnapshot postSnapshot = await postRef.get();
-
-        // Vérifiez si la publication existe
-        if (postSnapshot.exists) {
-          // Convertissez les données en Map<String, dynamic> de manière sûre
-          Map<String, dynamic> postData =
-              postSnapshot.data() as Map<String, dynamic>;
-
-          // Obtenez la liste de likes actuelle
-          List<dynamic> participants = postData['participants'] ?? [];
-
-          // Vérifiez si l'utilisateur est déjà dans la liste de likes
-          bool userParticiped = participants.contains(userId);
-
-          // Ajoutez ou supprimez l'utilisateur de la liste de likes
-          if (!userParticiped) {
-            // L'utilisateur n'a pas encore aimé la publication, alors ajoutez-le à la liste
-            participants.add(userId);
-          }
-
-          // Mettez à jour la liste de likes dans les données de la publication
-          postData['participants'] = participants;
-
-          // Mettez à jour la publication dans la base de données
-          await postRef.update(postData);
-        } else {
-          throw Exception("Post not found!");
-        }
-      } else {
-        throw Exception("Post not found!");
-      }
+      await postQuery.docs.first.reference
+          .update({'participants': FieldValue.arrayUnion([userId])});
     } catch (e) {
       print("Error updating participants for post $postId: $e");
       rethrow;
@@ -604,50 +503,17 @@ class DataBasesPostServices {
   Future<void> removePostParticipants(
       String residenceId, String postId, String userId) async {
     try {
-      // Obtenez une référence à la publication dans la base de données
-      QuerySnapshot postQuery = await FirebaseFirestore.instance
+      final postQuery = await FirebaseFirestore.instance
           .collection("Residence")
           .doc(residenceId)
           .collection("post")
           .where("id", isEqualTo: postId)
           .get();
 
-      // Vérifiez s'il y a un document correspondant à l'ID donné
-      if (postQuery.docs.isNotEmpty) {
-        // Récupérez la référence du premier document (il devrait y en avoir un seul)
-        DocumentReference postRef = postQuery.docs.first.reference;
+      if (postQuery.docs.isEmpty) throw Exception("Post not found!");
 
-        // Récupérez les données du document
-        DocumentSnapshot postSnapshot = await postRef.get();
-
-        // Vérifiez si la publication existe
-        if (postSnapshot.exists) {
-          // Convertissez les données en Map<String, dynamic> de manière sûre
-          Map<String, dynamic> postData =
-              postSnapshot.data() as Map<String, dynamic>;
-
-          // Obtenez la liste de likes actuelle
-          List<dynamic> userParticiped = postData['participants'] ?? [];
-
-          // Vérifiez si l'utilisateur est déjà dans la liste de likes
-          if (userParticiped.contains(userId)) {
-            // Retirez l'utilisateur de la liste de likes
-            userParticiped.remove(userId);
-
-            // Mettez à jour la liste de likes dans les données de la publication
-            postData['participants'] = userParticiped;
-
-            // Mettez à jour la publication dans la base de données
-            await postRef.update(postData);
-          } else {
-            print("User $userId did not like post $postId");
-          }
-        } else {
-          throw Exception("Post not found!");
-        }
-      } else {
-        throw Exception("Post not found!");
-      }
+      await postQuery.docs.first.reference
+          .update({'participants': FieldValue.arrayRemove([userId])});
     } catch (e) {
       print("Error removing Participants for post $postId by user $userId: $e");
       rethrow;

@@ -13,7 +13,7 @@ class Message {
     required this.timestamp,
   });
 
-  factory Message.fromJsom(Map<String, dynamic> json) {
+  factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
         message: json["message"],
         userIdFrom: json["userIdFrom"],
@@ -30,14 +30,7 @@ class Message {
     };
   }
 
-  // ✅ Nouvelle méthode pour Firestore
   factory Message.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
-    return Message(
-      message: data["message"],
-      userIdFrom: data["userIdFrom"],
-      userIdTo: data["userIdTo"],
-      timestamp: data["timestamp"],
-    );
+    return Message.fromJson(doc.data() as Map<String, dynamic>);
   }
 }

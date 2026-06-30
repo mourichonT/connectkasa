@@ -6,6 +6,62 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class SubmitPostController {
+  static Post _buildPost({
+    required String uid,
+    required String idPost,
+    required String selectedLabel,
+    required String docRes,
+    String? imagePath,
+    TextEditingController? title,
+    TextEditingController? desc,
+    bool? anonymPost,
+    String? localisation,
+    String? etage,
+    String? subtype,
+    String? backgroundColor,
+    String? backgroundImage,
+    int? price,
+    List<String>? element,
+    List<String>? participants,
+    List<String>? eventType,
+    double? fontSize,
+    String? fontWeight,
+    String? fontColor,
+    String? fontStyle,
+    Timestamp? eventDate,
+    String? prestaName,
+  }) {
+    return Post(
+      id: idPost,
+      description: desc?.text ?? "",
+      location_element: localisation ?? "",
+      location_details: element ?? [],
+      location_floor: etage ?? "",
+      subtype: subtype ?? "",
+      price: price ?? 0,
+      pathImage: imagePath ?? "",
+      refResidence: docRes,
+      statu: selectedLabel == "sinistres" ? "En attente" : "",
+      timeStamp: Timestamp.now(),
+      title: title?.text ?? "",
+      type: selectedLabel,
+      user: uid,
+      like: [],
+      signalement: [],
+      hideUser: anonymPost ?? false,
+      participants: participants ?? [],
+      eventType: eventType ?? [],
+      backgroundColor: backgroundColor ?? "",
+      backgroundImage: backgroundImage ?? "",
+      fontSize: fontSize ?? 20.0,
+      fontWeight: fontWeight ?? "",
+      fontColor: fontColor ?? "",
+      fontStyle: fontStyle ?? "",
+      eventDate: eventDate,
+      prestaName: prestaName,
+    );
+  }
+
   static submitForm(
       {required String uid,
       required String idPost,
@@ -30,41 +86,34 @@ class SubmitPostController {
       String? fontStyle,
       Timestamp? eventDate,
       String? prestaName}) {
-    // Créer une instance de DataBasesServices
     DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
 
-    // Créer un nouvel objet Post
-    Post newPost = Post(
-      id: idPost, // Vous devez générer un ID unique pour chaque post
-      description: desc?.text ?? "",
-      location_element: localisation ?? "",
-      location_details: element ?? [],
-      location_floor: etage ?? "",
-      subtype: subtype ?? "",
-      price: price ?? 0,
-      pathImage: imagePath ?? "",
-      refResidence: docRes,
-      statu: selectedLabel == "sinistres" ? "En attente" : "",
-      timeStamp: Timestamp.now(),
-      title: title?.text ?? "",
-      type: selectedLabel,
-      user: uid, // Remplacer par l'utilisateur actuel
-      like: [], // Vous pouvez initialiser avec une liste vide
-      signalement: [], // Vous pouvez initialiser avec une liste vide
-      hideUser: anonymPost ?? false,
-      participants: participants ?? [],
-      eventType: eventType ?? [],
-      backgroundColor: backgroundColor ?? "",
-      backgroundImage: backgroundImage ?? "",
-      fontSize: fontSize ?? 20.0,
-      fontWeight: fontWeight ?? "",
-      fontColor: fontColor ?? "",
-      fontStyle: fontStyle ?? "",
+    final newPost = _buildPost(
+      uid: uid,
+      idPost: idPost,
+      selectedLabel: selectedLabel,
+      docRes: docRes,
+      imagePath: imagePath,
+      title: title,
+      desc: desc,
+      anonymPost: anonymPost,
+      localisation: localisation,
+      etage: etage,
+      subtype: subtype,
+      backgroundColor: backgroundColor,
+      backgroundImage: backgroundImage,
+      price: price,
+      element: element,
+      participants: participants,
+      eventType: eventType,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontColor: fontColor,
+      fontStyle: fontStyle,
       eventDate: eventDate,
       prestaName: prestaName,
     );
 
-    // Appeler la méthode addPost pour ajouter le nouveau post
     dataBasesPostServices.addPost(newPost, docRes);
   }
 
@@ -95,8 +144,6 @@ class SubmitPostController {
   }) async {
     DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
 
-    print("Appel à la Cloud Function pour vérifier les doublons...");
-
     final duplicateResponse = await checkDuplicatePost(
       docRes: docRes,
       postId: idPost,
@@ -106,34 +153,28 @@ class SubmitPostController {
       locationFloor: etage ?? "",
     );
 
-    print("Réponse de la Cloud Function : ${duplicateResponse['status']}");
-
-    final post = Post(
-      id: idPost,
-      description: desc?.text ?? "",
-      location_element: localisation ?? "",
-      location_details: element ?? [],
-      location_floor: etage ?? "",
-      subtype: subtype ?? "",
-      price: price ?? 0,
-      pathImage: imagePath ?? "",
-      refResidence: docRes,
-      statu: selectedLabel == "sinistres" ? "En attente" : "",
-      timeStamp: Timestamp.now(),
-      title: title?.text ?? "",
-      type: selectedLabel,
-      user: uid,
-      like: [],
-      signalement: [],
-      hideUser: anonymPost ?? false,
-      participants: participants ?? [],
-      eventType: eventType ?? [],
-      backgroundColor: backgroundColor ?? "",
-      backgroundImage: backgroundImage ?? "",
-      fontSize: fontSize ?? 20.0,
-      fontWeight: fontWeight ?? "",
-      fontColor: fontColor ?? "",
-      fontStyle: fontStyle ?? "",
+    final post = _buildPost(
+      uid: uid,
+      idPost: idPost,
+      selectedLabel: selectedLabel,
+      docRes: docRes,
+      imagePath: imagePath,
+      title: title,
+      desc: desc,
+      anonymPost: anonymPost,
+      localisation: localisation,
+      etage: etage,
+      subtype: subtype,
+      backgroundColor: backgroundColor,
+      backgroundImage: backgroundImage,
+      price: price,
+      element: element,
+      participants: participants,
+      eventType: eventType,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      fontColor: fontColor,
+      fontStyle: fontStyle,
       eventDate: eventDate,
       prestaName: prestaName,
     );

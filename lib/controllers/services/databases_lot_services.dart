@@ -218,107 +218,87 @@ class DataBasesLotServices {
     }
   }
 
+  // Applique la décision de remplacement ou d’ajout de locataire au lot
+  Future<void> _applyTenantChange(
+      DocumentReference lotRef,
+      String residenceId,
+      String refLot,
+      String tenantId,
+      bool replace) async {
+    await DataBasesUserServices.addLotToUser(
+        userId: tenantId,
+        lotId: "$residenceId-$refLot",
+        statutResident: "Locataire",
+        entryDate: Timestamp.now());
+
+    if (replace) {
+      await lotRef.update({‘idLocataire’: [tenantId]});
+    } else {
+      await lotRef.update({‘idLocataire’: FieldValue.arrayUnion([tenantId])});
+    }
+  }
+
+  // La décision remplacer/ajouter est prise par la vue (BuildContext requis pour le dialog)
   Future<bool> addTenant(BuildContext context, String residenceId,
       String refLot, String tenantId) async {
     try {
-      QuerySnapshot querySnapshot = await db
+      final querySnapshot = await db
           .collection("Residence")
           .doc(residenceId)
           .collection("lot")
-          .where('refLot', isEqualTo: refLot)
+          .where(‘refLot’, isEqualTo: refLot)
           .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        DocumentSnapshot lotDoc = querySnapshot.docs[0];
-        DocumentReference lotRef = lotDoc.reference;
+      if (querySnapshot.docs.isEmpty) return false;
 
-        List<dynamic> currentLocataires =
-            List.from(lotDoc.get('idLocataire') ?? []);
+      final lotDoc = querySnapshot.docs[0];
+      final lotRef = lotDoc.reference;
+      final currentLocataires = List<dynamic>.from(lotDoc.get(‘idLocataire’) ?? []);
 
-        // Si le locataire est déjà dans la liste, on peut directement ignorer
-        if (currentLocataires.contains(tenantId)) {
-          print("Le locataire $tenantId est déjà présent dans le lot.");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Ce locataire est déjà ajouté.")),
-          );
-          return false;
-        }
+      if (currentLocataires.contains(tenantId)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Ce locataire est déjà ajouté.")),
+        );
+        return false;
+      }
 
-        if (currentLocataires.isNotEmpty) {
-          // Afficher le dialogue
-          final result = await showDialog<String>(
-            context: context,
-            builder: (context) {
-              return AlertDialog(
-                title: MyTextStyle.lotName(
-                    "Locataire déjà présent", Colors.black87, SizeFont.h2.size),
-                content: MyTextStyle.lotName(
-                    "Souhaitez-vous remplacer le locataire actuel ou ajouter un colocataire ?",
-                    Colors.black87,
-                    SizeFont.h3.size,
-                    FontWeight.normal),
-                actions: [
-                  TextButton(
-                    onPressed: () async {
-                      await DataBasesUserServices.addLotToUser(
-                          userId: tenantId,
-                          lotId: "$residenceId-$refLot",
-                          statutResident: "Locataire",
-                          entryDate: Timestamp.now());
+      if (currentLocataires.isNotEmpty) {
+        final result = await showDialog<String>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: MyTextStyle.lotName(
+                  "Locataire déjà présent", Colors.black87, SizeFont.h2.size),
+              content: MyTextStyle.lotName(
+                  "Souhaitez-vous remplacer le locataire actuel ou ajouter un colocataire ?",
+                  Colors.black87,
+                  SizeFont.h3.size,
+                  FontWeight.normal),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, ‘replace’),
+                  child: const Text("Remplacer"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, ‘add’),
+                  child: const Text("Ajouter"),
+                ),
+              ],
+            );
+          },
+        );
 
-                      Navigator.pop(context, 'replace');
-                    },
-                    child: Text("Remplacer"),
-                  ),
-                  TextButton(
-                    onPressed: () async {
-                      await DataBasesUserServices.addLotToUser(
-                          userId: tenantId,
-                          lotId: "$residenceId-$refLot",
-                          statutResident: "Locataire",
-                          entryDate: Timestamp.now());
-                      Navigator.pop(context, 'add');
-                    },
-                    child: Text("Ajouter"),
-                  ),
-                ],
-              );
-            },
-          );
-
-          if (result == 'replace') {
-            await lotRef.update({
-              'idLocataire': [tenantId]
-            });
-            print("Locataire remplacé par $tenantId.");
-            return true;
-          } else if (result == 'add') {
-            await lotRef.update({
-              'idLocataire': FieldValue.arrayUnion([tenantId])
-            });
-            print("Ajout de $tenantId comme co-locataire.");
-            return true;
-          } else {
-            print("Action annulée par l'utilisateur.");
-            return false;
-          }
-        } else {
-          // Liste vide : ajouter directement
-          await DataBasesUserServices.addLotToUser(
-              userId: tenantId,
-              lotId: "$residenceId-$refLot",
-              statutResident: "Locataire",
-              entryDate: Timestamp.now());
-          await lotRef.update({
-            'idLocataire': FieldValue.arrayUnion([tenantId])
-          });
-          print("Ajout de $tenantId comme premier locataire.");
+        if (result == ‘replace’) {
+          await _applyTenantChange(lotRef, residenceId, refLot, tenantId, true);
+          return true;
+        } else if (result == ‘add’) {
+          await _applyTenantChange(lotRef, residenceId, refLot, tenantId, false);
           return true;
         }
-      } else {
-        print(
-            "Aucun lot trouvé avec la référence $refLot dans la résidence $residenceId.");
         return false;
+      } else {
+        await _applyTenantChange(lotRef, residenceId, refLot, tenantId, false);
+        return true;
       }
     } catch (e) {
       print("Erreur lors de l’ajout du locataire : $e");

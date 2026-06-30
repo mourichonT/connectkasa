@@ -61,29 +61,10 @@ class AuthentificationService {
     return await _auth.signInWithCredential(credential);
   }
 
-  // Création de compte avec les informations Google
+  // Création de compte avec les informations Google (même flux OAuth que signInWithGoogle)
   Future<UserCredential> signUpWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
-
-      if (googleUser == null) {
-        throw FirebaseAuthException(
-          code: 'account-selection-canceled',
-          message: 'L\'utilisateur n\'a pas sélectionné de compte Google',
-        );
-      }
-
-      // obtenir les détails d'autorisation de la demande
-      final googleAuth = await googleUser.authentication;
-
-      // créer un nouvel identifiant
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
-      );
-
-      // Créer un compte avec l'identifiant Google
-      return await _auth.signInWithCredential(credential);
+      return await signInWithGoogle();
     } catch (e) {
       throw FirebaseAuthException(
         code: 'sign-up-error',

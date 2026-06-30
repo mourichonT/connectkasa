@@ -4,68 +4,70 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/transaction.dart';
 
 class TransactionServices {
+  // UID du portefeuille général de l'application
+  static const String _walletUid = "0hR1IOPOcuTujkZTOP6Bwuqa3K13";
+
   static Future<bool> effectuerTransaction(
       {required String idUserEmetteur,
       required String idUserReceveur,
       required String montant,
       required String fees}) async {
-    String uidWallet = "0hR1IOPOcuTujkZTOP6Bwuqa3K13";
     try {
-      // Récupérez les références des documents des utilisateurs émetteur et receveur
-      Query<Map<String, dynamic>> emetteurQuery = FirebaseFirestore.instance
+      final db = FirebaseFirestore.instance;
+
+      // Les transactions Firestore ne supportent pas les queries — on récupère
+      // les références avant, puis on relit dans la transaction pour la cohérence.
+      final emetteurSnapshot = await db
           .collection("User")
           .where("uid", isEqualTo: idUserEmetteur)
-          .limit(1);
-
-      Query<Map<String, dynamic>> receveurQuery = FirebaseFirestore.instance
+          .limit(1)
+          .get();
+      final receveurSnapshot = await db
           .collection("User")
           .where("uid", isEqualTo: idUserReceveur)
-          .limit(1);
-
-      Query<Map<String, dynamic>> generalWalletQuery = FirebaseFirestore
-          .instance
+          .limit(1)
+          .get();
+      final walletSnapshot = await db
           .collection("User")
-          .where("uid", isEqualTo: uidWallet)
-          .limit(1);
-
-      QuerySnapshot<Map<String, dynamic>> emetteurSnapshot =
-          await emetteurQuery.get();
-      QuerySnapshot<Map<String, dynamic>> receveurSnapshot =
-          await receveurQuery.get();
-      QuerySnapshot<Map<String, dynamic>> generalWalletSnapshot =
-          await generalWalletQuery.get();
+          .where("uid", isEqualTo: _walletUid)
+          .limit(1)
+          .get();
 
       if (emetteurSnapshot.docs.isEmpty ||
           receveurSnapshot.docs.isEmpty ||
-          double.parse(emetteurSnapshot.docs.first['solde']) <
-              double.parse(montant)) {
-        throw Exception('Transaction impossible, les fonds sont insuffisants');
+          walletSnapshot.docs.isEmpty) {
+        throw Exception('Utilisateur introuvable');
       }
 
-      DocumentReference emetteurRef = emetteurSnapshot.docs.first.reference;
-      DocumentReference receveurRef = receveurSnapshot.docs.first.reference;
-      DocumentReference generalWalletRef =
-          generalWalletSnapshot.docs.first.reference;
+      final emetteurRef = emetteurSnapshot.docs.first.reference;
+      final receveurRef = receveurSnapshot.docs.first.reference;
+      final walletRef = walletSnapshot.docs.first.reference;
+      final montantD = double.parse(montant);
+      final feesD = double.parse(fees);
 
-      double nouveauSoldeEmetteur =
-          double.parse(emetteurSnapshot.docs.first['solde']) -
-              double.parse(montant);
-      double nouveauSoldeReceveur =
-          double.parse(receveurSnapshot.docs.first['solde']) +
-              double.parse(montant);
-      double nouveauSoldeGeneralWallet =
-          double.parse(generalWalletSnapshot.docs.first['solde']) +
-              double.parse(fees);
+      await db.runTransaction((txn) async {
+        final emetteurDoc = await txn.get(emetteurRef);
+        final receveurDoc = await txn.get(receveurRef);
+        final walletDoc = await txn.get(walletRef);
 
-      await emetteurRef.update({'solde': nouveauSoldeEmetteur.toString()});
-      await receveurRef.update({'solde': nouveauSoldeReceveur.toString()});
-      await generalWalletRef
-          .update({'solde': nouveauSoldeGeneralWallet.toString()});
+        final soldeCourantEmetteur = double.parse(emetteurDoc.get('solde'));
+        if (soldeCourantEmetteur < montantD) {
+          throw Exception('Transaction impossible, les fonds sont insuffisants');
+        }
 
-      // La transaction a réussi
+        txn.update(emetteurRef,
+            {'solde': (soldeCourantEmetteur - montantD).toString()});
+        txn.update(receveurRef, {
+          'solde':
+              (double.parse(receveurDoc.get('solde')) + montantD).toString()
+        });
+        txn.update(walletRef, {
+          'solde': (double.parse(walletDoc.get('solde')) + feesD).toString()
+        });
+      });
+
       return true;
     } catch (e) {
-      // Une erreur s'est produite lors de la transaction
       print('Erreur lors de la transaction : $e');
       return false;
     }

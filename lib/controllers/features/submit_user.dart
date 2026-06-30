@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 import '../../models/pages_models/residence.dart';
 
 class SubmitUser {
-  static submitUser({
+  static Future<void> submitUser({
     required bool privacyPolicy,
     required String emailUser,
     required String name,
@@ -38,7 +38,7 @@ class SubmitUser {
     String? kbisPath,
     bool? informationsCorrectes,
     String? fcmToken,
-  }) {
+  }) async {
     final dataBasesUserServices = DataBasesUserServices();
     final dataBasesDocsServices = DataBasesDocsServices();
 
@@ -58,7 +58,7 @@ class SubmitUser {
       placeOfborn: placeOfborn,
     );
 
-    dataBasesUserServices.setUser(
+    await dataBasesUserServices.setUser(
         newUser,
         "${residence.id}-$lotId",
         companyName,
@@ -68,19 +68,15 @@ class SubmitUser {
         fcmToken);
 
     // Document pièce d'identité
-    if (docTypeID != null &&
-        imagepathIDrecto != null &&
-        imagepathIDverso != null) {
+    if (imagepathIDrecto != null && imagepathIDverso != null) {
       final newDocId = DocumentModel(
         type: docTypeID,
         timeStamp: Timestamp.now(),
         documentPathRecto: imagepathIDrecto,
         documentPathVerso: imagepathIDverso,
       );
-      dataBasesDocsServices.setDocument(
+      await dataBasesDocsServices.setDocument(
           newDocId, newUserId, '${residence.id}-$lotId');
-    } else {
-      print("le document ID n'a pas était importé dans la collection");
     }
 
     // Document justificatif
@@ -92,13 +88,11 @@ class SubmitUser {
         documentPathRecto: imagepathJustif,
         lotId: lotId,
       );
-      dataBasesDocsServices.setDocument(
+      await dataBasesDocsServices.setDocument(
         newDocJustif,
         newUserId,
         '${residence.id}-$lotId',
       );
-    } else {
-      print("le document justif n'a pas était importé dans la collection");
     }
 
     // Kbis (si société)
@@ -110,10 +104,8 @@ class SubmitUser {
         documentPathRecto: kbisPath,
         lotId: lotId,
       );
-      dataBasesDocsServices.setDocument(
+      await dataBasesDocsServices.setDocument(
           newDocKbis, newUserId, '${residence.id}-$lotId');
-    } else {
-      print("le document société n'a pas était importé dans la collection");
     }
   }
 

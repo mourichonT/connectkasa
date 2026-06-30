@@ -143,10 +143,10 @@ class DatabasesAgencyServices {
     List<DocumentSnapshot<Map<String, dynamic>>> deptDetails = [];
     try {
       // Récupérer la référence de la collection "Gerance"
-      QuerySnapshot<Map<String, dynamic>> residenceRef = db
+      QuerySnapshot<Map<String, dynamic>> residenceRef = await db
           .collection("Residence")
           .where('id', isEqualTo: refId)
-          .get() as QuerySnapshot<Map<String, dynamic>>;
+          .get();
 
       for (QueryDocumentSnapshot<Map<String, dynamic>> doc
           in residenceRef.docs) {

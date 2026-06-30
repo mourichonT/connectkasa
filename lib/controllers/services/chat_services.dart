@@ -1,9 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/message.dart';
-import 'package:flutter/material.dart';
 
-class ChatServices extends ChangeNotifier {
+class ChatServices {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<String?> getTokenFromUserId(String userId) async {

@@ -150,7 +150,7 @@ class UserInfo extends User {
       approved: approved ?? this.approved,
       createdDate: createdDate ?? this.createdDate,
       bio: bio ?? this.bio,
-      profilPic: profilPic!,
+      profilPic: profilPic ?? this.profilPic,
     );
   }
 }
