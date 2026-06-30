@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+﻿import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -218,7 +218,7 @@ class DataBasesLotServices {
     }
   }
 
-  // Applique la décision de remplacement ou d’ajout de locataire au lot
+  // Applique la décision de remplacement ou d'ajout de locataire au lot
   Future<void> _applyTenantChange(
       DocumentReference lotRef,
       String residenceId,
@@ -232,9 +232,9 @@ class DataBasesLotServices {
         entryDate: Timestamp.now());
 
     if (replace) {
-      await lotRef.update({‘idLocataire’: [tenantId]});
+      await lotRef.update({'idLocataire': [tenantId]});
     } else {
-      await lotRef.update({‘idLocataire’: FieldValue.arrayUnion([tenantId])});
+      await lotRef.update({'idLocataire': FieldValue.arrayUnion([tenantId])});
     }
   }
 
@@ -246,14 +246,14 @@ class DataBasesLotServices {
           .collection("Residence")
           .doc(residenceId)
           .collection("lot")
-          .where(‘refLot’, isEqualTo: refLot)
+          .where('refLot', isEqualTo: refLot)
           .get();
 
       if (querySnapshot.docs.isEmpty) return false;
 
       final lotDoc = querySnapshot.docs[0];
       final lotRef = lotDoc.reference;
-      final currentLocataires = List<dynamic>.from(lotDoc.get(‘idLocataire’) ?? []);
+      final currentLocataires = List<dynamic>.from(lotDoc.get('idLocataire') ?? []);
 
       if (currentLocataires.contains(tenantId)) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -276,11 +276,11 @@ class DataBasesLotServices {
                   FontWeight.normal),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.pop(context, ‘replace’),
+                  onPressed: () => Navigator.pop(context, 'replace'),
                   child: const Text("Remplacer"),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pop(context, ‘add’),
+                  onPressed: () => Navigator.pop(context, 'add'),
                   child: const Text("Ajouter"),
                 ),
               ],
@@ -288,10 +288,10 @@ class DataBasesLotServices {
           },
         );
 
-        if (result == ‘replace’) {
+        if (result == 'replace') {
           await _applyTenantChange(lotRef, residenceId, refLot, tenantId, true);
           return true;
-        } else if (result == ‘add’) {
+        } else if (result == 'add') {
           await _applyTenantChange(lotRef, residenceId, refLot, tenantId, false);
           return true;
         }
@@ -301,7 +301,7 @@ class DataBasesLotServices {
         return true;
       }
     } catch (e) {
-      print("Erreur lors de l’ajout du locataire : $e");
+      print("Erreur lors de l'ajout du locataire : $e");
       rethrow;
     }
   }
