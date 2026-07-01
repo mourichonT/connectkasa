@@ -1,10 +1,8 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/pages_controllers/filter_allannounced_controller..dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
-import 'package:connect_kasa/controllers/services/transaction_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/transaction.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/pages_vues/annonces_page/add_annonceform.dart';
 import 'package:connect_kasa/vues/widget_view/components/annonce_tile.dart';
@@ -35,10 +33,8 @@ class AnnoncesPageView extends StatefulWidget {
 class AnnoncesPageViewState extends State<AnnoncesPageView>
     with SingleTickerProviderStateMixin {
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
-  final TransactionServices _transacServices = TransactionServices();
   late final TabController _tabController;
   late Future<List<Post>> _allPostsFuture;
-  late Future<List<TransactionModel>> _allTransaction;
   bool _showFilters = false;
   bool _selectedTab = false;
   bool colorSelection = false;
@@ -51,17 +47,8 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
     _tabController = TabController(length: 2, vsync: this);
     _allPostsFuture =
         _databaseServices.getAllAnnonces(widget.residenceSelected);
-    _allTransaction = _transacServices.getTransactionByUid(
-        widget.uid, widget.residenceSelected);
     _tabController.addListener(_handleTabChange);
     _selectedTab = _tabController.index == 0;
-  }
-
-  void refreshTransactions() {
-    setState(() {
-      _allTransaction = _transacServices.getTransactionByUid(
-          widget.uid, widget.residenceSelected);
-    });
   }
 
   void _handleTabChange() {

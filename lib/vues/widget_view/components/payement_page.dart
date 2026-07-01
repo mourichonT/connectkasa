@@ -1,8 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/transaction_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/transaction.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
 import 'package:flutter/material.dart';
@@ -198,31 +196,12 @@ class PayementPageState extends State<PayementPage> {
                 child: Padding(
                     padding: const EdgeInsets.only(top: 50),
                     child: ButtonAdd(
-                      function: () async {
-                        TransactionModel transaction =
-                            await TransactionServices.createdTransac(
-                          uidFrom: widget.uidFrom,
-                          uidTo: widget.post.user,
-                          amount: amount.toString(),
-                          fees: fees.toString(),
-                          residenceId: widget.residenceId,
-                          post: widget.post,
+                      function: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Fonctionnalité de paiement à venir."),
+                          ),
                         );
-
-                        if (transaction.statut == 'en attente') {
-                          // Assurez-vous que 'statut' est une propriété de votre TransactionModel indiquant le succès de la transaction
-                          showSnackBarFun(context);
-                          // Gérer d'autres actions à effectuer en cas de succès de la transaction
-                          print("La transaction a été effectuée avec succès.");
-
-                          setState(() {
-                            //widget.onRefresh?.call();
-                            Navigator.pop(context);
-                          });
-                        } else {
-                          print('La transaction a échoué.');
-                          // Gérer d'autres actions à effectuer en cas d'échec de la transaction
-                        }
                       },
                       color: Theme.of(context).primaryColor,
                       text: "Valider le paiement",
@@ -238,31 +217,4 @@ class PayementPageState extends State<PayementPage> {
     ]);
   }
 
-  showSnackBarFun(context) {
-    SnackBar snackBar = SnackBar(
-      content: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        child:
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Icon(
-            Icons.thumb_up,
-            color: Colors.white,
-          ),
-          SizedBox(
-            width: 20,
-          ),
-          Expanded(child: Text("La transaction a été effectuée avec succès."))
-        ]),
-      ),
-      backgroundColor: Theme.of(context).primaryColor,
-      dismissDirection: DismissDirection.up,
-      behavior: SnackBarBehavior.floating,
-      margin: EdgeInsets.only(
-          bottom: MediaQuery.of(context).size.height - 150,
-          left: 10,
-          right: 10),
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
 }

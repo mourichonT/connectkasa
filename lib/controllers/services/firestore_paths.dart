@@ -12,7 +12,6 @@ abstract class FirestorePaths {
   static const String messages = 'messages';
   static const String documents = 'documents';
   static const String documentsCopro = 'documents_copro';
-  static const String transactions = 'transaction';
   static const String mail = 'mail';
   static const String events = 'events';
   static const String contacts = 'contacts';
