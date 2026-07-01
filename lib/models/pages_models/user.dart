@@ -33,7 +33,6 @@ class User {
     required this.approved,
     this.createdDate,
     this.bio,
-    String solde = "0",
   }) {
     _profilPic = profilPic;
   }
