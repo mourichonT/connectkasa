@@ -1,6 +1,5 @@
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
-import 'package:connect_kasa/vues/widget_view/components/payement_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -452,24 +451,5 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
     );
   }
 
-  void _showBottomSheet(
-      BuildContext context, int price, String uidFrom, Post post) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // Pour rendre le contenu scrollable
-      builder: (context) {
-        return FractionallySizedBox(
-          heightFactor: 3 / 4, // Définir la fraction de la hauteur de l'écran
-          child: Container(
-            // Contenu du BottomSheet
-            child: PayementPage(
-              post: post,
-              uidFrom: uidFrom,
-              residenceId: widget.residence,
-            ),
-          ),
-        );
-      },
-    );
-  }
+
 }
