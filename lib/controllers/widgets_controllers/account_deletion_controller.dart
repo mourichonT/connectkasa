@@ -20,7 +20,7 @@ class AccountDeletionController {
       builder: (BuildContext context) {
         return AlertDialog(
           title: MyTextStyle.lotName(
-                    "Supprimer le compte", Colors.black87, SizeFont.h1.size),
+                    "Supprimer mon compte", Colors.black87, SizeFont.h1.size),
           content: MyTextStyle.annonceDesc('Cette action est définitive. Votre profil, vos documents, vos lots et vos demandes seront supprimés et vous perdrez l\'accès à votre compte. Voulez-vous vraiment continuer ?', SizeFont.h3.size,5),
           actions: <Widget>[
             TextButton(

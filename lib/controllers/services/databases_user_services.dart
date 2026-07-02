@@ -10,7 +10,6 @@ import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 class DataBasesUserServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
@@ -366,11 +365,13 @@ class DataBasesUserServices {
     }
   }
 
-  /// Supprime intégralement le compte d'un utilisateur : sa photo de profil
-  /// (Storage), toutes ses données Firestore (User + sous-collections), puis
-  /// son compte Firebase Auth. Le compte Auth est supprimé en dernier car
-  /// cette opération met fin à la session authentifiée.
-  static Future<void> deleteAccountCompletely(String uid) async {
+  /// Purge la photo de profil (Storage) et toutes les données Firestore
+  /// (User + sous-collections) d'un utilisateur. Ne touche pas au compte
+  /// Firebase Auth : à appeler uniquement après que celui-ci a été
+  /// supprimé avec succès (voir DeleteAccount.execute), pour ne jamais
+  /// détruire des données tant que la suppression du compte n'est pas
+  /// certaine (ex: annulation pendant une ré-authentification).
+  static Future<void> purgeUserData(String uid) async {
     try {
       final user = await getUserById(uid);
       final profilPic = user?.profilPic;
@@ -382,11 +383,6 @@ class DataBasesUserServices {
     }
 
     await removeUserById(uid);
-
-    final currentUser = auth.FirebaseAuth.instance.currentUser;
-    if (currentUser != null && currentUser.uid == uid) {
-      await currentUser.delete();
-    }
   }
 
   Future<Map<String, dynamic>?> getLotDetails(

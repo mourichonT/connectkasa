@@ -1,9 +1,14 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+
+/// Levée quand l'utilisateur annule la procédure (dialogue de mot de passe
+/// fermé, ou Google Sign-In annulé) pendant la ré-authentification.
+/// Signale qu'il ne faut rien supprimer, sans afficher d'erreur.
+class _DeletionCancelled implements Exception {}
 
 class DeleteAccount {
   static Future<void> execute({
@@ -19,7 +24,22 @@ class DeleteAccount {
     );
 
     try {
-      await DataBasesUserServices.deleteAccountCompletely(uid);
+      // 1. Le compte Firebase Auth doit être supprimé EN PREMIER. Tant que
+      // cette étape n'est pas confirmée, on ne touche à aucune donnée : si
+      // l'utilisateur annule la ré-authentification, son compte et ses
+      // données restent intacts.
+      await _deleteAuthAccount(context: context, email: email);
+
+      // 2. Le compte n'existe plus : on peut purger les données sans risque
+      // de laisser un compte orphelin en cas d'échec.
+      try {
+        await DataBasesUserServices.purgeUserData(uid);
+      } catch (e) {
+        print(
+            "Erreur lors de la purge des données après suppression du compte : $e");
+        // Le compte Auth est déjà supprimé, impossible de revenir en
+        // arrière : on continue vers l'écran de connexion malgré tout.
+      }
 
       if (!context.mounted) return;
       Navigator.of(context).pop(); // ferme le loader
@@ -30,24 +50,11 @@ class DeleteAccount {
         ),
         (route) => false,
       );
-    } on firebase_auth.FirebaseAuthException catch (e) {
+    } on _DeletionCancelled {
+      // Ré-authentification annulée par l'utilisateur : rien n'a été
+      // supprimé, on referme juste le loader.
       if (!context.mounted) return;
-      Navigator.of(context).pop(); // ferme le loader
-
-      if (e.code == 'requires-recent-login') {
-        final reauthenticated =
-            await _reauthenticate(context: context, email: email);
-        if (reauthenticated) {
-          await execute(
-              context: context,
-              uid: uid,
-              email: email); // relance la suppression une fois reconnecté
-        }
-        return;
-      }
-
-      _showErrorDialog(
-          context, 'Erreur lors de la suppression du compte : ${e.message}');
+      Navigator.of(context).pop();
     } catch (e) {
       if (!context.mounted) return;
       Navigator.of(context).pop(); // ferme le loader
@@ -56,10 +63,33 @@ class DeleteAccount {
     }
   }
 
+  /// Supprime le compte Firebase Auth courant. Si la session est trop
+  /// ancienne (requires-recent-login), redemande les identifiants et
+  /// retente une seule fois. Ne supprime jamais de données Firestore.
+  static Future<void> _deleteAuthAccount({
+    required BuildContext context,
+    required String email,
+  }) async {
+    final currentUser = firebase_auth.FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return;
+
+    try {
+      await currentUser.delete();
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code != 'requires-recent-login') rethrow;
+
+      final reauthenticated =
+          await _reauthenticate(context: context, email: email);
+      if (!reauthenticated) {
+        throw _DeletionCancelled();
+      }
+      await currentUser.delete(); // relance une fois reconnecté
+    }
+  }
+
   /// Firebase exige une connexion récente pour autoriser une suppression de
   /// compte. Si la session est trop ancienne, on redemande les identifiants
-  /// (mot de passe ou Google selon le fournisseur utilisé) avant de relancer
-  /// la suppression.
+  /// (mot de passe ou Google selon le fournisseur utilisé).
   static Future<bool> _reauthenticate({
     required BuildContext context,
     required String email,
