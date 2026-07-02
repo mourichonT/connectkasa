@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_user.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/controllers/widgets_controllers/account_deletion_controller.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/legal_texts/info_centre.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -86,6 +87,27 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
         title: MyTextStyle.lotName(
             "Compte & sécurité", Colors.black87, SizeFont.h1.size),
       ),
+      bottomSheet: Container(
+          color: Theme.of(context)
+              .indicatorColor, // Changez cette couleur selon vos besoins
+          padding: const EdgeInsets.symmetric(vertical: 25),
+          child:
+              SizedBox(
+                child: ButtonAdd(
+                  function: () => AccountDeletionController(
+                    context: context,
+                    uid: widget.uid,
+                    email: widget.email,
+                  ).confirmDeleteAccount(),
+                  color: Colors.red,
+                  icon: Icons.clear,
+                  text: "Supprimer le compte",
+                  horizontal: 20,
+                  vertical: 10,
+                  size: SizeFont.h3.size,
+                ),
+              ),
+        ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -309,4 +331,5 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
       );
     }
   }
+
 }

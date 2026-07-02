@@ -326,11 +326,11 @@ class DataBasesUserServices {
         return; // Sortir de la fonction si l'utilisateur n'existe pas
       }
 
-      // Liste des sous-collections à supprimer — à adapter selon ton modèle
+      // Liste des sous-collections à plat à supprimer
       final List<String> subcollections = [
         'documents',
-        'lots'
-        // ajoute ici toutes les sous-collections possibles
+        'lots',
+        'demandes_loc',
       ];
 
       for (String subCol in subcollections) {
@@ -343,11 +343,49 @@ class DataBasesUserServices {
         }
       }
 
+      // profil_locataire contient une sous-collection garants à vider
+      // avant de pouvoir supprimer chaque document profil_locataire
+      final profilLocataireSnapshot =
+          await userRef.collection('profil_locataire').get();
+      for (final profilDoc in profilLocataireSnapshot.docs) {
+        final garantsSnapshot =
+            await profilDoc.reference.collection('garants').get();
+        for (final garantDoc in garantsSnapshot.docs) {
+          await garantDoc.reference.delete();
+        }
+        await profilDoc.reference.delete();
+        print("🗑️ profil_locataire/${profilDoc.id} supprimé");
+      }
+
       // Supprime le document principal après avoir vidé les sous-collections
       await userRef.delete();
       print("✅ Utilisateur et ses sous-collections supprimés avec succès");
     } catch (e) {
       print('❌ Erreur lors de la suppression de l\'utilisateur: $e');
+      rethrow;
+    }
+  }
+
+  /// Supprime intégralement le compte d'un utilisateur : sa photo de profil
+  /// (Storage), toutes ses données Firestore (User + sous-collections), puis
+  /// son compte Firebase Auth. Le compte Auth est supprimé en dernier car
+  /// cette opération met fin à la session authentifiée.
+  static Future<void> deleteAccountCompletely(String uid) async {
+    try {
+      final user = await getUserById(uid);
+      final profilPic = user?.profilPic;
+      if (profilPic != null && profilPic.isNotEmpty) {
+        await FirebaseStorage.instance.ref().child(profilPic).delete();
+      }
+    } catch (e) {
+      print("Erreur lors de la suppression de la photo de profil : $e");
+    }
+
+    await removeUserById(uid);
+
+    final currentUser = auth.FirebaseAuth.instance.currentUser;
+    if (currentUser != null && currentUser.uid == uid) {
+      await currentUser.delete();
     }
   }
 
