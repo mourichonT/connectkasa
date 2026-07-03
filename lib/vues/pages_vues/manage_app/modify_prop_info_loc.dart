@@ -15,14 +15,14 @@ import 'package:flutter/services.dart';
 
 class ModifyPropInfoLoc extends StatefulWidget {
   final Lot lot;
-  final String refLotSelected;
+  final String idLotSelected;
   final String uid;
 
   const ModifyPropInfoLoc({
     super.key,
     required this.lot,
     required this.uid,
-    required this.refLotSelected,
+    required this.idLotSelected,
   });
 
   @override
@@ -214,7 +214,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
                         // Suppression immédiate du champ en base
                         final ok = await lotServices.updateLot(
                           widget.lot.residenceId,
-                          widget.lot.refLot,
+                          widget.lot.id!,
                           'syndicAgency',
                           FieldValue.delete(),
                         );
@@ -508,7 +508,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
     for (final entry in updatedData.entries) {
       final ok = await lotServices.updateLot(
         widget.lot.residenceId,
-        widget.lot.refLot,
+        widget.lot.id!,
         entry.key,
         entry.value,
       );

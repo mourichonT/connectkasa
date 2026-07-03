@@ -16,7 +16,7 @@ class AccountSecuPageModify extends StatefulWidget {
   final Color color;
   final String email;
   final Function refresh;
-  final String refLot;
+  final String idLot;
 
   const AccountSecuPageModify({
     super.key,
@@ -25,7 +25,7 @@ class AccountSecuPageModify extends StatefulWidget {
     required this.email,
     required this.refresh,
     required this.user,
-    required this.refLot,
+    required this.idLot,
   });
 
   @override

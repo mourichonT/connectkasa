@@ -16,7 +16,7 @@ import 'package:provider/provider.dart';
 
 class ModifyProperty extends StatefulWidget {
   final Lot lot;
-  final String refLotSelected;
+  final String idLotSelected;
   final String uid;
   final Function(Color) newColor;
 
@@ -24,7 +24,7 @@ class ModifyProperty extends StatefulWidget {
     super.key,
     required this.lot,
     required this.uid,
-    required this.refLotSelected,
+    required this.idLotSelected,
     required this.newColor,
   });
 
@@ -51,7 +51,7 @@ class _ModifyPropertyState extends State<ModifyProperty> {
   }
 
   void _loadProperty() {
-    name.text = widget.lot.userLotDetails['nameLot'];
+    name.text = widget.lot.userLotDetails['nameLot']??"";
     selectedStatut = widget.lot.type;
     _backgroundColor =
         ColorUtils.fromHex(widget.lot.userLotDetails['colorSelected']);
@@ -68,8 +68,7 @@ class _ModifyPropertyState extends State<ModifyProperty> {
   }
 
   void _handleSubmit(String field, String label, String value) async {
-    lotServices.updateNameLot(widget.uid,
-        "${widget.lot.residenceData['id']}-${widget.lot.refLot}", value);
+    lotServices.updateNameLot(widget.uid, widget.lot.id!, value);
 
     final nameLotProvider =
         Provider.of<NameLotProvider>(context, listen: false);
@@ -150,7 +149,7 @@ class _ModifyPropertyState extends State<ModifyProperty> {
                   context,
                   CupertinoPageRoute(
                     builder: (context) => ModifyPropDetails(
-                      refLotSelected: widget.refLotSelected,
+                      idLotSelected: widget.idLotSelected,
                       lot: widget.lot,
                       uid: widget.uid,
                     ),
@@ -170,7 +169,7 @@ class _ModifyPropertyState extends State<ModifyProperty> {
                         context,
                         CupertinoPageRoute(
                           builder: (context) => ModifyPropInfoLoc(
-                            refLotSelected: widget.refLotSelected,
+                            idLotSelected: widget.idLotSelected,
                             lot: widget.lot,
                             uid: widget.uid,
                           ),
@@ -209,7 +208,7 @@ class _ModifyPropertyState extends State<ModifyProperty> {
             builder: (context) => ColorView(
               uiserId: widget.uid,
               lot: widget.lot,
-              refLotSelected: widget.refLotSelected,
+              idLotSelected: widget.idLotSelected,
               onColorSelected: (color) => _updateSelectedColor(color),
             ),
           ),

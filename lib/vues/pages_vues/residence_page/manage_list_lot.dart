@@ -336,7 +336,7 @@ class _ManageListLotState extends State<ManageListLot> {
       child: TextButton.icon(
         onPressed: () {
           lot.idProprietaire == null || lot.idProprietaire!.isEmpty
-              ? _removeLot(index, lot.refLot)
+              ? _removeLot(index, lot.id!)
               : ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(

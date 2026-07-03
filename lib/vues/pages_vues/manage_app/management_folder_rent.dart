@@ -69,7 +69,7 @@ class _ManagementFolderRentState extends State<ManagementFolderRent> {
                 ProfileMenu(
                   uid: widget.uid,
                   color: widget.color,
-                  refLot: "",
+                  idLot: "",
                   text: "Mes informations locataire",
                   icon: const Icon(Icons.info_outlined, size: 22),
                   press: () async {
@@ -89,7 +89,7 @@ class _ManagementFolderRentState extends State<ManagementFolderRent> {
                 ProfileMenu(
                   uid: widget.uid,
                   color: widget.color,
-                  refLot: "",
+                  idLot: "",
                   text: "Mes garants",
                   icon: const Icon(Icons.gpp_good_outlined, size: 22),
                   press: () async {

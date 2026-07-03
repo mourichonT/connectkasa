@@ -18,14 +18,14 @@ import 'package:flutter/material.dart';
 class InfoPageView extends StatefulWidget {
   final String uid;
   final Color color;
-  final String refLot;
+  final String idLot;
   final List<Lot>? lots;
 
   const InfoPageView({
     super.key,
     required this.uid,
     required this.color,
-    required this.refLot,
+    required this.idLot,
     this.lots,
   });
 
@@ -91,7 +91,7 @@ class _InfoPageViewState extends State<InfoPageView> {
           color: widget.color,
           refresh: _initializeUserData, // Passer la fonction de mise à jour
           user: user!,
-          refLot: widget.refLot,
+          idLot: widget.idLot,
         ),
       ),
     );
@@ -114,7 +114,7 @@ class _InfoPageViewState extends State<InfoPageView> {
                 ProfileMenu(
                   uid: widget.uid,
                   color: widget.color,
-                  refLot: widget.refLot,
+                  idLot: widget.idLot,
                   text: "Mes informations personnelles",
                   icon: const Icon(Icons.person_2_rounded, size: 22),
                   press:
@@ -126,7 +126,7 @@ class _InfoPageViewState extends State<InfoPageView> {
                   child: ProfileMenu(
                     uid: widget.uid,
                     color: widget.color,
-                    refLot: widget.refLot,
+                    idLot: widget.idLot,
                     text: "Mon dossier locataire",
                     icon: const Icon(Icons.euro, size: 22),
                     press: () async {
@@ -146,7 +146,7 @@ class _InfoPageViewState extends State<InfoPageView> {
                 // ProfileMenu(
                 //   uid: widget.uid,
                 //   color: widget.color,
-                //   refLot: widget.refLot,
+                //   idLot: widget.idLot,
                 //   text: "Mes documents personnels",
                 //   icon: const Icon(Icons.folder_outlined, size: 22),
                 //   press: () {},

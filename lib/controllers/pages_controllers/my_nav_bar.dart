@@ -44,6 +44,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   Lot? _preferedLot;
   Lot _defaultLot = Lot(
     refLot: "",
+    id: "",
     typeLot: "",
     type: "",
     idProprietaire: [],
@@ -341,7 +342,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
           ? const Center(child: CircularProgressIndicator())
           : ProfilePage(
               uid: widget.uid,
-              refLot: lot.refLot,
+              idLot: lot.id!,
               color: lotColor,
               lots: _lotsList,
             ),

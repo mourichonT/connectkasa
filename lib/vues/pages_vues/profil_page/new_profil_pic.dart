@@ -12,14 +12,14 @@ class ProfilePic extends StatefulWidget {
   final String uid;
   final String imagePath;
   final Color color;
-  final String refLot;
+  final String idLot;
   final VoidCallback refresh;
 
   const ProfilePic({
     Key? key,
     required this.uid,
     required this.color,
-    required this.refLot,
+    required this.idLot,
     required this.refresh,
     required this.imagePath,
   }) : super(key: key);

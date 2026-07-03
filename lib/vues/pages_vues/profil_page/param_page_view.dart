@@ -17,13 +17,13 @@ import 'package:flutter/material.dart';
 class ParamPage extends StatefulWidget {
   final String uid;
   final Color color;
-  final String refLot;
+  final String idLot;
 
   const ParamPage({
     super.key,
     required this.uid,
     required this.color,
-    required this.refLot,
+    required this.idLot,
   });
 
   @override
@@ -86,7 +86,7 @@ class _ParamPageState extends State<ParamPage> {
           color: widget.color,
           refresh: _initializeUserData, // Passer la fonction de mise à jour
           user: user!,
-          refLot: widget.refLot,
+          idLot: widget.idLot,
         ),
       ),
     );
@@ -109,7 +109,7 @@ class _ParamPageState extends State<ParamPage> {
                 ProfileMenu(
                   uid: widget.uid,
                   color: widget.color,
-                  refLot: widget.refLot,
+                  idLot: widget.idLot,
                   text: "Compte & sécurité",
                   icon: const Icon(Icons.person_2_rounded, size: 22),
                   press:
@@ -121,7 +121,7 @@ class _ParamPageState extends State<ParamPage> {
                   child: ProfileMenu(
                     uid: widget.uid,
                     color: widget.color,
-                    refLot: widget.refLot,
+                    idLot: widget.idLot,
                     text: "Paiements & versements",
                     icon: const Icon(Icons.euro, size: 22),
                     press: () {},
@@ -131,7 +131,7 @@ class _ParamPageState extends State<ParamPage> {
                 // ProfileMenu(
                 //   uid: widget.uid,
                 //   color: widget.color,
-                //   refLot: widget.refLot,
+                //   idLot: widget.idLot,
                 //   text: "Notifications",
                 //   icon: const Icon(Icons.notifications_none_rounded, size: 22),
                 //   press: () {},
@@ -140,7 +140,7 @@ class _ParamPageState extends State<ParamPage> {
                 ProfileMenu(
                   uid: widget.uid,
                   color: widget.color,
-                  refLot: widget.refLot,
+                  idLot: widget.idLot,
                   text: "Politique de confidentialité",
                   icon: const Icon(Icons.settings_outlined, size: 22),
                   press: () {

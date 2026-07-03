@@ -251,8 +251,7 @@ class AddDocsFormState extends State<AddDocsForm> {
                         folderName: "documentsLot",
                         title: docName.text,
                         onDocumentUploaded: downloadImagePath,
-                        reflot:
-                            "${widget.lotSelected.residenceData['id']}-${widget.lotSelected.refLot}",
+                        reflot: widget.lotSelected.refLot,
                       ),
                     ),
             ],
@@ -297,8 +296,7 @@ class AddDocsFormState extends State<AddDocsForm> {
         category: type,
         docPath: imagePath,
         uid: destinatairesReal,
-        refLot:
-            "${widget.lotSelected.residenceData['id']}-${widget.lotSelected.refLot}",
+        refLot: widget.lotSelected.refLot,
       );
     }
 

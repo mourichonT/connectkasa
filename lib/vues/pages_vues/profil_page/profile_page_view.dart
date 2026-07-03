@@ -25,14 +25,14 @@ import 'package:provider/provider.dart';
 class ProfilePage extends StatefulWidget {
   final String uid;
   final Color color;
-  final String refLot;
+  final String idLot;
   final List<Lot>? lots;
 
   const ProfilePage({
     super.key,
     required this.uid,
     required this.color,
-    required this.refLot,
+    required this.idLot,
     this.lots,
   });
 
@@ -142,7 +142,7 @@ class _ProfilePageState extends State<ProfilePage> {
           color: widget.color,
           refresh: _initializeUserData,
           user: user!,
-          refLot: widget.refLot,
+          idLot: widget.idLot,
         ),
       ),
     );
@@ -181,7 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   imagePath: profilPic,
                                   uid: widget.uid,
                                   color: widget.color,
-                                  refLot: widget.refLot,
+                                  idLot: widget.idLot,
                                   refresh: _initializeUserData,
                                 ),
                                 Padding(
@@ -258,7 +258,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ProfileMenu(
                                   uid: widget.uid,
                                   color: widget.color,
-                                  refLot: widget.refLot,
+                                  idLot: widget.idLot,
                                   text: "Mes informations",
                                   icon: const Icon(Icons.person_2_rounded,
                                       size: 22),
@@ -268,7 +268,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       CupertinoPageRoute(
                                         builder: (context) => InfoPageView(
                                           lots: widget.lots,
-                                          refLot: widget.refLot,
+                                          idLot: widget.idLot,
                                           uid: widget.uid,
                                           color: widget.color,
                                         ),
@@ -280,7 +280,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ProfileMenu(
                                   uid: widget.uid,
                                   color: widget.color,
-                                  refLot: widget.refLot,
+                                  idLot: widget.idLot,
                                   text: "Ma gestion immobilière",
                                   icon: const Icon(Icons.home_work_outlined,
                                       size: 22),
@@ -290,7 +290,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       CupertinoPageRoute(
                                         builder: (context) =>
                                             ManagementProperty(
-                                          refLot: widget.refLot,
+                                          idLot: widget.idLot,
                                           uid: widget.uid,
                                           color: widget.color,
                                         ),
@@ -304,7 +304,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   child: ProfileMenu(
                                     uid: widget.uid,
                                     color: widget.color,
-                                    refLot: widget.refLot,
+                                    idLot: widget.idLot,
                                     text: "Mes locataires",
                                     icon: const Icon(Icons.group_outlined,
                                         size: 22),
@@ -328,7 +328,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   child: ProfileMenu(
                                     uid: widget.uid,
                                     color: widget.color,
-                                    refLot: widget.refLot,
+                                    idLot: widget.idLot,
                                     text: nbrCS > 1
                                         ? "Mes résidences"
                                         : "Ma résidence",
@@ -366,7 +366,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ProfileMenu(
                                   uid: widget.uid,
                                   color: widget.color,
-                                  refLot: widget.refLot,
+                                  idLot: widget.idLot,
                                   text: "Paramètres",
                                   icon: const Icon(Icons.settings_outlined,
                                       size: 22),
@@ -375,7 +375,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       context,
                                       CupertinoPageRoute(
                                         builder: (context) => ParamPage(
-                                          refLot: widget.refLot,
+                                          idLot: widget.idLot,
                                           uid: widget.uid,
                                           color: widget.color,
                                         ),
@@ -394,7 +394,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: ProfileMenu(
                               uid: widget.uid,
                               color: widget.color,
-                              refLot: widget.refLot,
+                              idLot: widget.idLot,
                               text: "Déconnexion",
                               icon: const Icon(Icons.power_settings_new_rounded,
                                   color: Colors.white, size: 22),

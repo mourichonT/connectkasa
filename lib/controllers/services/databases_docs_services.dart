@@ -7,19 +7,22 @@ class DataBasesDocsServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
 
   Future<DocumentModel> setDocument(
-      DocumentModel newDoc, String userId, String lotId) async {
+      DocumentModel newDoc, String userId, String? lotId) async {
     final List<String> idType = TypeList.idTypes;
 
     try {
       if (idType.contains(newDoc.type)) {
-        // ➤ Cas ID : stocké dans User/{userId}/documents
+        // ➤ Cas ID : stocké dans User/{userId}/documents (lotId pas utilisé)
         DocumentReference<Map<String, dynamic>> userDocRef =
             db.collection("User").doc(userId);
 
         await userDocRef.collection("documents").add(newDoc.toJson());
         print("Document ID ajouté avec succès dans User/{userId}/documents !");
       } else {
-        // ➤ Cas non-ID : stocké dans User/{userId}/Lots/{lotId}/documents
+        // ➤ Cas non-ID : stocké dans User/{userId}/lots/{lotId}/documents
+        if (lotId == null) {
+          throw Exception("lotId requis pour un document rattaché à un lot.");
+        }
         DocumentReference<Map<String, dynamic>> userLotRef =
             db.collection("User").doc(userId).collection("lots").doc(lotId);
 
