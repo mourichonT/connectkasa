@@ -320,6 +320,15 @@ class DataBasesLotServices {
         // Appelle la méthode de suppression
         await removeIdLocataire(lot.residenceId!, lot.id!, userID);
       }
+
+      // Vérifie que l'utilisateur est bien dans la liste des propriétaires
+      if (lot.idProprietaire != null &&
+          ((lot.idProprietaire is List &&
+                  lot.idProprietaire!.contains(userID)) ||
+              (lot.idProprietaire is String &&
+                  lot.idProprietaire == userID))) {
+        await removeIdProprietaire(lot.residenceId!, lot.id!, userID);
+      }
     }
   }
 
@@ -351,6 +360,45 @@ class DataBasesLotServices {
 
         print(
             'L\'ID $idLocataireToRemove a été supprimé de la liste des locataires du lot $idLot.');
+      } else {
+        print(
+            'Aucun lot trouvé avec l\'id $idLot dans la résidence $residenceId.');
+      }
+    } catch (e) {
+      print('Erreur lors de la mise à jour du lot $idLot : $e');
+      rethrow;
+    }
+  }
+
+  Future<void> removeIdProprietaire(String residenceId, String idLot,
+      String idProprietaireToRemove) async {
+    try {
+      // Accès direct au document du lot par son ID
+      DocumentReference lotRef = db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("lot")
+          .doc(idLot);
+
+      final lotSnapshot = await lotRef.get();
+
+      if (lotSnapshot.exists) {
+        // Récupère les données actuelles du document
+        Map<String, dynamic> lotData =
+            lotSnapshot.data() as Map<String, dynamic>;
+
+        // Récupère la liste actuelle des ID de propriétaires
+        List<dynamic> idProprietaires =
+            List.from(lotData['idProprietaire'] ?? []);
+
+        // Supprime l'ID à retirer
+        idProprietaires.remove(idProprietaireToRemove);
+
+        // Met à jour le champ 'idProprietaire' avec la nouvelle liste
+        await lotRef.update({'idProprietaire': idProprietaires});
+
+        print(
+            'L\'ID $idProprietaireToRemove a été supprimé de la liste des propriétaires du lot $idLot.');
       } else {
         print(
             'Aucun lot trouvé avec l\'id $idLot dans la résidence $residenceId.');

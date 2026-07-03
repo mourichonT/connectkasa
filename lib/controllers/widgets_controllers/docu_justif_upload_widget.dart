@@ -71,7 +71,7 @@ class _JustificatifUploaderState extends State<JustificatifUploader> {
 
           // Composant d’upload
           CameraOrFiles(
-            racineFolder: 'User',
+            racineFolder: 'user',
             residence: widget.userUid,
             folderName: "dossier_loc",
             title: 'Ajouter un document',

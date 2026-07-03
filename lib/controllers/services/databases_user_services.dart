@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/generate_ref_user_app.dart';
 import 'package:connect_kasa/controllers/features/income_entry.dart';
 import 'package:connect_kasa/controllers/features/job_entry.dart';
+import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -327,10 +329,9 @@ class DataBasesUserServices {
         return; // Sortir de la fonction si l'utilisateur n'existe pas
       }
 
-      // Liste des sous-collections à plat à supprimer
+      // Sous-collections à plat, sans sous-sous-collection à gérer
       final List<String> subcollections = [
         'documents',
-        'lots',
         'demandes_loc',
       ];
 
@@ -344,14 +345,33 @@ class DataBasesUserServices {
         }
       }
 
-      // profil_locataire contient une sous-collection garants à vider
-      // avant de pouvoir supprimer chaque document profil_locataire
+      // lots contient une sous-collection documents à vider avant de
+      // pouvoir supprimer chaque document lot (ex: lots/{id}/documents/{id})
+      final lotsSnapshot = await userRef.collection('lots').get();
+      for (final lotDoc in lotsSnapshot.docs) {
+        final lotDocumentsSnapshot =
+            await lotDoc.reference.collection('documents').get();
+        for (final docDoc in lotDocumentsSnapshot.docs) {
+          await docDoc.reference.delete();
+        }
+        await lotDoc.reference.delete();
+        print("🗑️ lots/${lotDoc.id} supprimé");
+      }
+
+      // profil_locataire contient une sous-collection garants, qui contient
+      // elle-même une sous-collection documents — les deux doivent être
+      // vidées avant de pouvoir supprimer chaque document profil_locataire
       final profilLocataireSnapshot =
           await userRef.collection('profil_locataire').get();
       for (final profilDoc in profilLocataireSnapshot.docs) {
         final garantsSnapshot =
             await profilDoc.reference.collection('garants').get();
         for (final garantDoc in garantsSnapshot.docs) {
+          final garantDocumentsSnapshot =
+              await garantDoc.reference.collection('documents').get();
+          for (final docDoc in garantDocumentsSnapshot.docs) {
+            await docDoc.reference.delete();
+          }
           await garantDoc.reference.delete();
         }
         await profilDoc.reference.delete();
@@ -374,17 +394,20 @@ class DataBasesUserServices {
   /// détruire des données tant que la suppression du compte n'est pas
   /// certaine (ex: annulation pendant une ré-authentification).
   static Future<void> purgeUserData(String uid) async {
-    try {
-      final user = await getUserById(uid);
-      final profilPic = user?.profilPic;
-      if (profilPic != null && profilPic.isNotEmpty) {
-        await FirebaseStorage.instance.ref().child(profilPic).delete();
-      }
-    } catch (e) {
-      print("Erreur lors de la suppression de la photo de profil : $e");
-    }
+    // Supprime tous les fichiers Storage de l'utilisateur (photo de profil,
+    // documents d'identité, documents de lots, etc.), pas seulement la
+    // photo de profil. 'User/{uid}' est nettoyé en plus de 'user/{uid}'
+    // à cause d'une incohérence de casse ailleurs dans le code
+    // (docu_justif_upload_widget.dart utilise 'User' au lieu de 'user').
+    await StorageServices().deleteFolderRecursive('user/$uid');
+    await StorageServices().deleteFolderRecursive('User/$uid');
 
     await _removeFromCsMemberships(uid);
+    // Doit passer avant removeUserById : s'appuie sur User/{uid}/lots
+    // (via getLotByIdUser) pour savoir de quels lots retirer l'utilisateur
+    // en tant que propriétaire/locataire, avant que cette sous-collection
+    // ne soit supprimée.
+    await DataBasesLotServices().removeUserFromAllLots(uid);
     await removeUserById(uid);
   }
 

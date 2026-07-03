@@ -158,6 +158,25 @@ class StorageServices {
     }
   }
 
+  /// Supprime récursivement tous les fichiers sous un chemin donné.
+  /// Firebase Storage n'a pas de vraie notion de dossier : il faut lister
+  /// (listAll) puis supprimer fichier par fichier, y compris dans les
+  /// sous-dossiers (prefixes).
+  Future<void> deleteFolderRecursive(String path) async {
+    final ref = FirebaseStorage.instance.ref().child(path);
+    try {
+      final result = await ref.listAll();
+      for (final item in result.items) {
+        await item.delete();
+      }
+      for (final prefix in result.prefixes) {
+        await deleteFolderRecursive(prefix.fullPath);
+      }
+    } catch (e) {
+      print("Erreur lors de la suppression récursive de $path : $e");
+    }
+  }
+
   Future<void> removeFileFromUrl(String url) async {
     if (url.isEmpty) {
       print('L\'URL fournie est invalide.');
