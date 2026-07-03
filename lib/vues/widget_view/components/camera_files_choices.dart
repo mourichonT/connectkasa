@@ -11,6 +11,7 @@ class CameraOrFiles extends StatefulWidget {
   final String racineFolder;
   final String residence;
   final String folderName;
+  final String? fileName;
   final String title;
   final Function(bool)? onCameraStateChanged;
   final Function(String) onImageUploaded;
@@ -21,6 +22,7 @@ class CameraOrFiles extends StatefulWidget {
     required this.racineFolder,
     required this.residence,
     required this.folderName,
+    this.fileName,
     required this.title,
     required this.onImageUploaded,
     required this.cardOverlay,
@@ -34,9 +36,16 @@ class CameraOrFiles extends StatefulWidget {
 class CameraOrFilesState extends State<CameraOrFiles> {
   final ImagePicker _picker = ImagePicker();
   final StorageServices _storageServices = StorageServices();
-  String fileName = const Uuid().v4();
+  final String fileName = const Uuid().v4();
   File? _selectedImage;
   bool isCameraOpen = false;
+
+  /// Dossier Storage effectif : ajoute widget.fileName comme sous-dossier
+  /// de widget.folderName quand il est fourni (ex: id du post), pour isoler
+  /// les fichiers d'une même publication (residences/{residence}/annonces/{idPost}/...).
+  String get _storageFolder => widget.fileName != null && widget.fileName!.isNotEmpty
+      ? "${widget.folderName}/${widget.fileName}"
+      : widget.folderName;
 
   @override
   void dispose() {
@@ -111,7 +120,7 @@ class CameraOrFilesState extends State<CameraOrFiles> {
     await _storageServices.removeFile(
       widget.racineFolder,
       widget.residence,
-      widget.folderName,
+      _storageFolder,
       idPost: fileName,
     );
 
@@ -120,7 +129,7 @@ class CameraOrFilesState extends State<CameraOrFiles> {
         XFile(file.path),
         widget.racineFolder,
         widget.residence,
-        widget.folderName,
+        _storageFolder,
         fileName,
       );
 
@@ -190,7 +199,7 @@ class CameraOrFilesState extends State<CameraOrFiles> {
         await _storageServices.removeFile(
           widget.racineFolder,
           widget.residence,
-          widget.folderName,
+          _storageFolder,
           idPost: fileName,
         );
       }
