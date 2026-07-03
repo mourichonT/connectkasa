@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/generate_ref_user_app.dart';
 import 'package:connect_kasa/controllers/features/income_entry.dart';
 import 'package:connect_kasa/controllers/features/job_entry.dart';
+import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -382,7 +383,30 @@ class DataBasesUserServices {
       print("Erreur lors de la suppression de la photo de profil : $e");
     }
 
+    await _removeFromCsMemberships(uid);
     await removeUserById(uid);
+  }
+
+  /// Retire l'utilisateur de la liste csmembers (conseil syndical) de
+  /// toutes les résidences où il siège. Un utilisateur peut appartenir à
+  /// plusieurs résidences, donc on ne peut pas se contenter d'une seule.
+  static Future<void> _removeFromCsMemberships(String uid) async {
+    try {
+      final residencesSnapshot = await FirebaseFirestore.instance
+          .collection('Residence')
+          .where('csmembers', arrayContains: uid)
+          .get();
+
+      for (final residenceDoc in residencesSnapshot.docs) {
+        await DataBasesResidenceServices()
+            .removeCsMember(residenceDoc.id, uid);
+        print(
+            "🗑️ $uid retiré du csmembers de la résidence ${residenceDoc.id}");
+      }
+    } catch (e) {
+      print(
+          "Erreur lors du retrait des adhésions au conseil syndical pour $uid : $e");
+    }
   }
 
   Future<Map<String, dynamic>?> getLotDetails(
