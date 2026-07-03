@@ -34,11 +34,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Use to demonstrate image picker plugin</string>
+	<string>Connect Kasa a besoin d'accéder à vos photos pour importer une photo de profil, illustrer vos annonces et publications, ou joindre vos documents depuis votre galerie.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>Use to demonstrate image picker plugin</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Use to capture audio for image picker plugin</string>
+	<string>Connect Kasa a besoin d'accéder à votre appareil photo pour photographier vos documents d'identité, ajouter des photos à vos annonces et publications, ou changer votre photo de profil.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -62,18 +60,11 @@
 	<true/>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
-	<key>NSAppTransportSecurity</key>
-	<dict>
-		<key>NSAllowsArbitraryLoads</key>
-		<true/>
-	</dict>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>We need your permission to use Firebase notifications</string>
 
 </dict>
 </plist>
