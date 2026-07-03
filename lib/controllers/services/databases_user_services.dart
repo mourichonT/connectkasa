@@ -8,6 +8,7 @@ import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
@@ -408,6 +409,9 @@ class DataBasesUserServices {
     // en tant que propriétaire/locataire, avant que cette sous-collection
     // ne soit supprimée.
     await DataBasesLotServices().removeUserFromAllLots(uid);
+    // Idem : s'appuie sur User/{uid}/lots pour savoir dans quelles
+    // résidences chercher les annonces de l'utilisateur à supprimer.
+    await _removeUserAnnonces(uid);
     await removeUserById(uid);
   }
 
@@ -430,6 +434,47 @@ class DataBasesUserServices {
     } catch (e) {
       print(
           "Erreur lors du retrait des adhésions au conseil syndical pour $uid : $e");
+    }
+  }
+
+  /// Supprime les posts de type "annonces" créés par l'utilisateur, dans
+  /// les résidences auxquelles il est lié (via User/{uid}/lots). Supprime
+  /// aussi l'image associée dans Storage, comme le fait la suppression
+  /// manuelle d'un post (Icon_modify_or_delette.dart, _onDeletePost).
+  static Future<void> _removeUserAnnonces(String uid) async {
+    try {
+      final userLotsSnapshot = await FirebaseFirestore.instance
+          .collection('User')
+          .doc(uid)
+          .collection('lots')
+          .get();
+
+      final residenceIds = userLotsSnapshot.docs
+          .map((doc) => doc.data()['residenceId'] as String?)
+          .whereType<String>()
+          .toSet();
+
+      for (final residenceId in residenceIds) {
+        final postsSnapshot = await FirebaseFirestore.instance
+            .collection('Residence')
+            .doc(residenceId)
+            .collection('post')
+            .where('user', isEqualTo: uid)
+            .where('type', isEqualTo: 'annonces')
+            .get();
+
+        for (final postDoc in postsSnapshot.docs) {
+          final post = Post.fromMap(postDoc.data());
+          await postDoc.reference.delete();
+          if (post.pathImage != null) {
+            await StorageServices().removeFileFromUrl(post.pathImage!);
+          }
+          print(
+              "🗑️ annonce ${postDoc.id} supprimée (résidence $residenceId)");
+        }
+      }
+    } catch (e) {
+      print("Erreur lors de la suppression des annonces de $uid : $e");
     }
   }
 
