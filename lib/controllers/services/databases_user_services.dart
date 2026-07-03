@@ -439,8 +439,9 @@ class DataBasesUserServices {
 
   /// Supprime les posts de type "annonces" créés par l'utilisateur, dans
   /// les résidences auxquelles il est lié (via User/{uid}/lots). Supprime
-  /// aussi l'image associée dans Storage, comme le fait la suppression
-  /// manuelle d'un post (Icon_modify_or_delette.dart, _onDeletePost).
+  /// aussi tout le dossier Storage de l'annonce (residences/{residenceId}/
+  /// annonces/{postId}/), pas seulement l'image courante référencée par
+  /// pathImage, pour ne laisser aucun fichier orphelin dans ce dossier.
   static Future<void> _removeUserAnnonces(String uid) async {
     try {
       final userLotsSnapshot = await FirebaseFirestore.instance
@@ -464,13 +465,14 @@ class DataBasesUserServices {
             .get();
 
         for (final postDoc in postsSnapshot.docs) {
+          // post.id est l'identifiant métier du post (utilisé comme nom du
+          // sous-dossier Storage), distinct de postDoc.id (id auto-généré
+          // du document Firestore, addPost utilisant .add()).
           final post = Post.fromMap(postDoc.data());
           await postDoc.reference.delete();
-          if (post.pathImage != null) {
-            await StorageServices().removeFileFromUrl(post.pathImage!);
-          }
-          print(
-              "🗑️ annonce ${postDoc.id} supprimée (résidence $residenceId)");
+          await StorageServices()
+              .deleteFolderRecursive('residences/$residenceId/annonces/${post.id}');
+          print("🗑️ annonce ${post.id} supprimée (résidence $residenceId)");
         }
       }
     } catch (e) {
