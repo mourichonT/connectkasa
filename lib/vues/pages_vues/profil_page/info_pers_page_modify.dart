@@ -18,7 +18,7 @@ class InfoPersoPageModify extends StatefulWidget {
   final Color color;
   final String email;
   final Function refresh;
-  final String refLot;
+  final String idLot;
 
   const InfoPersoPageModify({
     super.key,
@@ -27,7 +27,7 @@ class InfoPersoPageModify extends StatefulWidget {
     required this.email,
     required this.refresh,
     required this.user,
-    required this.refLot,
+    required this.idLot,
   });
 
   @override

@@ -10,7 +10,7 @@ import 'package:connect_kasa/models/enum/tab_bar_icon.dart';
 class ColorView extends StatefulWidget {
   final String uiserId;
   final Lot lot;
-  final String refLotSelected;
+  final String idLotSelected;
   final Function(Color) onColorSelected;
 
   IconTabBar iconTabBar = IconTabBar();
@@ -50,7 +50,7 @@ class ColorView extends StatefulWidget {
     super.key,
     required this.uiserId,
     required this.lot,
-    required this.refLotSelected,
+    required this.idLotSelected,
     required this.onColorSelected,
   });
 
@@ -96,10 +96,10 @@ class _ColorViewState extends State<ColorView> {
                   width: 40.0, // Ajustez la largeur comme nécessaire
                   height: 40.0, // Ajustez la hauteur comme nécessaire
                   child: ColorCircle(
-                    refLotSelected:
-                        "${widget.lot.residenceData['id']}-${widget.refLotSelected}",
-                    refLot:
-                        "${widget.lot.residenceData['id']}-${widget.lot.refLot}",
+                    idLotSelected:
+                      widget.idLotSelected,
+                    idLot:
+                      widget.lot.id!,
                     color: const Color.fromRGBO(72, 119, 91, 1),
                     userId: widget.uiserId,
                     onColorSelected: _updateSelectedColor,
@@ -111,12 +111,12 @@ class _ColorViewState extends State<ColorView> {
                   height: 40.0, // Ajustez la hauteur comme nécessaire
                   child: Center(
                     child: ColorCircle(
-                      refLotSelected:
-                          "${widget.lot.residenceData['id']}-${widget.refLotSelected}",
+                      idLotSelected:
+                        widget.idLotSelected,
                       color: _selectedColor,
                       userId: widget.uiserId,
-                      refLot:
-                          "${widget.lot.residenceData['id']}-${widget.lot.refLot}",
+                      idLot:
+                        widget.lot.id!,
                     ),
                   ),
                 ),
@@ -132,11 +132,11 @@ class _ColorViewState extends State<ColorView> {
                 itemBuilder: (context, index) {
                   return Center(
                     child: ColorCircle(
-                      refLotSelected:
-                          "${widget.lot.residenceData['id']}-${widget.refLotSelected}",
+                      idLotSelected:
+                        widget.idLotSelected,
                       userId: widget.uiserId,
-                      refLot:
-                          "${widget.lot.residenceData['id']}-${widget.lot.refLot}",
+                      idLot:
+                        widget.lot.id!,
                       color: widget.customColors[index],
                       onColorSelected: _updateSelectedColor,
                     ),

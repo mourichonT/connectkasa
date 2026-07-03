@@ -42,6 +42,18 @@ class SubmitUser {
     final dataBasesUserServices = DataBasesUserServices();
     final dataBasesDocsServices = DataBasesDocsServices();
 
+    // Résout l'ID réel du document Residence/{id}/lot/{docId} à partir du
+    // refLot saisi à l'inscription — plus de clé composite reconstruite.
+    final lotQuery = await FirebaseFirestore.instance
+        .collection('Residence')
+        .doc(residence.id)
+        .collection('lot')
+        .where('refLot', isEqualTo: lotId)
+        .limit(1)
+        .get();
+    final String? realLotId =
+        lotQuery.docs.isNotEmpty ? lotQuery.docs.first.id : null;
+
     final newUser = UserTemp(
       createdDate: Timestamp.now(),
       privacyPolicy: privacyPolicy,
@@ -60,7 +72,8 @@ class SubmitUser {
 
     await dataBasesUserServices.setUser(
         newUser,
-        "${residence.id}-$lotId",
+        realLotId,
+        residence.id,
         companyName,
         intendedFor,
         statutResident,
@@ -76,7 +89,7 @@ class SubmitUser {
         documentPathVerso: imagepathIDverso,
       );
       await dataBasesDocsServices.setDocument(
-          newDocId, newUserId, '${residence.id}-$lotId');
+          newDocId, newUserId, realLotId);
     }
 
     // Document justificatif
@@ -91,7 +104,7 @@ class SubmitUser {
       await dataBasesDocsServices.setDocument(
         newDocJustif,
         newUserId,
-        '${residence.id}-$lotId',
+        realLotId,
       );
     }
 
@@ -105,7 +118,7 @@ class SubmitUser {
         lotId: lotId,
       );
       await dataBasesDocsServices.setDocument(
-          newDocKbis, newUserId, '${residence.id}-$lotId');
+          newDocKbis, newUserId, realLotId);
     }
   }
 

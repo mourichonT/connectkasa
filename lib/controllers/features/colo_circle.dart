@@ -9,8 +9,8 @@ class ColorCircle extends StatelessWidget {
   final DataBasesLotServices databaseService = DataBasesLotServices();
   final Color color;
   final String userId;
-  final String refLot;
-  final String refLotSelected;
+  final String idLot;
+  final String idLotSelected;
   final Function(Color)? onColorSelected;
 
   static int _tagCounter = 0;
@@ -19,8 +19,8 @@ class ColorCircle extends StatelessWidget {
     super.key,
     required this.color,
     required this.userId,
-    required this.refLot,
-    required this.refLotSelected,
+    required this.idLot,
+    required this.idLotSelected,
     this.onColorSelected,
   });
 
@@ -32,17 +32,17 @@ class ColorCircle extends StatelessWidget {
     return FloatingActionButton(
       onPressed: () async {
         // 1. Mettre à jour dans Firebase
-        await databaseService.updateLotColor(userId, refLot, color);
+        await databaseService.updateLotColor(userId, idLot, color);
 
         // 2. Mettre à jour dans ColorProvider si c'est le bon lot
-        if (refLot == refLotSelected) {
+        if (idLot == idLotSelected) {
           final hexColor = color.value.toRadixString(16).padLeft(8, '0');
           context.read<ColorProvider>().updateColor(hexColor);
 
           // 3. Mettre à jour dans SharedPreferences
           final loadService = LoadPreferedData();
           Lot? currentLot = await loadService.loadPreferedLot();
-          if (currentLot != null && currentLot.refLot == refLotSelected) {
+          if (currentLot != null && currentLot.id == idLotSelected) {
             currentLot.userLotDetails['colorSelected'] = hexColor;
             await loadService.savePreferedLot(currentLot);
           }

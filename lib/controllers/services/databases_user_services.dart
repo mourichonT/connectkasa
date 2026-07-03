@@ -18,6 +18,7 @@ class DataBasesUserServices {
   Future<UserTemp> setUser(
       UserTemp newUser,
       String? lotId,
+      String? residenceId,
       String? companyName,
       String? intentedFor,
       String? statutResident,
@@ -52,7 +53,7 @@ class DataBasesUserServices {
             .set({
           "colorSelected": "ff48775b",
           "nameLot": "",
-          "lotId": lotId,
+          if (residenceId != null) "residenceId": residenceId,
           if (companyName != null) "companyName": companyName,
           if (intentedFor != null) "intendedFor": intentedFor,
           "StatutResident": statutResident,
@@ -845,6 +846,7 @@ class DataBasesUserServices {
   static Future<void> addLotToUser({
     required String userId,
     required String lotId,
+    String? residenceId,
     String? companyName,
     String? intendedFor,
     String? statutResident,
@@ -860,9 +862,9 @@ class DataBasesUserServices {
           .doc(lotId);
 
       Map<String, dynamic> lotData = {
-        "lotId": lotId,
         "colorSelected": colorSelected,
         "nameLot": nameLot,
+        if (residenceId != null) "residenceId": residenceId,
         if (companyName != null) "companyName": companyName,
         if (intendedFor != null) "intendedFor": intendedFor,
         if (statutResident != null) "StatutResident": statutResident,

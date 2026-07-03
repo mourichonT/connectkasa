@@ -152,7 +152,7 @@ class ShareRentFolder {
                   await _dataBasesLotServices.addTenant(
                     context,
                     selectedLot!.residenceId,
-                    selectedLot!.refLot,
+                    selectedLot!.id!,
                     // champ à mettre à jour
                     idLocataire, // id du locataire à ajouter
                   );

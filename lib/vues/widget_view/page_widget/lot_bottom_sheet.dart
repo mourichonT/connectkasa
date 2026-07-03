@@ -73,7 +73,7 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
     try {
       final details = await DataBasesUserServices().getLotDetails(
         widget.uid,
-        "${selectedLot.residenceData['id']}-${selectedLot.refLot}",
+       selectedLot.refLot,
       );
 
       if (details != null) {
@@ -210,7 +210,7 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
 //     try {
 //       final details = await DataBasesUserServices().getLotDetails(
 //         widget.uid,
-//         "${selectedLot.residenceData['id']}-${selectedLot.refLot}",
+//        selectedLot.refLot}",
 //       );
 
 //       if (details != null) {

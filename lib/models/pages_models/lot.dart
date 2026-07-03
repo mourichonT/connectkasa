@@ -1,6 +1,7 @@
 import 'package:connect_kasa/models/pages_models/agency.dart';
 
 class Lot {
+  String? id; // ID du document Firestore Residence/{id}/lot/{id}, reporté dans ce champ en base à la création
   String refLot;
   String? batiment;
   String? lot;
@@ -17,6 +18,7 @@ class Lot {
   Lot({
     String nameProp = "",
     String nameLoc = "",
+    this.id,
     required this.refLot,
     this.batiment,
     this.lot,
@@ -33,6 +35,7 @@ class Lot {
 
   factory Lot.fromJson(Map<String, dynamic> json) {
     return Lot(
+      id: json["id"],
       refLot: json["refLot"] ?? "",
       batiment: json["batiment"],
       lot: json["lot"],
@@ -61,6 +64,7 @@ class Lot {
 
   Map<String, dynamic> toJson() {
     return {
+      "id": id,
       "refLot": refLot,
       "batiment": batiment,
       "lot": lot,
@@ -94,6 +98,7 @@ class Lot {
 
   factory Lot.fromMap(Map<String, dynamic> map) {
     return Lot(
+      id: map['id'],
       refLot: map['refLot'] ?? "",
       batiment: map['batiment'],
       lot: map['lot'],
@@ -117,6 +122,7 @@ class Lot {
 
   Map<String, dynamic> toJsonForDb() {
     return {
+      if (id != null) "id": id,
       if (refLot.isNotEmpty) "refLot": refLot,
       if (refGerance != null) "refGerance": refGerance,
       if (batiment != null) "batiment": batiment,

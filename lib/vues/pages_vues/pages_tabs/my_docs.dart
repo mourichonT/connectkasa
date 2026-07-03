@@ -43,7 +43,7 @@ class MydocsPageViewState extends State<MydocsPageView>
         docsServices.getAllDocsWithId(widget.lotSelected.residenceId);
     _allDocsLot = docsServices.getDocByUser(
       widget.uid,
-      "${widget.lotSelected.residenceData['id']}-${widget.lotSelected.refLot}",
+      widget.lotSelected.refLot,
     );
     _tabController = TabController(length: 2, vsync: this);
   }
@@ -213,7 +213,7 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                 await docsServices
                                                     .deleteDocument(
                                                   lotId:
-                                                      "${widget.lotSelected.residenceData['id']}-${widget.lotSelected.refLot}",
+                                                    widget.lotSelected.refLot,
                                                   documentId: docId,
                                                   residenceId: widget
                                                       .lotSelected.residenceId,
@@ -402,7 +402,7 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                         .idProprietaire!
                                                   ],
                                                   lotId:
-                                                      "${widget.lotSelected.residenceData['id']}-${widget.lotSelected.refLot}",
+                                                    widget.lotSelected.refLot,
                                                   documentId: docId,
                                                   residenceId: widget
                                                       .lotSelected.residenceId,

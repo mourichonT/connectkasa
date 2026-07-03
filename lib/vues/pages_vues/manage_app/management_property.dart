@@ -10,14 +10,14 @@ import 'package:flutter/material.dart';
 
 class ManagementProperty extends StatefulWidget {
   final String uid;
-  final String refLot;
+  final String idLot;
   final Color color;
 
   const ManagementProperty(
       {super.key,
       required this.color,
       required this.uid,
-      required this.refLot});
+      required this.idLot});
   @override
   ManagementPropertyState createState() => ManagementPropertyState();
 }
@@ -81,7 +81,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
                         context,
                         CupertinoPageRoute(
                           builder: (context) => ModifyProperty(
-                            refLotSelected: widget.refLot,
+                            idLotSelected: widget.idLot,
                             lot: lot,
                             uid: widget.uid,
                             newColor: (Color newColor) {

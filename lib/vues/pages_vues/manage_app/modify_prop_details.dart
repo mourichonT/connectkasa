@@ -10,14 +10,14 @@ import 'package:flutter/services.dart';
 
 class ModifyPropDetails extends StatefulWidget {
   final Lot lot;
-  final String refLotSelected;
+  final String idLotSelected;
   final String uid;
 
   const ModifyPropDetails({
     super.key,
     required this.lot,
     required this.uid,
-    required this.refLotSelected,
+    required this.idLotSelected,
   });
 
   @override
@@ -248,7 +248,7 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
               onPressed: () {
                 lotServices.updateLot(
                   widget.lot.residenceId,
-                  widget.lot.refLot,
+                  widget.lot.id!,
                   field,
                   controller.text,
                 );

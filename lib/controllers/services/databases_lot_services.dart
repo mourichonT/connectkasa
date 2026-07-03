@@ -10,51 +10,53 @@ class DataBasesLotServices {
   Future<List<Lot>> _fetchLotsByUser(String userID) async {
     List<Lot> lots = [];
     try {
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        CollectionReference residenceRef =
-            FirebaseFirestore.instance.collection("Residence");
+      // Une seule lecture de User/{uid}/lots, puis un accès direct par ID à
+      // chaque résidence/lot concerné — plus de parcours de toutes les
+      // résidences et tous leurs lots (O(nombre de lots de l'utilisateur)
+      // au lieu de O(résidences × lots)).
+      QuerySnapshot<Map<String, dynamic>> userLotsSnapshot = await db
+          .collection("User")
+          .doc(userID)
+          .collection("lots")
+          .get();
 
-        QuerySnapshot<Map<String, dynamic>> querySnapshot =
-            await residenceRef.get() as QuerySnapshot<Map<String, dynamic>>;
+      for (QueryDocumentSnapshot<Map<String, dynamic>> userLotDoc
+          in userLotsSnapshot.docs) {
+        final userLotData = userLotDoc.data();
+        final String? residenceId = userLotData['residenceId'];
+        final String lotId = userLotDoc.id;
 
-        for (QueryDocumentSnapshot<Map<String, dynamic>> residenceDoc
-            in querySnapshot.docs) {
-          Map<String, dynamic> residenceData = residenceDoc.data();
-          String residenceId = residenceDoc.id;
-
-          QuerySnapshot<Map<String, dynamic>> lotQuerySnapshot =
-              await residenceDoc.reference.collection("lot").get();
-
-          for (QueryDocumentSnapshot<Map<String, dynamic>> doc
-              in lotQuerySnapshot.docs) {
-            dynamic idProprietaire = doc.data()["idProprietaire"];
-            dynamic idLocataire = doc.data()["idLocataire"];
-
-            if ((idProprietaire is List && idProprietaire.contains(userID)) ||
-                (idLocataire is List && idLocataire.contains(userID)) ||
-                (idProprietaire is String && idProprietaire == userID) ||
-                (idLocataire is String && idLocataire == userID)) {
-              Lot? lot = Lot.fromMap(doc.data());
-              lot.residenceData = residenceData;
-              lot.residenceId = residenceId;
-
-              // Construction correcte du idLot à partir de residenceData['id']
-              String idLot = "${residenceData['id']}-${doc.data()['refLot']}";
-
-              // Récupération des détails utilisateur du lot
-              Map<String, dynamic>? userLotDetails =
-                  await DataBasesUserServices().getLotDetails(userID, idLot);
-
-              if (userLotDetails != null) {
-                lot.userLotDetails =
-                    userLotDetails; // Assure-toi que ce champ existe dans Lot
-              }
-
-              lots.add(lot);
-            }
-          }
+        if (residenceId == null) {
+          print("Lot $lotId sans residenceId, ignoré.");
+          continue;
         }
-      });
+
+        final residenceSnapshot =
+            await db.collection("Residence").doc(residenceId).get();
+        final lotSnapshot = await db
+            .collection("Residence")
+            .doc(residenceId)
+            .collection("lot")
+            .doc(lotId)
+            .get();
+
+        if (!residenceSnapshot.exists || !lotSnapshot.exists) {
+          print("Résidence ou lot introuvable pour $lotId ($residenceId).");
+          continue;
+        }
+
+        Lot lot = Lot.fromMap(lotSnapshot.data()!);
+        lot.residenceData = residenceSnapshot.data() ?? {};
+        lot.residenceId = residenceId;
+        // colorSelected/nameLot sont déjà dans le doc User/lots, pas besoin
+        // d'un second aller-retour vers getLotDetails.
+        lot.userLotDetails = {
+          "colorSelected": userLotData['colorSelected'],
+          "nameLot": userLotData['nameLot'],
+        };
+
+        lots.add(lot);
+      }
 
       print("Lots récupérés avec succès.");
     } catch (e) {
@@ -154,66 +156,63 @@ class DataBasesLotServices {
   }
 
   Future<void> updateLotColor(
-      String userUid, String refLot, Color newColor) async {
-    print(" USER : $userUid, REFLOT: $refLot, newCOLOR : $newColor ");
+      String userUid, String id, Color newColor) async {
     try {
       DocumentReference lotRef =
-          db.collection("User").doc(userUid).collection("lots").doc(refLot);
+          db.collection("User").doc(userUid).collection("lots").doc(id);
 
       String hexColor = extractHexFromColor(newColor);
 
       await lotRef.update({'colorSelected': hexColor});
 
-      print('Couleur $hexColor du lot $refLot mise à jour avec succès.');
     } catch (e) {
-      print('Erreur lors de la mise à jour de la couleur du lot $refLot : $e');
+      print('Erreur lors de la mise à jour de la couleur du lot $id : $e');
       rethrow;
     }
   }
 
   Future<void> updateNameLot(
-      String userUid, String refLot, String newName) async {
-    print(" USER : $userUid, REFLOT: $refLot, newName : $newName ");
+      String userUid, String id, String newName) async {
+    print(" USER : $userUid, ID: $id, newName : $newName ");
 
     try {
       DocumentReference lotRef =
-          db.collection("User").doc(userUid).collection("lots").doc(refLot);
+          db.collection("User").doc(userUid).collection("lots").doc(id);
 
       await lotRef.update({'nameLot': newName});
 
-      print('Le nom $newName du lot $refLot mise à jour avec succès.');
+      print('Le nom $newName du lot $id mise à jour avec succès.');
     } catch (e) {
-      print('Erreur lors de la mise à jour de la couleur du lot $refLot : $e');
+      print('Erreur lors de la mise à jour de la couleur du lot $id : $e');
 
       rethrow;
     }
   }
 
   Future<bool> updateLot(
-      String residenceId, String refLot, String field, dynamic upDate) async {
+      String residenceId, String idLot, String field, dynamic upDate) async {
     try {
-      QuerySnapshot querySnapshot = await db
+      DocumentReference lotRef = db
           .collection("Residence")
           .doc(residenceId)
           .collection("lot")
-          .where('refLot', isEqualTo: refLot)
-          .get();
+          .doc(idLot);
 
-      if (querySnapshot.docs.isNotEmpty) {
-        DocumentReference lotRef = querySnapshot.docs[0].reference;
+      final snapshot = await lotRef.get();
 
+      if (snapshot.exists) {
         await lotRef.update({field: upDate});
 
         print(
-            'Le champ $field du lot $refLot mis à jour avec succès par $upDate.');
+            'Le champ $field du lot $idLot mis à jour avec succès par $upDate.');
         return true;
       } else {
         print(
-            'Aucun lot trouvé avec la référence $refLot dans la résidence $residenceId.');
+            'Aucun lot trouvé avec l\'id $idLot dans la résidence $residenceId.');
         return false;
       }
     } catch (e) {
-      print('Erreur lors de la mise à jour du champ du lot $refLot : $e');
+      print('Erreur lors de la mise à jour du champ du lot $idLot : $e');
       rethrow;
     }
   }
@@ -222,12 +221,13 @@ class DataBasesLotServices {
   Future<void> _applyTenantChange(
       DocumentReference lotRef,
       String residenceId,
-      String refLot,
+      String idLot,
       String tenantId,
       bool replace) async {
     await DataBasesUserServices.addLotToUser(
         userId: tenantId,
-        lotId: "$residenceId-$refLot",
+        lotId: idLot,
+        residenceId: residenceId,
         statutResident: "Locataire",
         entryDate: Timestamp.now());
 
@@ -240,19 +240,18 @@ class DataBasesLotServices {
 
   // La décision remplacer/ajouter est prise par la vue (BuildContext requis pour le dialog)
   Future<bool> addTenant(BuildContext context, String residenceId,
-      String refLot, String tenantId) async {
+      String idLot, String tenantId) async {
     try {
-      final querySnapshot = await db
+      final lotRef = db
           .collection("Residence")
           .doc(residenceId)
           .collection("lot")
-          .where('refLot', isEqualTo: refLot)
-          .get();
+          .doc(idLot);
 
-      if (querySnapshot.docs.isEmpty) return false;
+      final lotDoc = await lotRef.get();
 
-      final lotDoc = querySnapshot.docs[0];
-      final lotRef = lotDoc.reference;
+      if (!lotDoc.exists) return false;
+
       final currentLocataires = List<dynamic>.from(lotDoc.get('idLocataire') ?? []);
 
       if (currentLocataires.contains(tenantId)) {
@@ -289,15 +288,15 @@ class DataBasesLotServices {
         );
 
         if (result == 'replace') {
-          await _applyTenantChange(lotRef, residenceId, refLot, tenantId, true);
+          await _applyTenantChange(lotRef, residenceId, idLot, tenantId, true);
           return true;
         } else if (result == 'add') {
-          await _applyTenantChange(lotRef, residenceId, refLot, tenantId, false);
+          await _applyTenantChange(lotRef, residenceId, idLot, tenantId, false);
           return true;
         }
         return false;
       } else {
-        await _applyTenantChange(lotRef, residenceId, refLot, tenantId, false);
+        await _applyTenantChange(lotRef, residenceId, idLot, tenantId, false);
         return true;
       }
     } catch (e) {
@@ -319,28 +318,27 @@ class DataBasesLotServices {
           ((lot.idLocataire is List && lot.idLocataire!.contains(userID)) ||
               (lot.idLocataire is String && lot.idLocataire == userID))) {
         // Appelle la méthode de suppression
-        await removeIdLocataire(lot.residenceId!, lot.refLot!, userID);
+        await removeIdLocataire(lot.residenceId!, lot.id!, userID);
       }
     }
   }
 
   Future<void> removeIdLocataire(
-      String residenceId, String refLot, String idLocataireToRemove) async {
+      String residenceId, String idLot, String idLocataireToRemove) async {
     try {
-      // Requête pour trouver le document correspondant au lot
-      QuerySnapshot querySnapshot = await db
+      // Accès direct au document du lot par son ID
+      DocumentReference lotRef = db
           .collection("Residence")
           .doc(residenceId)
           .collection("lot")
-          .where('refLot', isEqualTo: refLot)
-          .get();
+          .doc(idLot);
 
-      if (querySnapshot.docs.isNotEmpty) {
-        DocumentReference lotRef = querySnapshot.docs[0].reference;
+      final lotSnapshot = await lotRef.get();
 
+      if (lotSnapshot.exists) {
         // Récupère les données actuelles du document
         Map<String, dynamic> lotData =
-            querySnapshot.docs[0].data() as Map<String, dynamic>;
+            lotSnapshot.data() as Map<String, dynamic>;
 
         // Récupère la liste actuelle des ID de locataires
         List<dynamic> idLocataires = List.from(lotData['idLocataire'] ?? []);
@@ -352,13 +350,13 @@ class DataBasesLotServices {
         await lotRef.update({'idLocataire': idLocataires});
 
         print(
-            'L\'ID $idLocataireToRemove a été supprimé de la liste des locataires du lot $refLot.');
+            'L\'ID $idLocataireToRemove a été supprimé de la liste des locataires du lot $idLot.');
       } else {
         print(
-            'Aucun lot trouvé avec la référence $refLot dans la résidence $residenceId.');
+            'Aucun lot trouvé avec l\'id $idLot dans la résidence $residenceId.');
       }
     } catch (e) {
-      print('Erreur lors de la mise à jour du lot $refLot : $e');
+      print('Erreur lors de la mise à jour du lot $idLot : $e');
       rethrow;
     }
   }
@@ -370,17 +368,18 @@ class DataBasesLotServices {
           .doc(residenceId)
           .collection("lot");
 
-      // Vérifier si un lot avec le même refLot existe déjà
+      // Vérifier si un lot avec le même idLot existe déjà
       final query =
-          await lotRef.where("refLot", isEqualTo: lot.refLot).limit(1).get();
+          await lotRef.where("id", isEqualTo: lot.id).limit(1).get();
 
       if (query.docs.isNotEmpty) {
         // Mise à jour
         final docId = query.docs.first.id;
         await lotRef.doc(docId).update(lot.toJsonForDb());
       } else {
-        // Création
-        await lotRef.add(lot.toJsonForDb());
+        // Création : on reporte l'ID du document généré dans son propre champ id
+        final newDocRef = await lotRef.add(lot.toJsonForDb());
+        await newDocRef.update({'id': newDocRef.id});
       }
     } catch (e) {
       print("Erreur Firestore createOrUpdateLot: $e");
@@ -388,23 +387,23 @@ class DataBasesLotServices {
     }
   }
 
-  Future<void> deleteLot(String residenceId, String refLot) async {
+  Future<void> deleteLot(String residenceId, String idLot) async {
     try {
       final lotRef = FirebaseFirestore.instance
           .collection("Residence")
           .doc(residenceId)
           .collection("lot");
 
-      // Trouver le document à supprimer par refLot
+      // Trouver le document à supprimer par idLot
       final query =
-          await lotRef.where("refLot", isEqualTo: refLot).limit(1).get();
+          await lotRef.where("id", isEqualTo: idLot).limit(1).get();
 
       if (query.docs.isNotEmpty) {
         final docId = query.docs.first.id;
         await lotRef.doc(docId).delete();
-        print("Lot avec refLot '$refLot' supprimé.");
+        print("Lot avec l'id '$idLot' supprimé.");
       } else {
-        print("Aucun lot trouvé avec refLot '$refLot'.");
+        print("Aucun lot trouvé avec l'id '$idLot'.");
       }
     } catch (e) {
       print("Erreur Firestore deleteLot: $e");

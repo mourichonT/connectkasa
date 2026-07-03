@@ -178,21 +178,18 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
       throw Exception("Clé API OpenAI non trouvée !");
     }
 
-    // Upload de l'image vers Firebase
-    final imageUrl = await _storageServices.uploadImg(
-      XFile(imageFile.path),
-      widget.racineFolder,
-      widget.residence,
-      widget.folderName,
-      fileName,
-    );
-
-    if (imageUrl == null) {
-      throw Exception("Échec de l'upload de l'image");
-    }
+    // Encode l'image en base64 : l'API vision d'OpenAI attend soit une URL
+    // publiquement accessible, soit une data URL "data:<mime>;base64,...".
+    // On utilise le base64 directement plutôt que l'URL Firebase Storage
+    // pour ne pas dépendre de son accessibilité externe (règles de
+    // sécurité / App Check).
+    final bytes = await imageFile.readAsBytes();
+    final extension = imageFile.path.split('.').last.toLowerCase();
+    final mimeType = extension == 'png' ? 'image/png' : 'image/jpeg';
+    final imageDataUrl = 'data:$mimeType;base64,${base64Encode(bytes)}';
 
     final prompt = {
-      "model": "gpt-4-turbo",
+      "model": "gpt-4o",
       "messages": [
         {
           "role": "system",
@@ -221,7 +218,7 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
             },
             {
               "type": "image_url",
-              "image_url": {"url": imageUrl}
+              "image_url": {"url": imageDataUrl}
             }
           ]
         }
@@ -239,13 +236,22 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
         body: jsonEncode(prompt),
       );
 
+      // Décodage explicite en UTF-8 des octets bruts de la réponse, pour ne
+      // pas dépendre du charset (parfois absent) de l'en-tête Content-Type.
+      // allowMalformed évite un crash si la réponse contient des octets
+      // invalides (tronquée, erreur serveur non-JSON, etc.) : on préfère
+      // afficher un contenu partiellement lisible plutôt que planter avant
+      // même de savoir ce que le serveur a renvoyé.
+      final decodedBody =
+          utf8.decode(response.bodyBytes, allowMalformed: true);
+
       if (response.statusCode != 200) {
-        print("❌ Erreur OpenAI : ${response.body}");
+        print("❌ Erreur OpenAI (${response.statusCode}) : $decodedBody");
         return {};
       }
 
       final content =
-          jsonDecode(response.body)['choices'][0]['message']['content'];
+          jsonDecode(decodedBody)['choices'][0]['message']['content'];
 
       // Nettoyage du contenu JSON brut
       final cleanedContent = content
@@ -253,10 +259,8 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
           .replaceAll(RegExp(r'\\n|\\t'), ' ')
           .trim();
 
-      final decodedContent = utf8.decode(cleanedContent.runes.toList());
-
       // Tentative de parsing
-      final Map<String, dynamic> rawJson = jsonDecode(decodedContent);
+      final Map<String, dynamic> rawJson = jsonDecode(cleanedContent);
 
       return rawJson.map((key, value) => MapEntry(key, value.toString()));
     } catch (e) {
