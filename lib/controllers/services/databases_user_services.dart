@@ -61,6 +61,14 @@ class DataBasesUserServices {
           if (intentedFor != null) "intendedFor": intentedFor,
           "StatutResident": statutResident,
         }, SetOptions(merge: true));
+
+        // Dénormalisé pour firestore.rules : isResidenceMember() ne peut pas
+        // parcourir User/{uid}/lots pour vérifier l'appartenance résidence.
+        if (residenceId != null) {
+          await db.collection("User").doc(newUser.uid).set({
+            "residencesIds": FieldValue.arrayUnion([residenceId]),
+          }, SetOptions(merge: true));
+        }
       }
     } catch (e) {
       print("Impossible de mettre à jour l'utilisateur: $e");
@@ -529,12 +537,14 @@ class DataBasesUserServices {
           userQuery.docs.first.reference;
 
       // 2. Mettre à jour les données basiques dans la collection "User"
+      // "approved" n'est volontairement pas réécrit ici : ce champ ne doit
+      // changer que via une approbation manuelle hors-app (firestore.rules
+      // interdit aussi au client de le modifier après création).
       await userDocRef.update({
         "email": updatedUser.email,
         "name": updatedUser.name,
         "surname": updatedUser.surname,
         "pseudo": updatedUser.pseudo,
-        "approved": updatedUser.approved,
         "profilPic": updatedUser.profilPic,
         "privacyPolicy": updatedUser.privacyPolicy,
         "birthday": updatedUser.birthday,
@@ -942,6 +952,13 @@ class DataBasesUserServices {
       };
 
       await userLotRef.set(lotData, SetOptions(merge: true));
+
+      // Dénormalisé pour firestore.rules : voir setUser().
+      if (residenceId != null) {
+        await FirebaseFirestore.instance.collection("User").doc(userId).set({
+          "residencesIds": FieldValue.arrayUnion([residenceId]),
+        }, SetOptions(merge: true));
+      }
 
       print(
           "Lot $lotId ajouté ou mis à jour avec succès pour l'utilisateur $userId.");

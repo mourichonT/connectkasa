@@ -1,0 +1,217 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // "Cet utilisateur appartient-il à cette résidence ?" — dénormalisé sur
+    // User/{uid}.residencesIds (maintenu par databases_user_services.dart /
+    // databases_lot_services.dart), car les règles Firestore ne peuvent pas
+    // parcourir Residence/{id}/lot pour vérifier idProprietaire/idLocataire
+    // sans connaître un lotId précis.
+    function isResidenceMember(residenceId) {
+      return isSignedIn() &&
+        residenceId in get(/databases/$(database)/documents/User/$(request.auth.uid)).data.residencesIds;
+    }
+
+    // csmembers est déjà le bon endroit pour ce check : c'est un champ direct
+    // sur Residence/{id}, accessible sans dénormalisation supplémentaire.
+    function isCsMember(residenceId) {
+      return isSignedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/Residence/$(residenceId)).data.csmembers;
+    }
+
+    // Un bailleur consulte le dossier (identité, profil, garants) d'un
+    // locataire qui lui est rattaché — dénormalisé sur
+    // User/{tenantUid}.sharedWithLandlords (maintenu par addTenant /
+    // removeIdLocataire dans databases_lot_services.dart).
+    function isSharedTenantDoc(tenantUid) {
+      return isSignedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/User/$(tenantUid)).data.sharedWithLandlords;
+    }
+
+    // ---------- User ----------
+    match /User/{uid} {
+      // Recherche par email/refApp (ajout locataire/garant), affichage
+      // profil (ProfilTile) dans posts/chat/commentaires partout dans l'app.
+      allow read: if isSignedIn();
+      allow create: if isOwner(uid) && request.resource.data.approved == false;
+      // approved ne doit jamais être modifiable par le client une fois créé
+      // (seule une approbation manuelle hors-app doit pouvoir le faire).
+      allow update: if isOwner(uid) &&
+        request.resource.data.approved == resource.data.approved;
+      // Suppression gérée par le flux dédié (Auth supprimé d'abord, puis
+      // purge des données), jamais par un delete direct depuis le client.
+      allow delete: if false;
+
+      match /lots/{lotId} {
+        allow read, write: if isOwner(uid) || isCsMember(resource.data.residenceId);
+
+        match /documents/{docId} {
+          allow read: if isOwner(uid) || isSharedTenantDoc(uid) ||
+            isCsMember(get(/databases/$(database)/documents/User/$(uid)/lots/$(lotId)).data.residenceId);
+          allow write: if isOwner(uid);
+        }
+      }
+
+      // Documents d'identité.
+      match /documents/{docId} {
+        allow read: if isOwner(uid) || isSharedTenantDoc(uid);
+        allow write: if isOwner(uid);
+      }
+
+      match /profil_locataire/{profilId} {
+        allow read: if isOwner(uid) || isSharedTenantDoc(uid);
+        allow write: if isOwner(uid);
+
+        match /garants/{garantId} {
+          allow read: if isOwner(uid) || isSharedTenantDoc(uid);
+          allow write: if isOwner(uid);
+
+          match /documents/{docId} {
+            allow read: if isOwner(uid) || isSharedTenantDoc(uid);
+            allow write: if isOwner(uid);
+          }
+        }
+      }
+
+      match /demandes_loc/{id} {
+        allow read, update, delete: if isOwner(uid);
+        // shareFile() écrit chez le bailleur trouvé (uid du chemin), pas
+        // chez l'appelant : on vérifie donc que l'appelant se déclare bien
+        // comme émetteur (tenantId), pas qu'il est propriétaire du doc.
+        allow create: if isSignedIn() && request.resource.data.tenantId == request.auth.uid;
+      }
+    }
+
+    // ---------- Residence ----------
+    match /Residence/{residenceId} {
+      // Recherche de résidence à l'inscription (step1.dart) : un nouvel
+      // utilisateur n'a encore aucun User/{uid} ni aucune appartenance —
+      // il doit pouvoir lister/lire Residence pour choisir la sienne.
+      allow read: if isSignedIn();
+      allow update: if isCsMember(residenceId);
+      // Création/suppression d'une résidence hors périmètre de l'app
+      // (fait manuellement, accès privilégié via Console).
+      allow create, delete: if false;
+
+      match /lot/{lotId} {
+        allow read: if isResidenceMember(residenceId);
+        allow create, delete: if isCsMember(residenceId);
+        // Le propriétaire du lot peut ajouter/retirer des locataires
+        // (addTenant / removeIdLocataire) sans être CS member, mais
+        // uniquement sur le champ idLocataire.
+        allow update: if isCsMember(residenceId) ||
+          (isSignedIn() && request.auth.uid in resource.data.idProprietaire &&
+           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['idLocataire']));
+      }
+
+      match /post/{postId} {
+        allow read: if isResidenceMember(residenceId);
+        allow create: if isResidenceMember(residenceId) &&
+          request.resource.data.user == request.auth.uid;
+        // Modération : un CS member peut éditer/supprimer n'importe quel
+        // post, pas seulement les siens (comportement actuel de l'app).
+        allow update, delete: if isResidenceMember(residenceId) &&
+          (resource.data.user == request.auth.uid || isCsMember(residenceId));
+
+        match /signalements/{id} {
+          allow create: if isResidenceMember(residenceId);
+          // File de modération IA : traitée par les CS members.
+          allow read, update, delete: if isCsMember(residenceId);
+        }
+
+        match /comments/{id} {
+          allow read, create: if isResidenceMember(residenceId);
+          allow update, delete: if resource.data.user == request.auth.uid || isCsMember(residenceId);
+
+          match /replies/{id} {
+            allow read, create: if isResidenceMember(residenceId);
+            allow update, delete: if resource.data.user == request.auth.uid || isCsMember(residenceId);
+          }
+        }
+      }
+
+      match /chat/{chatId} {
+        // Doc ID = deux uids triés joints par "_".
+        allow read, write: if isSignedIn() && request.auth.uid in chatId.split('_');
+
+        match /messages/{msgId} {
+          allow read, write: if isSignedIn() && request.auth.uid in chatId.split('_');
+        }
+      }
+
+      match /contacts/{id} {
+        allow read: if isResidenceMember(residenceId);
+        allow write: if isCsMember(residenceId);
+      }
+
+      match /structure/{id} {
+        allow read: if isResidenceMember(residenceId);
+        allow write: if isCsMember(residenceId);
+      }
+
+      match /documents_copro/{id} {
+        allow read: if isResidenceMember(residenceId);
+        allow write: if isCsMember(residenceId);
+      }
+
+      match /mail/{id} {
+        allow read, write: if isResidenceMember(residenceId);
+      }
+
+      match /events/{id} {
+        allow read: if isResidenceMember(residenceId);
+        // Un non-CS ne peut créer qu'un événement de type "evenement"
+        // (event_form.dart) ; un CS member peut créer tous les types.
+        allow create: if isResidenceMember(residenceId) &&
+          (isCsMember(residenceId) || request.resource.data.type == "evenement");
+        allow update, delete: if isCsMember(residenceId);
+      }
+    }
+
+    // ---------- Root "mail" (Firebase Trigger Email extension) ----------
+    // Différente de Residence/{id}/mail. Jamais écrite par le client Flutter
+    // (l'écriture applicative passe par Residence/{id}/mail). Le schéma réel
+    // (to/from = adresse email de l'agence/syndic, pas celle du résident
+    // connecté) rend un scoping par request.auth.token.email inapplicable
+    // sans casser les requêtes existantes : fermée pour l'instant.
+    match /mail/{id} {
+      allow read, write: if false;
+    }
+
+    // ---------- Root "transaction" ----------
+    // Aucune référence trouvée dans lib/ ni functions/ : collection non
+    // utilisée par l'app actuellement.
+    match /transaction/{id} {
+      allow read, write: if false;
+    }
+
+    // ---------- Root "contactsServices_fr" ----------
+    // Contacts d'urgence génériques (non sensibles, non scopés résidence).
+    match /contactsServices_fr/{id} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // ---------- Gerance (annuaire syndic/agence) ----------
+    // Sous-collections récursives à profondeur/nom dynamique, lecture seule
+    // côté app, non sensible.
+    match /Gerance/{id} {
+      allow read: if isSignedIn();
+      allow write: if false;
+
+      match /{document=**} {
+        allow read: if isSignedIn();
+        allow write: if false;
+      }
+    }
+  }
+}

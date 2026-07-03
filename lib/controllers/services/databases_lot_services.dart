@@ -236,6 +236,48 @@ class DataBasesLotServices {
     } else {
       await lotRef.update({'idLocataire': FieldValue.arrayUnion([tenantId])});
     }
+
+    // Dénormalisé pour firestore.rules : permet au(x) propriétaire(s) de ce
+    // lot de consulter le dossier locataire (identité, profil, garants).
+    await _recomputeSharedWithLandlords(tenantId);
+  }
+
+  // Reconstruit entièrement User/{tenantId}.sharedWithLandlords à partir des
+  // lots où tenantId est effectivement dans idLocataire, plutôt qu'un
+  // arrayUnion/Remove incrémental : évite les incohérences si un même
+  // propriétaire partage plusieurs lots avec ce locataire.
+  Future<void> _recomputeSharedWithLandlords(String tenantId) async {
+    final lots = await _fetchLotsByUser(tenantId);
+    final Set<String> landlordUids = {};
+
+    for (final lot in lots) {
+      final isTenantHere = lot.idLocataire?.contains(tenantId) ?? false;
+      if (isTenantHere && lot.idProprietaire != null) {
+        landlordUids.addAll(lot.idProprietaire!);
+      }
+    }
+
+    await db.collection("User").doc(tenantId).set({
+      "sharedWithLandlords": landlordUids.toList(),
+    }, SetOptions(merge: true));
+  }
+
+  // Reconstruit entièrement User/{userId}.residencesIds à partir de
+  // User/{userId}/lots, pour rester cohérent avec firestore.rules après un
+  // retrait de lot (voir removeIdLocataire / removeIdProprietaire /
+  // removeUserFromAllLots).
+  Future<void> _recomputeResidencesIds(String userId) async {
+    final userLotsSnapshot =
+        await db.collection("User").doc(userId).collection("lots").get();
+
+    final residenceIds = userLotsSnapshot.docs
+        .map((doc) => doc.data()['residenceId'] as String?)
+        .whereType<String>()
+        .toSet();
+
+    await db.collection("User").doc(userId).set({
+      "residencesIds": residenceIds.toList(),
+    }, SetOptions(merge: true));
   }
 
   // La décision remplacer/ajouter est prise par la vue (BuildContext requis pour le dialog)
@@ -330,6 +372,11 @@ class DataBasesLotServices {
         await removeIdProprietaire(lot.residenceId!, lot.id!, userID);
       }
     }
+
+    // Dénormalisé pour firestore.rules : residencesIds doit refléter les
+    // lots restants de l'utilisateur une fois les retraits ci-dessus faits
+    // (sharedWithLandlords est déjà recalculé par removeIdLocataire).
+    await _recomputeResidencesIds(userID);
   }
 
   Future<void> removeIdLocataire(
@@ -357,6 +404,10 @@ class DataBasesLotServices {
 
         // Met à jour le champ 'idLocataire' avec la nouvelle liste
         await lotRef.update({'idLocataire': idLocataires});
+
+        // Dénormalisé pour firestore.rules : ce locataire n'a peut-être plus
+        // aucun lot commun avec le(s) propriétaire(s) de celui-ci.
+        await _recomputeSharedWithLandlords(idLocataireToRemove);
 
         print(
             'L\'ID $idLocataireToRemove a été supprimé de la liste des locataires du lot $idLot.');
@@ -396,6 +447,13 @@ class DataBasesLotServices {
 
         // Met à jour le champ 'idProprietaire' avec la nouvelle liste
         await lotRef.update({'idProprietaire': idProprietaires});
+
+        // Dénormalisé pour firestore.rules : les locataires actuels de ce
+        // lot ne doivent plus voir ce propriétaire dans sharedWithLandlords.
+        final idLocataires = List<String>.from(lotData['idLocataire'] ?? []);
+        for (final tenantId in idLocataires) {
+          await _recomputeSharedWithLandlords(tenantId);
+        }
 
         print(
             'L\'ID $idProprietaireToRemove a été supprimé de la liste des propriétaires du lot $idLot.');
