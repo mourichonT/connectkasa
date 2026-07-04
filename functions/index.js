@@ -1,7 +1,164 @@
 const {onDocumentCreated} = require("firebase-functions/v2/firestore");
+// onDelete (nettoyage après suppression de compte) n'existe qu'en v1 :
+// firebase-functions v7 embarque toujours ce sous-module pour compatibilité.
+const functionsV1 = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 
 admin.initializeApp();
+
+/**
+ * Supprime récursivement tous les fichiers Storage sous un préfixe donné.
+ * @param {string} prefix Préfixe de chemin Storage (ex: "user/uid123/").
+ * @return {Promise<void>}
+ */
+async function deleteStorageFolder(prefix) {
+  try {
+    await admin.storage().bucket().deleteFiles({prefix});
+  } catch (error) {
+    console.error(`Erreur suppression Storage ${prefix} :`, error);
+  }
+}
+
+/**
+ * Nettoyage complet des données Firestore/Storage d'un utilisateur supprimé.
+ * Équivalent, côté Admin SDK (bypass firestore.rules), de l'ancien
+ * DataBasesUserServices.purgeUserData() côté client — devenu impossible à
+ * exécuter depuis le client une fois le compte Firebase Auth supprimé
+ * (request.auth devient null, donc plus aucune règle Firestore n'autorise
+ * ces écritures). Se déclenche automatiquement à la suppression du compte
+ * Auth, quel que soit le flux qui l'a déclenchée (suppression volontaire de
+ * compte, ou abandon d'inscription en cours de route).
+ */
+exports.cleanupUserData = functionsV1.auth.user().onDelete(async (user) => {
+  const uid = user.uid;
+  const db = admin.firestore();
+
+  console.log(`cleanupUserData: début pour ${uid}`);
+
+  // 'User/{uid}' est nettoyé en plus de 'user/{uid}' à cause d'une
+  // incohérence de casse côté client (docu_justif_upload_widget.dart
+  // utilisait 'User' au lieu de 'user').
+  await deleteStorageFolder(`user/${uid}/`);
+  await deleteStorageFolder(`User/${uid}/`);
+
+  // Retire l'utilisateur du conseil syndical de toutes les résidences où il
+  // siège.
+  try {
+    const residencesSnapshot = await db
+        .collection("Residence")
+        .where("csmembers", "array-contains", uid)
+        .get();
+
+    for (const residenceDoc of residencesSnapshot.docs) {
+      await residenceDoc.ref.update({
+        csmembers: admin.firestore.FieldValue.arrayRemove(uid),
+      });
+      console.log(`csmembers : ${uid} retiré de ${residenceDoc.id}`);
+    }
+  } catch (error) {
+    console.error("Erreur retrait csmembers :", error);
+  }
+
+  // Lit User/{uid}/lots une seule fois : sert à la fois à retirer
+  // l'utilisateur de idProprietaire/idLocataire sur chaque lot, et à savoir
+  // dans quelles résidences chercher ses annonces à supprimer.
+  let userLotsDocs = [];
+  try {
+    const userLotsSnapshot = await db
+        .collection("User")
+        .doc(uid)
+        .collection("lots")
+        .get();
+    userLotsDocs = userLotsSnapshot.docs;
+  } catch (error) {
+    console.error("Erreur lecture User/lots :", error);
+  }
+
+  const residenceIds = new Set(
+      userLotsDocs
+          .map((doc) => doc.data().residenceId)
+          .filter((id) => typeof id === "string"),
+  );
+
+  for (const userLotDoc of userLotsDocs) {
+    const residenceId = userLotDoc.data().residenceId;
+    const lotId = userLotDoc.id;
+    if (!residenceId) continue;
+
+    try {
+      const lotRef = db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("lot")
+          .doc(lotId);
+      const lotSnapshot = await lotRef.get();
+      if (!lotSnapshot.exists) continue;
+
+      const lotData = lotSnapshot.data();
+      const updates = {};
+
+      const idLocataire = Array.isArray(lotData.idLocataire) ?
+        lotData.idLocataire : [];
+      const idProprietaire = Array.isArray(lotData.idProprietaire) ?
+        lotData.idProprietaire : [];
+
+      if (idLocataire.includes(uid)) {
+        updates.idLocataire = admin.firestore.FieldValue.arrayRemove(uid);
+      }
+      if (idProprietaire.includes(uid)) {
+        updates.idProprietaire = admin.firestore.FieldValue.arrayRemove(uid);
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await lotRef.update(updates);
+        console.log(`lot ${residenceId}/${lotId} : ${uid} retiré`);
+      }
+    } catch (error) {
+      console.error(`Erreur retrait lot ${residenceId}/${lotId} :`, error);
+    }
+  }
+
+  // Supprime les posts de type "annonces" créés par l'utilisateur, dans les
+  // résidences auxquelles il est lié, ainsi que le dossier Storage complet
+  // de chaque annonce (residences/{residenceId}/annonces/{post.id}/).
+  for (const residenceId of residenceIds) {
+    try {
+      const postsSnapshot = await db
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("post")
+          .where("user", "==", uid)
+          .where("type", "==", "annonces")
+          .get();
+
+      for (const postDoc of postsSnapshot.docs) {
+        // post.id (champ métier) sert de nom de sous-dossier Storage,
+        // distinct de postDoc.id (id auto-généré Firestore, addPost
+        // utilisant .add()).
+        const postId = postDoc.data().id || postDoc.id;
+        await postDoc.ref.delete();
+        await deleteStorageFolder(
+            `residences/${residenceId}/annonces/${postId}/`,
+        );
+        console.log(`annonce ${postId} supprimée (résidence ${residenceId})`);
+      }
+    } catch (error) {
+      console.error(`Erreur suppression annonces (${residenceId}) :`, error);
+    }
+  }
+
+  // Supprime le document User/{uid} et TOUTES ses sous-collections en une
+  // fois (documents, demandes_loc, lots + leurs documents, profil_locataire
+  // + garants + leurs documents).
+  try {
+    await db.recursiveDelete(db.collection("User").doc(uid));
+    console.log(`User/${uid} et ses sous-collections supprimés`);
+  } catch (error) {
+    console.error(`Erreur suppression User/${uid} :`, error);
+  }
+
+  console.log(`cleanupUserData: terminé pour ${uid}`);
+});
 
 exports.notifyNewPost = onDocumentCreated(
     {document: "Residence/{residenceId}/post/{postId}"},

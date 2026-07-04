@@ -1,4 +1,3 @@
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -24,22 +23,18 @@ class DeleteAccount {
     );
 
     try {
-      // 1. Le compte Firebase Auth doit être supprimé EN PREMIER. Tant que
+      // Le compte Firebase Auth doit être supprimé EN PREMIER. Tant que
       // cette étape n'est pas confirmée, on ne touche à aucune donnée : si
       // l'utilisateur annule la ré-authentification, son compte et ses
       // données restent intacts.
+      //
+      // La purge des données Firestore/Storage n'est plus faite ici : une
+      // fois le compte Auth supprimé, le client n'est plus authentifié et ne
+      // peut donc plus satisfaire firestore.rules pour ces écritures. Elle
+      // est déclenchée automatiquement côté serveur (Cloud Function
+      // cleanupUserData, functions/index.js, SDK Admin qui contourne les
+      // règles) dès que la suppression du compte Auth est confirmée.
       await _deleteAuthAccount(context: context, email: email);
-
-      // 2. Le compte n'existe plus : on peut purger les données sans risque
-      // de laisser un compte orphelin en cas d'échec.
-      try {
-        await DataBasesUserServices.purgeUserData(uid);
-      } catch (e) {
-        print(
-            "Erreur lors de la purge des données après suppression du compte : $e");
-        // Le compte Auth est déjà supprimé, impossible de revenir en
-        // arrière : on continue vers l'écran de connexion malgré tout.
-      }
 
       if (!context.mounted) return;
       Navigator.of(context).pop(); // ferme le loader

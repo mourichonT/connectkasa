@@ -1,10 +1,12 @@
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
+import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class MyDrawer extends StatelessWidget {
   final String uid;
@@ -38,7 +40,16 @@ class MyDrawer extends StatelessWidget {
             ),
             ElevatedButton(
               onPressed: () async {
-                _loadUserController.handleGoogleSignOut();
+                // Annulé avant le sign-out : ce provider global écouterait
+                // sinon indéfiniment les chats de l'utilisateur précédent
+                // (permission-denied en boucle une fois déconnecté).
+                context.read<MessageProvider>().reset();
+                // Attendu avant de naviguer : sans ce await, la navigation
+                // vers l'écran de connexion se faisait en parallèle du
+                // sign-out (résultat imprévisible selon lequel finit en
+                // premier).
+                await _loadUserController.handleGoogleSignOut();
+                if (!context.mounted) return;
                 Navigator.popUntil(context, ModalRoute.withName('/'));
                 LoadPreferedData.clearSharedPreferences();
               },

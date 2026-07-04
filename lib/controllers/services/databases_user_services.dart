@@ -2,13 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/generate_ref_user_app.dart';
 import 'package:connect_kasa/controllers/features/income_entry.dart';
 import 'package:connect_kasa/controllers/features/job_entry.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/models/pages_models/user_temp.dart';
@@ -327,166 +323,13 @@ class DataBasesUserServices {
     return null;
   }
 
-  static Future<void> removeUserById(String uid) async {
-    try {
-      final userRef = FirebaseFirestore.instance.collection("User").doc(uid);
-
-      final userSnapshot = await userRef.get();
-
-      if (!userSnapshot.exists) {
-        print('Aucun utilisateur trouvé avec l\'ID $uid');
-        return; // Sortir de la fonction si l'utilisateur n'existe pas
-      }
-
-      // Sous-collections à plat, sans sous-sous-collection à gérer
-      final List<String> subcollections = [
-        'documents',
-        'demandes_loc',
-      ];
-
-      for (String subCol in subcollections) {
-        final subColRef = userRef.collection(subCol);
-        final subColSnapshot = await subColRef.get();
-
-        for (final doc in subColSnapshot.docs) {
-          await doc.reference.delete();
-          print("🗑️ ${subCol}/${doc.id} supprimé");
-        }
-      }
-
-      // lots contient une sous-collection documents à vider avant de
-      // pouvoir supprimer chaque document lot (ex: lots/{id}/documents/{id})
-      final lotsSnapshot = await userRef.collection('lots').get();
-      for (final lotDoc in lotsSnapshot.docs) {
-        final lotDocumentsSnapshot =
-            await lotDoc.reference.collection('documents').get();
-        for (final docDoc in lotDocumentsSnapshot.docs) {
-          await docDoc.reference.delete();
-        }
-        await lotDoc.reference.delete();
-        print("🗑️ lots/${lotDoc.id} supprimé");
-      }
-
-      // profil_locataire contient une sous-collection garants, qui contient
-      // elle-même une sous-collection documents — les deux doivent être
-      // vidées avant de pouvoir supprimer chaque document profil_locataire
-      final profilLocataireSnapshot =
-          await userRef.collection('profil_locataire').get();
-      for (final profilDoc in profilLocataireSnapshot.docs) {
-        final garantsSnapshot =
-            await profilDoc.reference.collection('garants').get();
-        for (final garantDoc in garantsSnapshot.docs) {
-          final garantDocumentsSnapshot =
-              await garantDoc.reference.collection('documents').get();
-          for (final docDoc in garantDocumentsSnapshot.docs) {
-            await docDoc.reference.delete();
-          }
-          await garantDoc.reference.delete();
-        }
-        await profilDoc.reference.delete();
-        print("🗑️ profil_locataire/${profilDoc.id} supprimé");
-      }
-
-      // Supprime le document principal après avoir vidé les sous-collections
-      await userRef.delete();
-      print("✅ Utilisateur et ses sous-collections supprimés avec succès");
-    } catch (e) {
-      print('❌ Erreur lors de la suppression de l\'utilisateur: $e');
-      rethrow;
-    }
-  }
-
-  /// Purge la photo de profil (Storage) et toutes les données Firestore
-  /// (User + sous-collections) d'un utilisateur. Ne touche pas au compte
-  /// Firebase Auth : à appeler uniquement après que celui-ci a été
-  /// supprimé avec succès (voir DeleteAccount.execute), pour ne jamais
-  /// détruire des données tant que la suppression du compte n'est pas
-  /// certaine (ex: annulation pendant une ré-authentification).
-  static Future<void> purgeUserData(String uid) async {
-    // Supprime tous les fichiers Storage de l'utilisateur (photo de profil,
-    // documents d'identité, documents de lots, etc.), pas seulement la
-    // photo de profil. 'User/{uid}' est nettoyé en plus de 'user/{uid}'
-    // à cause d'une incohérence de casse ailleurs dans le code
-    // (docu_justif_upload_widget.dart utilise 'User' au lieu de 'user').
-    await StorageServices().deleteFolderRecursive('user/$uid');
-    await StorageServices().deleteFolderRecursive('User/$uid');
-
-    await _removeFromCsMemberships(uid);
-    // Doit passer avant removeUserById : s'appuie sur User/{uid}/lots
-    // (via getLotByIdUser) pour savoir de quels lots retirer l'utilisateur
-    // en tant que propriétaire/locataire, avant que cette sous-collection
-    // ne soit supprimée.
-    await DataBasesLotServices().removeUserFromAllLots(uid);
-    // Idem : s'appuie sur User/{uid}/lots pour savoir dans quelles
-    // résidences chercher les annonces de l'utilisateur à supprimer.
-    await _removeUserAnnonces(uid);
-    await removeUserById(uid);
-  }
-
-  /// Retire l'utilisateur de la liste csmembers (conseil syndical) de
-  /// toutes les résidences où il siège. Un utilisateur peut appartenir à
-  /// plusieurs résidences, donc on ne peut pas se contenter d'une seule.
-  static Future<void> _removeFromCsMemberships(String uid) async {
-    try {
-      final residencesSnapshot = await FirebaseFirestore.instance
-          .collection('Residence')
-          .where('csmembers', arrayContains: uid)
-          .get();
-
-      for (final residenceDoc in residencesSnapshot.docs) {
-        await DataBasesResidenceServices()
-            .removeCsMember(residenceDoc.id, uid);
-        print(
-            "🗑️ $uid retiré du csmembers de la résidence ${residenceDoc.id}");
-      }
-    } catch (e) {
-      print(
-          "Erreur lors du retrait des adhésions au conseil syndical pour $uid : $e");
-    }
-  }
-
-  /// Supprime les posts de type "annonces" créés par l'utilisateur, dans
-  /// les résidences auxquelles il est lié (via User/{uid}/lots). Supprime
-  /// aussi tout le dossier Storage de l'annonce (residences/{residenceId}/
-  /// annonces/{postId}/), pas seulement l'image courante référencée par
-  /// pathImage, pour ne laisser aucun fichier orphelin dans ce dossier.
-  static Future<void> _removeUserAnnonces(String uid) async {
-    try {
-      final userLotsSnapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(uid)
-          .collection('lots')
-          .get();
-
-      final residenceIds = userLotsSnapshot.docs
-          .map((doc) => doc.data()['residenceId'] as String?)
-          .whereType<String>()
-          .toSet();
-
-      for (final residenceId in residenceIds) {
-        final postsSnapshot = await FirebaseFirestore.instance
-            .collection('Residence')
-            .doc(residenceId)
-            .collection('post')
-            .where('user', isEqualTo: uid)
-            .where('type', isEqualTo: 'annonces')
-            .get();
-
-        for (final postDoc in postsSnapshot.docs) {
-          // post.id est l'identifiant métier du post (utilisé comme nom du
-          // sous-dossier Storage), distinct de postDoc.id (id auto-généré
-          // du document Firestore, addPost utilisant .add()).
-          final post = Post.fromMap(postDoc.data());
-          await postDoc.reference.delete();
-          await StorageServices()
-              .deleteFolderRecursive('residences/$residenceId/annonces/${post.id}');
-          print("🗑️ annonce ${post.id} supprimée (résidence $residenceId)");
-        }
-      }
-    } catch (e) {
-      print("Erreur lors de la suppression des annonces de $uid : $e");
-    }
-  }
+  // La purge Firestore/Storage d'un compte supprimé (ex-removeUserById /
+  // purgeUserData / _removeFromCsMemberships / _removeUserAnnonces) est
+  // désormais gérée par la Cloud Function cleanupUserData
+  // (functions/index.js, déclenchée automatiquement à la suppression du
+  // compte Firebase Auth) : impossible à faire de manière fiable depuis le
+  // client, qui n'est plus authentifié à ce moment-là et ne peut donc plus
+  // satisfaire firestore.rules.
 
   Future<Map<String, dynamic>?> getLotDetails(
       String userID, String refLot) async {

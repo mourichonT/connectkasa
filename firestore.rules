@@ -103,7 +103,11 @@ service cloud.firestore {
       allow create, delete: if false;
 
       match /lot/{lotId} {
-        allow read: if isResidenceMember(residenceId);
+        // Comme pour Residence/{id} : un nouvel utilisateur doit pouvoir
+        // parcourir la liste des lots pour choisir le sien à l'inscription
+        // (step3.dart, getLotByResidence), avant d'être membre de la
+        // résidence (isResidenceMember serait toujours faux à ce stade).
+        allow read: if isSignedIn();
         allow create, delete: if isCsMember(residenceId);
         // Le propriétaire du lot peut ajouter/retirer des locataires
         // (addTenant / removeIdLocataire) sans être CS member, mais
@@ -140,8 +144,18 @@ service cloud.firestore {
       }
 
       match /chat/{chatId} {
-        // Doc ID = deux uids triés joints par "_".
-        allow read, write: if isSignedIn() && request.auth.uid in chatId.split('_');
+        // Doc ID = deux uids triés joints par "_" — suffisant pour un get()
+        // direct (chatInfoStream), mais une requête de LISTE non filtrée
+        // (MessageProvider.listenForMessages, qui parcourt tous les chats
+        // d'une résidence pour détecter les nouveaux messages) doit pouvoir
+        // être prouvée par Firestore à partir du filtre where de la requête,
+        // donc sur le contenu (from_id/to_id), pas sur l'ID du document.
+        allow get: if isSignedIn() && request.auth.uid in chatId.split('_');
+        allow list: if isSignedIn() &&
+          (resource.data.from_id == request.auth.uid || resource.data.to_id == request.auth.uid);
+        allow create: if isSignedIn() &&
+          (request.resource.data.from_id == request.auth.uid || request.resource.data.to_id == request.auth.uid);
+        allow update, delete: if isSignedIn() && request.auth.uid in chatId.split('_');
 
         match /messages/{msgId} {
           allow read, write: if isSignedIn() && request.auth.uid in chatId.split('_');

@@ -24,8 +24,10 @@
  *
  * Utilisation :
  *   cd functions
- *   node scripts/migrate_residences_ids.js            // dry-run (aucune écriture, affiche ce qui serait fait)
- *   node scripts/migrate_residences_ids.js --apply     // écrit réellement
+ *   node scripts/migrate_residences_ids.js
+ *     // dry-run (aucune écriture, affiche ce qui serait fait)
+ *   node scripts/migrate_residences_ids.js --apply
+ *     // écrit réellement
  */
 
 const admin = require("firebase-admin");
@@ -35,8 +37,15 @@ const db = admin.firestore();
 
 const APPLY = process.argv.includes("--apply");
 
+/**
+ * Reconstruit residencesIds/sharedWithLandlords sur tous les User/{uid}
+ * existants à partir de leurs sous-collections lots.
+ * @return {Promise<void>}
+ */
 async function migrate() {
-  console.log(APPLY ? "Mode APPLY (écriture réelle)" : "Mode DRY-RUN (aucune écriture)");
+  console.log(
+      APPLY ? "Mode APPLY (écriture réelle)" : "Mode DRY-RUN (aucune écriture)",
+  );
 
   const usersSnapshot = await db.collection("User").get();
   console.log(`Utilisateurs trouvés : ${usersSnapshot.size}`);
@@ -77,8 +86,10 @@ async function migrate() {
       if (!lotSnapshot.exists) continue;
 
       const lotData = lotSnapshot.data();
-      const idLocataire = Array.isArray(lotData.idLocataire) ? lotData.idLocataire : [];
-      const idProprietaire = Array.isArray(lotData.idProprietaire) ? lotData.idProprietaire : [];
+      const idLocataire = Array.isArray(lotData.idLocataire) ?
+        lotData.idLocataire : [];
+      const idProprietaire = Array.isArray(lotData.idProprietaire) ?
+        lotData.idProprietaire : [];
 
       if (idLocataire.includes(uid)) {
         idProprietaire.forEach((landlordUid) => landlordUids.add(landlordUid));
@@ -103,9 +114,14 @@ async function migrate() {
     updated++;
   }
 
-  console.log(`Terminé. ${updated} utilisateur(s) traité(s), ${skipped} ignoré(s) (aucun lot).`);
+  console.log(
+      `Terminé. ${updated} utilisateur(s) traité(s), ` +
+      `${skipped} ignoré(s) (aucun lot).`,
+  );
   if (!APPLY) {
-    console.log("Dry-run seulement — relancer avec --apply pour écrire réellement.");
+    console.log(
+        "Dry-run seulement — relancer avec --apply pour écrire réellement.",
+    );
   }
 }
 

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step0.dart';
@@ -82,9 +81,13 @@ class ProgressWidgetState extends State<ProgressWidget>
     if (!isUserCompleted &&
         currentUser != null &&
         currentUser!.uid == widget.userId) {
+      // Le nettoyage Firestore (User/{uid} et sous-collections) est
+      // désormais fait automatiquement côté serveur (Cloud Function
+      // cleanupUserData, functions/index.js) dès que le compte Auth est
+      // supprimé — impossible à faire depuis le client une fois
+      // déconnecté (firestore.rules exige request.auth).
       _deleteUser();
       _deleteStorage();
-      DataBasesUserServices.removeUserById(currentUser!.uid);
       print("Utilisateur supprimé dans la fonction dispose : ${widget.userId}");
     }
     super.dispose();
@@ -183,7 +186,6 @@ class ProgressWidgetState extends State<ProgressWidget>
         if (currentUser != null && currentUser!.uid == widget.userId) {
           await currentUser!.delete();
           _deleteStorage();
-          await DataBasesUserServices.removeUserById(currentUser!.uid);
           Navigator.popUntil(context, ModalRoute.withName('/'));
           print(
               "Utilisateur supprimé après fermeture de l'application : ${widget.userId}");
@@ -365,8 +367,6 @@ class ProgressWidgetState extends State<ProgressWidget>
                   if (currentUser != null &&
                       currentUser!.uid == widget.userId) {
                     _deleteUser();
-                    await DataBasesUserServices.removeUserById(currentUser!
-                        .uid); // Supprime l'utilisateur de Firebase Auth
                     print("Utilisateur supprimé : ${widget.userId}");
                   }
                 } catch (e) {

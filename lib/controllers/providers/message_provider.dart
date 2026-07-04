@@ -81,6 +81,10 @@ class MessageProvider extends ChangeNotifier {
         .collection("Residence")
         .doc(residenceId)
         .collection("chat")
+        .where(Filter.or(
+          Filter('from_id', isEqualTo: currentUserId),
+          Filter('to_id', isEqualTo: currentUserId),
+        ))
         .snapshots()
         .listen((chatSnapshot) {
       print(
@@ -135,6 +139,21 @@ class MessageProvider extends ChangeNotifier {
     _hasNewMessage = false;
     _hasNewMessageController.add(false);
     notifyListeners();
+  }
+
+  /// À appeler à la déconnexion : ce provider est global (créé une seule fois
+  /// dans main.dart), il continuerait sinon à écouter les chats de
+  /// l'utilisateur précédent après logout (permission-denied en boucle une
+  /// fois les règles Firestore actives, puisque request.auth devient null).
+  void reset() {
+    print('[MessageProvider.reset] Annulation des écoutes en cours');
+    _chatSubscription?.cancel();
+    _chatSubscription = null;
+    _messageStream = null;
+    _lastMessage = null;
+    _hasNewMessage = false;
+    _userFrom = null;
+    _residenceId = null;
   }
 
   @override
