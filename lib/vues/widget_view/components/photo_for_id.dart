@@ -1,13 +1,12 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:http/http.dart' as http;
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 
 class PhotoForId extends StatefulWidget {
@@ -39,8 +38,7 @@ class PhotoForId extends StatefulWidget {
 class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
   final ImagePicker _picker = ImagePicker();
   final StorageServices _storageServices = StorageServices();
-  final apiKey = dotenv.env['API_KEY'];
-  final baseUrl = dotenv.env['BASE_URL'];
+  final FirebaseFunctions _functions = FirebaseFunctions.instance;
   String fileName = const Uuid().v4();
   File? _selectedImage;
   bool isCameraOpen = false;
@@ -174,10 +172,6 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
   }
 
   Future<Map<String, String>> extractDataFromIdCard(File imageFile) async {
-    if (apiKey?.isEmpty ?? true) {
-      throw Exception("Clé API OpenAI non trouvée !");
-    }
-
     // Encode l'image en base64 : l'API vision d'OpenAI attend soit une URL
     // publiquement accessible, soit une data URL "data:<mime>;base64,...".
     // On utilise le base64 directement plutôt que l'URL Firebase Storage
@@ -188,80 +182,17 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
     final mimeType = extension == 'png' ? 'image/png' : 'image/jpeg';
     final imageDataUrl = 'data:$mimeType;base64,${base64Encode(bytes)}';
 
-    final prompt = {
-      "model": "gpt-4o",
-      "messages": [
-        {
-          "role": "system",
-          "content":
-              """ Tu es un expert en lecture de  ${widget.title}. Ne pas inventer d'informations. Si un champ est manquant ou mal lisible, indique-le comme vide.
-                  Tu dois extraire : Nom, Prénom, Sexe, Nationalité, Lieu de naissance, Date de naissance. 
-                  Si plusieurs prénoms ou noms sont reconnus, utilise uniquement ceux les plus proches de leur champ d'origine sur la carte (ne pas mélanger).
-                  les noms et les prénom ne seront jamais sur la meme ligne prend cela en considération
-                  Si la nationnalité est etrangère traduit la moi en Français (ex: Venezuela => Vénézuelienne)
-
-                  Corrige les erreurs fréquentes d'OCR : 
-                  - Séparation de mots collés (ex: 'JohnDoe' → 'John Doe'),
-                  - Les Noms et Prénoms ne sont jamais sur la même ligne, ne les regroupent pas ensemble
-                  - Correction de lettres confondues (B vs M, P vs F),
-                  - Ne jamais fusionner les prénoms avec les noms ou inversement.
-
-                  Retourne seulement un JSON propre avec les champs exacts. """
-        },
-        {
-          "role": "user",
-          "content": [
-            {
-              "type": "text",
-              "text":
-                  "Voici un document de  ${widget.title}. Retourne les données sous forme de JSON avec les champs attendus."
-            },
-            {
-              "type": "image_url",
-              "image_url": {"url": imageDataUrl}
-            }
-          ]
-        }
-      ],
-      "max_tokens": 300
-    };
-
     try {
-      final response = await http.post(
-        Uri.parse(baseUrl!),
-        headers: {
-          'Authorization': 'Bearer $apiKey',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode(prompt),
-      );
+      // L'appel à OpenAI (et la clé API) vit côté serveur
+      // (functions_python/main.py: extract_id_card_data) : jamais exposé
+      // dans le bundle client.
+      final result =
+          await _functions.httpsCallable('extract_id_card_data').call({
+        'title': widget.title,
+        'image_data_url': imageDataUrl,
+      });
 
-      // Décodage explicite en UTF-8 des octets bruts de la réponse, pour ne
-      // pas dépendre du charset (parfois absent) de l'en-tête Content-Type.
-      // allowMalformed évite un crash si la réponse contient des octets
-      // invalides (tronquée, erreur serveur non-JSON, etc.) : on préfère
-      // afficher un contenu partiellement lisible plutôt que planter avant
-      // même de savoir ce que le serveur a renvoyé.
-      final decodedBody =
-          utf8.decode(response.bodyBytes, allowMalformed: true);
-
-      if (response.statusCode != 200) {
-        print("❌ Erreur OpenAI (${response.statusCode}) : $decodedBody");
-        return {};
-      }
-
-      final content =
-          jsonDecode(decodedBody)['choices'][0]['message']['content'];
-
-      // Nettoyage du contenu JSON brut
-      final cleanedContent = content
-          .replaceAll(RegExp(r'```json|```|\n'), '')
-          .replaceAll(RegExp(r'\\n|\\t'), ' ')
-          .trim();
-
-      // Tentative de parsing
-      final Map<String, dynamic> rawJson = jsonDecode(cleanedContent);
-
+      final rawJson = Map<String, dynamic>.from(result.data as Map);
       return rawJson.map((key, value) => MapEntry(key, value.toString()));
     } catch (e) {
       print("❌ Erreur lors de l'extraction : $e");

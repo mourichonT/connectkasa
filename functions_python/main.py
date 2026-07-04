@@ -12,6 +12,7 @@ from email.header import decode_header
 from email.utils import parsedate_to_datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import requests
 
 app = initialize_app()
 
@@ -35,6 +36,13 @@ EMAIL_ADDRESS = 'connectkasadev@gmail.com'
 # SDK ne résout pas correctement un SecretParam passé en option globale
 # (le nom du secret reste un template CEL non substitué au déploiement).
 EMAIL_PASSWORD = params.SecretParam('EMAIL_PASSWORD')
+
+# Extraction de données de carte d'identité (photo_for_id.dart) : à définir
+# avec `firebase functions:secrets:set OPENAI_API_KEY`. Ne jamais exposer
+# cette clé côté client (Flutter) : l'appel à OpenAI doit toujours transiter
+# par ici.
+OPENAI_API_KEY = params.SecretParam('OPENAI_API_KEY')
+OPENAI_CHAT_COMPLETIONS_URL = 'https://api.openai.com/v1/chat/completions'
 
 # Format exact utilisé côté app (databases_mail_services.dart / mail.dart) :
 # "Vous avez un message pour la residence {name} - lot {batiment} {lot}"
@@ -356,3 +364,94 @@ def send_email_callable(req: https_fn.CallableRequest):
         data.get('body'),
         data.get('html'),
     )
+
+
+# ---------------------------------------------------------------------------
+# EXTRACTION IA - lecture de carte d'identité (photo_for_id.dart)
+# Payload attendu (req.data côté app) :
+#   { "title": "carte d'identité", "image_data_url": "data:image/jpeg;base64,..." }
+# ---------------------------------------------------------------------------
+
+@https_fn.on_call(secrets=[OPENAI_API_KEY], memory=options.MemoryOption.MB_512)
+def extract_id_card_data(req: https_fn.CallableRequest):
+    # Chaque appel facture des tokens OpenAI : réservé aux utilisateurs
+    # connectés de l'app, pas un endpoint public.
+    if req.auth is None:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
+            message="Authentification requise"
+        )
+
+    data = req.data or {}
+    title = data.get('title')
+    image_data_url = data.get('image_data_url')
+    if not title or not image_data_url:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="title et image_data_url sont requis"
+        )
+
+    prompt = {
+        "model": "gpt-4o",
+        "messages": [
+            {
+                "role": "system",
+                "content":
+                    f""" Tu es un expert en lecture de {title}. Ne pas inventer d'informations. Si un champ est manquant ou mal lisible, indique-le comme vide.
+                        Tu dois extraire : Nom, Prénom, Sexe, Nationalité, Lieu de naissance, Date de naissance.
+                        Si plusieurs prénoms ou noms sont reconnus, utilise uniquement ceux les plus proches de leur champ d'origine sur la carte (ne pas mélanger).
+                        les noms et les prénom ne seront jamais sur la meme ligne prend cela en considération
+                        Si la nationnalité est etrangère traduit la moi en Français (ex: Venezuela => Vénézuelienne)
+
+                        Corrige les erreurs fréquentes d'OCR :
+                        - Séparation de mots collés (ex: 'JohnDoe' → 'John Doe'),
+                        - Les Noms et Prénoms ne sont jamais sur la même ligne, ne les regroupent pas ensemble
+                        - Correction de lettres confondues (B vs M, P vs F),
+                        - Ne jamais fusionner les prénoms avec les noms ou inversement.
+
+                        Retourne seulement un JSON propre avec les champs exacts. """
+            },
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": f"Voici un document de {title}. Retourne les données sous forme de JSON avec les champs attendus."
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": image_data_url}
+                    }
+                ]
+            }
+        ],
+        "max_tokens": 300
+    }
+
+    response = requests.post(
+        OPENAI_CHAT_COMPLETIONS_URL,
+        headers={
+            'Authorization': f'Bearer {OPENAI_API_KEY.value}',
+            'Content-Type': 'application/json',
+        },
+        json=prompt,
+        timeout=60,
+    )
+
+    if response.status_code != 200:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INTERNAL,
+            message=f"Erreur OpenAI ({response.status_code}): {response.text}"
+        )
+
+    content = response.json()['choices'][0]['message']['content']
+    cleaned_content = re.sub(r'```json|```|\n', '', content)
+    cleaned_content = re.sub(r'\\n|\\t', ' ', cleaned_content).strip()
+
+    try:
+        return json.loads(cleaned_content)
+    except json.JSONDecodeError as e:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INTERNAL,
+            message=f"Réponse OpenAI non-JSON : {e}"
+        )
