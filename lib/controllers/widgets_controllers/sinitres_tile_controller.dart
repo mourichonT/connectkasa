@@ -37,6 +37,7 @@ class SinitresTileControllerState extends State<SinitresTileController> {
     _signalementFuture =
         dbService.getSignalementsList(widget.residenceId, widget.post.id);
     _signalementFuture.then((signalements) {
+      if (!mounted) return;
       setState(() {
         postCount = signalements.length;
       });
