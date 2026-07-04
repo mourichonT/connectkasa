@@ -166,6 +166,9 @@ class MailChatPageState extends State<MailChatPage> {
           Expanded(
             // Wrap TextFormField with Expanded
             child: TextFormField(
+              maxLines: 6,
+              minLines: 1,
+              keyboardType: TextInputType.multiline,
               focusNode: _focusNode, // Attachez le FocusNode
               controller: mailChatController,
               enableInteractiveSelection: true,

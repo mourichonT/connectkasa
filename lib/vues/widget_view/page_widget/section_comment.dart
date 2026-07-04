@@ -153,7 +153,7 @@ class _SectionCommentState extends State<SectionComment>
                   child: TextFormField(
                     enableInteractiveSelection: true,
                     keyboardType: TextInputType.multiline,
-                    maxLines: null,
+                    maxLines: 6,
                     minLines: 1,
                     controller: _textEditingController,
                     focusNode: inputFocusNode,

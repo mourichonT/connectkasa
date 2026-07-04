@@ -431,7 +431,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                           fontWeight: _selectedFontWeight,
                           fontStyle: _selectedFontStyle,
                         ),
-                        maxLines: null, // Permet plusieurs lignes de texte
+                        maxLines: 6,
                         keyboardType: TextInputType.multiline,
                       ),
                     ),

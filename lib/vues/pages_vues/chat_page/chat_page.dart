@@ -180,7 +180,7 @@ class ChatPageState extends State<ChatPage> {
         children: [
           Expanded(
             child: TextFormField(
-              maxLines: null,
+              maxLines: 6,
               minLines: 1,
               keyboardType: TextInputType.multiline,
               focusNode: _focusNode,
