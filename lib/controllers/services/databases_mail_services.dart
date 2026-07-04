@@ -7,7 +7,12 @@ class DatabasesMailServices {
 
   Stream<QuerySnapshot> getMail(
       String uid, Lot selectedLot, List<String> accountantMail) {
+    // Residence/{id}/mail, pas la collection racine 'mail' : sendMail()
+    // écrit ici depuis la migration du scoping par résidence (voir
+    // firestore.rules), la collection racine ne reçoit plus rien depuis.
     return db
+        .collection("Residence")
+        .doc(selectedLot.residenceId)
         .collection('mail')
         .where('message.subject',
             isEqualTo:
@@ -17,7 +22,7 @@ class DatabasesMailServices {
           Filter('from', isEqualTo: accountantMail.first),
         ))
         //Filter('from', isEqualTo: accountantMail.first),
-        .orderBy("delivery.startTime", descending: false) // Trie par startTime
+        .orderBy("startTime", descending: false) // Trie par startTime
         .snapshots();
   }
 
@@ -26,14 +31,17 @@ class DatabasesMailServices {
     List<Mail> mailsFromUid = [];
 
     try {
-      // Récupérer les documents de la collection "mail" depuis Firestore
+      // Residence/{id}/mail, pas la collection racine 'mail' : sendMail()
+      // écrit ici depuis la migration du scoping par résidence (voir
+      // firestore.rules), la collection racine ne reçoit plus rien depuis.
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+          .collection("Residence")
+          .doc(selectedLot.residenceId)
           .collection('mail')
           .where('message.subject',
               isEqualTo:
                   "Vous avez un message pour la residence ${selectedLot.residenceData['name']} - lot ${selectedLot.batiment} ${selectedLot.lot}")
-          .orderBy("delivery.startTime",
-              descending: false) // Trie par startTime
+          .orderBy("startTime", descending: false) // Trie par startTime
           .get();
 
       // Parcourir les documents et les convertir en objets Mail
@@ -72,17 +80,21 @@ class DatabasesMailServices {
       required String message,
       required List<String> receiverId}) async {
     final Timestamp timestamp = Timestamp.now();
+    final String targetResidenceId = residenceId ?? selectedLot!.residenceId;
+    final String mailSubject = subject ??
+        "Vous avez un message pour la residence ${selectedLot!.residenceData['name']} - lot ${selectedLot.batiment} ${selectedLot.lot}";
 
     Mail newMessage = Mail(
         to: receiverId,
         startTime: timestamp,
-        subject: subject ??
-            "Vous avez un message pour la residence ${selectedLot!.residenceData['name']} - lot ${selectedLot.batiment} ${selectedLot.lot}",
+        subject: mailSubject,
         html: message);
-    await db
-        .collection("Residence")
-        .doc(residenceId ?? selectedLot!.residenceId)
-        .collection("mail")
-        .add(newMessage.toJson());
+
+    final residenceRef = db.collection("Residence").doc(targetResidenceId);
+
+    // La Cloud Function send_email_on_create écoute la création de documents
+    // dans Residence/{id}/mail (from == null) pour déclencher l'envoi SMTP
+    // réel en plus de l'affichage dans le fil in-app.
+    await residenceRef.collection("mail").add(newMessage.toJson());
   }
 }

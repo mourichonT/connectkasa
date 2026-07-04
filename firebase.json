@@ -1,6 +1,7 @@
 {
   "firestore": {
-    "rules": "firestore.rules"
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
   },
   "functions": [
     {
@@ -15,6 +16,17 @@
       ],
       "predeploy": [
         "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    },
+    {
+      "source": "functions_python",
+      "codebase": "mail",
+      "runtime": "python312",
+      "ignore": [
+        ".git",
+        "venv",
+        "__pycache__",
+        "*.local"
       ]
     }
   ]

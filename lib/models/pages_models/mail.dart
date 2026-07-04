@@ -32,8 +32,8 @@ class Mail {
   factory Mail.fromJson(Map<String, dynamic> json) {
     return Mail(
       to: json['to'] != null ? List<String>.from(json['to']) : null,
-      from: json['delivery'] != null ? json['from'] : null,
-      startTime: json['delivery']['startTime'],
+      from: json['from'],
+      startTime: json['startTime'],
       subject: json['message']['subject'],
       html: json['message']['html'],
     );

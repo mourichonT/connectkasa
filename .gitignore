@@ -48,3 +48,7 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Python Cloud Functions
+functions_python/venv/
+functions_python/__pycache__/

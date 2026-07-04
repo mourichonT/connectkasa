@@ -147,7 +147,7 @@ class MailChatPageState extends State<MailChatPage> {
               }
             },
           ),
-          MyTextStyle.chatdate(mail["delivery"]["startTime"]),
+          MyTextStyle.chatdate(mail["startTime"]),
         ],
       ),
     );
