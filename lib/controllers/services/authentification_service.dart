@@ -78,8 +78,11 @@ class AuthentificationService {
       // Déconnexion de Firebase Auth
       await _auth.signOut();
 
-      // Déconnexion de Google Sign-In
-      await _googleSignIn.signOut();
+      // Timeout défensif : sur un environnement où Google Play Services
+      // répond mal (émulateur sans image système "Google Play", coupure
+      // réseau...), cet appel peut ne jamais se résoudre et geler
+      // indéfiniment l'app au moment de la déconnexion.
+      await _googleSignIn.signOut().timeout(const Duration(seconds: 5));
     } catch (e) {
       // Gestion des erreurs
       print('Erreur lors de la déconnexion avec Google: $e');
