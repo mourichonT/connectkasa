@@ -46,9 +46,12 @@ class Lot {
           json["idProprietaire"] != null && json["idProprietaire"] is List
               ? List<String>.from(json["idProprietaire"])
               : [],
+      // [] par défaut, jamais null (aligné sur fromMap ci-dessous) : de
+      // nombreux écrans font idLocataire! en supposant que ce n'est jamais
+      // null.
       idLocataire: json["idLocataire"] != null && json["idLocataire"] is List
           ? List<String>.from(json["idLocataire"])
-          : null,
+          : [],
       residenceId: json["residenceId"] ?? "",
       residenceData: json["residenceData"] != null
           ? Map<String, dynamic>.from(json["residenceData"])
@@ -105,8 +108,13 @@ class Lot {
       typeLot: map['typeLot'] ?? "",
       refGerance: map["refGerance"],
       type: map['type'] ?? "",
-      idProprietaire: List<String>.from(map['idProprietaire'] ?? []),
-      idLocataire: List<String>.from(map['idLocataire'] ?? []),
+      // Vérification de type défensive (alignée sur fromJson ci-dessus) :
+      // évite un crash si le champ existe mais n'est pas une liste.
+      idProprietaire: map['idProprietaire'] is List
+          ? List<String>.from(map['idProprietaire'])
+          : [],
+      idLocataire:
+          map['idLocataire'] is List ? List<String>.from(map['idLocataire']) : [],
       residenceId: map["residenceId"] ?? "",
       residenceData: map["residenceData"] != null
           ? Map<String, dynamic>.from(map["residenceData"])

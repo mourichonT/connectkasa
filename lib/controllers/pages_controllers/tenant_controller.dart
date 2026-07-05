@@ -83,7 +83,18 @@ class _TenantControllerState extends State<TenantController> {
         final demandes = snapshot.data ?? [];
         final DemandeLoc? firstDemande =
             demandes.isNotEmpty ? demandes.first : null;
-        final List<String>? garants = firstDemande?.garantId ?? [];
+        final List<String> garants = firstDemande?.garantId ?? [];
+
+        // hasGarant1/hasGarant2 pilotent à la fois `tabs` et `tabViews` : ces
+        // deux listes doivent impérativement avoir la même longueur, sinon
+        // DefaultTabController(length: tabs.length) et TabBarView(children:
+        // tabViews) se désynchronisent. Cette assertion n'est vérifiée qu'en
+        // debug (désactivée en release) : en production le mismatch ne
+        // plantait pas mais figeait l'écran silencieusement (cas du
+        // locataire sans aucun garant : tabs.length=1 vs tabViews.length=2
+        // avant ce fix).
+        final hasGarant1 = garants.isNotEmpty;
+        final hasGarant2 = garants.length > 1;
 
         final tabs = <Tab>[
           Tab(
@@ -91,8 +102,8 @@ class _TenantControllerState extends State<TenantController> {
                   (widget.residenceId != null && widget.residenceId!.isNotEmpty)
                       ? 'Locataire'
                       : 'Demandeur'),
-          if (garants!.isNotEmpty) const Tab(text: 'Garant 1'),
-          if (garants.length > 1) const Tab(text: 'Garant 2'),
+          if (hasGarant1) const Tab(text: 'Garant 1'),
+          if (hasGarant2) const Tab(text: 'Garant 2'),
         ];
 
         final tabViews = <Widget>[
@@ -104,14 +115,10 @@ class _TenantControllerState extends State<TenantController> {
             color: widget.color,
             refreshUnseeCounter: widget.refreshUnseeCounter,
           ),
-          if (garants.isNotEmpty && garants[0] != null)
-            GuarantorDetail(tenantUid: widget.tenant.uid, garantid: garants[0]!)
-          else
-            const Center(child: Text("Aucun garant 1")),
-          if (garants.length > 1 && garants[1] != null)
-            GuarantorDetail(tenantUid: widget.tenant.uid, garantid: garants[1]!)
-          else if (garants.length > 1)
-            const Center(child: Text("Aucun garant 2")),
+          if (hasGarant1)
+            GuarantorDetail(tenantUid: widget.tenant.uid, garantid: garants[0]),
+          if (hasGarant2)
+            GuarantorDetail(tenantUid: widget.tenant.uid, garantid: garants[1]),
         ];
 
         return DefaultTabController(

@@ -2,6 +2,7 @@ import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
+import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
@@ -398,9 +399,20 @@ class _ProfilePageState extends State<ProfilePage> {
                               text: "Déconnexion",
                               icon: const Icon(Icons.power_settings_new_rounded,
                                   color: Colors.white, size: 22),
-                              press: () {
+                              press: () async {
+                                // Annulé avant le sign-out : ce provider
+                                // global écouterait sinon indéfiniment les
+                                // chats de l'utilisateur précédent
+                                // (permission-denied en boucle une fois
+                                // déconnecté). Même correctif que
+                                // my_drawer.dart.
+                                context.read<MessageProvider>().reset();
                                 LoadPreferedData.clearSharedPreferences();
-                                _loadUserController.handleGoogleSignOut();
+                                // Attendu avant de naviguer : sans ce await,
+                                // la navigation se faisait en parallèle du
+                                // sign-out (résultat imprévisible).
+                                await _loadUserController.handleGoogleSignOut();
+                                if (!context.mounted) return;
                                 Navigator.popUntil(
                                     context, ModalRoute.withName('/'));
                                 Provider.of<ColorProvider>(context,
