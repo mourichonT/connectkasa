@@ -10,10 +10,12 @@ import '../../models/enum/set_logo_color.dart';
 
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
+import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/controllers/features/route_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
 
+import 'package:connect_kasa/vues/pages_vues/no_lot/attach_existing_lot_page.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/home_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/sinistres_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
@@ -37,9 +39,11 @@ class MyNavBar extends StatefulWidget {
 class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   final _databasesLotServices = DataBasesLotServices();
   final _loadPreferedData = LoadPreferedData();
+  final _loadUserController = LoadUserController();
   late final MyTabBarController tabController;
   double _calculatedAppBarHeight = 0;
   List<Lot>? _lotsList;
+  bool _hasNoLot = false;
 
   Lot? _preferedLot;
   Lot _defaultLot = Lot(
@@ -72,6 +76,17 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   Future<void> _initializeLot() async {
     _lotsList = await _databasesLotServices.getLotByIdUser(widget.uid);
     _preferedLot = await _loadPreferedData.loadPreferedLot();
+
+    // Aucun lot du tout (ni préféré, ni dans la liste) : rien à afficher
+    // dans les onglets habituels. getFirstLotByUserId lèverait une
+    // Exception non gérée dans ce cas (item UX du backlog) ; on le détecte ici
+    // directement depuis _lotsList, déjà chargé, plutôt que de s'appuyer
+    // sur cette exception comme flux de contrôle.
+    if (_preferedLot == null && (_lotsList?.isEmpty ?? true)) {
+      if (mounted) setState(() => _hasNoLot = true);
+      return;
+    }
+
     if (_preferedLot == null) {
       _defaultLot = await _databasesLotServices.getFirstLotByUserId(widget.uid);
       final color = _defaultLot.userLotDetails['colorSelected'];
@@ -80,7 +95,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
       }
     }
     _updateCsMemberStatus(_preferedLot ?? _defaultLot);
-    setState(() {});
+    setState(() => _hasNoLot = false);
 
     // Lance l'écoute des messages ici, une fois résidence connue
     final residenceId = (_preferedLot ?? _defaultLot).residenceId;
@@ -153,6 +168,53 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   //   );
   // }
 
+  Widget _buildNoLotScreen(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.home_work_outlined, size: 64, color: Colors.black38),
+              const SizedBox(height: 20),
+              const Text(
+                "Vous n'êtes pour l'instant rattaché à aucun lot.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: () async {
+                  final attached = await Navigator.of(context).push<bool>(
+                    MaterialPageRoute(
+                      builder: (_) => AttachExistingLotPage(uid: widget.uid),
+                    ),
+                  );
+                  if (attached == true) {
+                    _initializeLot();
+                  }
+                },
+                child: const Text("Rechercher ma résidence et mon lot"),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () async {
+                  context.read<MessageProvider>().reset();
+                  await _loadUserController.handleGoogleSignOut();
+                  if (!context.mounted) return;
+                  Navigator.popUntil(context, ModalRoute.withName('/'));
+                  LoadPreferedData.clearSharedPreferences();
+                },
+                child: const Text("Se déconnecter"),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   void _navigateToPostForm() {
     Navigator.of(context).push(
       RouteController().createRoute(
@@ -167,6 +229,10 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    if (_hasNoLot) {
+      return _buildNoLotScreen(context);
+    }
+
     //final double appBarHeight = MediaQuery.of(context).size.height * 0.26;
     // final color = context.watch<ColorProvider>().color;
     final lotColor = context.watch<ColorProvider>().color;

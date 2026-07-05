@@ -514,3 +514,31 @@ def extract_id_card_data(req: https_fn.CallableRequest):
             code=https_fn.FunctionsErrorCode.INTERNAL,
             message=f"Réponse OpenAI non-JSON : {e}"
         )
+
+
+# ---------------------------------------------------------------------------
+# APPROBATION - repasse approved à false après un rattachement self-service
+# (attach_existing_lot_page.dart). Le champ `approved` est volontairement
+# non-modifiable par le client dans firestore.rules (User/{uid}, allow
+# update : request.resource.data.approved == resource.data.approved) : un
+# nouveau rattachement de lot doit être revalidé par une personne, comme à
+# l'inscription. Cette fonction est le seul moyen légitime de le faire
+# depuis l'app, via le SDK Admin qui contourne les règles côté serveur.
+# ---------------------------------------------------------------------------
+
+@https_fn.on_call()
+def reset_approval_after_self_attach(req: https_fn.CallableRequest):
+    if req.auth is None:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
+            message="Authentification requise"
+        )
+
+    # Toujours l'uid de l'appelant authentifié, jamais une valeur du payload
+    # client : un utilisateur ne doit pouvoir repasser en attente que son
+    # propre compte.
+    uid = req.auth.uid
+    firestore.client().collection("User").document(uid).update({
+        "approved": False,
+    })
+    return {"success": True}
