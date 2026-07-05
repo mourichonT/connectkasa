@@ -1,18 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/message.dart';
 
 class ChatServices {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  Future<String?> getTokenFromUserId(String userId) async {
-    final doc =
-        await FirebaseFirestore.instance.collection('Users').doc(userId).get();
-    if (doc.exists) {
-      return doc.data()?['token'];
-    }
-    return null;
-  }
 
   Future<void> sendMessage(
     String senderId,

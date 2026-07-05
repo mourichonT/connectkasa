@@ -263,8 +263,9 @@ class AuthentificationProcess {
 
   void initUserFcmToken(uid) async {
     FirebaseApi.getToken().then((value) {
-      DataBasesUserServices.updateUserField(
-          uid: uid, field: 'token', value: value);
+      if (value != null) {
+        DataBasesUserServices.updateFcmToken(uid: uid, token: value);
+      }
     });
   }
 }

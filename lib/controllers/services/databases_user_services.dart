@@ -34,7 +34,6 @@ class DataBasesUserServices {
       Map<String, dynamic> fullUserData = {
         ...userData,
         "informationsCorrectes": informationsCorrectes,
-        if (fcmToken != null) 'token': fcmToken,
       };
 
 // Envoi vers Firestore avec fusion
@@ -42,6 +41,10 @@ class DataBasesUserServices {
             fullUserData,
             SetOptions(merge: true),
           );
+
+      if (fcmToken != null) {
+        await updateFcmToken(uid: newUser.uid, token: fcmToken);
+      }
       // Ajoute les informations sur le lot si `lotId` est défini
       if (lotId != null) {
         await db
@@ -71,6 +74,27 @@ class DataBasesUserServices {
     }
 
     return newUser;
+  }
+
+  // Le token FCM vit dans User/{uid}/private/fcm (pas directement sur
+  // User/{uid}) car Firestore ne permet pas de restreindre la lecture d'un
+  // champ précis à l'intérieur d'un document : User/{uid} reste lisible
+  // par tout utilisateur connecté (affichage du profil ailleurs dans
+  // l'app), donc un champ sensible comme le token doit vivre à part.
+  static Future<void> updateFcmToken({
+    required String uid,
+    required String token,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('User')
+          .doc(uid)
+          .collection('private')
+          .doc('fcm')
+          .set({'token': token}, SetOptions(merge: true));
+    } catch (e) {
+      print("Erreur lors de la mise à jour du token FCM : $e");
+    }
   }
 
   static Future<void> updateUserField({

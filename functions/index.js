@@ -218,12 +218,16 @@ exports.notifyNewPost = onDocumentCreated(
 
       for (const uid of users) {
         try {
-          const userDoc = await db.collection("User").doc(uid).get();
-          if (userDoc.exists) {
-            const userData = userDoc.data();
-            if (userData && userData.token) {
-              tokens.push(userData.token);
-              tokens;
+          // Token FCM dans User/{uid}/private/fcm, pas directement sur
+          // User/{uid} (voir firestore.rules : lecture restreinte au
+          // propriétaire, impossible à faire champ par champ sur le
+          // document principal qui reste lisible par tous).
+          const tokenDoc = await db.collection("User").doc(uid)
+              .collection("private").doc("fcm").get();
+          if (tokenDoc.exists) {
+            const tokenData = tokenDoc.data();
+            if (tokenData && tokenData.token) {
+              tokens.push(tokenData.token);
             }
           }
         } catch (error) {
@@ -300,10 +304,10 @@ exports.notifyNewMessage = onDocumentCreated(
       try {
         const senderDoc = await db.collection("User")
             .doc(message.userIdFrom).get();
-        const receiverDoc = await db.collection("User")
-            .doc(message.userIdTo).get();
+        const receiverTokenDoc = await db.collection("User")
+            .doc(message.userIdTo).collection("private").doc("fcm").get();
 
-        if (!receiverDoc.exists || !receiverDoc.data().token) {
+        if (!receiverTokenDoc.exists || !receiverTokenDoc.data().token) {
           console.log("Token FCM manquant pour le destinataire.");
           return null;
         }
@@ -332,7 +336,7 @@ exports.notifyNewMessage = onDocumentCreated(
             chatId: chatId,
 
           },
-          token: receiverDoc.data().token,
+          token: receiverTokenDoc.data().token,
           android: {priority: "high"},
           apns: {headers: {"apns-priority": "10"}},
         };
@@ -367,14 +371,15 @@ exports.notifyDemandeLoc = onDocumentCreated(
       }
 
       try {
-        const userDoc = await db.collection("User").doc(proprietaireUid).get();
+        const tokenDoc = await db.collection("User").doc(proprietaireUid)
+            .collection("private").doc("fcm").get();
 
-        if (!userDoc.exists || !userDoc.data().token) {
+        if (!tokenDoc.exists || !tokenDoc.data().token) {
           console.log("Token FCM manquant pour le propriétaire.");
           return null;
         }
 
-        const token = userDoc.data().token;
+        const token = tokenDoc.data().token;
 
         const notificationPayload = {
           notification: {

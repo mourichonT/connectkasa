@@ -51,6 +51,16 @@ service cloud.firestore {
       // purge des données), jamais par un delete direct depuis le client.
       allow delete: if false;
 
+      // Champs à lecture restreinte au propriétaire (ex: token FCM) :
+      // Firestore ne permet pas de restreindre la lecture d'un champ
+      // précis sur un document (allow read s'applique à tout le document),
+      // donc ces champs vivent dans un document séparé plutôt que sur
+      // User/{uid} lui-même (lisible par tout utilisateur connecté pour
+      // l'affichage du profil ailleurs dans l'app).
+      match /private/{docId} {
+        allow read, write: if isOwner(uid);
+      }
+
       match /lots/{lotId} {
         allow read, write: if isOwner(uid) || isCsMember(resource.data.residenceId);
 
