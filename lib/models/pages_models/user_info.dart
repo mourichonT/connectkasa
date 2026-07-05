@@ -75,8 +75,11 @@ class UserInfo extends User {
       'dependent': dependent,
       'familySituation': familySituation,
       'phone': phone,
-      'incomes': incomes.map((entry) => entry.toMap()).toList(),
-      'jobIncomes': jobIncomes.map((entry) => entry.toMap()).toList(),
+      // Clés alignées sur fromMap() ci-dessus et sur le format réellement
+      // écrit en Firestore (databases_user_services.dart, updateUserInfo) :
+      // "revenus"/"activities", pas "incomes"/"jobIncomes".
+      'revenus': incomes.map((entry) => entry.toMap()).toList(),
+      'activities': jobIncomes.map((entry) => entry.toMap()).toList(),
     };
   }
 
