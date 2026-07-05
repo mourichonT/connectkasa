@@ -1,6 +1,8 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/models/pages_models/agency.dart';
+import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/card_contact_controller.dart';
@@ -49,7 +51,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
 
   getNbrTab() {
     if (widget.selectedLot!.idProprietaire!.contains(widget.uid) &&
-        widget.selectedLot!.syndicAgency != null) {
+        widget.selectedLot!.hasAgency) {
       setState(() {
         nbrTab = 3;
         loca = false;
@@ -58,7 +60,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
         widget.selectedLot!.idLocataire != null &&
         widget.selectedLot!.idLocataire!
             .isNotEmpty && // Ajout de cette vérification
-        widget.selectedLot!.syndicAgency == null) {
+        !widget.selectedLot!.hasAgency) {
       setState(() {
         nbrTab = 3;
         loca = true;
@@ -125,8 +127,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                     if (widget.selectedLot!.idProprietaire!
                         .contains(widget.uid))
                       const Tab(text: 'Mon syndic')
-                    else if (widget.selectedLot?.syndicAgency?.syndic?.mail !=
-                        "")
+                    else if (widget.selectedLot?.hasAgency ?? false)
                       const Tab(text: 'Mon agence')
                     else
                       (widget.selectedLot?.idProprietaire!.length ?? 0) > 1
@@ -146,8 +147,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                     if (widget.selectedLot!.idProprietaire!
                         .contains(widget.uid))
                       const Tab(text: 'Mon syndic')
-                    else if (widget.selectedLot?.syndicAgency?.syndic?.mail !=
-                        "")
+                    else if (widget.selectedLot?.hasAgency ?? false)
                       const Tab(text: 'Mon agence')
                     else
                       (widget.selectedLot?.idProprietaire!.length ?? 0) > 1
@@ -250,15 +250,28 @@ class _SubtitleMessageState extends State<SubtitleMessage>
               // partie 2
               if (widget.selectedLot!.idProprietaire!.contains(widget.uid))
                 CardContactController(
-                  widget.selectedLot!,
-                  "serviceSyndic",
+                  selectedlot: widget.selectedLot!,
                   uid: widget.uid,
+                  // Syndic de la résidence (pas du lot) : residenceData est
+                  // un instantané brut du document Residence, il porte donc
+                  // les mêmes clés geranceRef/syndicAgency.
+                  geranceRef: widget.selectedLot!.residenceData['geranceRef'] !=
+                          null
+                      ? GeranceRef.fromJson(
+                          widget.selectedLot!.residenceData['geranceRef'])
+                      : null,
+                  agency: widget.selectedLot!.residenceData['syndicAgency'] !=
+                          null
+                      ? Agency.fromJson(
+                          widget.selectedLot!.residenceData['syndicAgency'])
+                      : null,
                 )
-              else if (widget.selectedLot?.syndicAgency?.syndic?.mail != "")
+              else if (widget.selectedLot?.hasAgency ?? false)
                 CardContactController(
-                  widget.selectedLot!,
-                  "geranceLocative",
+                  selectedlot: widget.selectedLot!,
                   uid: widget.uid,
+                  geranceRef: widget.selectedLot!.geranceRef,
+                  agency: widget.selectedLot!.syndicAgency,
                 )
               else
                 Card(
@@ -299,8 +312,9 @@ class _SubtitleMessageState extends State<SubtitleMessage>
               // partie 3
               if (nbrTab == 3 && loca == false)
                 CardContactController(
-                  widget.selectedLot!,
-                  "geranceLocative",
+                  selectedlot: widget.selectedLot!,
+                  geranceRef: widget.selectedLot!.geranceRef,
+                  agency: widget.selectedLot!.syndicAgency,
                   uid: widget.uid,
                 )
               else if (nbrTab == 3 && loca == true)

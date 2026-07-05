@@ -322,6 +322,65 @@ def send_email_on_create(event: firestore_fn.Event[firestore_fn.DocumentSnapshot
 
 
 # ---------------------------------------------------------------------------
+# Gerance : index de recherche par email (contacts/), régénéré automatiquement
+# ---------------------------------------------------------------------------
+# La recherche par email (agences/syndics) ne peut pas interroger directement
+# les champs imbriqués de `services` (Firestore ne permet pas de requêter à
+# l'intérieur d'un tableau/objet imbriqué avec un range query). On maintient
+# donc un index plat Gerance/{id}/contacts/{contactId} dérivé du champ
+# `services`, jamais écrit à la main : ni l'app ni le futur backoffice n'ont
+# à le tenir à jour, un seul champ (`services`) à maintenir.
+
+@firestore_fn.on_document_written(document="Gerance/{geranceId}")
+def sync_gerance_contacts(event: firestore_fn.Event) -> None:
+    after = event.data.after
+    before = event.data.before
+    doc_ref = (after or before).reference
+    contacts_ref = doc_ref.collection("contacts")
+
+    db = firestore.client()
+    batch = db.batch()
+    # Purge complète puis reconstruction : plus simple/sûr qu'un diff
+    # incrémental pour un document modifié rarement (édition manuelle ou
+    # futur backoffice, pas un flux à haut débit).
+    for existing in contacts_ref.list_documents():
+        batch.delete(existing)
+
+    if after is None or not after.exists:
+        batch.commit()
+        return  # document Gerance supprimé : on ne fait que purger l'index
+
+    services = after.get("services") or {}
+    for service_type, service in services.items():
+        service = service or {}
+        service_mail = service.get("mail")
+        if service_mail:
+            # ID auto-généré : un ID déterministe basé sur le nom du service
+            # créerait un risque de collision si deux services du même type
+            # existaient un jour (cf. retour explicite : éviter les doublons).
+            batch.set(contacts_ref.document(), {
+                "mail": service_mail,
+                "phone": service.get("phone", ""),
+                "serviceType": service_type,
+                "agentName": None,
+            })
+
+        for agent in service.get("agents", []):
+            agent_mail = agent.get("mail")
+            if not agent_mail:
+                continue  # agent listé par nom seulement, pas de contact direct
+            full_name = f"{agent.get('name_agent', '')} {agent.get('surname_agent', '')}".strip()
+            batch.set(contacts_ref.document(), {
+                "mail": agent_mail,
+                "phone": agent.get("phone", ""),
+                "serviceType": service_type,
+                "agentName": full_name,
+            })
+
+    batch.commit()
+
+
+# ---------------------------------------------------------------------------
 # ENVOI - fallback, via requête HTTP
 # Body JSON attendu : {"to": "...", "subject": "...", "body": "...", "html": "..."}
 # ---------------------------------------------------------------------------

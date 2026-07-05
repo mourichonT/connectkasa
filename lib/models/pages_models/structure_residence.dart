@@ -1,4 +1,5 @@
 import 'package:connect_kasa/models/pages_models/agency.dart';
+import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 
 class StructureResidence {
   String? id; // Cet ID sera l'ID du document Firestore
@@ -9,7 +10,10 @@ class StructureResidence {
   List<String>? etage;
   bool hasUnderground;
   bool hasDifferentSyndic;
+  // syndicAgency : cache d'affichage (résolu depuis geranceRef, ou saisie
+  // custom si non référencée dans Gerance). Jamais les deux non-null en base.
   Agency? syndicAgency;
+  GeranceRef? geranceRef;
 
   StructureResidence({
     this.id, // L'ID est optionnel lors de la création d'un nouvel objet
@@ -20,6 +24,7 @@ class StructureResidence {
     this.hasUnderground = false,
     this.hasDifferentSyndic = false,
     this.syndicAgency,
+    this.geranceRef,
   });
 
   Map<String, dynamic> toJson() {
@@ -33,6 +38,7 @@ class StructureResidence {
       'hasUnderground': hasUnderground,
       'hasDifferentSyndic': hasDifferentSyndic,
       'syndicAgency': syndicAgency?.toJson(),
+      'geranceRef': geranceRef?.toJson(),
     };
   }
 
@@ -49,6 +55,9 @@ class StructureResidence {
       hasDifferentSyndic: json['hasDifferentSyndic'] ?? false,
       syndicAgency: json['syndicAgency'] != null
           ? Agency.fromJson(json['syndicAgency'])
+          : null,
+      geranceRef: json['geranceRef'] != null
+          ? GeranceRef.fromJson(json['geranceRef'])
           : null,
     );
   }

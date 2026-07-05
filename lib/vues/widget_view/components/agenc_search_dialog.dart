@@ -35,8 +35,9 @@ class AgencySearchDialog {
                           isDialogSearching = true;
                         });
 
-                        final results = await _agencyServices
-                            .searchAgencyByEmail(service, val);
+                        final results = await _agencyServices.searchByEmail(
+                            val,
+                            serviceType: service);
 
                         setState(() {
                           dialogResults = results;

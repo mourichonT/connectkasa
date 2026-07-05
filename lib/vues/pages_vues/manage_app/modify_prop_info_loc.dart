@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
-import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
@@ -37,8 +37,8 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
   bool isProprietaire = false;
   bool isSearching = false;
   List<Agency> searchResults = [];
-  bool _itemSelected = false;
-  final DatabasesAgencyServices _agencyServices = DatabasesAgencyServices();
+  final AgencySearchFlow _flow =
+      AgencySearchFlow(serviceType: 'geranceLocative');
 
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
@@ -124,29 +124,15 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
   Future<void> _searchAgencyByEmail(String emailPart) async {
     setState(() => isSearching = true);
 
-    final results =
-        await _agencyServices.searchAgencyByEmail('geranceLocative', emailPart);
+    final results = await _flow.search(emailPart);
 
     setState(() {
       if (results.isEmpty) {
-        // Agence par défaut si aucune trouvée
-        final newAgency = Agency(
-          id: '',
-          name: emailPart,
-          city: '',
-          numeros: '',
-          street: '',
-          voie: '',
-          zipCode: '',
-          syndic: AgencyDept(
-            agents: [],
-            mail: emailPart,
-            phone: '',
-          ),
-        );
+        // Aucun match dans Gerance : entrée custom, non référencée.
+        final newAgency = _flow.buildCustomAgency(emailPart);
         searchResults = [newAgency];
         widget.lot.syndicAgency = newAgency;
-        _itemSelected = true;
+        widget.lot.geranceRef = null;
 
         // Remplir les contrôleurs dérivés
         _controllers["agencyName"]!.text = newAgency.name;
@@ -160,9 +146,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
         _controllers["zipCodeVille"]!.text =
             "${newAgency.zipCode} ${newAgency.city}".trim();
       } else {
-        searchResults = results;
-        _itemSelected =
-            false; // l’utilisateur doit choisir un élément dans la liste
+        searchResults = results; // l’utilisateur doit choisir un élément dans la liste
       }
       isSearching = false;
     });
@@ -211,13 +195,21 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
                       });
 
                       if (!delegated) {
-                        // Suppression immédiate du champ en base
-                        final ok = await lotServices.updateLot(
+                        // Suppression immédiate des deux champs en base
+                        // (référence ou copie custom, selon ce qui était actif)
+                        final okAgency = await lotServices.updateLot(
                           widget.lot.residenceId,
                           widget.lot.id!,
                           'syndicAgency',
                           FieldValue.delete(),
                         );
+                        final okRef = await lotServices.updateLot(
+                          widget.lot.residenceId,
+                          widget.lot.id!,
+                          'geranceRef',
+                          FieldValue.delete(),
+                        );
+                        final ok = okAgency && okRef;
 
                         if (mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -244,6 +236,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
                           _controllers[k]!.clear();
                         }
                         widget.lot.syndicAgency = null;
+                        widget.lot.geranceRef = null;
                       }
                     },
                   ),
@@ -258,9 +251,9 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
                 controller: _controllers["mail_contact"]!,
                 onSelect: (Agency agency) {
                   setState(() {
-                    // Agence choisie
-                    widget.lot.syndicAgency = agency;
-                    _itemSelected = true;
+                    // Agence choisie, référencée dans Gerance
+                    widget.lot.syndicAgency = agency; // cache d'affichage
+                    widget.lot.geranceRef = _flow.refFor(agency);
                     searchResults.clear();
                     _controllers["agencyName"]!.text = agency.name;
                     _controllers["agenceNumero"]!.text =
@@ -283,8 +276,8 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
                     setState(() {
                       searchResults.clear();
                       isSearching = false;
-                      _itemSelected = false;
                       widget.lot.syndicAgency = null;
+                      widget.lot.geranceRef = null;
                       // vider affichage agence
                       for (final k in [
                         "agencyName",
@@ -307,11 +300,8 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
               const SizedBox(height: 12),
               if (delegated &&
                   _controllers["mail_contact"]!.text.isNotEmpty) ...[
-                if (_itemSelected &&
-                    widget.lot.syndicAgency != null &&
-                    searchResults
-                        .any((a) => a.id == widget.lot.syndicAgency!.id))
-                  // Mail trouvé dans la liste → champs non éditables
+                if (widget.lot.geranceRef != null)
+                  // Référencé dans Gerance → champs non éditables
                   ...[
                   buildField("Nom de l'agence", "agencyName", editable: false),
                   buildField("Adresse", "address", editable: false),
@@ -445,9 +435,15 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
     );
   }
 
-  void _loadProperty() {
+  Future<void> _loadProperty() async {
     selectedStatut = widget.lot.type;
-    delegated = widget.lot.syndicAgency != null;
+    delegated = widget.lot.geranceRef != null || widget.lot.syndicAgency != null;
+
+    // Si référencé dans Gerance, on résout depuis la source à jour plutôt
+    // que de se fier à une copie potentiellement figée.
+    if (widget.lot.geranceRef != null) {
+      widget.lot.syndicAgency = await _flow.resolve(widget.lot.geranceRef!);
+    }
 
     final agency = widget.lot.syndicAgency;
 
@@ -479,8 +475,14 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
       'type': selectedStatut,
     };
 
-    if (delegated && mailContact.isNotEmpty) {
-      // ✅ Toujours construire l'agence à partir des champs
+    if (delegated && widget.lot.geranceRef != null) {
+      // Référencé dans Gerance : on ne persiste que la référence, jamais de
+      // copie (les champs affichés sont en lecture seule dans ce cas).
+      updatedData['geranceRef'] = widget.lot.geranceRef!.toJson();
+      updatedData['syndicAgency'] = FieldValue.delete();
+    } else if (delegated && mailContact.isNotEmpty) {
+      // Entrée custom, non référencée : on construit l'agence depuis les
+      // champs (éditables dans ce cas).
       final selectedAgency = Agency(
         id: widget.lot.syndicAgency?.id ?? '',
         name: _controllers["agencyName"]!.text,
@@ -498,8 +500,10 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
 
       widget.lot.syndicAgency = selectedAgency;
       updatedData['syndicAgency'] = selectedAgency.toJson();
+      updatedData['geranceRef'] = FieldValue.delete();
     } else {
-      updatedData['syndicAgency'] = null;
+      updatedData['syndicAgency'] = FieldValue.delete();
+      updatedData['geranceRef'] = FieldValue.delete();
     }
 
     bool success = true;
