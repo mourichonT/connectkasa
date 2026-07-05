@@ -9,7 +9,6 @@ class Contact {
   String? city;
   String? zipcode;
   String? web;
-  bool isExpanded;
 
   Contact({
     this.id, // <-- Ajouté ici
@@ -22,7 +21,6 @@ class Contact {
     this.zipcode,
     this.mail,
     this.web,
-    this.isExpanded = true,
   });
 
   factory Contact.fromJson(Map<String, dynamic> json) {
@@ -37,7 +35,6 @@ class Contact {
       city: json['city'],
       zipcode: json['zipcode'],
       web: json['web'],
-      isExpanded: json['isExpanded'] ?? true,
     );
   }
 
@@ -53,7 +50,6 @@ class Contact {
       'zipcode': zipcode,
       'city': city,
       'web': web,
-      'isExpanded': isExpanded,
     };
   }
 }

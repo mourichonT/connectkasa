@@ -26,6 +26,11 @@ class ManageContactState extends State<ManageContact> {
   final DataBasesResidenceServices _residenceServices =
       DataBasesResidenceServices();
 
+  // État d'ouverture des cartes : purement local (UI), jamais persisté en
+  // base. Basé sur l'identité de l'objet (comme ObjectKey ci-dessous), donc
+  // il suit le bon contact même si la liste est réordonnée.
+  final Set<Contact> _expandedContacts = {};
+
   // Map pour stocker les contrôleurs et les focus nodes dynamiques pour chaque champ de chaque contact
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
@@ -43,12 +48,10 @@ class ManageContactState extends State<ManageContact> {
       // Récupère les structures en utilisant la nouvelle fonction du service
       final fetchedBuildings =
           await _residenceServices.getContactByResidence(widget.residence.id);
-      // S'assure que toutes les cartes sont fermées lors du chargement
-      for (var contact in fetchedBuildings) {
-        contact.isExpanded = false;
-      }
       setState(() {
         contacts = fetchedBuildings;
+        // Toutes les cartes sont fermées au chargement.
+        _expandedContacts.clear();
       });
     } else {
       contacts = []; // Si pas d'ID de résidence, initialise la liste comme vide
@@ -64,10 +67,9 @@ class ManageContactState extends State<ManageContact> {
     return _controllers[key]!;
   }
 
-  // Ajoute un nouveau contact à la liste
+  // Ajoute un nouveau contact à la liste (fermé par défaut)
   void addContact() {
     setState(() {
-      // Un nouveau contact est ajouté, par défaut isExpanded = true
       contacts.add(Contact(
           name: '',
           service: '',
@@ -77,8 +79,7 @@ class ManageContactState extends State<ManageContact> {
           num: '',
           street: '',
           city: '',
-          zipcode: '',
-          isExpanded: false));
+          zipcode: ''));
     });
   }
 
@@ -165,13 +166,9 @@ class ManageContactState extends State<ManageContact> {
       const SnackBar(content: Text("Contacts mis à jour avec succès")),
     );
 
+    // _loadContacts() vide déjà _expandedContacts (toutes les cartes
+    // fermées après rechargement).
     await _loadContacts();
-
-    setState(() {
-      for (var contact in contacts) {
-        contact.isExpanded = false;
-      }
-    });
   }
 
   @override
@@ -236,11 +233,14 @@ class ManageContactState extends State<ManageContact> {
                 child: ExpansionTile(
                   key: ObjectKey(
                       contact), // Clé unique basée sur l'instance de contact
-                  initiallyExpanded: contact.isExpanded,
+                  initiallyExpanded: _expandedContacts.contains(contact),
                   onExpansionChanged: (expanded) {
                     setState(() {
-                      contact.isExpanded =
-                          expanded; // Met à jour l'état du contact
+                      if (expanded) {
+                        _expandedContacts.add(contact);
+                      } else {
+                        _expandedContacts.remove(contact);
+                      }
                     });
                   },
                   tilePadding: const EdgeInsets.symmetric(

@@ -10,7 +10,6 @@ class StructureResidence {
   bool hasUnderground;
   bool hasDifferentSyndic;
   Agency? syndicAgency;
-  bool isExpanded;
 
   StructureResidence({
     this.id, // L'ID est optionnel lors de la création d'un nouvel objet
@@ -21,7 +20,6 @@ class StructureResidence {
     this.hasUnderground = false,
     this.hasDifferentSyndic = false,
     this.syndicAgency,
-    this.isExpanded = true,
   });
 
   Map<String, dynamic> toJson() {
@@ -35,7 +33,6 @@ class StructureResidence {
       'hasUnderground': hasUnderground,
       'hasDifferentSyndic': hasDifferentSyndic,
       'syndicAgency': syndicAgency?.toJson(),
-      'isExpanded': isExpanded,
     };
   }
 
@@ -53,7 +50,6 @@ class StructureResidence {
       syndicAgency: json['syndicAgency'] != null
           ? Agency.fromJson(json['syndicAgency'])
           : null,
-      // isExpanded: json['isExpanded'] ?? true,
     );
   }
 }

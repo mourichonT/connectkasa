@@ -29,6 +29,27 @@ class ManageListLot extends StatefulWidget {
 class _ManageListLotState extends State<ManageListLot> {
   final List<Lot> lots = [];
   List<StructureResidence> buildings = [];
+
+  // État d'ouverture des cartes : purement local (UI), jamais persisté en
+  // base (Lot.toJsonForDb() exclut déjà userLotDetails). Basé sur
+  // l'identité de l'objet, comme ObjectKey ci-dessous.
+  final Set<Lot> _expandedLots = {};
+
+  // Regroupement visuel par bâtiment : figé tant que le lot n'est pas
+  // enregistré, pour que la carte ne saute pas d'un groupe à l'autre
+  // pendant la saisie (dès qu'on choisit l'emplacement). Mis à jour
+  // uniquement après un enregistrement réussi (_saveLots).
+  final Map<Lot, String> _groupKeyForLot = {};
+
+  String _groupKeyFor(Lot lot) {
+    return _groupKeyForLot.putIfAbsent(lot, () => _computeGroupKey(lot));
+  }
+
+  String _computeGroupKey(Lot lot) {
+    return lot.batiment?.trim().isNotEmpty == true
+        ? lot.batiment!.trim()
+        : "Sans bâtiment";
+  }
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
   final DataBasesResidenceServices _residenceServices =
@@ -77,12 +98,12 @@ class _ManageListLotState extends State<ManageListLot> {
     if (widget.residence.id != null) {
       final fetchedLots =
           await _lotServices.getLotByResidence(widget.residence.id);
-      for (var lot in fetchedLots) {
-        lot.userLotDetails['isExpanded'] = false;
-      }
       setState(() {
         lots.clear();
         lots.addAll(fetchedLots);
+        // Toutes les cartes sont fermées au chargement.
+        _expandedLots.clear();
+        _groupKeyForLot.clear();
       });
     }
   }
@@ -104,7 +125,7 @@ class _ManageListLotState extends State<ManageListLot> {
     });
   }
 
-  void _removeLot(int index, String lot) async {
+  void _removeLot(int index, String? lotId) async {
     final prefix = 'lot_$index';
     for (final field in [
       'refLot',
@@ -119,8 +140,12 @@ class _ManageListLotState extends State<ManageListLot> {
 
       _focusNodes[controllerKey]?.dispose();
       _focusNodes.remove(controllerKey); // 🔧 Supprime la clé
+    }
 
-      await _lotServices.deleteLot(widget.residence.id!, lot);
+    // Un lot jamais enregistré (juste ajouté localement, pas encore
+    // sauvegardé) n'a pas encore d'ID : rien à supprimer côté Firestore.
+    if (lotId != null) {
+      await _lotServices.deleteLot(widget.residence.id!, lotId);
     }
 
     setState(() {
@@ -149,12 +174,11 @@ class _ManageListLotState extends State<ManageListLot> {
     // Liste des noms uniquement (pour tri et regroupement)
     final buildingNamesOnly = buildings.map((b) => b.name.trim()).toList();
 
-    // Regrouper les lots par nom de bâtiment (batiment dans lot)
+    // Regrouper les lots par nom de bâtiment (clé figée jusqu'à
+    // l'enregistrement, voir _groupKeyFor)
     Map<String, List<Lot>> lotsGroupedByBuilding = {};
     for (var lot in lots) {
-      String key = lot.batiment?.trim().isNotEmpty == true
-          ? lot.batiment!.trim()
-          : "Sans bâtiment";
+      String key = _groupKeyFor(lot);
       lotsGroupedByBuilding.putIfAbsent(key, () => []);
       lotsGroupedByBuilding[key]!.add(lot);
     }
@@ -215,9 +239,6 @@ class _ManageListLotState extends State<ManageListLot> {
                         _initController('${prefix}_refLot', lot.refLot);
                     final lotNameController =
                         _initController('${prefix}_lot', lot.lot);
-                    final isExpanded =
-                        lot.userLotDetails['isExpanded'] ?? false;
-
                     return Card(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       elevation: 2,
@@ -225,10 +246,14 @@ class _ManageListLotState extends State<ManageListLot> {
                           borderRadius: BorderRadius.circular(10)),
                       child: ExpansionTile(
                         key: ObjectKey(lot),
-                        initiallyExpanded: isExpanded,
+                        initiallyExpanded: _expandedLots.contains(lot),
                         onExpansionChanged: (expanded) {
                           setState(() {
-                            lot.userLotDetails['isExpanded'] = expanded;
+                            if (expanded) {
+                              _expandedLots.add(lot);
+                            } else {
+                              _expandedLots.remove(lot);
+                            }
                           });
                         },
                         title: MyTextStyle.lotName(
@@ -336,7 +361,7 @@ class _ManageListLotState extends State<ManageListLot> {
       child: TextButton.icon(
         onPressed: () {
           lot.idProprietaire == null || lot.idProprietaire!.isEmpty
-              ? _removeLot(index, lot.id!)
+              ? _removeLot(index, lot.id)
               : ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text(
@@ -358,6 +383,21 @@ class _ManageListLotState extends State<ManageListLot> {
   }
 
   void _saveLots() async {
+    // Écarte silencieusement les brouillons abandonnés : un lot jamais
+    // enregistré (id == null) et entièrement vide n'est pas une erreur de
+    // saisie à bloquer, juste une carte à oublier. Un lot partiellement
+    // rempli garde le comportement actuel (bloque tant qu'il est incomplet).
+    setState(() {
+      lots.removeWhere((lot) {
+        final isPending = lot.id == null || lot.id!.isEmpty;
+        final isBlank = lot.refLot.trim().isEmpty &&
+            (lot.batiment?.trim().isEmpty ?? true) &&
+            (lot.lot?.trim().isEmpty ?? true) &&
+            lot.typeLot.trim().isEmpty;
+        return isPending && isBlank;
+      });
+    });
+
     final Set<String> refLotSet = {};
     final Set<String> batimentLotSet = {};
     final List<String> duplicateErrors = [];
@@ -387,10 +427,10 @@ class _ManageListLotState extends State<ManageListLot> {
     }
 
     if (duplicateErrors.isNotEmpty) {
+      print("Validation des lots échouée : $duplicateErrors");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:
-              Text("Veuillez remplir tout les champs du lot pour enregistrer"),
+          content: Text(duplicateErrors.join('\n')),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 6),
         ),
@@ -411,8 +451,11 @@ class _ManageListLotState extends State<ManageListLot> {
       );
 
       setState(() {
+        _expandedLots.clear();
+        // Les cartes rejoignent maintenant leur vrai groupe (bâtiment
+        // choisi pendant la saisie).
         for (var lot in lots) {
-          lot.userLotDetails['isExpanded'] = false;
+          _groupKeyForLot[lot] = _computeGroupKey(lot);
         }
       });
     } catch (e) {

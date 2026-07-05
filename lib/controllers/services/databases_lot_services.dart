@@ -474,18 +474,34 @@ class DataBasesLotServices {
           .doc(residenceId)
           .collection("lot");
 
-      // Vérifier si un lot avec le même idLot existe déjà
-      final query =
-          await lotRef.where("id", isEqualTo: lot.id).limit(1).get();
+      // Défense contre un ID corrompu par des espaces parasites (déjà vu en
+      // production : un ID Firestore avec un espace en préfixe crée un
+      // document fantôme distinct du vrai). Un ID uniquement fait d'espaces
+      // devient vide et retombe donc sur la branche création.
+      final String? trimmedId = lot.id?.trim();
 
-      if (query.docs.isNotEmpty) {
-        // Mise à jour
-        final docId = query.docs.first.id;
-        await lotRef.doc(docId).update(lot.toJsonForDb());
-      } else {
-        // Création : on reporte l'ID du document généré dans son propre champ id
+      // Un nouveau lot n'a pas encore d'ID (lot.id == null) : on ne peut pas
+      // s'en servir pour interroger Firestore (where("id", isEqualTo: null)
+      // peut matcher n'importe quel vieux document dont le champ id est
+      // absent, et écraser un lot existant sans rapport). On décide donc
+      // créer/mettre à jour directement en Dart, jamais via une requête sur
+      // un id potentiellement null.
+      if (trimmedId == null || trimmedId.isEmpty) {
         final newDocRef = await lotRef.add(lot.toJsonForDb());
         await newDocRef.update({'id': newDocRef.id});
+        // Synchronise l'ID généré sur l'objet local : sans ça, un second
+        // enregistrement dans la même session le traiterait de nouveau
+        // comme un nouveau lot (id encore null) et reproduirait le bug.
+        lot.id = newDocRef.id;
+      } else {
+        lot.id = trimmedId;
+        // set(merge: true) plutôt que update() : reste robuste si l'ID
+        // local ne correspond plus à un document existant (état de l'app
+        // conservé après un hot reload, document supprimé entre-temps...)
+        // au lieu de planter avec cloud_firestore/not-found.
+        await lotRef
+            .doc(trimmedId)
+            .set(lot.toJsonForDb(), SetOptions(merge: true));
       }
     } catch (e) {
       print("Erreur Firestore createOrUpdateLot: $e");

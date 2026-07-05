@@ -30,6 +30,11 @@ class ManageStructureState extends State<ManageStructure> {
       DataBasesResidenceServices();
   List<Agent> agents = [];
   List<StructureResidence> buildings = [];
+
+  // État d'ouverture des cartes : purement local (UI), jamais persisté en
+  // base. Basé sur l'identité de l'objet, donc il suit le bon bâtiment
+  // même si la liste est réordonnée.
+  final Set<StructureResidence> _expandedBuildings = {};
   List<Agency> searchResults = [];
   Agent? selectedAgent;
   String buildingType = "";
@@ -52,11 +57,10 @@ class ManageStructureState extends State<ManageStructure> {
     if (widget.residence.id != null) {
       final fetchedBuildings = await _residenceServices
           .getStructuresByResidence(widget.residence.id!);
-      for (var building in fetchedBuildings) {
-        building.isExpanded = false;
-      }
       setState(() {
         buildings = fetchedBuildings;
+        // Toutes les cartes sont fermées au chargement.
+        _expandedBuildings.clear();
       });
     } else {
       buildings = [];
@@ -99,7 +103,9 @@ class ManageStructureState extends State<ManageStructure> {
 
   void addBuilding() {
     setState(() {
-      buildings.add(StructureResidence(name: '', type: '', isExpanded: true));
+      final building = StructureResidence(name: '', type: '');
+      buildings.add(building);
+      _expandedBuildings.add(building);
     });
   }
 
@@ -152,7 +158,7 @@ class ManageStructureState extends State<ManageStructure> {
           ),
         );
         setState(() {
-          building.isExpanded = true;
+          _expandedBuildings.add(building);
         });
         return;
       }
@@ -166,7 +172,7 @@ class ManageStructureState extends State<ManageStructure> {
           ),
         );
         setState(() {
-          building.isExpanded = true;
+          _expandedBuildings.add(building);
         });
         return;
       }
@@ -175,7 +181,7 @@ class ManageStructureState extends State<ManageStructure> {
       for (var building in buildings) {
         print(building.toJson());
         await _residenceServices.saveStructure(widget.residence.id!, building);
-        building.isExpanded = false;
+        _expandedBuildings.remove(building);
       }
 
       setState(() {});
@@ -284,10 +290,14 @@ class ManageStructureState extends State<ManageStructure> {
                 ),
                 child: ExpansionTile(
                   key: ObjectKey(building),
-                  initiallyExpanded: building.isExpanded,
+                  initiallyExpanded: _expandedBuildings.contains(building),
                   onExpansionChanged: (expanded) {
                     setState(() {
-                      building.isExpanded = expanded;
+                      if (expanded) {
+                        _expandedBuildings.add(building);
+                      } else {
+                        _expandedBuildings.remove(building);
+                      }
                     });
                   },
                   tilePadding: const EdgeInsets.symmetric(
