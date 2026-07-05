@@ -162,10 +162,9 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
       context: context,
       barrierDismissible: false,
       builder: (_) => AlertDialog(
-        content: const Text(
+        content: MyTextStyle.lotDesc(
           "Votre demande a été transmise à notre équipe. Vous allez être "
-          "déconnecté le temps de la validation.",
-          textAlign: TextAlign.justify,
+          "déconnecté le temps de la validation.", SizeFont.h2.size,
         ),
         actions: [
           TextButton(

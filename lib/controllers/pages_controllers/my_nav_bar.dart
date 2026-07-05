@@ -11,12 +11,15 @@ import '../../models/enum/set_logo_color.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
+import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/controllers/features/route_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
 
 import 'package:connect_kasa/vues/pages_vues/no_lot/attach_existing_lot_page.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/home_view.dart';
+import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/sinistres_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
@@ -169,23 +172,37 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   // }
 
   Widget _buildNoLotScreen(BuildContext context) {
+    final width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(vertical: 80),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Icon(Icons.home_work_outlined, size: 64, color: Colors.black38),
-              const SizedBox(height: 20),
-              const Text(
-                "Vous n'êtes pour l'instant rattaché à aucun lot.",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Center(
+                child: Image.asset(
+                  "images/assets/logoCKvertconnectKasa.png",
+                  width: width / 1.5,
+                ),
               ),
-              const SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: () async {
+              const Spacer(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: MyTextStyle.lotDesc(
+                  "Vous n'êtes pour l'instant rattaché à aucun lot.",
+                  SizeFont.h2.size,
+                ),
+              ),
+              const Spacer(),
+              ButtonAdd(
+                text: "Rechercher ma résidence et mon lot",
+                color: const Color.fromRGBO(72, 119, 91, 1.0),
+                horizontal: 30,
+                vertical: 10,
+                size: SizeFont.h3.size,
+                function: () async {
                   final attached = await Navigator.of(context).push<bool>(
                     MaterialPageRoute(
                       builder: (_) => AttachExistingLotPage(uid: widget.uid),
@@ -195,18 +212,23 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     _initializeLot();
                   }
                 },
-                child: const Text("Rechercher ma résidence et mon lot"),
               ),
               const SizedBox(height: 16),
-              TextButton(
-                onPressed: () async {
+              ButtonAdd(
+                text: "Se déconnecter",
+                color: Colors.transparent,
+                colorText: const Color.fromRGBO(72, 119, 91, 1.0),
+                borderColor: const Color.fromRGBO(72, 119, 91, 1.0),
+                horizontal: 30,
+                vertical: 10,
+                size: SizeFont.h3.size,
+                function: () async {
                   context.read<MessageProvider>().reset();
                   await _loadUserController.handleGoogleSignOut();
                   if (!context.mounted) return;
                   Navigator.popUntil(context, ModalRoute.withName('/'));
                   LoadPreferedData.clearSharedPreferences();
                 },
-                child: const Text("Se déconnecter"),
               ),
             ],
           ),
