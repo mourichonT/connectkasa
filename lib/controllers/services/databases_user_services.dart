@@ -125,17 +125,16 @@ class DataBasesUserServices {
   static Future<UserInfo?> getUserInfosById(String uid) async {
     UserInfo? user;
     try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot =
+      DocumentSnapshot<Map<String, dynamic>> docSnapshot =
           await FirebaseFirestore.instance
               .collection("User")
               .doc(uid)
               .collection("profil_locataire")
-              .limit(1)
+              .doc(uid)
               .get();
 
-      if (querySnapshot.docs.isNotEmpty) {
-        final data = querySnapshot.docs.first.data();
-        user = UserInfo.fromMap(data);
+      if (docSnapshot.exists && docSnapshot.data() != null) {
+        user = UserInfo.fromMap(docSnapshot.data()!);
       } else {
         throw Exception('Aucun profil locataire trouvé pour cet utilisateur');
       }
@@ -276,12 +275,13 @@ class DataBasesUserServices {
         User user = User.fromMap(userMap);
 
         // Récupération des informations supplémentaires
-        QuerySnapshot<Map<String, dynamic>> userInfoQuerySnapshot =
-            await userDoc.reference.collection("profil_locataire").get();
+        DocumentSnapshot<Map<String, dynamic>> userInfoDoc = await userDoc
+            .reference
+            .collection("profil_locataire")
+            .doc(userId)
+            .get();
 
-        Map<String, dynamic> userInfoMap = userInfoQuerySnapshot.docs.isNotEmpty
-            ? userInfoQuerySnapshot.docs.first.data()
-            : {};
+        Map<String, dynamic> userInfoMap = userInfoDoc.data() ?? {};
 
         return UserInfo(
           privacyPolicy: user.privacyPolicy,
@@ -408,20 +408,12 @@ class DataBasesUserServices {
         "phone": updatedUser.phone,
       };
 
-      // 4. Accéder à la sous-collection "profil_locataire" et mettre à jour ou créer le document
-      QuerySnapshot<Map<String, dynamic>> profilLocataireQuery =
-          await userDocRef.collection("profil_locataire").get();
-
-      if (profilLocataireQuery.docs.isNotEmpty) {
-        // Mettre à jour le premier document existant
-        await profilLocataireQuery.docs.first.reference
-            .update(profilLocataireData);
-      } else {
-        // Créer un nouveau document
-        await userDocRef
-            .collection("profil_locataire")
-            .add(profilLocataireData);
-      }
+      // 4. Créer ou mettre à jour le document "profil_locataire" (ID fixe =
+      // uid, un seul document par utilisateur : pas besoin de le chercher).
+      await userDocRef
+          .collection("profil_locataire")
+          .doc(updatedUser.uid)
+          .set(profilLocataireData, SetOptions(merge: true));
 
       return true;
     } catch (e) {
@@ -448,17 +440,10 @@ class DataBasesUserServices {
 
       final userDocRef = userQuery.docs.first.reference;
 
-      final profilLocataireSnapshot =
-          await userDocRef.collection("profil_locataire").get();
-
-      if (profilLocataireSnapshot.docs.isEmpty) {
-        print("Aucun profil locataire trouvé");
-        return null;
-      }
-
-      final profilLocataireDocRef =
-          profilLocataireSnapshot.docs.first.reference;
-      final garantsCollection = profilLocataireDocRef.collection("garants");
+      final garantsCollection = userDocRef
+          .collection("profil_locataire")
+          .doc(uid)
+          .collection("garants");
 
       if (garantDocId != null && garantDocId.isNotEmpty) {
         await garantsCollection.doc(garantDocId).update(garant.toMap());
@@ -501,23 +486,9 @@ class DataBasesUserServices {
     }
   }
 
-  static Future<String?> getFirstDocId(String uid) async {
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection("User")
-          .doc(uid)
-          .collection("profil_locataire")
-          .limit(1)
-          .get();
-
-      if (snapshot.docs.isNotEmpty) {
-        return snapshot.docs.first.id;
-      }
-    } catch (e) {
-      print("Erreur récupération docId profil_locataire : $e");
-    }
-    return null;
-  }
+  // Le document "profil_locataire" a un ID fixe égal à uid (un seul par
+  // utilisateur) : pas besoin de le chercher par requête.
+  static Future<String?> getFirstDocId(String uid) async => uid;
 
   static Future<List<GuarantorInfo>> getGarants(
       String uid, String docId) async {
@@ -563,17 +534,14 @@ class DataBasesUserServices {
 
       final userDocRef = userQuery.docs.first.reference;
 
-      // Récupérer un seul document dans la sous-collection 'profil_locataire'
-      final profilQuery =
-          await userDocRef.collection('profil_locataire').limit(1).get();
-
-      if (profilQuery.docs.isEmpty) return null;
-
-      final profilDocRef = profilQuery.docs.first.reference;
-
-      // Accéder à la sous-collection 'garants' de ce profil, et récupérer le garant par son ID
-      final garantDoc =
-          await profilDocRef.collection('garants').doc(garantId).get();
+      // Accéder à la sous-collection 'garants' du profil (ID fixe = uid),
+      // et récupérer le garant par son ID
+      final garantDoc = await userDocRef
+          .collection('profil_locataire')
+          .doc(uid)
+          .collection('garants')
+          .doc(garantId)
+          .get();
 
       if (!garantDoc.exists) return null;
 
@@ -600,12 +568,13 @@ class DataBasesUserServices {
         User user = User.fromMap(userMap);
 
         // Récupération des informations supplémentaires
-        QuerySnapshot<Map<String, dynamic>> userInfoQuerySnapshot =
-            await userDoc.reference.collection("profil_locataire").get();
+        DocumentSnapshot<Map<String, dynamic>> userInfoDoc = await userDoc
+            .reference
+            .collection("profil_locataire")
+            .doc(uid)
+            .get();
 
-        Map<String, dynamic> userInfoMap = userInfoQuerySnapshot.docs.isNotEmpty
-            ? userInfoQuerySnapshot.docs.first.data()
-            : {};
+        Map<String, dynamic> userInfoMap = userInfoDoc.data() ?? {};
 
         return GuarantorInfo(
           name: user.name,
@@ -640,27 +609,11 @@ class DataBasesUserServices {
 
   static Future<bool> deleteGarant(String uid, String garantId) async {
     try {
-      final profilSnapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(uid)
-          .collection('profil_locataire')
-          .limit(1)
-          .get();
-
-      if (profilSnapshot.docs.isEmpty) {
-        print("Aucun profil locataire trouvé.");
-        return false;
-      }
-
-      final profilDocId = profilSnapshot.docs.first.id;
-
-      print("Suppression du garant $garantId dans profil $profilDocId");
-
       await FirebaseFirestore.instance
           .collection('User')
           .doc(uid)
           .collection('profil_locataire')
-          .doc(profilDocId)
+          .doc(uid)
           .collection('garants')
           .doc(garantId)
           .delete();

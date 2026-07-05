@@ -57,27 +57,13 @@ class DataBasesDocsServices {
     required String garantId,
   }) async {
     try {
-      // 1. Récupérer le seul doc de 'profil_locataire'
-      final profilSnapshot = await db
-          .collection("User")
-          .doc(userId)
-          .collection("profil_locataire")
-          .limit(1)
-          .get();
-
-      if (profilSnapshot.docs.isEmpty) {
-        throw Exception(
-            "Aucun document 'profil_locataire' trouvé pour l'utilisateur $userId.");
-      }
-
-      final profilDocId = profilSnapshot.docs.first.id;
-
-      // 2. Ajouter le document dans le bon chemin Firestore
+      // Ajouter le document dans le bon chemin Firestore (profil_locataire
+      // a un ID fixe = userId, un seul document par utilisateur)
       final garantDocRef = db
           .collection("User")
           .doc(userId)
           .collection("profil_locataire")
-          .doc(profilDocId)
+          .doc(userId)
           .collection("garants")
           .doc(garantId)
           .collection("documents");
@@ -278,28 +264,11 @@ class DataBasesDocsServices {
       return false;
     }
     try {
-      final profilSnapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(uid)
-          .collection('profil_locataire')
-          .limit(1)
-          .get();
-
-      if (profilSnapshot.docs.isEmpty) {
-        print("Aucun profil locataire trouvé.");
-        return false;
-      }
-
-      final profilDocId = profilSnapshot.docs.first.id;
-
-      print(
-          "Suppression du document $documentId pour garant $garantId dans profil $profilDocId");
-
       await FirebaseFirestore.instance
           .collection('User')
           .doc(uid)
           .collection('profil_locataire')
-          .doc(profilDocId)
+          .doc(uid)
           .collection('garants')
           .doc(garantId)
           .collection('documents')
@@ -316,26 +285,12 @@ class DataBasesDocsServices {
   static Future<List<Map<String, dynamic>>> fetchGarantDocuments(
       String uid, String garantId) async {
     try {
-      // 1. Récupérer le seul doc de 'profil_locataire'
-      final profilSnapshot = await FirebaseFirestore.instance
-          .collection('User')
-          .doc(uid)
-          .collection('profil_locataire')
-          .limit(1) // ← on s'assure qu'il n'y en a qu’un
-          .get();
-
-      if (profilSnapshot.docs.isEmpty) {
-        return []; // Aucun profil locataire
-      }
-
-      final profilDocId = profilSnapshot.docs.first.id;
-
-      // 2. Récupérer les documents du garant
+      // Récupérer les documents du garant (profil_locataire a un ID fixe = uid)
       final docSnapshot = await FirebaseFirestore.instance
           .collection('User')
           .doc(uid)
           .collection('profil_locataire')
-          .doc(profilDocId)
+          .doc(uid)
           .collection('garants')
           .doc(garantId)
           .collection('documents')
