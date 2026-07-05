@@ -5,6 +5,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/modify_propoerty.dart';
+import 'package:connect_kasa/vues/pages_vues/no_lot/attach_existing_lot_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -164,13 +165,23 @@ class ManagementPropertyState extends State<ManagementProperty> {
         ),
       ),
       bottomSheet: Container(
-        height: 50,
-        //alignment: Alignment.bottomCenter,
+        padding: const EdgeInsets.only(bottom: 20),
         color: Colors.transparent,
-        width: MediaQuery.of(context).size.width,
-        child: Center(
+        child: SizedBox(
           child: ButtonAdd(
-              function: () {},
+              function: () async {
+                final attached = await Navigator.of(context).push<bool>(
+                  MaterialPageRoute(
+                    builder: (_) => AttachExistingLotPage(
+                      uid: widget.uid,
+                      resetApproval: false,
+                    ),
+                  ),
+                );
+                if (attached == true) {
+                  _refreshData();
+                }
+              },
               text: "Rattacher un lot",
               color: Theme.of(context).primaryColor,
               horizontal: 30,

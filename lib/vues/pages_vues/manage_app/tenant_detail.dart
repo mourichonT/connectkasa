@@ -74,7 +74,7 @@ class TenantDetailState extends State<TenantDetail> {
         width: width,
         color: Theme.of(context)
             .indicatorColor, // Changez cette couleur selon vos besoins
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 20),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [

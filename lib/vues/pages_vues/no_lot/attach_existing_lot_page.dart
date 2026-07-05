@@ -31,12 +31,23 @@ import 'package:provider/provider.dart';
 /// tout le profil : identité, pièce d'identité...), la soumission finale ici
 /// ne fait que rattacher le lot et déposer le justificatif de domicile :
 /// l'utilisateur a déjà un profil complet, inutile de le lui refaire saisir.
-/// Le compte repasse en `approved: false` à la fin : un nouveau rattachement
-/// de lot doit être revalidé par une personne, comme à l'inscription.
+///
+/// Si [resetApproval] est vrai (cas par défaut : utilisateur bloqué sans
+/// aucun lot, cf. my_nav_bar.dart), le compte repasse en `approved: false`
+/// à la fin et l'utilisateur est déconnecté : un premier rattachement doit
+/// être revalidé par une personne, comme à l'inscription. Si faux (cas
+/// ManagementProperty : un utilisateur déjà actif qui rattache un lot
+/// supplémentaire à son compte), on ne touche pas à `approved` — il n'y a
+/// pas lieu de re-suspendre l'accès d'un utilisateur déjà validé.
 class AttachExistingLotPage extends StatefulWidget {
   final String uid;
+  final bool resetApproval;
 
-  const AttachExistingLotPage({super.key, required this.uid});
+  const AttachExistingLotPage({
+    super.key,
+    required this.uid,
+    this.resetApproval = true,
+  });
 
   @override
   State<AttachExistingLotPage> createState() => _AttachExistingLotPageState();
@@ -138,6 +149,14 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
         widget.uid,
         lot.id,
       );
+    }
+
+    if (!widget.resetApproval) {
+      // Utilisateur déjà actif (ManagementProperty) rattachant un lot
+      // supplémentaire : pas de revalidation à déclencher, il n'y a pas
+      // lieu de re-suspendre un compte déjà approuvé.
+      if (mounted) Navigator.of(context).pop(true);
+      return;
     }
 
     // Un nouveau rattachement de lot doit être revalidé, comme à

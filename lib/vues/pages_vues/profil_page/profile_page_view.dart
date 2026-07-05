@@ -97,8 +97,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   .contains(widget.uid))
           .toList();
 
+      // .toSet() : dédoublonne les residenceId. Sans ça, un utilisateur
+      // ayant plusieurs lots dans la même résidence (où il est membre du
+      // CS) se retrouvait avec cette résidence en double dans la liste,
+      // le filtre csmembers étant identique sur chacun de ses lots
+      // (residenceData dénormalisé depuis la même résidence).
       final List<String> csResidenceIds =
-          csResidences.map((lot) => lot.residenceId).toList();
+          csResidences.map((lot) => lot.residenceId).toSet().toList();
 
       List<Residence> csResidenceObjects = [];
       for (String residenceId in csResidenceIds) {
@@ -248,7 +253,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.only(
-                                      left: 20, right: 15, bottom: 30),
+                                      left: 20, right: 15, bottom: 20),
                                   child: MyTextStyle.lotDesc(
                                     bio,
                                     SizeFont.h3.size,
@@ -392,34 +397,37 @@ class _ProfilePageState extends State<ProfilePage> {
                           /// BOUTON DE DÉCONNEXION EN BAS
                           Align(
                             alignment: Alignment.bottomCenter,
-                            child: ProfileMenu(
-                              uid: widget.uid,
-                              color: widget.color,
-                              idLot: widget.idLot,
-                              text: "Déconnexion",
-                              icon: const Icon(Icons.power_settings_new_rounded,
-                                  color: Colors.white, size: 22),
-                              press: () async {
-                                // Annulé avant le sign-out : ce provider
-                                // global écouterait sinon indéfiniment les
-                                // chats de l'utilisateur précédent
-                                // (permission-denied en boucle une fois
-                                // déconnecté). Même correctif que
-                                // my_drawer.dart.
-                                context.read<MessageProvider>().reset();
-                                LoadPreferedData.clearSharedPreferences();
-                                // Attendu avant de naviguer : sans ce await,
-                                // la navigation se faisait en parallèle du
-                                // sign-out (résultat imprévisible).
-                                await _loadUserController.handleGoogleSignOut();
-                                if (!context.mounted) return;
-                                Navigator.popUntil(
-                                    context, ModalRoute.withName('/'));
-                                Provider.of<ColorProvider>(context,
-                                        listen: false)
-                                    .updateColor("ff48775b");
-                              },
-                              isLogOut: true,
+                            child: Container(
+                              padding: const EdgeInsets.only(bottom: 15),
+                              child: ProfileMenu(
+                                uid: widget.uid,
+                                color: widget.color,
+                                idLot: widget.idLot,
+                                text: "Déconnexion",
+                                icon: const Icon(Icons.power_settings_new_rounded,
+                                    color: Colors.white, size: 22),
+                                press: () async {
+                                  // Annulé avant le sign-out : ce provider
+                                  // global écouterait sinon indéfiniment les
+                                  // chats de l'utilisateur précédent
+                                  // (permission-denied en boucle une fois
+                                  // déconnecté). Même correctif que
+                                  // my_drawer.dart.
+                                  context.read<MessageProvider>().reset();
+                                  LoadPreferedData.clearSharedPreferences();
+                                  // Attendu avant de naviguer : sans ce await,
+                                  // la navigation se faisait en parallèle du
+                                  // sign-out (résultat imprévisible).
+                                  await _loadUserController.handleGoogleSignOut();
+                                  if (!context.mounted) return;
+                                  Navigator.popUntil(
+                                      context, ModalRoute.withName('/'));
+                                  Provider.of<ColorProvider>(context,
+                                          listen: false)
+                                      .updateColor("ff48775b");
+                                },
+                                isLogOut: true,
+                              ),
                             ),
                           ),
                         ],
