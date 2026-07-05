@@ -1,6 +1,6 @@
+import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
-import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
 import 'package:connect_kasa/controllers/services/databases_residence_services.dart'; // Importation ajoutée
 import 'package:connect_kasa/models/enum/elements_list.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -17,15 +17,24 @@ import 'package:flutter/material.dart';
 class ManageStructure extends StatefulWidget {
   final Residence residence;
   final Color color;
+  // Si renseigné, la carte de ce bâtiment s'ouvre automatiquement et défile
+  // à l'écran (ex: navigation depuis la carte d'exception d'un syndic sur
+  // management_res_info_g.dart).
+  final String? initialExpandedStructureId;
 
-  ManageStructure({super.key, required this.residence, required this.color});
+  ManageStructure({
+    super.key,
+    required this.residence,
+    required this.color,
+    this.initialExpandedStructureId,
+  });
 
   @override
   State<ManageStructure> createState() => ManageStructureState();
 }
 
 class ManageStructureState extends State<ManageStructure> {
-  final DatabasesAgencyServices _agencyServices = DatabasesAgencyServices();
+  final AgencySearchFlow _flow = AgencySearchFlow(serviceType: 'serviceSyndic');
   final DataBasesResidenceServices _residenceServices =
       DataBasesResidenceServices();
   List<Agent> agents = [];
@@ -35,6 +44,9 @@ class ManageStructureState extends State<ManageStructure> {
   // base. Basé sur l'identité de l'objet, donc il suit le bon bâtiment
   // même si la liste est réordonnée.
   final Set<StructureResidence> _expandedBuildings = {};
+  // Clé par bâtiment (id Firestore), pour pouvoir faire défiler jusqu'à une
+  // carte précise après navigation depuis un autre écran.
+  final Map<String, GlobalKey> _cardKeys = {};
   List<Agency> searchResults = [];
   Agent? selectedAgent;
   String buildingType = "";
@@ -57,11 +69,43 @@ class ManageStructureState extends State<ManageStructure> {
     if (widget.residence.id != null) {
       final fetchedBuildings = await _residenceServices
           .getStructuresByResidence(widget.residence.id!);
+
+      // Résout les syndics référencés dans Gerance depuis la source à jour
+      // plutôt que de se fier à une copie potentiellement figée.
+      for (final building in fetchedBuildings) {
+        if (building.geranceRef != null) {
+          building.syndicAgency = await _flow.resolve(building.geranceRef!);
+        }
+      }
+
       setState(() {
         buildings = fetchedBuildings;
-        // Toutes les cartes sont fermées au chargement.
+        // Toutes les cartes sont fermées au chargement, sauf celle ciblée
+        // par la navigation entrante.
         _expandedBuildings.clear();
+        if (widget.initialExpandedStructureId != null) {
+          final target = buildings.firstWhere(
+            (b) => b.id == widget.initialExpandedStructureId,
+            orElse: () => StructureResidence(name: '', type: ''),
+          );
+          if (target.id != null) {
+            _expandedBuildings.add(target);
+          }
+        }
       });
+
+      if (widget.initialExpandedStructureId != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final key = _cardKeys[widget.initialExpandedStructureId];
+          if (key?.currentContext != null) {
+            Scrollable.ensureVisible(
+              key!.currentContext!,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
+      }
     } else {
       buildings = [];
     }
@@ -73,25 +117,13 @@ class ManageStructureState extends State<ManageStructure> {
       isSearching = true;
     });
 
-    final results =
-        await _agencyServices.searchAgencyByEmail('serviceSyndic', emailPart);
+    final results = await _flow.search(emailPart);
 
     setState(() {
       if (results.isEmpty) {
-        building.syndicAgency = Agency(
-          city: '',
-          id: '',
-          name: emailPart,
-          numeros: '',
-          street: '',
-          voie: '',
-          zipCode: '',
-          syndic: AgencyDept(
-            agents: [],
-            mail: emailPart,
-            phone: '',
-          ),
-        );
+        // Aucun match dans Gerance : entrée custom, non référencée.
+        building.syndicAgency = _flow.buildCustomAgency(emailPart);
+        building.geranceRef = null;
         searchResults = [building.syndicAgency!];
         _itemSelected = true;
       } else {
@@ -282,7 +314,13 @@ class ManageStructureState extends State<ManageStructure> {
               final agencySearchController = _initAndGetController(
                   'agency_search_controller_$index',
                   building.syndicAgency?.syndic?.mail ?? "");
+
+              final cardKey = building.id == null
+                  ? null
+                  : _cardKeys.putIfAbsent(building.id!, () => GlobalKey());
+
               return Card(
+                key: cardKey,
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
                 elevation: 2.0,
                 shape: RoundedRectangleBorder(
@@ -662,6 +700,7 @@ class ManageStructureState extends State<ManageStructure> {
                                       if (!value) {
                                         _lookupController.clear();
                                         building.syndicAgency = null;
+                                        building.geranceRef = null;
                                         searchResults = [];
                                       }
                                     });
@@ -681,7 +720,8 @@ class ManageStructureState extends State<ManageStructure> {
                                 agencySearchController.text = agency.name;
                                 _itemSelected = true;
                                 searchResults = [];
-                                building.syndicAgency = agency;
+                                building.syndicAgency = agency; // cache d'affichage
+                                building.geranceRef = _flow.refFor(agency);
 
                                 agents = [];
                                 selectedAgent = null;
@@ -694,6 +734,7 @@ class ManageStructureState extends State<ManageStructure> {
                                   isSearching = false;
                                   _itemSelected = false;
                                   building.syndicAgency = null;
+                                  building.geranceRef = null;
                                 });
                               } else {
                                 searchAgencyByEmail(val, building);

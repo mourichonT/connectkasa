@@ -1,73 +1,71 @@
-// ignore_for_file: must_be_immutable
-
+import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
+import 'package:connect_kasa/models/pages_models/agency.dart';
+import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/card_contact_view.dart';
 import 'package:flutter/material.dart';
 
+/// Affiche le contact syndic (résidence/bâtiment) ou gérance locative (lot).
+/// Prend directement soit une Agency déjà résolue (cas custom, non
+/// référencée), soit une GeranceRef à résoudre depuis Gerance (cas
+/// référencé) : jamais les deux en même temps, cf. le contrat
+/// geranceRef/syndicAgency posé sur Residence/StructureResidence/Lot.
 class CardContactController extends StatelessWidget {
   final Lot selectedlot;
-  final String? dept;
+  final Agency? agency;
+  final GeranceRef? geranceRef;
   final String uid;
 
-  CardContactController(
-    this.selectedlot,
-    this.dept, {
+  const CardContactController({
     super.key,
+    required this.selectedlot,
     required this.uid,
+    this.agency,
+    this.geranceRef,
   });
 
   @override
   Widget build(BuildContext context) {
-    Map<String, dynamic>? agencyData;
-    List<dynamic>? agents;
-    print(dept);
-    if (dept == "serviceSyndic") {
-      // On prend directement les données depuis residenceData
-      agencyData = selectedlot.residenceData['syndicAgency'];
-    } else if (dept == "geranceLocative") {
-      // On prend les données depuis syndicAgency
-      agencyData = {};
+    if (geranceRef != null) {
+      return FutureBuilder<Agency?>(
+        future: DatabasesAgencyServices().resolveRef(geranceRef!),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return _buildCard(snapshot.data);
+        },
+      );
     }
+    return _buildCard(agency);
+  }
 
-    if (agencyData == null) {
+  Widget _buildCard(Agency? resolvedAgency) {
+    if (resolvedAgency == null) {
       return const Center(child: Text('Agence introuvable'));
     }
 
-    agents = agencyData['agents'] ?? [];
-
-    // On récupère le premier agent comme comptable
-    final accountant = agents!.isNotEmpty ? agents.first : {};
-    final accountantName = accountant['name_agent'] ?? '';
-    final accountantSurname = accountant['surname_agent'] ?? '';
-    final accountantPhone = agencyData['syndic']['phone'] ?? '';
-    final accountantMail = agencyData['syndic']['mail'] ?? '';
-    final accountantFonction = 'syndic'; // Ou une valeur par défaut
-
-    final agencyName = agencyData['name'] ?? '';
-    final agencystreet = agencyData['street'] ?? '';
-    final agencyNum = agencyData['numeros'] ?? '';
-    final agencyVoie = agencyData['voie'] ?? '';
-    final agencyZIPCode = agencyData['zipCode'] ?? '';
-    final agencyCity = agencyData['city'] ?? '';
-    final accountantId = agencyData['id'] ?? '';
+    final syndic = resolvedAgency.syndic;
+    final agents = syndic?.agents ?? [];
+    final accountant = agents.isNotEmpty ? agents.first : null;
 
     return Card(
       margin: const EdgeInsets.all(16.0),
       child: CardContactView(
         selectedlot: selectedlot,
-        accountantName: accountantName,
-        accountantSurname: accountantSurname,
-        accountantPhone: accountantPhone,
-        accountantMail: accountantMail,
-        accountantFonction: accountantFonction,
-        agencyName: agencyName,
-        agencystreet: agencystreet,
-        agencyNum: agencyNum,
-        agencyVoie: agencyVoie,
-        agencyZIPCode: agencyZIPCode,
-        agencyCity: agencyCity,
+        accountantName: accountant?.nameAgent ?? '',
+        accountantSurname: accountant?.surnameAgent ?? '',
+        accountantPhone: accountant?.phone ?? syndic?.phone ?? '',
+        accountantMail: accountant?.mail ?? syndic?.mail ?? '',
+        accountantFonction: 'syndic',
+        agencyName: resolvedAgency.name,
+        agencystreet: resolvedAgency.street,
+        agencyNum: resolvedAgency.numeros,
+        agencyVoie: resolvedAgency.voie,
+        agencyZIPCode: resolvedAgency.zipCode,
+        agencyCity: resolvedAgency.city,
         uid: uid,
-        accountantId: accountantId,
+        accountantId: resolvedAgency.id,
       ),
     );
   }

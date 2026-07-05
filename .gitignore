@@ -52,3 +52,4 @@ app.*.map.json
 # Python Cloud Functions
 functions_python/venv/
 functions_python/__pycache__/
+functions_python/service-account.json

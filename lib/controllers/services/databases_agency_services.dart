@@ -1,164 +1,122 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/services/firestore_paths.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/agency_dept.dart';
+import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 
 class DatabasesAgencyServices {
   final FirebaseFirestore db = FirebaseFirestore.instance;
-  Future<List<DocumentSnapshot<Map<String, dynamic>>>> getDeptByRefId(
-      String docId, String dept) async {
-    List<DocumentSnapshot<Map<String, dynamic>>> deptDetails = [];
 
-    try {
-      CollectionReference geranceRef = db.collection("Gerance");
-
-      await _getDeptRecursivelyByDocId(geranceRef, docId, dept, deptDetails);
-    } catch (e) {
-      print("Erreur lors de la récupération de la gérance : $e");
-    }
-
-    return deptDetails;
-  }
-
-  Future<void> _getDeptRecursivelyByDocId(
-      CollectionReference collectionRef,
-      String docId,
-      String dept,
-      List<DocumentSnapshot<Map<String, dynamic>>> deptDetails) async {
-    try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot =
-          await collectionRef.get() as QuerySnapshot<Map<String, dynamic>>;
-
-      for (QueryDocumentSnapshot<Map<String, dynamic>> doc
-          in querySnapshot.docs) {
-        if (doc.id == docId) {
-          deptDetails.add(doc);
-          // Optionnel : ajouter le parent si tu veux
-          if (collectionRef.parent != null) {
-            final parentDoc = await collectionRef.parent!.get();
-            if (parentDoc.exists) deptDetails.add(parentDoc);
-          }
-        }
-
-        // Appel récursif dans les sous-collections
-        final subCollectionRef = doc.reference.collection(dept);
-        await _getDeptRecursivelyByDocId(
-            subCollectionRef, docId, dept, deptDetails);
-      }
-    } catch (e) {
-      print("Erreur récursive : $e");
-    }
-  }
-
-  Future<List<Agency>> searchAgencyByEmail(
-      String service, String emailPart) async {
+  /// Recherche par préfixe d'email dans l'index Gerance/{id}/contacts,
+  /// filtré par type de service ("serviceSyndic", "geranceLocative", ...).
+  /// Cet index est généré automatiquement (Cloud Function sync_gerance_contacts)
+  /// à partir du champ Gerance/{id}.services : jamais écrit à la main.
+  Future<List<Agency>> searchByEmail(
+      String emailPart, {
+    required String serviceType,
+  }) async {
     if (emailPart.isEmpty) return [];
 
     try {
-      final querySnapshot = await db
-          .collectionGroup(service)
+      final contactsSnapshot = await db
+          .collectionGroup(FirestorePaths.contacts)
+          .where('serviceType', isEqualTo: serviceType)
           .where('mail', isGreaterThanOrEqualTo: emailPart)
-          .where('mail', isLessThanOrEqualTo: emailPart + '\uf8ff')
+          .where('mail', isLessThanOrEqualTo: '$emailPart')
           .limit(10)
           .get();
 
-      List<Agency> results = [];
+      if (contactsSnapshot.docs.isEmpty) return [];
 
-      for (final doc in querySnapshot.docs) {
-        // doc.data() contient les données de 'serviceSyndic'
-        final Map<String, dynamic> syndicData = doc.data();
+      // Un même cabinet peut matcher plusieurs contacts (service + agents) ;
+      // on ne relit chaque document Gerance parent qu'une seule fois.
+      final geranceIds = contactsSnapshot.docs
+          .map((doc) => doc.reference.parent.parent!.id)
+          .toSet();
+      final geranceDocs = await Future.wait(geranceIds
+          .map((id) => db.collection(FirestorePaths.gerance).doc(id).get()));
+      final geranceById = {
+        for (final doc in geranceDocs)
+          if (doc.exists) doc.id: doc.data()!
+      };
 
-        final parentRef = doc.reference.parent.parent;
-        Map<String, dynamic>? parentData;
+      final results = <Agency>[];
+      for (final contactDoc in contactsSnapshot.docs) {
+        final geranceId = contactDoc.reference.parent.parent!.id;
+        final geranceData = geranceById[geranceId];
+        if (geranceData == null) continue; // cabinet supprimé entretemps
 
-        if (parentRef != null) {
-          final parentSnap = await parentRef.get();
-          parentData = parentSnap.data() as Map<String, dynamic>?;
-        }
-
-        // Créer l'instance AgencyDept à partir de syndicData
-        final AgencyDept? syndic = AgencyDept.fromJson(syndicData);
+        final services = geranceData['services'] as Map<String, dynamic>?;
+        final serviceData = services?[serviceType] as Map<String, dynamic>?;
+        if (serviceData == null) continue;
 
         results.add(Agency(
-          id: parentRef?.id ?? '',
-          name: parentData?['name'] ?? '',
-          city: parentData?['city'] ?? '',
-          numeros: parentData?['numeros'] ?? '',
-          street: parentData?['street'] ?? '',
-          voie: parentData?['voie'] ?? '',
-          zipCode: parentData?['zipCode'] ?? '',
-          syndic: syndic, // Assigner l'objet AgencyDept ici
+          id: geranceId,
+          name: geranceData['name'] ?? '',
+          city: geranceData['city'] ?? '',
+          numeros: geranceData['numeros'] ?? '',
+          street: geranceData['street'] ?? '',
+          voie: geranceData['voie'] ?? '',
+          zipCode: geranceData['zipCode'] ?? '',
+          syndic: AgencyDept.fromJson(serviceData),
         ));
       }
-
       return results;
     } catch (e) {
       print("Erreur recherche agence: $e");
       return [];
     }
   }
-  // Future<List<Agency>> searchAgencyByEmail(String emailPart) async {
-  //   if (emailPart.isEmpty) return [];
 
-  //   try {
-  //     final querySnapshot = await db
-  //         .collectionGroup('serviceSyndic')
-  //         .where('mail', isGreaterThanOrEqualTo: emailPart)
-  //         .where('mail', isLessThanOrEqualTo: emailPart + '\uf8ff')
-  //         .limit(10)
-  //         .get();
-
-  //     List<Agency> results = [];
-
-  //     for (final doc in querySnapshot.docs) {
-  //       final parentRef = doc.reference.parent.parent;
-  //       Map<String, dynamic>? parentData;
-
-  //       if (parentRef != null) {
-  //         final parentSnap = await parentRef.get();
-  //         parentData = parentSnap.data() as Map<String, dynamic>?;
-  //       }
-
-  //       results.add(Agency(
-  //         id: parentRef?.id ?? '',
-  //         name: parentData?['name'] ?? '',
-  //         city: parentData?['city'] ?? '',
-  //         numeros: parentData?['numeros'] ?? '',
-  //         street: parentData?['street'] ?? '',
-  //         voie: parentData?['voie'] ?? '',
-  //         zipCode: parentData?['zipCode'] ?? '',
-  //         syndic:
-  //       ));
-  //     }
-  //     print("AGENCE TROUVEE : ${results[0].name}");
-
-  //     return results;
-  //   } catch (e) {
-  //     print("Erreur recherche agence: $e");
-  //     return [];
-  //   }
-  // }
-
-  Future<List<DocumentSnapshot<Map<String, dynamic>>>> getDeptByResidence(
-      String refId) async {
-    List<DocumentSnapshot<Map<String, dynamic>>> deptDetails = [];
+  /// Résout une référence enregistrée (GeranceRef) vers les données à jour
+  /// du cabinet dans Gerance. Renvoie null si le cabinet ou le service
+  /// référencé n'existe plus (supprimé côté référentiel entretemps).
+  Future<Agency?> resolveRef(GeranceRef ref) async {
     try {
-      // Récupérer la référence de la collection "Gerance"
-      QuerySnapshot<Map<String, dynamic>> residenceRef = await db
-          .collection("Residence")
-          .where('id', isEqualTo: refId)
-          .get();
+      final doc =
+          await db.collection(FirestorePaths.gerance).doc(ref.geranceId).get();
+      if (!doc.exists) return null;
 
-      for (QueryDocumentSnapshot<Map<String, dynamic>> doc
-          in residenceRef.docs) {
-        deptDetails.add(doc);
+      final data = doc.data()!;
+      final services = data['services'] as Map<String, dynamic>?;
+      final serviceData = services?[ref.serviceType] as Map<String, dynamic>?;
+      if (serviceData == null) return null;
+
+      String mail = serviceData['mail'] ?? '';
+      String phone = serviceData['phone'] ?? '';
+      final agentsJson =
+          (serviceData['agents'] as List<dynamic>? ?? []).cast<dynamic>();
+
+      if (ref.agentMail != null) {
+        final agentJson = agentsJson.cast<Map<String, dynamic>>().firstWhere(
+              (a) => a['mail'] == ref.agentMail,
+              orElse: () => <String, dynamic>{},
+            );
+        if (agentJson.isNotEmpty) {
+          mail = agentJson['mail'] ?? mail;
+          phone = agentJson['phone'] ?? phone;
+        }
       }
-    } catch (e) {
-      print(
-          'Une erreur s\'est produite lors de la récupération de la residence: $e');
-      // Vous pouvez choisir de renvoyer une liste vide ou de lancer l'erreur
-      throw Exception('Impossible de récupérer la résidence');
-    }
 
-    return deptDetails;
+      return Agency(
+        id: ref.geranceId,
+        name: data['name'] ?? '',
+        city: data['city'] ?? '',
+        numeros: data['numeros'] ?? '',
+        street: data['street'] ?? '',
+        voie: data['voie'] ?? '',
+        zipCode: data['zipCode'] ?? '',
+        syndic: AgencyDept(
+          agents: agentsJson
+              .map((a) => Agent.fromJson(a as Map<String, dynamic>))
+              .toList(),
+          mail: mail,
+          phone: phone,
+        ),
+      );
+    } catch (e) {
+      print("Erreur résolution GeranceRef: $e");
+      return null;
+    }
   }
 }

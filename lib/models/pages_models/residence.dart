@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
+import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 import 'package:connect_kasa/models/pages_models/structure_residence.dart';
 
 class Residence {
@@ -13,7 +14,12 @@ class Residence {
   String id;
   int nombreLot;
   List<String>? csmembers;
+  // syndicAgency : cache d'affichage (résolu depuis geranceRef, ou saisie
+  // custom si non référencée dans Gerance). geranceRef et syndicAgency ne
+  // sont jamais tous les deux non-null en base : voir saveResidence() dans
+  // management_res_info_g.dart.
   Agency? syndicAgency;
+  GeranceRef? geranceRef;
 
   /// Plusieurs bâtiments identifiés par leur nom (ex: 'batA')
   Map<String, StructureResidence>? structures;
@@ -30,6 +36,7 @@ class Residence {
     this.csmembers,
     this.nombreLot = 0,
     this.syndicAgency,
+    this.geranceRef,
     this.structures,
   });
 
@@ -50,6 +57,9 @@ class Residence {
       nombreLot: json['nombreLot'] ?? 0,
       syndicAgency: json['syndicAgency'] != null
           ? Agency.fromJson(json['syndicAgency'])
+          : null,
+      geranceRef: json['geranceRef'] != null
+          ? GeranceRef.fromJson(json['geranceRef'])
           : null,
       structures: structuresData?.map(
         (key, value) => MapEntry(key, StructureResidence.fromJson(value, key)),
@@ -77,6 +87,9 @@ class Residence {
       nombreLot: data?['nombreLot'] ?? 0,
       syndicAgency: data?['syndicAgency'] != null
           ? Agency.fromJson(data!['syndicAgency'])
+          : null,
+      geranceRef: data?['geranceRef'] != null
+          ? GeranceRef.fromJson(data!['geranceRef'])
           : null,
     );
   }
@@ -121,6 +134,7 @@ class Residence {
       'csmembers': csmembers,
       'nombreLot': nombreLot,
       'syndicAgency': syndicAgency?.toJson(),
+      'geranceRef': geranceRef?.toJson(),
       'structures': structures?.map(
         (key, structure) => MapEntry(key, structure.toJson()),
       ),

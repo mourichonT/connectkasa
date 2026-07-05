@@ -1,4 +1,5 @@
 import 'package:connect_kasa/models/pages_models/agency.dart';
+import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 
 class Lot {
   String? id; // ID du document Firestore Residence/{id}/lot/{id}, reporté dans ce champ en base à la création
@@ -13,7 +14,17 @@ class Lot {
   String residenceId;
   Map<String, dynamic> residenceData;
   Map<String, dynamic> userLotDetails;
-  Agency? syndicAgency; // <-- nouveau champ
+  // syndicAgency (en réalité une gérance locative pour un lot, cf.
+  // modify_prop_info_loc.dart : recherche sur le département
+  // "geranceLocative") : cache d'affichage, résolu depuis geranceRef ou
+  // saisie custom si non référencée dans Gerance. Jamais les deux non-null
+  // en base.
+  Agency? syndicAgency;
+  GeranceRef? geranceRef;
+
+  /// Vrai si une gérance locative est affectée à ce lot, qu'elle soit
+  /// référencée dans Gerance (pas encore résolue localement) ou custom.
+  bool get hasAgency => syndicAgency != null || geranceRef != null;
 
   Lot({
     String nameProp = "",
@@ -30,7 +41,8 @@ class Lot {
     required this.residenceId,
     required this.residenceData,
     required this.userLotDetails,
-    this.syndicAgency, // <-- ajouté
+    this.syndicAgency,
+    this.geranceRef,
   });
 
   factory Lot.fromJson(Map<String, dynamic> json) {
@@ -61,7 +73,10 @@ class Lot {
           : {},
       syndicAgency: json["syndicAgency"] != null
           ? Agency.fromJson(json["syndicAgency"])
-          : null, // <-- ajouté
+          : null,
+      geranceRef: json["geranceRef"] != null
+          ? GeranceRef.fromJson(json["geranceRef"])
+          : null,
     );
   }
 
@@ -79,7 +94,8 @@ class Lot {
       "residenceId": residenceId,
       "residenceData": residenceData,
       'userLotDetails': userLotDetails,
-      'syndicAgency': syndicAgency?.toJson(), // <-- ajouté
+      'syndicAgency': syndicAgency?.toJson(),
+      'geranceRef': geranceRef?.toJson(),
     };
   }
 
@@ -124,7 +140,10 @@ class Lot {
           : {},
       syndicAgency: map['syndicAgency'] != null
           ? Agency.fromJson(map['syndicAgency'])
-          : null, // <-- ajouté
+          : null,
+      geranceRef: map['geranceRef'] != null
+          ? GeranceRef.fromJson(map['geranceRef'])
+          : null,
     );
   }
 
@@ -138,8 +157,8 @@ class Lot {
       if (typeLot.isNotEmpty) "typeLot": typeLot,
       if (type.isNotEmpty) "type": type,
       if (idProprietaire != null) "idProprietaire": idProprietaire,
-      if (syndicAgency != null)
-        "syndicAgency": syndicAgency!.toJson(), // <-- ajouté
+      if (syndicAgency != null) "syndicAgency": syndicAgency!.toJson(),
+      if (geranceRef != null) "geranceRef": geranceRef!.toJson(),
       // On ne met pas userLotDetails ni residenceData ici
     };
   }

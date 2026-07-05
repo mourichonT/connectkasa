@@ -1,16 +1,22 @@
 class Agent {
   final String nameAgent;
   final String surnameAgent;
+  final String? mail; // contact direct de l'agent, si l'agence le permet
+  final String? phone;
 
   Agent({
     required this.nameAgent,
     required this.surnameAgent,
+    this.mail,
+    this.phone,
   });
 
   factory Agent.fromJson(Map<String, dynamic> json) {
     return Agent(
       nameAgent: json['name_agent'] ?? '',
       surnameAgent: json['surname_agent'] ?? '',
+      mail: json['mail'],
+      phone: json['phone'],
     );
   }
 
@@ -18,6 +24,8 @@ class Agent {
     return {
       'name_agent': nameAgent,
       'surname_agent': surnameAgent,
+      if (mail != null) 'mail': mail,
+      if (phone != null) 'phone': phone,
     };
   }
 }

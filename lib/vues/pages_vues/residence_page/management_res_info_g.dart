@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
-import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
 import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/agency_dept.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
+import 'package:connect_kasa/vues/pages_vues/residence_page/manage_structure.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,22 @@ class ManagementResInfoG extends StatefulWidget {
   State<ManagementResInfoG> createState() => _ManagementResInfoGState();
 }
 
+/// Une exception au syndic principal : un bâtiment dont `hasDifferentSyndic`
+/// est vrai (donc affecté indépendamment via manage_structure.dart). Calculée
+/// à l'affichage à partir des structures, jamais persistée : évite un champ
+/// de plus à maintenir en cohérence avec chaque structure individuelle.
+class _SyndicException {
+  final String structureId;
+  final String structureName;
+  final String label; // nom de l'agence ou mail custom, déjà résolu
+
+  _SyndicException({
+    required this.structureId,
+    required this.structureName,
+    required this.label,
+  });
+}
+
 class _ManagementResInfoGState extends State<ManagementResInfoG> {
   bool _isLoading = true;
   bool _itemSelected = false;
@@ -33,7 +50,10 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
   List<Agency> searchResults = [];
   bool isSearching = false;
 
-  final DatabasesAgencyServices _agencyServices = DatabasesAgencyServices();
+  List<_SyndicException> _syndicExceptions = [];
+  bool _loadingExceptions = true;
+
+  final AgencySearchFlow _flow = AgencySearchFlow(serviceType: 'serviceSyndic');
   final DataBasesResidenceServices _residenceServices =
       DataBasesResidenceServices();
 
@@ -44,8 +64,43 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
   void initState() {
     super.initState();
     _initFields();
-    delegated = widget.residence.syndicAgency?.name?.isNotEmpty ?? false;
+    delegated = widget.residence.geranceRef != null ||
+        (widget.residence.syndicAgency?.name.isNotEmpty ?? false);
     _loadResidenceData();
+    _loadSyndicExceptions();
+  }
+
+  Future<void> _loadSyndicExceptions() async {
+    final structures =
+        await _residenceServices.getStructuresByResidence(widget.residence.id);
+
+    final exceptions = <_SyndicException>[];
+    for (final structure in structures) {
+      if (!structure.hasDifferentSyndic || structure.id == null) continue;
+
+      String label;
+      if (structure.geranceRef != null) {
+        final resolved = await _flow.resolve(structure.geranceRef!);
+        label = resolved?.name ?? 'Agence introuvable';
+      } else if (structure.syndicAgency != null) {
+        label = structure.syndicAgency!.name;
+      } else {
+        continue; // hasDifferentSyndic coché mais rien de renseigné
+      }
+
+      exceptions.add(_SyndicException(
+        structureId: structure.id!,
+        structureName: structure.name,
+        label: label,
+      ));
+    }
+
+    if (mounted) {
+      setState(() {
+        _syndicExceptions = exceptions;
+        _loadingExceptions = false;
+      });
+    }
   }
 
   void _initFields() {
@@ -98,6 +153,12 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
       _controllers["zipCode"]!.text = r.zipCode;
       _controllers["city"]!.text = r.city;
 
+      // Si référencé dans Gerance, on résout depuis la source à jour plutôt
+      // que de se fier à une copie potentiellement figée.
+      if (r.geranceRef != null) {
+        r.syndicAgency = await _flow.resolve(r.geranceRef!);
+      }
+
       // Mail de contact (si non délégué à l’ouverture)
       _controllers["mail_contact"]!.text = r.syndicAgency?.syndic?.mail ?? "";
 
@@ -130,32 +191,19 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
     }
   }
 
-  // --- Recherche d'agence par email (via services) ---
+  // --- Recherche d'agence par email (via AgencySearchFlow) ---
   Future<void> _searchAgencyByEmail(String emailPart) async {
     setState(() => isSearching = true);
 
-    final results =
-        await _agencyServices.searchAgencyByEmail('serviceSyndic', emailPart);
+    final results = await _flow.search(emailPart);
 
     setState(() {
       if (results.isEmpty) {
-        // Agence par défaut si aucune trouvée
-        final newAgency = Agency(
-          id: '',
-          name: emailPart,
-          city: '',
-          numeros: '',
-          street: '',
-          voie: '',
-          zipCode: '',
-          syndic: AgencyDept(
-            agents: [],
-            mail: emailPart,
-            phone: '',
-          ),
-        );
+        // Aucun match dans Gerance : entrée custom, non référencée.
+        final newAgency = _flow.buildCustomAgency(emailPart);
         searchResults = [newAgency];
         widget.residence.syndicAgency = newAgency;
+        widget.residence.geranceRef = null;
         _itemSelected = true;
 
         // Remplir les contrôleurs dérivés
@@ -213,10 +261,44 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
     );
   }
 
+  Widget _buildSyndicCard(String structureId, String structureName,
+      String syndicLabel) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: ListTile(
+        title: MyTextStyle.lotName(
+          structureName,
+          Colors.black87,
+          SizeFont.h3.size,
+        ),
+        subtitle: MyTextStyle.annonceDesc(
+          syndicLabel,
+          SizeFont.h3.size,
+          1,
+        ),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ManageStructure(
+                residence: widget.residence,
+                color: widget.color,
+                initialExpandedStructureId: structureId,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -261,21 +343,12 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
             ),
             const SizedBox(height: 30),
 
-            Align(
-              alignment: Alignment.centerLeft,
-              child: MyTextStyle.lotName(
-                "Votre Syndic de Copropriété",
-                Colors.black87,
-                SizeFont.h2.size,
-              ),
-            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                SizedBox(
-                  width: width / 1.5,
+                Expanded(
                   child: MyTextStyle.annonceDesc(
-                    "Souhaitez-vous déléguer la gestion de votre résidence? ",
+                    "Souhaitez-vous déléguer la gestion de votre résidence ?",
                     SizeFont.h3.size,
                     2,
                   ),
@@ -294,10 +367,32 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
                           // Réinitialiser l'agence sélectionnée
                           _itemSelected = false;
                           widget.residence.syndicAgency = null;
+                          widget.residence.geranceRef = null;
                         });
                       },
                     )),
               ],
+            ),
+            const SizedBox(height: 40),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: MyTextStyle.lotName(
+                _syndicExceptions.isNotEmpty
+                    ? "Vos Syndics de Copropriétés"
+                    : "Votre Syndic de Copropriété",
+                Colors.black87,
+                SizeFont.h1.size,
+              ),
+            ),
+            const SizedBox(height: 40),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: MyTextStyle.lotName(
+                "Le syndic de votre résidence",
+                Colors.black87,
+                SizeFont.h2.size,
+                FontWeight.normal,
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -313,8 +408,9 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
                 controller: _controllers["mail_contact"]!,
                 onSelect: (Agency agency) {
                   setState(() {
-                    // Agence choisie
-                    widget.residence.syndicAgency = agency;
+                    // Agence choisie, référencée dans Gerance
+                    widget.residence.syndicAgency = agency; // cache d'affichage
+                    widget.residence.geranceRef = _flow.refFor(agency);
                     _itemSelected = true;
                     searchResults.clear();
                     _controllers["agencyName"]!.text = agency.name;
@@ -340,6 +436,7 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
                       isSearching = false;
                       _itemSelected = false;
                       widget.residence.syndicAgency = null;
+                      widget.residence.geranceRef = null;
                       // vider affichage agence
                       for (final k in [
                         "agencyName",
@@ -362,11 +459,8 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
               const SizedBox(height: 12),
               if (delegated &&
                   _controllers["mail_contact"]!.text.isNotEmpty) ...[
-                if (_itemSelected &&
-                    widget.residence.syndicAgency != null &&
-                    searchResults
-                        .any((a) => a.id == widget.residence.syndicAgency!.id))
-                  // Mail trouvé dans la liste → champs non éditables
+                if (widget.residence.geranceRef != null)
+                  // Référencé dans Gerance → champs non éditables
                   ...[
                   buildField("Nom de l'agence", "agencyName", editable: false),
                   buildField("Adresse", "address", editable: false),
@@ -405,6 +499,26 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
                   ),
                 ],
               ]
+            ],
+
+            // La gérance principale n'est volontairement pas affichée en
+            // carte : elle est déjà éditable ci-dessus. Seules les exceptions
+            // par bâtiment (hasDifferentSyndic) sont montrées ici.
+            if (!_loadingExceptions && _syndicExceptions.isNotEmpty) ...[
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: MyTextStyle.lotName(
+                  "Vos autres syndics",
+                  Colors.black87,
+                  SizeFont.h2.size,
+                  FontWeight.normal,
+                ),
+              ),
+              const SizedBox(height: 12),
+              ..._syndicExceptions.map(
+                (e) => _buildSyndicCard(e.structureId, e.structureName, e.label),
+              ),
             ],
 
             const SizedBox(height: 30),
@@ -475,8 +589,14 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
     };
 
     // Gestion de l'agence si délégué
-    if (delegated &&
-        (widget.residence.syndicAgency?.name?.isNotEmpty ?? false)) {
+    if (delegated && widget.residence.geranceRef != null) {
+      // Référencé dans Gerance : on ne persiste que la référence, jamais de
+      // copie (les champs affichés sont en lecture seule dans ce cas, cf.
+      // build() ci-dessus).
+      updatedData['geranceRef'] = widget.residence.geranceRef!.toJson();
+      updatedData['syndicAgency'] = FieldValue.delete();
+    } else if (delegated &&
+        (widget.residence.syndicAgency?.name.isNotEmpty ?? false)) {
       if (_itemSelected) {
         final selectedAgency = Agency(
           id: widget.residence.syndicAgency?.id ?? '',
@@ -495,9 +615,11 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
 
         widget.residence.syndicAgency = selectedAgency;
         updatedData['syndicAgency'] = selectedAgency.toJson();
+        updatedData['geranceRef'] = FieldValue.delete();
       }
     } else {
-      updatedData['syndicAgency'] = null;
+      updatedData['syndicAgency'] = FieldValue.delete();
+      updatedData['geranceRef'] = FieldValue.delete();
     }
 
     final success =
