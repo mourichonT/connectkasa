@@ -214,11 +214,14 @@ class _ManageListLotState extends State<ManageListLot> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             // Affichage groupé des lots par bâtiment
             ...sortedEntries.map((entry) {
               final buildingName = entry.key;
@@ -321,36 +324,45 @@ class _ManageListLotState extends State<ManageListLot> {
               );
             }).toList(),
 
-            const SizedBox(height: 20),
-            Center(
-              child: ButtonAdd(
-                color: Colors.transparent,
-                icon: Icons.add,
-                text: "Ajouter un lot",
-                size: SizeFont.h3.size,
-                horizontal: 20,
-                vertical: 10,
-                colorText: widget.color,
-                borderColor: Colors.transparent,
-                function: _addLot,
+                  const SizedBox(height: 20),
+                  Center(
+                    child: ButtonAdd(
+                      color: Colors.transparent,
+                      icon: Icons.add,
+                      text: "Ajouter un lot",
+                      size: SizeFont.h3.size,
+                      horizontal: 20,
+                      vertical: 10,
+                      colorText: widget.color,
+                      borderColor: Colors.transparent,
+                      function: _addLot,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 30),
-            Center(
-              child: ButtonAdd(
-                color: widget.color,
-                icon: Icons.save,
-                text: "Enregistrer les lots",
-                size: SizeFont.h3.size,
-                horizontal: 20,
-                vertical: 10,
-                colorText: Colors.white,
-                borderColor: Colors.transparent,
-                function: _saveLots,
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+              child: Center(
+                child: ButtonAdd(
+                  color: widget.color,
+                  icon: Icons.save,
+                  text: "Enregistrer les lots",
+                  size: SizeFont.h3.size,
+                  horizontal: 20,
+                  vertical: 10,
+                  colorText: Colors.white,
+                  borderColor: Colors.transparent,
+                  function: _saveLots,
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

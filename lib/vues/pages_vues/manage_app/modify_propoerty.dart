@@ -281,13 +281,14 @@ class _ModifyPropertyState extends State<ModifyProperty> {
 
   Widget _buildDeleteButton() {
     return Container(
-      height: 50,
-      width: MediaQuery.of(context).size.width,
+      padding: const EdgeInsets.only(bottom: 20),
+      //height: 50,
+     // width: MediaQuery.of(context).size.width,
       color: Colors.transparent,
-      child: Center(
+      child: SizedBox(
         child: ButtonAdd(
           function: () {}, // À implémenter : suppression
-          text: "Supprimer",
+          text: "Supprimer ce lot",
           color: Colors.black26,
           horizontal: 30,
           vertical: 10,

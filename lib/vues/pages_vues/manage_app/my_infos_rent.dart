@@ -102,11 +102,14 @@ class _MyInfosRentState extends State<MyInfosRent> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             MyTextStyle.lotName(
               "Mon emploi actuel",
               Colors.black,
@@ -415,34 +418,42 @@ class _MyInfosRentState extends State<MyInfosRent> {
                 ),
               ],
             ),
-            const SizedBox(height: 50),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ButtonAdd(
-                  color: widget.color,
-                  text: "Enregistrer",
-                  size: SizeFont.h3.size,
-                  horizontal: 20,
-                  vertical: 10,
-                  colorText: Colors.white,
-                  borderColor: widget.color,
-                  function: saveUserInfo,
-                ),
-                ButtonAdd(
-                  color: Colors.transparent,
-                  text: "Partager",
-                  size: SizeFont.h3.size,
-                  horizontal: 20,
-                  vertical: 10,
-                  colorText: widget.color,
-                  borderColor: widget.color,
-                  function: () => sendFile(context),
-                ),
-              ],
-            ),
           ],
-        ),
+              ),
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ButtonAdd(
+                    color: widget.color,
+                    text: "Enregistrer",
+                    size: SizeFont.h3.size,
+                    horizontal: 20,
+                    vertical: 10,
+                    colorText: Colors.white,
+                    borderColor: widget.color,
+                    function: saveUserInfo,
+                  ),
+                  ButtonAdd(
+                    color: Colors.transparent,
+                    text: "Partager",
+                    size: SizeFont.h3.size,
+                    horizontal: 20,
+                    vertical: 10,
+                    colorText: widget.color,
+                    borderColor: widget.color,
+                    function: () => sendFile(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

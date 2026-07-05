@@ -99,7 +99,7 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
                     uid: widget.uid,
                     email: widget.email,
                   ).confirmDeleteAccount(),
-                  color: Colors.red,
+                  color: Colors.red[800]!,
                   icon: Icons.clear,
                   text: "Supprimer le compte",
                   horizontal: 20,

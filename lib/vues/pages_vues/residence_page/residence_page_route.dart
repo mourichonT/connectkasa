@@ -22,7 +22,7 @@ class ResidencePageRoute extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
           title: MyTextStyle.lotName(
-              'Gestion des biens', Colors.black87, SizeFont.h1.size),
+              'Gestion de vos residences', Colors.black87, SizeFont.h1.size),
         ),
         body: Padding(
             padding: const EdgeInsets.only(top: 50),

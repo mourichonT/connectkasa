@@ -269,11 +269,14 @@ class ManageStructureState extends State<ManageStructure> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
             MyTextStyle.postDesc(
                 "Modélisez votre résidence, ajoutez les structures représentant chaque bâtiment et ses caractéristiques.",
                 SizeFont.h2.size,
@@ -751,23 +754,29 @@ class ManageStructureState extends State<ManageStructure> {
                 ),
               );
             }).toList(),
-            const SizedBox(height: 10),
-            Center(
-              child: ButtonAdd(
-                color: Colors.transparent,
-                icon: Icons.add,
-                text: "Ajouter une structure",
-                size: SizeFont.h3.size,
-                horizontal: 20,
-                vertical: 10,
-                colorText: widget.color,
-                borderColor: Colors.transparent,
-                function: addBuilding,
+                  const SizedBox(height: 10),
+                  Center(
+                    child: ButtonAdd(
+                      color: Colors.transparent,
+                      icon: Icons.add,
+                      text: "Ajouter une structure",
+                      size: SizeFont.h3.size,
+                      horizontal: 20,
+                      vertical: 10,
+                      colorText: widget.color,
+                      borderColor: Colors.transparent,
+                      function: addBuilding,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.only(top: 30, bottom: 40),
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               child: Center(
                 child: ButtonAdd(
                   color: widget.color,
@@ -782,8 +791,8 @@ class ManageStructureState extends State<ManageStructure> {
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
