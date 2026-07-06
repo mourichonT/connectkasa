@@ -161,7 +161,11 @@ exports.cleanupUserData = functionsV1.auth.user().onDelete(async (user) => {
 });
 
 exports.notifyNewPost = onDocumentCreated(
-    {document: "Residence/{residenceId}/post/{postId}"},
+    // region alignée avec la localisation de la base Firestore (eur3) :
+    // sans ça, le trigger Eventarc (créé dans la région de la base) doit
+    // relayer chaque événement vers us-central1 (région par défaut),
+    // un saut réseau inter-région inutile à chaque nouveau post.
+    {document: "Residence/{residenceId}/post/{postId}", region: "europe-west1"},
     async (event) => {
       const snapshot = event.data;
       const db = admin.firestore();
@@ -214,26 +218,32 @@ exports.notifyNewPost = onDocumentCreated(
       users = users.filter(
           (uid) => typeof uid === "string" &&
         uid.trim() !== "");
-      const tokens = [];
+      // Lectures parallélisées (Promise.all) plutôt qu'une boucle
+      // séquentielle : pour une résidence de N résidents, N lectures en
+      // parallèle au lieu de N lectures l'une après l'autre. Chaque
+      // promesse gère sa propre erreur (renvoie null) pour qu'un token
+      // en échec ne fasse pas échouer Promise.all() pour tout le monde.
+      const tokenDocs = await Promise.all(
+          users.map((uid) =>
+            // Token FCM dans User/{uid}/private/fcm, pas directement sur
+            // User/{uid} (voir firestore.rules : lecture restreinte au
+            // propriétaire, impossible à faire champ par champ sur le
+            // document principal qui reste lisible par tous).
+            db.collection("User").doc(uid)
+                .collection("private").doc("fcm").get()
+                .catch((error) => {
+                  console.error(
+                      `Erreur récupération token pour uid ${uid} :`, error);
+                  return null;
+                }),
+          ),
+      );
 
-      for (const uid of users) {
-        try {
-          // Token FCM dans User/{uid}/private/fcm, pas directement sur
-          // User/{uid} (voir firestore.rules : lecture restreinte au
-          // propriétaire, impossible à faire champ par champ sur le
-          // document principal qui reste lisible par tous).
-          const tokenDoc = await db.collection("User").doc(uid)
-              .collection("private").doc("fcm").get();
-          if (tokenDoc.exists) {
-            const tokenData = tokenDoc.data();
-            if (tokenData && tokenData.token) {
-              tokens.push(tokenData.token);
-            }
-          }
-        } catch (error) {
-          console.error(`Erreur récupération token pour uid ${uid} :`, error);
-        }
-      }
+      const tokens = tokenDocs
+          .filter((tokenDoc) => tokenDoc && tokenDoc.exists)
+          .map((tokenDoc) => tokenDoc.data())
+          .filter((tokenData) => tokenData && tokenData.token)
+          .map((tokenData) => tokenData.token);
 
       if (tokens.length === 0) {
         console.log("Aucun token FCM disponible.");
@@ -284,7 +294,12 @@ exports.notifyNewPost = onDocumentCreated(
 );
 
 exports.notifyNewMessage = onDocumentCreated(
-    {document: "Residence/{residenceId}/chat/{chatId}/messages/{messageId}"},
+    // region alignée avec la localisation de la base Firestore (eur3),
+    // voir commentaire sur notifyNewPost.
+    {
+      document: "Residence/{residenceId}/chat/{chatId}/messages/{messageId}",
+      region: "europe-west1",
+    },
     async (event) => {
       const messaging = admin.messaging();
       const db = admin.firestore();
@@ -356,7 +371,12 @@ exports.notifyNewMessage = onDocumentCreated(
 
 
 exports.notifyDemandeLoc = onDocumentCreated(
-    {document: "User/{proprietaireUid}/demandes_loc/{demandeId}"},
+    // region alignée avec la localisation de la base Firestore (eur3),
+    // voir commentaire sur notifyNewPost.
+    {
+      document: "User/{proprietaireUid}/demandes_loc/{demandeId}",
+      region: "europe-west1",
+    },
     async (event) => {
       const snapshot = event.data;
       const demandeData = snapshot.data();
