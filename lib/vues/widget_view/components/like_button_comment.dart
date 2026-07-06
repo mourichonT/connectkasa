@@ -1,5 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_comment_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_comment_repository.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
 import 'package:flutter/material.dart';
 
@@ -45,28 +45,31 @@ class LikeButtonPostState extends State<LikeButtonComment> {
           onPressed: () async {
             //Appeler la méthode pour mettre à jour les likes dans la base de données
             if (!alreadyLiked) {
-              await DataBasesCommentServices().updateCommentLikes(
+              final result = await FirestoreCommentRepository().updateCommentLikes(
                 widget.residence,
                 widget.postId,
                 widget.comment.id,
                 widget.uid,
               );
-              setState(() {
-                alreadyLiked = true;
-                likeCount++; // Incrémentez likeCount après l'ajout de like
-              });
+              if (result.isSuccess) {
+                setState(() {
+                  alreadyLiked = true;
+                  likeCount++; // Incrémentez likeCount après l'ajout de like
+                });
+              }
             } else {
-              await DataBasesCommentServices().removeCommentLike(
+              final result = await FirestoreCommentRepository().removeCommentLike(
                 widget.residence,
                 widget.postId,
                 widget.comment.id,
                 widget.uid,
               );
-
-              setState(() {
-                alreadyLiked = false;
-                likeCount--; // Décrémentez likeCount après la suppression de like
-              });
+              if (result.isSuccess) {
+                setState(() {
+                  alreadyLiked = false;
+                  likeCount--; // Décrémentez likeCount après la suppression de like
+                });
+              }
             }
           },
         ),

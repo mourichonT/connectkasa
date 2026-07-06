@@ -1,4 +1,4 @@
-import 'package:connect_kasa/controllers/services/databases_comment_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_comment_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/section_comment.dart';
@@ -29,18 +29,24 @@ class CommentButton extends StatefulWidget {
 
 class CommentButtonState extends State<CommentButton> {
   int commentCount = 0;
-  final DataBasesCommentServices _databaseCommentServices =
-      DataBasesCommentServices();
+  final FirestoreCommentRepository _commentRepository =
+      FirestoreCommentRepository();
   late Post post;
   late String idPost;
   late Future<List<Comment>> comment;
   bool _isDisposed = false;
 
+  Future<List<Comment>> _fetchComments() {
+    return _commentRepository
+        .getComments(widget.residenceSelected, widget.post.id)
+        .then((result) =>
+            result.when(success: (c) => c, failure: (error) => throw error));
+  }
+
   @override
   void initState() {
     super.initState();
-    comment = _databaseCommentServices.getComments(
-        widget.residenceSelected, widget.post.id);
+    comment = _fetchComments();
     post = widget.post;
     idPost = widget.post.id;
 
@@ -127,8 +133,7 @@ class CommentButtonState extends State<CommentButton> {
 
     if (mounted) {
       setState(() {
-        comment = _databaseCommentServices.getComments(
-            widget.residenceSelected, widget.post.id);
+        comment = _fetchComments();
       });
 
       if (_isDisposed) return;

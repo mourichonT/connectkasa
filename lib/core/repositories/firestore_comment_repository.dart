@@ -1,14 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/core/errors/app_exceptions.dart';
+import 'package:connect_kasa/core/repositories/comment_repository.dart';
+import 'package:connect_kasa/core/result/result.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
 
-class DataBasesCommentServices {
-  final FirebaseFirestore db = FirebaseFirestore.instance;
+class FirestoreCommentRepository implements ICommentRepository {
+  final FirebaseFirestore _firestore;
 
-  Future<List<Comment>> getComments(String docRes, String postId) async {
+  FirestoreCommentRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  @override
+  Future<Result<List<Comment>>> getComments(
+      String docRes, String postId) async {
     List<Comment> comments = [];
 
     try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
           .collection("Residence")
           .doc(docRes)
           .collection("post")
@@ -16,7 +24,7 @@ class DataBasesCommentServices {
           .get();
 
       for (var postSnapshot in querySnapshot.docs) {
-        QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await db
+        QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await _firestore
             .collection("Residence")
             .doc(docRes)
             .collection("post")
@@ -39,25 +47,23 @@ class DataBasesCommentServices {
               replies.add(Comment.fromMap(replyData));
               replies.sort((a, b) => b.timestamp.compareTo(a.timestamp));
             }
-            // Ajouter les réponses au commentaire
             comment.replies = replies;
           }
           postComments.add(comment);
         }
-// Trier les commentaires par timestamp
         postComments.sort((a, b) => b.timestamp.compareTo(a.timestamp));
         comments.addAll(postComments);
       }
-    } catch (e) {
-      print("Error completing in getComments: $e");
-    }
 
-    return comments;
+      return Result.success(comments);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
   }
 
   Future<DocumentReference?> _getCommentRef(
       String residenceId, String postId, String commentId) async {
-    final postQuery = await FirebaseFirestore.instance
+    final postQuery = await _firestore
         .collection("Residence")
         .doc(residenceId)
         .collection("post")
@@ -65,9 +71,11 @@ class DataBasesCommentServices {
         .limit(1)
         .get();
 
-    if (postQuery.docs.isEmpty) throw Exception("Post not found with ID: $postId");
+    if (postQuery.docs.isEmpty) {
+      throw Exception("Post not found with ID: $postId");
+    }
 
-    final commentQuery = await FirebaseFirestore.instance
+    final commentQuery = await _firestore
         .collection("Residence")
         .doc(residenceId)
         .collection("post")
@@ -80,35 +88,41 @@ class DataBasesCommentServices {
     return commentQuery.docs.first.reference;
   }
 
-  Future<void> updateCommentLikes(String residenceId, String postId,
+  @override
+  Future<Result<void>> updateCommentLikes(String residenceId, String postId,
       String commentId, String userId) async {
     try {
       final commentRef = await _getCommentRef(residenceId, postId, commentId);
-      await commentRef!.update({'like': FieldValue.arrayUnion([userId])});
+      await commentRef!.update({
+        'like': FieldValue.arrayUnion([userId])
+      });
+      return const Result.success(null);
     } catch (e) {
-      print("Error updating likes for comment $commentId: $e");
-      rethrow;
+      return Result.failure(AppException.from(e));
     }
   }
 
-  Future<void> removeCommentLike(String residenceId, String postId,
+  @override
+  Future<Result<void>> removeCommentLike(String residenceId, String postId,
       String commentId, String userId) async {
     try {
       final commentRef = await _getCommentRef(residenceId, postId, commentId);
-      await commentRef!.update({'like': FieldValue.arrayRemove([userId])});
+      await commentRef!.update({
+        'like': FieldValue.arrayRemove([userId])
+      });
+      return const Result.success(null);
     } catch (e) {
-      print("Error removing like for comment $commentId by user $userId: $e");
-      rethrow;
+      return Result.failure(AppException.from(e));
     }
   }
 
-  Future<List<Comment>> addComment(
+  @override
+  Future<Result<List<Comment>>> addComment(
       String docRes, String postId, Comment newComment,
       {String? commentId, String? initialComment}) async {
     List<Comment> comments = [];
     try {
-      // Récupérer les posts avec l'ID spécifié
-      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
           .collection("Residence")
           .doc(docRes)
           .collection("post")
@@ -116,13 +130,10 @@ class DataBasesCommentServices {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        // Si un post correspondant à l'ID est trouvé
         for (var postSnapshot in querySnapshot.docs) {
-          // Ajouter le nouveau commentaire à la collection
           if (newComment.originalCommment == false &&
               newComment.initialComment == null) {
-            // Effectuer une requête pour obtenir le document qui correspond à la valeur de commentId
-            var parentCommentQuery = await db
+            var parentCommentQuery = await _firestore
                 .collection("Residence")
                 .doc(docRes)
                 .collection("post")
@@ -132,10 +143,8 @@ class DataBasesCommentServices {
                 .get();
 
             var parentCommentQueryID = parentCommentQuery.docs.first.id;
-            // Vérifier s'il existe un document correspondant
             if (parentCommentQueryID.isNotEmpty) {
-              // Ajouter la réponse de la réponse au commentaire initial
-              await db
+              await _firestore
                   .collection("Residence")
                   .doc(docRes)
                   .collection("post")
@@ -147,8 +156,7 @@ class DataBasesCommentServices {
             } else {
               var parentCommentId = parentCommentQuery.docs.first.id;
 
-              // Ajouter le nouveau commentaire à la collection "replies"
-              await db
+              await _firestore
                   .collection("Residence")
                   .doc(docRes)
                   .collection("post")
@@ -160,7 +168,7 @@ class DataBasesCommentServices {
             }
           } else if (newComment.originalCommment == false &&
               newComment.initialComment != null) {
-            var replyCommentQuery = await db
+            var replyCommentQuery = await _firestore
                 .collection("Residence")
                 .doc(docRes)
                 .collection("post")
@@ -171,8 +179,7 @@ class DataBasesCommentServices {
 
             var replyCommentQueryId = replyCommentQuery.docs.first.id;
             if (replyCommentQueryId.isNotEmpty) {
-              // Ajouter la réponse de la réponse au commentaire initial
-              await db
+              await _firestore
                   .collection("Residence")
                   .doc(docRes)
                   .collection("post")
@@ -181,22 +188,18 @@ class DataBasesCommentServices {
                   .doc(replyCommentQueryId)
                   .collection("replies")
                   .add(newComment.toMap());
-            } else {
-              print("impossible de poster la reponse");
             }
           } else {
-            // Si parentCommentId n'est pas fourni, cela signifie que nous ajoutons un commentaire normal
-            await db
+            await _firestore
                 .collection("Residence")
                 .doc(docRes)
                 .collection("post")
                 .doc(postSnapshot.id)
                 .collection("comments")
-                .add(newComment.toMap()); // Ajouter le nouveau commentaire
+                .add(newComment.toMap());
           }
 
-          // Récupérer tous les commentaires du post
-          QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await db
+          QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await _firestore
               .collection("Residence")
               .doc(docRes)
               .collection("post")
@@ -204,17 +207,15 @@ class DataBasesCommentServices {
               .collection("comments")
               .get();
 
-          // Convertir chaque document en objet Comment et les ajouter à la liste de commentaires
           for (var docSnapshot in commentsSnapshot.docs) {
             comments.add(Comment.fromMap(docSnapshot.data()));
           }
         }
-      } else {
-        print("Post with ID $postId does not exist");
       }
+
+      return Result.success(comments);
     } catch (e) {
-      print("Error completing in getComments: $e");
+      return Result.failure(AppException.from(e));
     }
-    return comments;
   }
 }

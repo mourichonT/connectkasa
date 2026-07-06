@@ -1,7 +1,7 @@
 // ignore_for_file: must_be_immutable, library_private_types_in_public_api
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/services/databases_comment_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_comment_repository.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
 import 'package:connect_kasa/vues/widget_view/components/comment_tile.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +33,8 @@ class _SectionCommentState extends State<SectionComment>
   FocusNode inputFocusNode = FocusNode();
   bool focused = false;
   TextEditingController _textEditingController = TextEditingController();
-  final DataBasesCommentServices _databaseServices = DataBasesCommentServices();
+  final FirestoreCommentRepository _commentRepository =
+      FirestoreCommentRepository();
   late Future<List<Comment>> _allComments;
   bool isReply = false;
   String commentId = "";
@@ -79,7 +80,7 @@ class _SectionCommentState extends State<SectionComment>
             children: [
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.7,
-                child: ListView.separated(
+                child: ListView.builder(
                   shrinkWrap: true,
                   physics: const BouncingScrollPhysics(),
                   itemCount: allComments.length,
@@ -115,10 +116,6 @@ class _SectionCommentState extends State<SectionComment>
                       ],
                     );
                   },
-                  separatorBuilder: (BuildContext context, int index) =>
-                      const Divider(
-                    thickness: 0.5,
-                  ),
                 ),
                 // Ajout du champ de commentaire en bas
               ),
@@ -199,6 +196,13 @@ class _SectionCommentState extends State<SectionComment>
     );
   }
 
+  Future<List<Comment>> _fetchComments() {
+    return _commentRepository
+        .getComments(widget.residenceSelected, widget.postSelected)
+        .then((result) =>
+            result.when(success: (c) => c, failure: (error) => throw error));
+  }
+
   void _addComment(TextEditingController textEditingController, bool isReply,
       {String? commentId, required String? initialComment}) async {
     // String commentFormatted = "";
@@ -208,7 +212,7 @@ class _SectionCommentState extends State<SectionComment>
       final String formattedComment =
           _formatComment(textEditingController.text);
 
-      await _databaseServices.addComment(
+      final result = await _commentRepository.addComment(
           widget.residenceSelected,
           widget.postSelected,
           Comment(
@@ -223,34 +227,32 @@ class _SectionCommentState extends State<SectionComment>
           commentId: commentId,
           initialComment: initialComment);
 
-      setState(() {
-        _allComments = _databaseServices.getComments(
-            widget.residenceSelected, widget.postSelected);
-      });
+      if (result.isSuccess) {
+        setState(() {
+          _allComments = _fetchComments();
+        });
+      }
       // isReply = false;
     } else {
-      try {
-        // Ajouter le commentaire à la base de données
-        await _databaseServices.addComment(
-          widget.residenceSelected,
-          widget.postSelected,
-          Comment(
-            comment: _textEditingController.text,
-            user: widget.uid,
-            timestamp: Timestamp.now(),
-            like: [],
-            id: uniqueId,
-            originalCommment: !isReply,
-          ),
-        );
+      final result = await _commentRepository.addComment(
+        widget.residenceSelected,
+        widget.postSelected,
+        Comment(
+          comment: _textEditingController.text,
+          user: widget.uid,
+          timestamp: Timestamp.now(),
+          like: [],
+          id: uniqueId,
+          originalCommment: !isReply,
+        ),
+      );
+      if (result.isSuccess) {
         // Actualiser la liste des commentaires
         setState(() {
-          _allComments = _databaseServices.getComments(
-              widget.residenceSelected, widget.postSelected);
+          _allComments = _fetchComments();
         });
-      } catch (e) {
-        print("Error adding comment: $e");
-        // Gérer l'erreur
+      } else {
+        print("Error adding comment: ${result.errorOrNull}");
       }
     }
     widget.onCommentAdded();

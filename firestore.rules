@@ -142,7 +142,13 @@ service cloud.firestore {
           request.resource.data.user == request.auth.uid;
         // Modération : un CS member peut éditer/supprimer n'importe quel
         // post, pas seulement les siens (comportement actuel de l'app).
-        allow update, delete: if isResidenceMember(residenceId) &&
+        // Liker le post de quelqu'un d'autre est aussi un update() Firestore
+        // - autorisé séparément à tout résident du groupe, uniquement si le
+        // seul champ modifié est "like" (même pattern que les commentaires).
+        allow update: if isResidenceMember(residenceId) &&
+          (resource.data.user == request.auth.uid || isCsMember(residenceId) ||
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like']));
+        allow delete: if isResidenceMember(residenceId) &&
           (resource.data.user == request.auth.uid || isCsMember(residenceId));
 
         match /signalements/{id} {
@@ -153,11 +159,21 @@ service cloud.firestore {
 
         match /comments/{id} {
           allow read, create: if isResidenceMember(residenceId);
-          allow update, delete: if resource.data.user == request.auth.uid || isCsMember(residenceId);
+          // Édition/suppression complète réservée à l'auteur (ou modération) ;
+          // mais liker le commentaire de quelqu'un d'autre est aussi un
+          // update() Firestore - autorisé séparément à tout résident du
+          // groupe, uniquement si le seul champ modifié est "like".
+          allow update: if resource.data.user == request.auth.uid || isCsMember(residenceId) ||
+            (isResidenceMember(residenceId) &&
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like']));
+          allow delete: if resource.data.user == request.auth.uid || isCsMember(residenceId);
 
           match /replies/{id} {
             allow read, create: if isResidenceMember(residenceId);
-            allow update, delete: if resource.data.user == request.auth.uid || isCsMember(residenceId);
+            allow update: if resource.data.user == request.auth.uid || isCsMember(residenceId) ||
+              (isResidenceMember(residenceId) &&
+                request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like']));
+            allow delete: if resource.data.user == request.auth.uid || isCsMember(residenceId);
           }
         }
       }
