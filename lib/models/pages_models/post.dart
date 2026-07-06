@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/models/pages_models/post_style.dart';
 
 class Post {
   String id;
@@ -22,12 +23,7 @@ class Post {
   List<String>? participants;
   List<String>? eventType;
   int? price;
-  String? backgroundColor;
-  String? backgroundImage;
-  double? fontSize;
-  String? fontWeight;
-  String? fontColor;
-  String? fontStyle;
+  PostStyle? style;
   String? prestaName;
 
   Post(
@@ -52,13 +48,8 @@ class Post {
       this.participants = const [],
       this.eventType = const [],
       this.price = 0,
-      this.backgroundColor,
-      this.backgroundImage,
-      this.prestaName,
-      this.fontSize,
-      this.fontWeight,
-      this.fontColor,
-      this.fontStyle}) {
+      this.style,
+      this.prestaName}) {
     _pathImage = pathImage;
     _statu = statu;
     _subtype = subtype;
@@ -204,12 +195,19 @@ class Post {
       participants: convertedParticipantsList,
       eventType: convertedEventTyeList,
       price: map['price'] ?? 0,
-      backgroundColor: map['backgroundColor'],
-      backgroundImage: map['backgroundImage'],
-      fontColor: map['fontColor'],
-      fontSize: map['fontSize'],
-      fontWeight: map['fontWeight'],
-      fontStyle: map['fontStyle'],
+      // Nouveau format : style imbriqué. Ancien format (documents déjà en
+      // base avant ce refactor) : champs à plat directement sur le post -
+      // on les relit tels quels, sans migration de données nécessaire.
+      style: map['style'] != null
+          ? PostStyle.fromMap(Map<String, dynamic>.from(map['style']))
+          : (map['backgroundColor'] != null ||
+                  map['backgroundImage'] != null ||
+                  map['fontColor'] != null ||
+                  map['fontSize'] != null ||
+                  map['fontWeight'] != null ||
+                  map['fontStyle'] != null
+              ? PostStyle.fromMap(map)
+              : null),
       prestaName: map['prestaName'],
     );
   }
@@ -237,12 +235,7 @@ class Post {
       'hideUser': hideUser,
       'participants': participants,
       'price': price,
-      'backgroundColor': backgroundColor,
-      'backgroundImage': backgroundImage,
-      'fontColor': fontColor,
-      'fontSize': fontSize,
-      'fontWeight': fontWeight,
-      'fontStyle': fontStyle,
+      'style': style?.toMap(),
       'prestaName': prestaName
     };
   }
