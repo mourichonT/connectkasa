@@ -1,40 +1,48 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/services/firestore_paths.dart';
+import 'package:connect_kasa/core/errors/app_exceptions.dart';
+import 'package:connect_kasa/core/repositories/agency_repository.dart';
+import 'package:connect_kasa/core/result/result.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/agency_dept.dart';
 import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 
-class DatabasesAgencyServices {
-  final FirebaseFirestore db = FirebaseFirestore.instance;
+class FirestoreAgencyRepository implements IAgencyRepository {
+  final FirebaseFirestore _firestore;
 
-  /// Recherche par préfixe d'email dans l'index Gerance/{id}/contacts,
-  /// filtré par type de service ("serviceSyndic", "geranceLocative", ...).
-  /// Cet index est généré automatiquement (Cloud Function sync_gerance_contacts)
-  /// à partir du champ Gerance/{id}.services : jamais écrit à la main.
-  Future<List<Agency>> searchByEmail(
-      String emailPart, {
+  FirestoreAgencyRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  @override
+  Future<Result<List<Agency>>> searchByEmail(
+    String emailPart, {
     required String serviceType,
   }) async {
-    if (emailPart.isEmpty) return [];
+    if (emailPart.isEmpty) return const Result.success([]);
 
     try {
-      final contactsSnapshot = await db
+      // Recherche par préfixe d'email dans l'index Gerance/{id}/contacts,
+      // filtré par type de service ("serviceSyndic", "geranceLocative", ...).
+      // Cet index est généré automatiquement (Cloud Function
+      // sync_gerance_contacts) à partir du champ Gerance/{id}.services :
+      // jamais écrit à la main.
+      final contactsSnapshot = await _firestore
           .collectionGroup(FirestorePaths.contacts)
           .where('serviceType', isEqualTo: serviceType)
           .where('mail', isGreaterThanOrEqualTo: emailPart)
-          .where('mail', isLessThanOrEqualTo: '$emailPart')
+          .where('mail', isLessThanOrEqualTo: emailPart)
           .limit(10)
           .get();
 
-      if (contactsSnapshot.docs.isEmpty) return [];
+      if (contactsSnapshot.docs.isEmpty) return const Result.success([]);
 
       // Un même cabinet peut matcher plusieurs contacts (service + agents) ;
       // on ne relit chaque document Gerance parent qu'une seule fois.
       final geranceIds = contactsSnapshot.docs
           .map((doc) => doc.reference.parent.parent!.id)
           .toSet();
-      final geranceDocs = await Future.wait(geranceIds
-          .map((id) => db.collection(FirestorePaths.gerance).doc(id).get()));
+      final geranceDocs = await Future.wait(geranceIds.map(
+          (id) => _firestore.collection(FirestorePaths.gerance).doc(id).get()));
       final geranceById = {
         for (final doc in geranceDocs)
           if (doc.exists) doc.id: doc.data()!
@@ -61,26 +69,25 @@ class DatabasesAgencyServices {
           syndic: AgencyDept.fromJson(serviceData),
         ));
       }
-      return results;
+      return Result.success(results);
     } catch (e) {
-      print("Erreur recherche agence: $e");
-      return [];
+      return Result.failure(AppException.from(e));
     }
   }
 
-  /// Résout une référence enregistrée (GeranceRef) vers les données à jour
-  /// du cabinet dans Gerance. Renvoie null si le cabinet ou le service
-  /// référencé n'existe plus (supprimé côté référentiel entretemps).
-  Future<Agency?> resolveRef(GeranceRef ref) async {
+  @override
+  Future<Result<Agency?>> resolveRef(GeranceRef ref) async {
     try {
-      final doc =
-          await db.collection(FirestorePaths.gerance).doc(ref.geranceId).get();
-      if (!doc.exists) return null;
+      final doc = await _firestore
+          .collection(FirestorePaths.gerance)
+          .doc(ref.geranceId)
+          .get();
+      if (!doc.exists) return const Result.success(null);
 
       final data = doc.data()!;
       final services = data['services'] as Map<String, dynamic>?;
       final serviceData = services?[ref.serviceType] as Map<String, dynamic>?;
-      if (serviceData == null) return null;
+      if (serviceData == null) return const Result.success(null);
 
       String mail = serviceData['mail'] ?? '';
       String phone = serviceData['phone'] ?? '';
@@ -98,7 +105,7 @@ class DatabasesAgencyServices {
         }
       }
 
-      return Agency(
+      return Result.success(Agency(
         id: ref.geranceId,
         name: data['name'] ?? '',
         city: data['city'] ?? '',
@@ -113,10 +120,9 @@ class DatabasesAgencyServices {
           mail: mail,
           phone: phone,
         ),
-      );
+      ));
     } catch (e) {
-      print("Erreur résolution GeranceRef: $e");
-      return null;
+      return Result.failure(AppException.from(e));
     }
   }
 }
