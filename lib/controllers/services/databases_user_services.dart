@@ -146,29 +146,6 @@ class DataBasesUserServices {
     return user;
   }
 
-  static Future<UserInfo?> getUserInfosById(String uid) async {
-    UserInfo? user;
-    try {
-      DocumentSnapshot<Map<String, dynamic>> docSnapshot =
-          await FirebaseFirestore.instance
-              .collection("User")
-              .doc(uid)
-              .collection("profil_locataire")
-              .doc(uid)
-              .get();
-
-      if (docSnapshot.exists && docSnapshot.data() != null) {
-        user = UserInfo.fromMap(docSnapshot.data()!);
-      } else {
-        throw Exception('Aucun profil locataire trouvé pour cet utilisateur');
-      }
-    } catch (e) {
-      print("Erreur lors de la récupération de l'utilisateur : $e");
-    }
-
-    return user;
-  }
-
   Future<String?> getImageUrl(String pathImage) async {
     if (pathImage.isNotEmpty) {
       try {
@@ -301,8 +278,8 @@ class DataBasesUserServices {
         // Récupération des informations supplémentaires
         DocumentSnapshot<Map<String, dynamic>> userInfoDoc = await userDoc
             .reference
-            .collection("profil_locataire")
-            .doc(userId)
+            .collection("private")
+            .doc("profilLocataire")
             .get();
 
         Map<String, dynamic> userInfoMap = userInfoDoc.data() ?? {};
@@ -423,7 +400,7 @@ class DataBasesUserServices {
         "createdDate": updatedUser.createdDate,
       });
 
-      // 3. Préparer les données spécifiques à "profil_locataire"
+      // 3. Préparer les données spécifiques à "private/profilLocataire"
       Map<String, dynamic> profilLocataireData = {
         "revenus": updatedUser.incomes.map((e) => e.toMap()).toList(),
         "activities": updatedUser.jobIncomes.map((e) => e.toMap()).toList(),
@@ -432,11 +409,13 @@ class DataBasesUserServices {
         "phone": updatedUser.phone,
       };
 
-      // 4. Créer ou mettre à jour le document "profil_locataire" (ID fixe =
-      // uid, un seul document par utilisateur : pas besoin de le chercher).
+      // 4. Créer ou mettre à jour le document "private/profilLocataire"
+      // (CRIT 2 - champs sensibles, protégés par une règle dédiée dans
+      // firestore.rules puisque User/{uid} lui-même est lisible par tout
+      // utilisateur connecté).
       await userDocRef
-          .collection("profil_locataire")
-          .doc(updatedUser.uid)
+          .collection("private")
+          .doc("profilLocataire")
           .set(profilLocataireData, SetOptions(merge: true));
 
       return true;
@@ -464,10 +443,7 @@ class DataBasesUserServices {
 
       final userDocRef = userQuery.docs.first.reference;
 
-      final garantsCollection = userDocRef
-          .collection("profil_locataire")
-          .doc(uid)
-          .collection("garants");
+      final garantsCollection = userDocRef.collection("garants");
 
       if (garantDocId != null && garantDocId.isNotEmpty) {
         await garantsCollection.doc(garantDocId).update(garant.toMap());
@@ -486,36 +462,7 @@ class DataBasesUserServices {
     }
   }
 
-  static Future<void> removeListElementTenant({
-    required String uid,
-    required String docId,
-    required String field, // Le champ contenant la liste, ex: 'documents'
-    required dynamic element, // L’élément à supprimer
-  }) async {
-    try {
-      final docRef = FirebaseFirestore.instance
-          .collection('User')
-          .doc(uid)
-          .collection('profil_locataire')
-          .doc(docId);
-
-      await docRef.update({
-        field: FieldValue.arrayRemove([element]),
-      });
-
-      print("Élément '$element' supprimé de la liste '$field'.");
-    } catch (e) {
-      print("Erreur lors de la suppression de l’élément : $e");
-      rethrow;
-    }
-  }
-
-  // Le document "profil_locataire" a un ID fixe égal à uid (un seul par
-  // utilisateur) : pas besoin de le chercher par requête.
-  static Future<String?> getFirstDocId(String uid) async => uid;
-
-  static Future<List<GuarantorInfo>> getGarants(
-      String uid, String docId) async {
+  static Future<List<GuarantorInfo>> getGarants(String uid) async {
     final List<GuarantorInfo> garants = [];
 
     try {
@@ -528,15 +475,10 @@ class DataBasesUserServices {
 
       final userDocRef = userQuery.docs.first.reference;
 
-      final garantDocs = await userDocRef
-          .collection('profil_locataire')
-          .doc(docId)
-          .collection('garants')
-          .get();
+      final garantDocs = await userDocRef.collection('garants').get();
 
       for (var doc in garantDocs.docs) {
-        garants.add(
-            GuarantorInfo.fromMap(doc.data())); // <-- on passe le docId ici
+        garants.add(GuarantorInfo.fromMap(doc.data()));
       }
     } catch (e) {
       print('Erreur lors de la récupération des garants : $e');
@@ -558,14 +500,10 @@ class DataBasesUserServices {
 
       final userDocRef = userQuery.docs.first.reference;
 
-      // Accéder à la sous-collection 'garants' du profil (ID fixe = uid),
-      // et récupérer le garant par son ID
-      final garantDoc = await userDocRef
-          .collection('profil_locataire')
-          .doc(uid)
-          .collection('garants')
-          .doc(garantId)
-          .get();
+      // Accéder à la sous-collection 'garants' et récupérer le garant par
+      // son ID.
+      final garantDoc =
+          await userDocRef.collection('garants').doc(garantId).get();
 
       if (!garantDoc.exists) return null;
 
@@ -576,67 +514,10 @@ class DataBasesUserServices {
     }
   }
 
-  static Future<GuarantorInfo?> getGarantWithInfo(String uid) async {
-    try {
-      // Rechercher l'utilisateur dans Firestore
-      QuerySnapshot<Map<String, dynamic>> userDocRef = await FirebaseFirestore
-          .instance
-          .collection("User")
-          .where("uid", isEqualTo: uid)
-          .get();
-
-      if (userDocRef.docs.isNotEmpty) {
-        DocumentSnapshot<Map<String, dynamic>> userDoc = userDocRef.docs.first;
-        Map<String, dynamic> userMap = userDoc.data()!;
-
-        User user = User.fromMap(userMap);
-
-        // Récupération des informations supplémentaires
-        DocumentSnapshot<Map<String, dynamic>> userInfoDoc = await userDoc
-            .reference
-            .collection("profil_locataire")
-            .doc(uid)
-            .get();
-
-        Map<String, dynamic> userInfoMap = userInfoDoc.data() ?? {};
-
-        return GuarantorInfo(
-          name: user.name,
-          surname: user.surname,
-          email: user.email,
-          birthday: user.birthday,
-          incomes: (userInfoMap['revenus'] as List<dynamic>?)
-                  ?.map(
-                      (e) => IncomeEntry.fromMap(Map<String, dynamic>.from(e)))
-                  .toList() ??
-              [],
-          jobIncomes: (userInfoMap['activities'] as List<dynamic>?)
-                  ?.map((e) => JobEntry.fromMap(Map<String, dynamic>.from(e)))
-                  .toList() ??
-              [],
-          dependent: userInfoMap['dependent'] ?? 0,
-          familySituation: userInfoMap['familySituation'] ?? "",
-          nationality: user.nationality,
-          phone: userInfoMap['phone'] ?? "",
-          sex: user.sex,
-          placeOfborn: user.placeOfborn,
-        );
-      } else {
-        print("Aucun utilisateur trouvé avec l'ID '$uid'.");
-      }
-    } catch (e) {
-      print("Erreur lors de la récupération de l'utilisateur : $e");
-    }
-
-    return null;
-  }
-
   static Future<bool> deleteGarant(String uid, String garantId) async {
     try {
       await FirebaseFirestore.instance
           .collection('User')
-          .doc(uid)
-          .collection('profil_locataire')
           .doc(uid)
           .collection('garants')
           .doc(garantId)

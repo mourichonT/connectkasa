@@ -15,13 +15,11 @@ import 'package:flutter/material.dart';
 class ManagementGarants extends StatefulWidget {
   final Color color;
   final String uid;
-  final String docId; // Ajout du docId
 
   const ManagementGarants({
     super.key,
     required this.color,
     required this.uid,
-    required this.docId,
   });
 
   @override
@@ -34,7 +32,7 @@ class ManagementGarantsState extends State<ManagementGarants> {
   @override
   void initState() {
     super.initState();
-    _garantByUser = DataBasesUserServices.getGarants(widget.uid, widget.docId);
+    _garantByUser = DataBasesUserServices.getGarants(widget.uid);
   }
 
   @override
@@ -86,8 +84,8 @@ class ManagementGarantsState extends State<ManagementGarants> {
                       ),
                     );
                     setState(() {
-                      _garantByUser = DataBasesUserServices.getGarants(
-                          widget.uid, widget.docId);
+                      _garantByUser =
+                          DataBasesUserServices.getGarants(widget.uid);
                     });
                   },
                 );
@@ -115,8 +113,7 @@ class ManagementGarantsState extends State<ManagementGarants> {
                   ),
                 );
                 setState(() {
-                  _garantByUser = DataBasesUserServices.getGarants(
-                      widget.uid, widget.docId);
+                  _garantByUser = DataBasesUserServices.getGarants(widget.uid);
                 });
               },
               text: "Ajouter un garant",

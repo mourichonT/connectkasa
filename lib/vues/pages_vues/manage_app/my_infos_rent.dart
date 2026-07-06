@@ -26,13 +26,11 @@ import 'package:url_launcher/url_launcher.dart';
 class MyInfosRent extends StatefulWidget {
   final String uid;
   final Color color;
-  final String? docId;
 
   const MyInfosRent({
     super.key,
     required this.uid,
     required this.color,
-    this.docId,
   });
 
   @override
@@ -459,15 +457,8 @@ class _MyInfosRentState extends State<MyInfosRent> {
   }
 
   sendFile(BuildContext context) async {
-    if (widget.docId == null) {
-      print("Erreur : docId est null !");
-      return;
-    } else {
-      print("DOC ID : ${widget.docId}");
-    }
-
     await ShareRentFolder.showGuarantorSelectionDialog(
-        context, tenantUser!.uid, widget.docId!);
+        context, tenantUser!.uid);
   }
 
   void saveUserInfo() async {
