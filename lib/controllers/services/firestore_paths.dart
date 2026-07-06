@@ -17,7 +17,6 @@ abstract class FirestorePaths {
   static const String contacts = 'contacts';
   static const String structure = 'structure';
   static const String garants = 'garants';
-  static const String profilLocataire = 'profil_locataire';
   static const String demandesLoc = 'demandes_loc';
   static const String contactsServices = 'contactsServices_fr';
 }

@@ -35,23 +35,6 @@ class _ManagementFolderRentState extends State<ManagementFolderRent> {
   final DataBasesUserServices userServices = DataBasesUserServices();
   final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
 
-  String? docId = "";
-
-  @override
-  void initState() {
-    super.initState();
-    _loadDocId(); // Lance la fonction async sans "await"
-  }
-
-  void _loadDocId() async {
-    final id = await DataBasesUserServices.getFirstDocId(widget.uid);
-    if (mounted) {
-      setState(() {
-        docId = id;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,7 +62,6 @@ class _ManagementFolderRentState extends State<ManagementFolderRent> {
                         builder: (context) => MyInfosRent(
                           uid: widget.uid,
                           color: widget.color,
-                          docId: docId,
                         ),
                       ),
                     );
@@ -97,7 +79,6 @@ class _ManagementFolderRentState extends State<ManagementFolderRent> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => ManagementGarants(
-                                docId: docId!,
                                 color: widget.color,
                                 uid: widget.uid,
                               )),

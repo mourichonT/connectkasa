@@ -57,12 +57,8 @@ class DataBasesDocsServices {
     required String garantId,
   }) async {
     try {
-      // Ajouter le document dans le bon chemin Firestore (profil_locataire
-      // a un ID fixe = userId, un seul document par utilisateur)
       final garantDocRef = db
           .collection("User")
-          .doc(userId)
-          .collection("profil_locataire")
           .doc(userId)
           .collection("garants")
           .doc(garantId)
@@ -267,8 +263,6 @@ class DataBasesDocsServices {
       await FirebaseFirestore.instance
           .collection('User')
           .doc(uid)
-          .collection('profil_locataire')
-          .doc(uid)
           .collection('garants')
           .doc(garantId)
           .collection('documents')
@@ -285,11 +279,8 @@ class DataBasesDocsServices {
   static Future<List<Map<String, dynamic>>> fetchGarantDocuments(
       String uid, String garantId) async {
     try {
-      // Récupérer les documents du garant (profil_locataire a un ID fixe = uid)
       final docSnapshot = await FirebaseFirestore.instance
           .collection('User')
-          .doc(uid)
-          .collection('profil_locataire')
           .doc(uid)
           .collection('garants')
           .doc(garantId)

@@ -61,6 +61,18 @@ service cloud.firestore {
         allow read, write: if isOwner(uid);
       }
 
+      // private/profilLocataire : revenus/situation familiale/téléphone du
+      // dossier locataire (CRIT 2 - ex sous-collection profil_locataire à
+      // document unique, ID toujours = uid). Visibilité plus large que
+      // private/{docId} ci-dessus (le bailleur qui a ce locataire en partage
+      // doit pouvoir consulter son dossier) : match spécifique en plus du
+      // match générique, les deux s'additionnent (Firestore autorise si au
+      // moins un match correspondant l'autorise).
+      match /private/profilLocataire {
+        allow read: if isOwner(uid) || isSharedTenantDoc(uid);
+        allow write: if isOwner(uid);
+      }
+
       match /lots/{lotId} {
         allow read, write: if isOwner(uid) || isCsMember(resource.data.residenceId);
 
@@ -77,18 +89,15 @@ service cloud.firestore {
         allow write: if isOwner(uid);
       }
 
-      match /profil_locataire/{profilId} {
+      // Garants du dossier locataire (CRIT 2 - déplacé depuis
+      // profil_locataire/{uid}/garants, un niveau de nesting en moins).
+      match /garants/{garantId} {
         allow read: if isOwner(uid) || isSharedTenantDoc(uid);
         allow write: if isOwner(uid);
 
-        match /garants/{garantId} {
+        match /documents/{docId} {
           allow read: if isOwner(uid) || isSharedTenantDoc(uid);
           allow write: if isOwner(uid);
-
-          match /documents/{docId} {
-            allow read: if isOwner(uid) || isSharedTenantDoc(uid);
-            allow write: if isOwner(uid);
-          }
         }
       }
 

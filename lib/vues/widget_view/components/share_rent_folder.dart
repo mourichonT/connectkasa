@@ -12,10 +12,10 @@ import 'package:flutter/material.dart';
 
 class ShareRentFolder {
   static Future<List<GuarantorInfo>> showGuarantorSelectionDialog(
-      BuildContext context, String uid, String docId) async {
+      BuildContext context, String uid) async {
     DemandeLoc demande = DemandeLoc();
     List<GuarantorInfo> allGarants =
-        await DataBasesUserServices.getGarants(uid, docId);
+        await DataBasesUserServices.getGarants(uid);
     List<String> selected = [];
 
     print('Garants disponibles:');
