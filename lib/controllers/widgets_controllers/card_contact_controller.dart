@@ -1,4 +1,5 @@
-import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_agency_repository.dart';
+import 'package:connect_kasa/core/result/result.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -27,13 +28,15 @@ class CardContactController extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (geranceRef != null) {
-      return FutureBuilder<Agency?>(
-        future: DatabasesAgencyServices().resolveRef(geranceRef!),
+      return FutureBuilder<Result<Agency?>>(
+        future: FirestoreAgencyRepository().resolveRef(geranceRef!),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          return _buildCard(snapshot.data);
+          final resolvedAgency = snapshot.data
+              ?.when(success: (agency) => agency, failure: (_) => null);
+          return _buildCard(resolvedAgency);
         },
       );
     }

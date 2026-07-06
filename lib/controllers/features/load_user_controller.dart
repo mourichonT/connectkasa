@@ -1,10 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/services/authentification_service.dart';
+import 'package:connect_kasa/core/repositories/auth_repository.dart';
+import 'package:connect_kasa/core/repositories/firebase_auth_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class LoadUserController {
-  AuthentificationService authService = AuthentificationService();
+  final IAuthRepository _authRepository = FirebaseAuthRepository();
   DataBasesUserServices dataBasesUserServices = DataBasesUserServices();
   firebase_auth.UserCredential? user;
 
@@ -21,10 +22,14 @@ class LoadUserController {
   }
 
   Future<String> loadUserDataGoogle() async {
-    user = await authService.signUpWithGoogle();
-    String iud = user!.user!.uid;
-
-    return iud;
+    final result = await _authRepository.signUpWithGoogle();
+    return result.when(
+      success: (credential) {
+        user = credential;
+        return credential.user!.uid;
+      },
+      failure: (error) => throw error,
+    );
   }
 
 //    Future<String> loadUserDataMicrosoft() async {
@@ -41,11 +46,12 @@ class LoadUserController {
 //   }
   // Utilisation de la variable user déclarée au niveau de la classe.
   Future<void> handleGoogleSignOut() async {
-    try {
-      await authService.signOutWithGoogle();
-    } catch (e) {
-      print('Erreur lors de la déconnexion avec Google: $e');
-    }
+    final result = await _authRepository.signOutWithGoogle();
+    result.when(
+      success: (_) {},
+      failure: (error) =>
+          print('Erreur lors de la déconnexion avec Google: $error'),
+    );
   }
 
   static Future<String> getUserEmail(String uid) async {

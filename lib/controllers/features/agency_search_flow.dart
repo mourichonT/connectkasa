@@ -1,4 +1,5 @@
-import 'package:connect_kasa/controllers/services/databases_agency_services.dart';
+import 'package:connect_kasa/core/repositories/agency_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_agency_repository.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/agency_dept.dart';
 import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
@@ -9,17 +10,23 @@ import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 /// Un seul endroit à corriger/faire évoluer plutôt que 3 copies du même code.
 class AgencySearchFlow {
   final String serviceType; // "serviceSyndic" ou "geranceLocative"
-  final DatabasesAgencyServices _service;
+  final IAgencyRepository _repository;
 
   AgencySearchFlow({
     required this.serviceType,
-    DatabasesAgencyServices? service,
-  }) : _service = service ?? DatabasesAgencyServices();
+    IAgencyRepository? repository,
+  }) : _repository = repository ?? FirestoreAgencyRepository();
 
-  Future<List<Agency>> search(String emailPart) =>
-      _service.searchByEmail(emailPart, serviceType: serviceType);
+  Future<List<Agency>> search(String emailPart) async {
+    final result =
+        await _repository.searchByEmail(emailPart, serviceType: serviceType);
+    return result.when(success: (agencies) => agencies, failure: (_) => []);
+  }
 
-  Future<Agency?> resolve(GeranceRef ref) => _service.resolveRef(ref);
+  Future<Agency?> resolve(GeranceRef ref) async {
+    final result = await _repository.resolveRef(ref);
+    return result.when(success: (agency) => agency, failure: (_) => null);
+  }
 
   /// Entrée locale, non référencée dans Gerance (aucun match trouvé).
   Agency buildCustomAgency(String emailPart) => Agency(
