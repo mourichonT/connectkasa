@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -107,6 +108,73 @@ class _SubtitleMessageState extends State<SubtitleMessage>
     }
   }
 
+  // Un message non lu existe-t-il avec l'un de ces contacts (même logique
+  // que le badge de MessageUserTile/ChatController, réappliquée ici pour
+  // savoir sur quel onglet se trouve le nouveau message).
+  Future<bool> _hasUnreadFrom(List<String> otherUserIds) async {
+    for (final otherId in otherUserIds) {
+      final ids = [widget.uid, otherId]..sort();
+      final chatId = ids.join('_');
+      final doc = await FirebaseFirestore.instance
+          .collection('Residence')
+          .doc(widget.residence)
+          .collection('chat')
+          .doc(chatId)
+          .get();
+      if (!doc.exists) continue;
+      final data = doc.data()!;
+      final unread = widget.uid == data['from_id']
+          ? (data['from_msg_num'] ?? 0)
+          : (data['to_msg_num'] ?? 0);
+      if (unread > 0) return true;
+    }
+    return false;
+  }
+
+  Future<bool> _hasUnreadFromNeighbors() async {
+    // Même exclusion que la liste affichée dans _fetchAllUsers() : le
+    // locataire du lot courant a déjà son propre onglet dédié, il ne doit
+    // pas aussi déclencher le badge "Mes voisins".
+    final neighborIds = (await listNumUsers).where((id) =>
+        id != widget.uid &&
+        !(widget.selectedLot?.idLocataire ?? []).contains(id));
+    return _hasUnreadFrom(neighborIds.toList());
+  }
+
+  Future<bool> _hasUnreadFromOwners() =>
+      _hasUnreadFrom(widget.selectedLot?.idProprietaire ?? []);
+
+  Future<bool> _hasUnreadFromTenants() =>
+      _hasUnreadFrom(widget.selectedLot?.idLocataire ?? []);
+
+  Widget _tabWithBadge(String text, Future<bool> hasUnreadFuture) {
+    return Tab(
+      child: FutureBuilder<bool>(
+        future: hasUnreadFuture,
+        builder: (context, snapshot) {
+          final hasUnread = snapshot.data ?? false;
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(text),
+              if (hasUnread) ...[
+                const SizedBox(width: 4),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -121,7 +189,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
             controller: _tabController,
             tabs: (nbrTab == 3)
                 ? <Widget>[
-                    const Tab(text: 'Mes voisins'),
+                    _tabWithBadge('Mes voisins', _hasUnreadFromNeighbors()),
 
                     //condition d'affichage par type de contact
                     if (widget.selectedLot!.idProprietaire!
@@ -131,18 +199,22 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                       const Tab(text: 'Mon agence')
                     else
                       (widget.selectedLot?.idProprietaire!.length ?? 0) > 1
-                          ? const Tab(text: 'Mes proprios.')
-                          : const Tab(text: 'Mon proprio.'),
+                          ? _tabWithBadge(
+                              'Mes proprios.', _hasUnreadFromOwners())
+                          : _tabWithBadge(
+                              'Mon proprio.', _hasUnreadFromOwners()),
                     loca == false
                         ? const Tab(text: 'Mon agence')
                         : widget.selectedLot?.idLocataire == null ||
                                 (widget.selectedLot?.idLocataire?.length ?? 0) >
                                     1
-                            ? const Tab(text: 'Mes locataires')
-                            : const Tab(text: 'Mon locataire')
+                            ? _tabWithBadge(
+                                'Mes locataires', _hasUnreadFromTenants())
+                            : _tabWithBadge(
+                                'Mon locataire', _hasUnreadFromTenants())
                   ]
                 : <Widget>[
-                    const Tab(text: 'Mes voisins'),
+                    _tabWithBadge('Mes voisins', _hasUnreadFromNeighbors()),
                     //condition d'affichage par type de contact
                     if (widget.selectedLot!.idProprietaire!
                         .contains(widget.uid))
@@ -151,8 +223,10 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                       const Tab(text: 'Mon agence')
                     else
                       (widget.selectedLot?.idProprietaire!.length ?? 0) > 1
-                          ? const Tab(text: 'Mes proprios.')
-                          : const Tab(text: 'Mon proprio.'),
+                          ? _tabWithBadge(
+                              'Mes proprios.', _hasUnreadFromOwners())
+                          : _tabWithBadge(
+                              'Mon proprio.', _hasUnreadFromOwners()),
                   ]),
         Expanded(
           child: TabBarView(
@@ -201,6 +275,9 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                                         ),
                                       ),
                                     );
+                                    // Rafraîchit les badges "nouveau message"
+                                    // des onglets au retour du chat.
+                                    if (mounted) setState(() {});
                                   },
                                   child: MessageUserTile(
                                     residenceId: widget.residence,
@@ -231,6 +308,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                                         ),
                                       ),
                                     );
+                                    if (mounted) setState(() {});
                                   },
                                   child: MessageUserTile(
                                     residenceId: widget.residence,
@@ -285,8 +363,8 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                       itemBuilder: (context, index) {
                         String uid = widget.selectedLot!.idProprietaire![index];
                         return InkWell(
-                          onTap: () {
-                            Navigator.push(
+                          onTap: () async {
+                            await Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ChatPage(
@@ -297,6 +375,7 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                                 ),
                               ),
                             );
+                            if (mounted) setState(() {});
                           },
                           child: MessageGeranceTile(
                             radius: 23,
@@ -339,8 +418,9 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                               ),
                             );
 
-                            // Refresh après retour de ChatPage
-                            //_fetchAllUsers();
+                            // Rafraîchit les badges "nouveau message" des
+                            // onglets au retour du chat.
+                            if (mounted) setState(() {});
                           },
                           child: MessageUserTile(
                               residenceId: widget.residence,

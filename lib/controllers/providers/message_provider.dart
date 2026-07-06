@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/services/chat_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_chat_repository.dart';
 import 'package:connect_kasa/models/pages_models/message.dart';
 import 'package:flutter/material.dart';
 
 class MessageProvider extends ChangeNotifier {
+  final FirestoreChatRepository _chatRepository = FirestoreChatRepository();
+
   Message? _lastMessage;
-  Stream<Message?>? _messageStream;
+  StreamSubscription<dynamic>? _messageSubscription;
   bool _hasNewMessage = false;
 
   String? _userFrom;
@@ -36,13 +38,15 @@ class MessageProvider extends ChangeNotifier {
     print(
         '[MessageProvider.init] residenceId=$residenceId, userFrom=$userFrom, userTo=$userTo');
 
-    _messageStream = ChatServices.getLastMessageBetweenUsers(
+    _messageSubscription?.cancel();
+    _messageSubscription = _chatRepository
+        .getLastMessageBetweenUsers(
       residenceId: residenceId,
       userA: userFrom,
       userB: userTo,
-    );
-
-    _messageStream!.listen((message) {
+    )
+        .listen((result) {
+      final message = result.when(success: (m) => m, failure: (_) => null);
       print('[MessageProvider.init] Nouveau message reçu : $message');
 
       final bool isFromOtherUser =
@@ -149,7 +153,8 @@ class MessageProvider extends ChangeNotifier {
     print('[MessageProvider.reset] Annulation des écoutes en cours');
     _chatSubscription?.cancel();
     _chatSubscription = null;
-    _messageStream = null;
+    _messageSubscription?.cancel();
+    _messageSubscription = null;
     _lastMessage = null;
     _hasNewMessage = false;
     _userFrom = null;

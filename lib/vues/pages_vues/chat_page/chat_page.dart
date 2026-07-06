@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/pages_controllers/chat_controller.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
-import 'package:connect_kasa/controllers/services/chat_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_chat_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/chat_bubble.dart';
@@ -31,7 +31,7 @@ class ChatPage extends StatefulWidget {
 
 class ChatPageState extends State<ChatPage> {
   final chatController = TextEditingController();
-  final ChatServices _chatServices = ChatServices();
+  final FirestoreChatRepository _chatRepository = FirestoreChatRepository();
   final FocusNode _focusNode = FocusNode();
   final ScrollController _scrollController = ScrollController();
 
@@ -76,15 +76,17 @@ class ChatPageState extends State<ChatPage> {
 
   void sendMessage() async {
     if (chatController.text.isNotEmpty) {
-      await _chatServices.sendMessage(
+      final result = await _chatRepository.sendMessage(
         widget.idUserFrom,
         widget.idUserTo,
         chatController.text,
         widget.residence,
       );
-      chatController.clear();
-      _focusNode.unfocus();
-      _scrollToBottom();
+      if (result.isSuccess) {
+        chatController.clear();
+        _focusNode.unfocus();
+        _scrollToBottom();
+      }
     }
   }
 
@@ -145,8 +147,8 @@ class ChatPageState extends State<ChatPage> {
   }
 
   Widget _buildMessageList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _chatServices.getMessages(
+    return StreamBuilder(
+      stream: _chatRepository.getMessages(
           widget.idUserFrom, widget.idUserTo, widget.residence),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
@@ -156,14 +158,18 @@ class ChatPageState extends State<ChatPage> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
+        return snapshot.data!.when(
+          success: (querySnapshot) {
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => _scrollToBottom());
 
-        final docs = snapshot.data!.docs;
-
-        return MessageList(
-          messages: docs,
-          currentUserId: widget.idUserFrom,
-          scrollController: _scrollController,
+            return MessageList(
+              messages: querySnapshot.docs,
+              currentUserId: widget.idUserFrom,
+              scrollController: _scrollController,
+            );
+          },
+          failure: (error) => Text("Error $error"),
         );
       },
     );
