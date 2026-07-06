@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' show ProviderScope;
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 import 'firebase_options.dart';
@@ -42,14 +43,16 @@ void main() async {
   tz.setLocalLocation(
       tz.getLocation('Europe/Paris')); // Définir le fuseau horaire local
 
-  runApp(MultiProvider(
-    providers: [
-      ChangeNotifierProvider(create: (context) => ColorProvider()),
-      ChangeNotifierProvider(create: (context) => NameLotProvider()),
-      ChangeNotifierProvider(create: (_) => LotProvider()),
-      ChangeNotifierProvider(create: (_) => MessageProvider()),
-    ],
-    child: MyApp(),
+  runApp(ProviderScope(
+    child: MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ColorProvider()),
+        ChangeNotifierProvider(create: (context) => NameLotProvider()),
+        ChangeNotifierProvider(create: (_) => LotProvider()),
+        ChangeNotifierProvider(create: (_) => MessageProvider()),
+      ],
+      child: MyApp(),
+    ),
   ));
 }
 
