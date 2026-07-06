@@ -533,8 +533,6 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
                   profession: job.profession,
                   entryJobDate: job.entryJobDate,
                 );
-                DataBasesDocsServices.fetchGarantDocuments(
-                    widget.uid, widget.garant!.id!);
               });
             },
           ),
