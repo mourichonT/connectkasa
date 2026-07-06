@@ -72,3 +72,10 @@ final class NetworkException extends AppException {
 final class UnknownException extends AppException {
   const UnknownException(super.message, {super.cause});
 }
+
+/// Action annulée par l'utilisateur (ex : fermeture du sélecteur de compte
+/// Google) — pas une vraie erreur, distingué pour que l'UI ne montre pas
+/// un message d'échec quand l'utilisateur a juste changé d'avis.
+final class CancelledException extends AppException {
+  const CancelledException(super.message, {super.cause});
+}
