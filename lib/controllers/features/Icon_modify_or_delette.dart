@@ -4,7 +4,6 @@ import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/handlers/fetch_pdfreport.dart';
 import 'package:connect_kasa/controllers/handlers/send_custom_email.dart';
-import 'package:connect_kasa/controllers/services/databases_mail_services.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
@@ -15,7 +14,6 @@ import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:flutter/material.dart';
 
 FetchPdfreport fetchPDFreport = FetchPdfreport();
-final DatabasesMailServices _mailChatServices = DatabasesMailServices();
 Widget IconModifyOrDelette(Post post, Lot lot, BuildContext context,
     Function updatePostsList, String mail) {
   return Container(

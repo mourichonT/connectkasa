@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/core/repositories/firestore_mail_repository.dart';
+import 'package:connect_kasa/core/repositories/mail_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:connect_kasa/controllers/services/databases_mail_services.dart';
 import 'package:connect_kasa/models/pages_models/mail.dart';
 import 'package:connect_kasa/vues/widget_view/components/chat_bubble.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
@@ -30,16 +31,20 @@ class MailChatPage extends StatefulWidget {
 
 class MailChatPageState extends State<MailChatPage> {
   final mailChatController = TextEditingController();
-  final DatabasesMailServices _mailChatServices = DatabasesMailServices();
+  final IMailRepository _mailRepository = FirestoreMailRepository();
   final FocusNode _focusNode = FocusNode(); // Ajoutez le FocusNode
 
   void sendMail() async {
     if (mailChatController.text.isNotEmpty) {
       // Vérifier si  to n'est pas null
-      await _mailChatServices.sendMail(
+      final result = await _mailRepository.sendMail(
         selectedLot: widget.selectedLot,
         receiverId: widget.to,
         message: mailChatController.text,
+      );
+      result.when(
+        success: (_) {},
+        failure: (error) => print('Erreur lors de l\'envoi du mail: $error'),
       );
       // Fermez le clavier
       setState(() {
@@ -97,8 +102,8 @@ class MailChatPageState extends State<MailChatPage> {
 
   Widget _buildMessageList() {
     return StreamBuilder(
-        stream: _mailChatServices.getMail(
-            widget.uid, widget.selectedLot, widget.to),
+        stream:
+            _mailRepository.getMail(widget.uid, widget.selectedLot, widget.to),
         builder: ((context, snapshot) {
           if (snapshot.hasError) {
             return Text("Error ${snapshot.error}");
@@ -107,12 +112,16 @@ class MailChatPageState extends State<MailChatPage> {
             return const CircularProgressIndicator();
           }
 
-          return Expanded(
-            child: ListView(
-              children: snapshot.data!.docs
-                  .map((document) => _buildMessageItem(document))
-                  .toList(),
+          final result = snapshot.data!;
+          return result.when(
+            success: (querySnapshot) => Expanded(
+              child: ListView(
+                children: querySnapshot.docs
+                    .map((document) => _buildMessageItem(document))
+                    .toList(),
+              ),
             ),
+            failure: (error) => Text("Error $error"),
           );
         }));
   }

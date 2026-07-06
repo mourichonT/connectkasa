@@ -243,9 +243,12 @@ class DataBasesUserServices {
         for (QueryDocumentSnapshot<Map<String, dynamic>> lotDoc
             in lotQuerySnapshot.docs) {
           // Récupérer les idLocataire et idProprietaire de chaque lot
-          List<String> idLocataire = List.from(lotDoc.data()["idLocataire"]);
+          // (?? [] : un lot peut ne pas encore avoir de locataire/propriétaire
+          // assigné, le champ est alors absent plutôt qu'un tableau vide)
+          List<String> idLocataire =
+              List.from(lotDoc.data()["idLocataire"] ?? []);
           List<String> idProprietaire =
-              List.from(lotDoc.data()["idProprietaire"]);
+              List.from(lotDoc.data()["idProprietaire"] ?? []);
 
           // Ajouter chaque élément de idLocataire et idProprietaire à la liste si non nuls
           users.addAll(idLocataire);

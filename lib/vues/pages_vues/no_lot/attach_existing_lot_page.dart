@@ -121,6 +121,22 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
       statutResident: _typeResident,
     );
 
+    // addLotToUser ne dénormalise que côté User/{uid}/lots : le lot
+    // Residence/{id}/lot/{id} lui-même (idLocataire/idProprietaire, lu par
+    // ex. par getNumUsersByResidence pour "Mes voisins") doit être mis à
+    // jour séparément, comme le fait _applyTenantChange pour le flux
+    // "propriétaire ajoute un locataire".
+    final lotRef = FirebaseFirestore.instance
+        .collection("Residence")
+        .doc(_residence!.id)
+        .collection("lot")
+        .doc(lot.id);
+    final field =
+        _typeResident == "Propriétaire" ? "idProprietaire" : "idLocataire";
+    await lotRef.update({
+      field: FieldValue.arrayUnion([widget.uid]),
+    });
+
     final docsServices = DataBasesDocsServices();
 
     if (docTypeJustif.isNotEmpty && justifPath.isNotEmpty) {
