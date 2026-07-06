@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:connect_kasa/models/pages_models/post_style.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -18,16 +19,11 @@ class SubmitPostController {
     String? localisation,
     String? etage,
     String? subtype,
-    String? backgroundColor,
-    String? backgroundImage,
+    PostStyle? style,
     int? price,
     List<String>? element,
     List<String>? participants,
     List<String>? eventType,
-    double? fontSize,
-    String? fontWeight,
-    String? fontColor,
-    String? fontStyle,
     Timestamp? eventDate,
     String? prestaName,
   }) {
@@ -51,12 +47,7 @@ class SubmitPostController {
       hideUser: anonymPost ?? false,
       participants: participants ?? [],
       eventType: eventType ?? [],
-      backgroundColor: backgroundColor ?? "",
-      backgroundImage: backgroundImage ?? "",
-      fontSize: fontSize ?? 20.0,
-      fontWeight: fontWeight ?? "",
-      fontColor: fontColor ?? "",
-      fontStyle: fontStyle ?? "",
+      style: style ?? PostStyle(),
       eventDate: eventDate,
       prestaName: prestaName,
     );
@@ -74,16 +65,11 @@ class SubmitPostController {
       String? localisation,
       String? etage,
       String? subtype,
-      String? backgroundColor,
-      String? backgroundImage,
+      PostStyle? style,
       int? price,
       List<String>? element,
       List<String>? participants,
       List<String>? eventType,
-      double? fontSize,
-      String? fontWeight,
-      String? fontColor,
-      String? fontStyle,
       Timestamp? eventDate,
       String? prestaName}) {
     DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
@@ -100,16 +86,11 @@ class SubmitPostController {
       localisation: localisation,
       etage: etage,
       subtype: subtype,
-      backgroundColor: backgroundColor,
-      backgroundImage: backgroundImage,
+      style: style,
       price: price,
       element: element,
       participants: participants,
       eventType: eventType,
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      fontColor: fontColor,
-      fontStyle: fontStyle,
       eventDate: eventDate,
       prestaName: prestaName,
     );
@@ -129,16 +110,11 @@ class SubmitPostController {
     String? localisation,
     String? etage,
     String? subtype,
-    String? backgroundColor,
-    String? backgroundImage,
+    PostStyle? style,
     int? price,
     List<String>? element,
     List<String>? participants,
     List<String>? eventType,
-    double? fontSize,
-    String? fontWeight,
-    String? fontColor,
-    String? fontStyle,
     Timestamp? eventDate,
     String? prestaName,
   }) async {
@@ -165,16 +141,11 @@ class SubmitPostController {
       localisation: localisation,
       etage: etage,
       subtype: subtype,
-      backgroundColor: backgroundColor,
-      backgroundImage: backgroundImage,
+      style: style,
       price: price,
       element: element,
       participants: participants,
       eventType: eventType,
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      fontColor: fontColor,
-      fontStyle: fontStyle,
       eventDate: eventDate,
       prestaName: prestaName,
     );
@@ -340,12 +311,7 @@ class SubmitPostController {
       List<String>? element,
       List<String>? participants,
       List<String>? eventType,
-      String? backgroundColor,
-      String? backgroundImage,
-      double? fontSize,
-      String? fontWeight,
-      String? fontColor,
-      String? fontStyle,
+      PostStyle? style,
       String? prestaName}) {
     DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
 
@@ -369,12 +335,7 @@ class SubmitPostController {
         price: price ?? 0,
         participants: participants ?? [],
         eventType: eventType ?? [],
-        backgroundColor: backgroundColor ?? "",
-        backgroundImage: backgroundImage ?? "",
-        fontSize: fontSize ?? 20.0,
-        fontWeight: fontWeight ?? "",
-        fontColor: fontColor ?? "",
-        fontStyle: fontColor ?? "",
+        style: style ?? PostStyle(),
         declaredDate: declaredDate,
         prestaName: prestaName);
 

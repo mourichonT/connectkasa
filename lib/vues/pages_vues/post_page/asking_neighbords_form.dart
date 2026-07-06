@@ -12,6 +12,7 @@ import 'dart:io';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:connect_kasa/models/pages_models/post_style.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 
@@ -466,12 +467,14 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                     desc: _textEditingController,
                     anonymPost: anonymPost,
                     docRes: widget.preferedLot!.residenceId,
-                    backgroundColor: _backgroundColor,
-                    backgroundImage: _backgroundImage,
-                    fontColor: _selectedFontColor.toString(),
-                    fontStyle: _selectedFontStyle.toString(),
-                    fontSize: _selectedFontSize,
-                    fontWeight: _selectedFontWeight.toString());
+                    style: PostStyle(
+                      backgroundColor: _backgroundColor,
+                      backgroundImage: _backgroundImage,
+                      fontColor: _selectedFontColor.toString(),
+                      fontStyle: _selectedFontStyle.toString(),
+                      fontSize: _selectedFontSize,
+                      fontWeight: _selectedFontWeight.toString(),
+                    ));
 
                 Navigator.pop(context);
               } catch (e) {

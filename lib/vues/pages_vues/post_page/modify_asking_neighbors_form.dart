@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:connect_kasa/models/pages_models/post_style.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
@@ -131,26 +132,27 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
   @override
   void initState() {
     super.initState();
-    _selectedColor =
-        _selectedColor = getColorFromString(widget.post.backgroundColor ?? "");
-    _selectedImagePath = widget.post.backgroundImage ?? "";
+    _selectedColor = _selectedColor =
+        getColorFromString(widget.post.style?.backgroundColor ?? "");
+    _selectedImagePath = widget.post.style?.backgroundImage ?? "";
     desc = TextEditingController(text: widget.post.description);
     _selectedText = widget.post.description;
     anonymPost = widget.post.hideUser;
     _selectedFontSize =
-        widget.post.fontSize ?? 20.0; // 20.0 est une valeur par défaut
+        widget.post.style?.fontSize ?? 20.0; // 20.0 est une valeur par défaut
     _selectedFontColor = getFontColorFromString(
-        widget.post.fontColor!); // Couleur de texte par défaut
-    _selectedFontWeight = getFontWeightFromString(widget.post.fontWeight);
-    _selectedFontStyle = getFontStyleFromString(widget.post.fontStyle);
+        widget.post.style?.fontColor ?? ""); // Couleur de texte par défaut
+    _selectedFontWeight =
+        getFontWeightFromString(widget.post.style?.fontWeight);
+    _selectedFontStyle = getFontStyleFromString(widget.post.style?.fontStyle);
 
-    if (widget.post.fontSize != "") {
+    if (widget.post.style?.fontSize != null) {
       _fontSize = true;
     }
-    if (widget.post.fontStyle != "") {
+    if (widget.post.style?.fontStyle != "") {
       _fontItalic = true;
     }
-    if (widget.post.fontWeight != "") {
+    if (widget.post.style?.fontWeight != "") {
       _fontBold = true;
     }
   }
@@ -560,12 +562,14 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                         desc: desc.text,
                         anonymPost: anonymPost,
                         docRes: widget.residence,
-                        backgroundColor: _selectedColor.toString(),
-                        backgroundImage: _selectedImagePath,
-                        fontColor: _selectedFontColor.toString(),
-                        fontStyle: _selectedFontStyle.toString(),
-                        fontSize: _selectedFontSize,
-                        fontWeight: _selectedFontWeight.toString());
+                        style: PostStyle(
+                          backgroundColor: _selectedColor.toString(),
+                          backgroundImage: _selectedImagePath,
+                          fontColor: _selectedFontColor.toString(),
+                          fontStyle: _selectedFontStyle.toString(),
+                          fontSize: _selectedFontSize,
+                          fontWeight: _selectedFontWeight.toString(),
+                        ));
                     Navigator.pop(context);
                   } catch (e) {
                     print("Erreur lors de la capture de l'image: $e");
