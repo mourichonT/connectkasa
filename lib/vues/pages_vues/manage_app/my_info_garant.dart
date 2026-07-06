@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/job_entry.dart';
 import 'package:connect_kasa/controllers/features/justif_document.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -40,7 +40,7 @@ class MyGarantInfos extends StatefulWidget {
 class _MyGarantInfosState extends State<MyGarantInfos> {
   final DataBasesUserServices _userServices = DataBasesUserServices();
   final StorageServices _storageServices = StorageServices();
-  final DataBasesDocsServices dataBasesDocsServices = DataBasesDocsServices();
+  final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
 
   //Controllers
   TextEditingController name = TextEditingController();
@@ -67,14 +67,19 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
 
   Future<List<Map<String, dynamic>>>? _documentsFuture;
 
+  Future<List<Map<String, dynamic>>> _fetchGarantDocuments(String garantId) {
+    return docsRepository.fetchGarantDocuments(widget.uid, garantId).then(
+        (result) =>
+            result.when(success: (docs) => docs, failure: (error) => throw error));
+  }
+
   @override
   void initState() {
     super.initState();
     currentGarant = widget.garant;
     fetchGarantUser();
     if (widget.garant != null) {
-      _documentsFuture = DataBasesDocsServices.fetchGarantDocuments(
-          widget.uid, widget.garant!.id!);
+      _documentsFuture = _fetchGarantDocuments(widget.garant!.id!);
     }
   }
 
@@ -425,8 +430,7 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
                               // On utilise index ici
                               fileExtension = extension;
                               _documentsFuture =
-                                  DataBasesDocsServices.fetchGarantDocuments(
-                                      widget.uid, widget.garant!.id!);
+                                  _fetchGarantDocuments(widget.garant!.id!);
                             });
                             downloadImagePath(downloadUrl,
                                 extension); // Appel de ta fonction existante
@@ -739,7 +743,7 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
           timeStamp: Timestamp.now(),
           documentPathRecto: doc.fileUrl!,
         );
-        await dataBasesDocsServices.setDocumentGarant(
+        await docsRepository.setDocumentGarant(
           garantId: newGarantId,
           newDoc: newDocJustif,
           userId: widget.uid,
@@ -769,10 +773,7 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
         phone: phone.text,
       );
 
-      _documentsFuture = DataBasesDocsServices.fetchGarantDocuments(
-        widget.uid,
-        newGarantId!,
-      );
+      _documentsFuture = _fetchGarantDocuments(newGarantId!);
       documents.clear();
     });
   }
@@ -783,12 +784,11 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
     String docId,
   ) async {
     await _storageServices.removeFileFromUrl(url);
-    await dataBasesDocsServices.deleteGarantDocuments(
+    await docsRepository.deleteGarantDocuments(
       uid, widget.garant!.id!, docId, // <- L'ID récupéré depuis Firestore
     );
     setState(() {
-      _documentsFuture = DataBasesDocsServices.fetchGarantDocuments(
-          widget.uid, widget.garant!.id!);
+      _documentsFuture = _fetchGarantDocuments(widget.garant!.id!);
     });
 
     ScaffoldMessenger.of(context).showSnackBar(

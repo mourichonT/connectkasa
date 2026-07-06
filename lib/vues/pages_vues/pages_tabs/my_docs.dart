@@ -1,4 +1,5 @@
-import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
+import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
@@ -30,7 +31,7 @@ class MydocsPageView extends StatefulWidget {
 
 class MydocsPageViewState extends State<MydocsPageView>
     with SingleTickerProviderStateMixin {
-  final DataBasesDocsServices docsServices = DataBasesDocsServices();
+  final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
   final StorageServices _storageServices = StorageServices();
   late Future<List<Map<String, dynamic>>> _allDocsCopro;
   late Future<List<Map<String, dynamic>>> _allDocsLot;
@@ -39,13 +40,23 @@ class MydocsPageViewState extends State<MydocsPageView>
   @override
   void initState() {
     super.initState();
-    _allDocsCopro =
-        docsServices.getAllDocsWithId(widget.lotSelected.residenceId);
-    _allDocsLot = docsServices.getDocByUser(
-      widget.uid,
-      widget.lotSelected.refLot,
-    );
+    _allDocsCopro = _fetchDocsCopro();
+    _allDocsLot = _fetchDocsLot();
     _tabController = TabController(length: 2, vsync: this);
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchDocsCopro() {
+    return docsRepository
+        .getAllDocsWithId(widget.lotSelected.residenceId)
+        .then((result) =>
+            result.when(success: (docs) => docs, failure: (error) => throw error));
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchDocsLot() {
+    return docsRepository
+        .getDocByUser(widget.uid, widget.lotSelected.refLot)
+        .then((result) =>
+            result.when(success: (docs) => docs, failure: (error) => throw error));
   }
 
   @override
@@ -72,8 +83,8 @@ class MydocsPageViewState extends State<MydocsPageView>
                       child: Padding(
                         padding: const EdgeInsets.only(top: 20),
                         child: ButtonAdd(
-                            function: () {
-                              Navigator.push(
+                            function: () async {
+                              await Navigator.push(
                                   context,
                                   CupertinoPageRoute(
                                       builder: (context) => AddDocsForm(
@@ -81,6 +92,14 @@ class MydocsPageViewState extends State<MydocsPageView>
                                             uid: widget.uid,
                                             isDocCopro: true,
                                           )));
+                              // Rafraîchit la liste au retour du formulaire,
+                              // sinon le document ajouté n'apparaît pas tant
+                              // que l'écran n'est pas rechargé.
+                              if (mounted) {
+                                setState(() {
+                                  _allDocsCopro = _fetchDocsCopro();
+                                });
+                              }
                             },
                             color: widget.colorStatut,
                             icon: Icons.add,
@@ -183,10 +202,15 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                 context: context,
                                                 builder: (context) =>
                                                     AlertDialog(
-                                                  title: const Text(
-                                                      'Confirmer la suppression'),
-                                                  content: const Text(
-                                                      'Souhaitez-vous vraiment supprimer ce document ?'),
+                                                  title: MyTextStyle.lotName(
+                                                      'Confirmer la suppression',
+                                                      Colors.black87,
+                                                      SizeFont.h2.size),
+                                                  content: MyTextStyle
+                                                      .annonceDesc(
+                                                          'Souhaitez-vous vraiment supprimer ce document ?',
+                                                          SizeFont.h3.size,
+                                                          3),
                                                   actions: [
                                                     TextButton(
                                                       onPressed: () =>
@@ -210,7 +234,7 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                 await _storageServices
                                                     .removeFileFromUrl(
                                                         doc.documentPathRecto);
-                                                await docsServices
+                                                await docsRepository
                                                     .deleteDocument(
                                                   lotId:
                                                     widget.lotSelected.refLot,
@@ -221,6 +245,12 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                       'unknown',
                                                   isCopro: true,
                                                 );
+                                                if (mounted) {
+                                                  setState(() {
+                                                    _allDocsCopro =
+                                                        _fetchDocsCopro();
+                                                  });
+                                                }
                                               }
                                             },
                                           ),
@@ -248,8 +278,8 @@ class MydocsPageViewState extends State<MydocsPageView>
                       child: Padding(
                         padding: const EdgeInsets.only(top: 20),
                         child: ButtonAdd(
-                            function: () {
-                              Navigator.push(
+                            function: () async {
+                              await Navigator.push(
                                   context,
                                   CupertinoPageRoute(
                                       builder: (context) => AddDocsForm(
@@ -257,6 +287,11 @@ class MydocsPageViewState extends State<MydocsPageView>
                                             uid: widget.uid,
                                             isDocCopro: false,
                                           )));
+                              if (mounted) {
+                                setState(() {
+                                  _allDocsLot = _fetchDocsLot();
+                                });
+                              }
                             },
                             color: widget.colorStatut,
                             icon: Icons.add,
@@ -366,10 +401,15 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                 context: context,
                                                 builder: (context) =>
                                                     AlertDialog(
-                                                  title: const Text(
-                                                      'Confirmer la suppression'),
-                                                  content: const Text(
-                                                      'Souhaitez-vous vraiment supprimer ce document ?'),
+                                                  title: MyTextStyle.lotName(
+                                                      'Confirmer la suppression',
+                                                      Colors.black87,
+                                                      SizeFont.h2.size),
+                                                  content: MyTextStyle
+                                                      .annonceDesc(
+                                                          'Souhaitez-vous vraiment supprimer ce document ?',
+                                                          SizeFont.h3.size,
+                                                          3),
                                                   actions: [
                                                     TextButton(
                                                       onPressed: () =>
@@ -393,7 +433,7 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                 await _storageServices
                                                     .removeFileFromUrl(docPerso
                                                         .documentPathRecto);
-                                                await docsServices
+                                                await docsRepository
                                                     .deleteDocument(
                                                   userIdsMatrix: [
                                                     widget.lotSelected
@@ -411,6 +451,12 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                           'unknown',
                                                   isCopro: false,
                                                 );
+                                                if (mounted) {
+                                                  setState(() {
+                                                    _allDocsLot =
+                                                        _fetchDocsLot();
+                                                  });
+                                                }
                                               }
                                             },
                                           ),

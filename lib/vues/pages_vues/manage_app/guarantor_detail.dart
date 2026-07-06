@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -35,15 +35,14 @@ class GuarantorDetail extends StatefulWidget {
 class GuarantorDetailState extends State<GuarantorDetail> {
   Future<List<Map<String, dynamic>>>? _documentsFuture;
   late Future<GuarantorInfo?> garant;
-  final DataBasesDocsServices dataBasesDocsServices = DataBasesDocsServices();
+  final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
   final StorageServices _storageServices = StorageServices();
   @override
   void initState() {
     super.initState();
     //  _documentsFuture = fetchDocuments();
 
-    _documentsFuture = DataBasesDocsServices.fetchGarantDocuments(
-        widget.tenantUid, widget.garantid);
+    _documentsFuture = _fetchGarantDocuments();
 
     garant = DataBasesUserServices.getUniqueGarant(
         widget.tenantUid, widget.garantid);
@@ -231,18 +230,24 @@ class GuarantorDetailState extends State<GuarantorDetail> {
     );
   }
 
+  Future<List<Map<String, dynamic>>> _fetchGarantDocuments() {
+    return docsRepository
+        .fetchGarantDocuments(widget.tenantUid, widget.garantid)
+        .then((result) =>
+            result.when(success: (docs) => docs, failure: (error) => throw error));
+  }
+
   Future<void> _removeDoc(
     String url,
     String uid,
     String docId,
   ) async {
     await _storageServices.removeFileFromUrl(url);
-    await dataBasesDocsServices.deleteGarantDocuments(
+    await docsRepository.deleteGarantDocuments(
       uid, widget.garantid, docId, // <- L'ID récupéré depuis Firestore
     );
     setState(() {
-      _documentsFuture = DataBasesDocsServices.fetchGarantDocuments(
-          widget.tenantUid, widget.garantid);
+      _documentsFuture = _fetchGarantDocuments();
     });
 
     ScaffoldMessenger.of(context).showSnackBar(

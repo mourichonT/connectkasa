@@ -63,8 +63,9 @@ class CreateAccountController {
             newUser.toMap(),
           );
 
-      // Affichage d'un message de succès et navigation
-      _showSnackbar(context, "Compte créé avec succès !");
+      // Pas de message de succès ici : ce n'est que la création technique
+      // du compte (Auth + doc Firestore quasi vide) - l'utilisateur n'a pas
+      // encore rempli son profil (Step1-4 dans ProgressWidget juste après).
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) {

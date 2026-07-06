@@ -4,7 +4,7 @@ import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
-import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -137,10 +137,10 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
       field: FieldValue.arrayUnion([widget.uid]),
     });
 
-    final docsServices = DataBasesDocsServices();
+    final docsRepository = FirestoreDocsRepository();
 
     if (docTypeJustif.isNotEmpty && justifPath.isNotEmpty) {
-      await docsServices.setDocument(
+      await docsRepository.setDocument(
         DocumentModel(
           type: docTypeJustif,
           residenceId: _residence!.id,
@@ -154,7 +154,7 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
     }
 
     if (_compagnyBuy && _kbisPath.isNotEmpty) {
-      await docsServices.setDocument(
+      await docsRepository.setDocument(
         DocumentModel(
           type: "Kbis",
           residenceId: _residence!.id,

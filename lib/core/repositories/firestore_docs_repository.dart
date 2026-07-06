@@ -1,63 +1,66 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/errors/app_exceptions.dart';
+import 'package:connect_kasa/core/repositories/docs_repository.dart';
+import 'package:connect_kasa/core/result/result.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
 
-class DataBasesDocsServices {
-  final FirebaseFirestore db = FirebaseFirestore.instance;
+class FirestoreDocsRepository implements IDocsRepository {
+  final FirebaseFirestore _firestore;
 
-  Future<DocumentModel> setDocument(
+  FirestoreDocsRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  @override
+  Future<Result<DocumentModel>> setDocument(
       DocumentModel newDoc, String userId, String? lotId) async {
     final List<String> idType = TypeList.idTypes;
 
     try {
       if (idType.contains(newDoc.type)) {
-        // ➤ Cas ID : stocké dans User/{userId}/documents (lotId pas utilisé)
+        // Cas ID : stocké dans User/{userId}/documents (lotId pas utilisé)
         DocumentReference<Map<String, dynamic>> userDocRef =
-            db.collection("User").doc(userId);
-
+            _firestore.collection("User").doc(userId);
         await userDocRef.collection("documents").add(newDoc.toJson());
-        print("Document ID ajouté avec succès dans User/{userId}/documents !");
       } else {
-        // ➤ Cas non-ID : stocké dans User/{userId}/lots/{lotId}/documents
+        // Cas non-ID : stocké dans User/{userId}/lots/{lotId}/documents
         if (lotId == null) {
           throw Exception("lotId requis pour un document rattaché à un lot.");
         }
-        DocumentReference<Map<String, dynamic>> userLotRef =
-            db.collection("User").doc(userId).collection("lots").doc(lotId);
-
+        DocumentReference<Map<String, dynamic>> userLotRef = _firestore
+            .collection("User")
+            .doc(userId)
+            .collection("lots")
+            .doc(lotId);
         await userLotRef.collection("documents").add(newDoc.toJson());
       }
+      return Result.success(newDoc);
     } catch (e) {
-      print("Erreur lors de l'ajout du document : $e");
+      return Result.failure(AppException.from(e));
     }
-
-    return newDoc;
   }
 
-  Future<DocumentModel> setDocumentTenant(
+  @override
+  Future<Result<DocumentModel>> setDocumentTenant(
       DocumentModel newDoc, String userId) async {
     try {
-      // ➤ Cas ID : stocké dans User/{userId}/documents
       DocumentReference<Map<String, dynamic>> userDocRef =
-          db.collection("User").doc(userId);
-
+          _firestore.collection("User").doc(userId);
       await userDocRef.collection("documents").add(newDoc.toJson());
-      print("Document ID ajouté avec succès dans User/{userId}/documents !");
+      return Result.success(newDoc);
     } catch (e) {
-      print("Erreur lors de l'ajout du document : $e");
+      return Result.failure(AppException.from(e));
     }
-
-    return newDoc;
   }
 
-  Future<DocumentModel> setDocumentGarant({
+  @override
+  Future<Result<DocumentModel>> setDocumentGarant({
     required DocumentModel newDoc,
     required String userId,
     required String garantId,
   }) async {
     try {
-      final garantDocRef = db
+      final garantDocRef = _firestore
           .collection("User")
           .doc(userId)
           .collection("garants")
@@ -65,41 +68,38 @@ class DataBasesDocsServices {
           .collection("documents");
 
       await garantDocRef.add(newDoc.toJson());
-
-      print("Document ajouté avec succès dans le garant !");
+      return Result.success(newDoc);
     } catch (e) {
-      print("Erreur lors de l'ajout du document du garant : $e");
+      return Result.failure(AppException.from(e));
     }
-
-    return newDoc;
   }
 
-  Future<List<DocumentModel>> getAllDocs(String residenceId) async {
+  @override
+  Future<Result<List<DocumentModel>>> getAllDocs(String residenceId) async {
     List<DocumentModel> docs = [];
 
     try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot = await db
+      QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
           .collection("Residence")
           .doc(residenceId)
           .collection("documents_copro")
           .get();
       for (var docSnapshot in querySnapshot.docs) {
-        // Convertir chaque document en objet Post
         docs.add(DocumentModel.fromJson(docSnapshot.data()));
       }
+      return Result.success(docs);
     } catch (e) {
-      print("Error completing in getAllDocs: $e");
+      return Result.failure(AppException.from(e));
     }
-
-    return docs;
   }
 
-  Future<List<Map<String, dynamic>>> getAllDocsWithId(
+  @override
+  Future<Result<List<Map<String, dynamic>>>> getAllDocsWithId(
       String residenceId) async {
     List<Map<String, dynamic>> docs = [];
 
     try {
-      final querySnapshot = await db
+      final querySnapshot = await _firestore
           .collection("Residence")
           .doc(residenceId)
           .collection("documents_copro")
@@ -111,37 +111,29 @@ class DataBasesDocsServices {
           "id": docSnapshot.id,
         });
       }
+      return Result.success(docs);
     } catch (e) {
-      print("Erreur getAllDocsWithId: $e");
+      return Result.failure(AppException.from(e));
     }
-
-    return docs;
   }
 
-  Future<List<Map<String, dynamic>>> getDocByUser(
+  @override
+  Future<Result<List<Map<String, dynamic>>>> getDocByUser(
       String uid, String refLot) async {
-    print("REFLOT: $refLot");
-    print("UID: $uid");
-
     List<Map<String, dynamic>> docs = [];
 
     try {
-      print("Début de la fonction getDocByUser");
-
-      // Référence à la collection de documents du lot spécifique de l'utilisateur
-      CollectionReference documentsRef = FirebaseFirestore.instance
+      CollectionReference documentsRef = _firestore
           .collection("User")
           .doc(uid)
           .collection("lots")
           .doc(refLot)
           .collection("documents");
 
-      // Récupération de tous les documents sans filtre
       QuerySnapshot docQuerySnapshot = await documentsRef.get();
 
       for (QueryDocumentSnapshot doc in docQuerySnapshot.docs) {
         Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
         DocumentModel document = DocumentModel.fromJson(data);
 
         docs.add({
@@ -149,16 +141,16 @@ class DataBasesDocsServices {
           'data': document,
         });
       }
+      return Result.success(docs);
     } catch (e) {
-      print("Erreur dans getDocByUser : $e");
+      return Result.failure(AppException.from(e));
     }
-
-    return docs;
   }
 
-  Future<void> deleteDocument({
+  @override
+  Future<Result<void>> deleteDocument({
     String? userId,
-    List<List<String>>? userIdsMatrix, // ✅ Matrice de UID
+    List<List<String>>? userIdsMatrix,
     required String? lotId,
     required String documentId,
     required String? residenceId,
@@ -167,31 +159,26 @@ class DataBasesDocsServices {
   }) async {
     try {
       if (isCopro && residenceId != null) {
-        print("Residence => $residenceId => documents_copro => $documentId");
-        await db
+        await _firestore
             .collection("Residence")
             .doc(residenceId)
             .collection("documents_copro")
             .doc(documentId)
             .delete();
-        print("Document copro supprimé avec succès !");
       } else if (TypeList.idTypes.contains(documentType)) {
         // Cas document d'identité
-        await db
+        await _firestore
             .collection("User")
             .doc(userId)
             .collection("documents")
             .doc(documentId)
             .delete();
-        print("Document ID supprimé avec succès !");
       } else if (lotId != null) {
         if (userIdsMatrix != null && userIdsMatrix.isNotEmpty) {
-          // ✅ Cas plusieurs groupes de users
+          // Cas plusieurs groupes de users
           for (var userList in userIdsMatrix) {
             for (String uid in userList) {
-              print(
-                  "Suppression document pour User => $uid => lots => $lotId => documents => $documentId");
-              await db
+              await _firestore
                   .collection("User")
                   .doc(uid)
                   .collection("lots")
@@ -201,13 +188,9 @@ class DataBasesDocsServices {
                   .delete();
             }
           }
-          print(
-              "Document supprimé pour tous les utilisateurs (groupes) avec succès !");
         } else if (userId != null) {
           // Cas classique avec un seul user
-          print(
-              "User => $userId => lots => $lotId => documents => $documentId");
-          await db
+          await _firestore
               .collection("User")
               .doc(userId)
               .collection("lots")
@@ -215,52 +198,49 @@ class DataBasesDocsServices {
               .collection("documents")
               .doc(documentId)
               .delete();
-          print("Document perso supprimé avec succès !");
         } else {
           throw Exception("Aucun utilisateur fourni pour la suppression.");
         }
       } else {
         throw Exception("Impossible de déterminer l'emplacement du document.");
       }
+      return const Result.success(null);
     } catch (e) {
-      print("Erreur lors de la suppression du document : $e");
-      rethrow;
+      return Result.failure(AppException.from(e));
     }
   }
 
-  Future<void> deleteTenantDocument({
+  @override
+  Future<Result<void>> deleteTenantDocument({
     required String userId,
     required String documentId,
     String? fileExtension,
   }) async {
     try {
-      final StorageServices _storageServices = StorageServices();
-      // Suppression du document Firestore
-      print("Suppression du document dans User/$userId/documents/$documentId");
-      await db
+      await _firestore
           .collection("User")
           .doc(userId)
           .collection("documents")
           .doc(documentId)
           .delete();
-      print("Document supprimé avec succès !");
+      return const Result.success(null);
     } catch (e) {
-      print("Erreur lors de la suppression du document/fichier : $e");
-      rethrow;
+      return Result.failure(AppException.from(e));
     }
   }
 
-  Future<bool> deleteGarantDocuments(
+  @override
+  Future<Result<void>> deleteGarantDocuments(
     String uid,
     String garantId,
     String documentId,
   ) async {
     if (garantId.isEmpty || documentId.isEmpty) {
-      print("IDs invalides pour la suppression.");
-      return false;
+      return Result.failure(
+          const UnknownException("IDs invalides pour la suppression."));
     }
     try {
-      await FirebaseFirestore.instance
+      await _firestore
           .collection('User')
           .doc(uid)
           .collection('garants')
@@ -269,17 +249,17 @@ class DataBasesDocsServices {
           .doc(documentId)
           .delete();
 
-      return true;
+      return const Result.success(null);
     } catch (e) {
-      print("Erreur lors de la suppression du document : $e");
-      return false;
+      return Result.failure(AppException.from(e));
     }
   }
 
-  static Future<List<Map<String, dynamic>>> fetchGarantDocuments(
+  @override
+  Future<Result<List<Map<String, dynamic>>>> fetchGarantDocuments(
       String uid, String garantId) async {
     try {
-      final docSnapshot = await FirebaseFirestore.instance
+      final docSnapshot = await _firestore
           .collection('User')
           .doc(uid)
           .collection('garants')
@@ -287,16 +267,16 @@ class DataBasesDocsServices {
           .collection('documents')
           .get();
 
-      // 3. Mapper les documents
-      return docSnapshot.docs.map((doc) {
+      final docs = docSnapshot.docs.map((doc) {
         return {
           'id': doc.id,
           'document': DocumentModel.fromJson(doc.data()),
         };
       }).toList();
+
+      return Result.success(docs);
     } catch (e) {
-      print("Erreur lors du fetch des documents du garant : $e");
-      return [];
+      return Result.failure(AppException.from(e));
     }
   }
 }

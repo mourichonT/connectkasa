@@ -70,6 +70,15 @@
     </queries>
     <!-- Provide required visibility configuration for API level 30 and above -->
     <queries>
+    <!-- Nécessaire pour ouvrir/télécharger les documents (canLaunchUrl sur des liens https) -->
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:scheme="https" />
+    </intent>
+    <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:scheme="http" />
+    </intent>
     <!-- If your app checks for SMS support -->
     <intent>
         <action android:name="android.intent.action.VIEW" />

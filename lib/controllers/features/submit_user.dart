@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
-import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
+import 'package:connect_kasa/core/repositories/docs_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -40,7 +41,7 @@ class SubmitUser {
     String? fcmToken,
   }) async {
     final dataBasesUserServices = DataBasesUserServices();
-    final dataBasesDocsServices = DataBasesDocsServices();
+    final IDocsRepository docsRepository = FirestoreDocsRepository();
 
     // Résout l'ID réel du document Residence/{id}/lot/{docId} à partir du
     // refLot saisi à l'inscription — plus de clé composite reconstruite.
@@ -88,7 +89,7 @@ class SubmitUser {
         documentPathRecto: imagepathIDrecto,
         documentPathVerso: imagepathIDverso,
       );
-      await dataBasesDocsServices.setDocument(
+      await docsRepository.setDocument(
           newDocId, newUserId, realLotId);
     }
 
@@ -101,7 +102,7 @@ class SubmitUser {
         documentPathRecto: imagepathJustif,
         lotId: lotId,
       );
-      await dataBasesDocsServices.setDocument(
+      await docsRepository.setDocument(
         newDocJustif,
         newUserId,
         realLotId,
@@ -117,7 +118,7 @@ class SubmitUser {
         documentPathRecto: kbisPath,
         lotId: lotId,
       );
-      await dataBasesDocsServices.setDocument(
+      await docsRepository.setDocument(
           newDocKbis, newUserId, realLotId);
     }
   }

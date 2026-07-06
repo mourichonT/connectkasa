@@ -279,9 +279,9 @@ class AddDocsFormState extends State<AddDocsForm> {
     );
   }
 
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     if (widget.isDocCopro) {
-      SubmitDocController.submitFormCopro(
+      await SubmitDocController.submitFormCopro(
         residenceId: widget.lotSelected.residenceId,
         docExtension: fileExtension,
         docName: docName.text,
@@ -289,7 +289,7 @@ class AddDocsFormState extends State<AddDocsForm> {
         docPath: imagePath,
       );
     } else {
-      SubmitDocController.submitFormIndividuel(
+      await SubmitDocController.submitFormIndividuel(
         residenceId: widget.lotSelected.residenceId,
         docExtension: fileExtension,
         docName: docName.text,
@@ -300,6 +300,8 @@ class AddDocsFormState extends State<AddDocsForm> {
       );
     }
 
-    Navigator.pop(context);
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 }

@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/job_entry.dart';
 import 'package:connect_kasa/controllers/features/justif_document.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -39,7 +39,7 @@ class MyInfosRent extends StatefulWidget {
 
 class _MyInfosRentState extends State<MyInfosRent> {
   final DataBasesUserServices _userServices = DataBasesUserServices();
-  final DataBasesDocsServices dataBasesDocsServices = DataBasesDocsServices();
+  final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
   final StorageServices _storageServices = StorageServices();
   UserInfo? tenantUser;
   bool isLoading = true;
@@ -379,7 +379,7 @@ class _MyInfosRentState extends State<MyInfosRent> {
                                 timeStamp: Timestamp.now(),
                                 documentPathRecto: downloadUrl,
                               );
-                              await dataBasesDocsServices.setDocumentTenant(
+                              await docsRepository.setDocumentTenant(
                                 newDocJustif,
                                 widget.uid,
                               );
@@ -596,7 +596,7 @@ class _MyInfosRentState extends State<MyInfosRent> {
     String docId,
   ) async {
     await _storageServices.removeFileFromUrl(url);
-    await dataBasesDocsServices.deleteTenantDocument(
+    await docsRepository.deleteTenantDocument(
       userId: uid,
       documentId: docId, // <- L'ID récupéré depuis Firestore
     );

@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_docs_services.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
@@ -42,7 +41,6 @@ class TenantDetail extends StatefulWidget {
 
 class TenantDetailState extends State<TenantDetail> {
   Future<List<Map<String, dynamic>>>? _documentsFuture;
-  final DataBasesDocsServices dataBasesDocsServices = DataBasesDocsServices();
   final StorageServices _storageServices = StorageServices();
   final DataBasesLotServices _dataBasesLotServices = DataBasesLotServices();
   @override
