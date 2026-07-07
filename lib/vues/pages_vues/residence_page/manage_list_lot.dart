@@ -5,7 +5,8 @@ import 'package:connect_kasa/models/pages_models/structure_residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -52,8 +53,8 @@ class _ManageListLotState extends State<ManageListLot> {
   }
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
-  final DataBasesResidenceServices _residenceServices =
-      DataBasesResidenceServices();
+  final IResidenceRepository _residenceServices =
+      FirestoreResidenceRepository();
   final DataBasesLotServices _lotServices = DataBasesLotServices();
   List<String> nameBuildings = [];
   String typeBuilding = "";
@@ -71,7 +72,9 @@ class _ManageListLotState extends State<ManageListLot> {
 
     try {
       final fetched = await _residenceServices
-          .getStructuresByResidence(widget.residence.id!);
+          .getStructuresByResidence(widget.residence.id!)
+          .then((result) =>
+              result.when(success: (v) => v, failure: (error) => throw error));
       if (mounted) {
         setState(() {
           nameBuildings = fetched

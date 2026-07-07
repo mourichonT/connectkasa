@@ -33,7 +33,10 @@ class AgencySearchResultList extends StatelessWidget {
           itemBuilder: (context, index) {
             final agency = searchResults[index];
             return ListTile(
-              title: Text(agency.name),
+              title: Text(
+                  agency.syndic?.mail.isNotEmpty == true
+                      ? agency.syndic!.mail
+                      : agency.name),
               onTap: () => onSelect(agency),
             );
           },

@@ -1,5 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
@@ -35,7 +35,7 @@ class ManageCsMembresState extends State<ManageCsMembers> {
       _csMembers.removeAt(index);
     });
 
-    await DataBasesResidenceServices()
+    await FirestoreResidenceRepository()
         .removeCsMember(widget.residence.id, uidToRemove);
   }
 
@@ -46,7 +46,7 @@ class ManageCsMembresState extends State<ManageCsMembers> {
       _csMembers.add(uidToAdd);
     });
 
-    await DataBasesResidenceServices()
+    await FirestoreResidenceRepository()
         .addCsMember(widget.residence.id, uidToAdd);
   }
 

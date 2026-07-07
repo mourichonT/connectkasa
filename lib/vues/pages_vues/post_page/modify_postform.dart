@@ -3,7 +3,8 @@ import 'dart:math';
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
@@ -33,8 +34,8 @@ class ModifyPostFormState extends State<ModifyPostForm> {
   final StorageServices _storageServices = StorageServices();
   File? _selectedImage;
   final TypeList _typeList = TypeList();
-  final DataBasesResidenceServices residenceServices =
-      DataBasesResidenceServices();
+  final IResidenceRepository residenceServices =
+      FirestoreResidenceRepository();
   late Future<Residence> getResidence;
   late TextEditingController textEditingController;
   late List<String> locationElements = [];
@@ -61,8 +62,10 @@ class ModifyPostFormState extends State<ModifyPostForm> {
     textEditingController = TextEditingController();
 
     // Récupération de la résidence depuis la base
-    getResidence =
-        residenceServices.getResidenceByRef(widget.post.refResidence);
+    getResidence = residenceServices
+        .getResidenceByRef(widget.post.refResidence)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
 
     getResidence.then((residence) {
       setState(() {

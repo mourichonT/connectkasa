@@ -2,11 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/agency_dept.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
+import 'package:connect_kasa/models/pages_models/structure_residence.dart';
 import 'package:connect_kasa/vues/pages_vues/residence_page/manage_structure.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
@@ -54,8 +56,8 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
   bool _loadingExceptions = true;
 
   final AgencySearchFlow _flow = AgencySearchFlow(serviceType: 'serviceSyndic');
-  final DataBasesResidenceServices _residenceServices =
-      DataBasesResidenceServices();
+  final IResidenceRepository _residenceServices =
+      FirestoreResidenceRepository();
 
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
@@ -71,8 +73,10 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
   }
 
   Future<void> _loadSyndicExceptions() async {
-    final structures =
-        await _residenceServices.getStructuresByResidence(widget.residence.id);
+    final structures = await _residenceServices
+        .getStructuresByResidence(widget.residence.id)
+        .then((result) => result.when(
+            success: (v) => v, failure: (_) => <StructureResidence>[]));
 
     final exceptions = <_SyndicException>[];
     for (final structure in structures) {
@@ -234,8 +238,9 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
   );
 
   Future<void> _updateField(String field, String label, String value) async {
-    final success =
-        await _residenceServices.updateField(widget.residence.id, field, value);
+    final success = await _residenceServices
+        .updateField(widget.residence.id, field, value)
+        .then((result) => result.when(success: (v) => v, failure: (_) => false));
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -622,8 +627,9 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
       updatedData['geranceRef'] = FieldValue.delete();
     }
 
-    final success =
-        await _residenceServices.updateResidence(refResidence, updatedData);
+    final success = await _residenceServices
+        .updateResidence(refResidence, updatedData)
+        .then((result) => result.when(success: (v) => v, failure: (_) => false));
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

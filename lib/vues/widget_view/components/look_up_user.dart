@@ -1,5 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
@@ -129,7 +129,7 @@ class LookUpUser {
                   // await DataBasesUserServices.shareFile(
                   //     demande, user.uid); // ou autre clé selon ton modèle User
 
-                  await DataBasesResidenceServices()
+                  await FirestoreResidenceRepository()
                       .addCsMember(residenceId, user.uid);
                   onUserAdded(user);
                   Navigator.of(context).pop(input); // Fermer avec succès

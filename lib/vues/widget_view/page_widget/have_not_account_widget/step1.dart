@@ -2,7 +2,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:flutter/material.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 
 class Step1 extends StatefulWidget {
   final Function(Residence) recupererInformationsStep1;
@@ -157,8 +157,10 @@ class _Step1State extends State<Step1> {
   Future<List<String>> saisieAsyncFunction(String saisie) async {
     // Appel de la fonction asynchrone pour récupérer les résidences trouvées
 
-    residencesTrouvees =
-        await DataBasesResidenceServices().rechercheFirestore(saisie);
+    residencesTrouvees = await FirestoreResidenceRepository()
+        .rechercheFirestore(saisie)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
 
     // Maintenant que la fonction asynchrone est terminée, vous pouvez utiliser les résidences trouvées
     // Convertir les objets Residence en noms de résidence

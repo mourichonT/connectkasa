@@ -1,7 +1,8 @@
 import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart'; // Importation ajoutée
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/elements_list.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
@@ -35,8 +36,8 @@ class ManageStructure extends StatefulWidget {
 
 class ManageStructureState extends State<ManageStructure> {
   final AgencySearchFlow _flow = AgencySearchFlow(serviceType: 'serviceSyndic');
-  final DataBasesResidenceServices _residenceServices =
-      DataBasesResidenceServices();
+  final IResidenceRepository _residenceServices =
+      FirestoreResidenceRepository();
   List<Agent> agents = [];
   List<StructureResidence> buildings = [];
 
@@ -68,7 +69,9 @@ class ManageStructureState extends State<ManageStructure> {
   Future<void> _loadBuildings() async {
     if (widget.residence.id != null) {
       final fetchedBuildings = await _residenceServices
-          .getStructuresByResidence(widget.residence.id!);
+          .getStructuresByResidence(widget.residence.id!)
+          .then((result) => result.when(
+              success: (v) => v, failure: (_) => <StructureResidence>[]));
 
       // Résout les syndics référencés dans Gerance depuis la source à jour
       // plutôt que de se fier à une copie potentiellement figée.

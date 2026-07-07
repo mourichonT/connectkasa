@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/my_multiselected_dropdown.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -41,7 +42,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
   final TextEditingController _dateFromController = TextEditingController();
   final TextEditingController _dateToController = TextEditingController();
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
-  final DataBasesResidenceServices _ResServices = DataBasesResidenceServices();
+  final IResidenceRepository _ResServices = FirestoreResidenceRepository();
   late Future<List<Map<String, String>>> _allLocationsFuture;
   late Post post;
   final TypeList _typeList = TypeList();
@@ -60,8 +61,10 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
   @override
   void initState() {
     super.initState();
-    _allLocationsFuture =
-        _ResServices.getAllLocalisation(widget.residenceSelected);
+    _allLocationsFuture = _ResServices
+        .getAllLocalisation(widget.residenceSelected)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
   }
 
   void _updateFilters() {

@@ -4,7 +4,8 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
@@ -45,8 +46,8 @@ class _ProfilePageState extends State<ProfilePage> {
   final LoadUserController _loadUserController = LoadUserController();
   final DataBasesUserServices userServices = DataBasesUserServices();
   final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
-  final DataBasesResidenceServices _basesResidenceServices =
-      DataBasesResidenceServices();
+  final IResidenceRepository _basesResidenceServices =
+      FirestoreResidenceRepository();
 
   User? user;
 
@@ -107,8 +108,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
       List<Residence> csResidenceObjects = [];
       for (String residenceId in csResidenceIds) {
-        Residence? res =
-            await _basesResidenceServices.getResidenceByRef(residenceId);
+        Residence? res = await _basesResidenceServices
+            .getResidenceByRef(residenceId)
+            .then((result) => result.when(
+                success: (v) => v, failure: (error) => throw error));
         if (res != null) {
           csResidenceObjects.add(res);
         }

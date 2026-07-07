@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/structure_residence.dart';
@@ -33,7 +34,7 @@ class SinistreForm extends StatefulWidget {
 class SinistreFormState extends State<SinistreForm> {
   late TextEditingController title;
   late TextEditingController desc;
-  final DataBasesResidenceServices _ResServices = DataBasesResidenceServices();
+  final IResidenceRepository _ResServices = FirestoreResidenceRepository();
   List<Map<String, String>> itemsLocalisation = [];
   List<String> itemsEtage = [];
   List<String> itemsElements = [];
@@ -49,9 +50,10 @@ class SinistreFormState extends State<SinistreForm> {
 
   Future<void> _loadLocalisations() async {
     if (widget.preferedLot != null) {
-      final locs = await _ResServices.getAllLocalisation(
-        widget.preferedLot!.residenceId,
-      );
+      final locs = await _ResServices
+          .getAllLocalisation(widget.preferedLot!.residenceId)
+          .then((result) =>
+              result.when(success: (v) => v, failure: (_) => <Map<String, String>>[]));
       setState(() {
         itemsLocalisation = locs;
       });
@@ -60,10 +62,11 @@ class SinistreFormState extends State<SinistreForm> {
 
   Future<void> _getLocDetails() async {
     if (widget.preferedLot != null && localisationId != null) {
-      final StructureResidence? loc = await _ResServices.getDetailLocalisation(
-        widget.preferedLot!.residenceId,
-        localisationId!, // ID du document dans "structure"
-      );
+      final StructureResidence? loc = await _ResServices
+          .getDetailLocalisation(
+              widget.preferedLot!.residenceId, localisationId!)
+          .then((result) =>
+              result.when(success: (v) => v, failure: (_) => null));
 
       if (loc != null) {
         setState(() {

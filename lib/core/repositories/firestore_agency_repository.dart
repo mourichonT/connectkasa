@@ -21,26 +21,30 @@ class FirestoreAgencyRepository implements IAgencyRepository {
     if (emailPart.isEmpty) return const Result.success([]);
 
     try {
-      // Recherche par préfixe d'email dans l'index Gerance/{id}/contacts,
-      // filtré par type de service ("serviceSyndic", "geranceLocative", ...).
-      // Cet index est généré automatiquement (Cloud Function
-      // sync_gerance_contacts) à partir du champ Gerance/{id}.services :
-      // jamais écrit à la main.
+      // Recherche par sous-chaîne (n'importe où dans le mail, pas seulement
+      // en préfixe) dans l'index Gerance/{id}/contacts, filtré par type de
+      // service ("serviceSyndic", "geranceLocative", ...). Même approche que
+      // rechercheFirestore (recherche de résidence à l'inscription) :
+      // Firestore ne fait pas de recherche par sous-chaîne nativement, donc
+      // on filtre côté client après récupération par serviceType. Cet index
+      // est généré automatiquement (Cloud Function sync_gerance_contacts) à
+      // partir du champ Gerance/{id}.services : jamais écrit à la main.
       final contactsSnapshot = await _firestore
           .collectionGroup(FirestorePaths.contacts)
           .where('serviceType', isEqualTo: serviceType)
-          .where('mail', isGreaterThanOrEqualTo: emailPart)
-          .where('mail', isLessThanOrEqualTo: emailPart)
-          .limit(10)
           .get();
 
-      if (contactsSnapshot.docs.isEmpty) return const Result.success([]);
+      final matchingDocs = contactsSnapshot.docs.where((doc) {
+        final mail = (doc.data()['mail'] as String?)?.toLowerCase() ?? '';
+        return mail.contains(emailPart.toLowerCase());
+      }).toList();
+
+      if (matchingDocs.isEmpty) return const Result.success([]);
 
       // Un même cabinet peut matcher plusieurs contacts (service + agents) ;
       // on ne relit chaque document Gerance parent qu'une seule fois.
-      final geranceIds = contactsSnapshot.docs
-          .map((doc) => doc.reference.parent.parent!.id)
-          .toSet();
+      final geranceIds =
+          matchingDocs.map((doc) => doc.reference.parent.parent!.id).toSet();
       final geranceDocs = await Future.wait(geranceIds.map(
           (id) => _firestore.collection(FirestorePaths.gerance).doc(id).get()));
       final geranceById = {
@@ -49,7 +53,7 @@ class FirestoreAgencyRepository implements IAgencyRepository {
       };
 
       final results = <Agency>[];
-      for (final contactDoc in contactsSnapshot.docs) {
+      for (final contactDoc in matchingDocs) {
         final geranceId = contactDoc.reference.parent.parent!.id;
         final geranceData = geranceById[geranceId];
         if (geranceData == null) continue; // cabinet supprimé entretemps

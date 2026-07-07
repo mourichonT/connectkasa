@@ -262,6 +262,30 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Règle dédiée aux requêtes collectionGroup('contacts')
+    // (FirestoreAgencyRepository.searchByEmail, recherche de syndic/agence
+    // par email) : une requête collectionGroup interroge "contacts" à
+    // travers tous les Gerance/{id} d'un coup, ce qui nécessite une règle
+    // {path=**} distincte de la règle imbriquée Gerance/{id}/{document=**}
+    // ci-dessous (qui ne couvre que les lectures directes sous un
+    // Gerance/{id} déjà connu, pas une requête cross-documents).
+    // ATTENTION dette technique : "contacts" est aussi le nom de la
+    // sous-collection Residence/{id}/contacts (annuaire de la résidence,
+    // déjà régi par sa propre règle isResidenceMember plus haut) - cette
+    // règle collectionGroup, volontairement large (isSignedIn() seul),
+    // les exposerait aussi à tout utilisateur connecté si un jour du code
+    // fait une requête collectionGroup('contacts') côté résidence (aucun
+    // cas actuel dans le code). Tentative de restriction avec
+    // path[0] == 'Gerance' testée et abandonnée : provoque un
+    // PERMISSION_DENIED alors que la règle compile sans erreur (comporte-
+    // ment de path[] non élucidé) - à reprendre plus tard si besoin de
+    // resserrer, par ex. en vérifiant un champ du document plutôt que le
+    // chemin.
+    match /{path=**}/contacts/{contactId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
     // ---------- Gerance (annuaire syndic/agence) ----------
     // Sous-collections récursives à profondeur/nom dynamique, lecture seule
     // côté app, non sensible.

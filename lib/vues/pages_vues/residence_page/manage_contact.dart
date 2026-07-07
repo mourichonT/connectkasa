@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart'; // Importez votre modèle Contact
@@ -22,8 +23,8 @@ class ManageContact extends StatefulWidget {
 class ManageContactState extends State<ManageContact> {
   // Liste des contacts à gérer. Initialisez-la avec des données si vous en chargez depuis une base.
   List<Contact> contacts = [];
-  final DataBasesResidenceServices _residenceServices =
-      DataBasesResidenceServices();
+  final IResidenceRepository _residenceServices =
+      FirestoreResidenceRepository();
 
   // État d'ouverture des cartes : purement local (UI), jamais persisté en
   // base. Basé sur l'identité de l'objet (comme ObjectKey ci-dessous), donc
@@ -45,8 +46,10 @@ class ManageContactState extends State<ManageContact> {
   Future<void> _loadContacts() async {
     if (widget.residence.id != null) {
       // Récupère les structures en utilisant la nouvelle fonction du service
-      final fetchedBuildings =
-          await _residenceServices.getContactByResidence(widget.residence.id);
+      final fetchedBuildings = await _residenceServices
+          .getContactByResidence(widget.residence.id)
+          .then((result) =>
+              result.when(success: (v) => v, failure: (_) => <Contact>[]));
       setState(() {
         contacts = fetchedBuildings;
         // Toutes les cartes sont fermées au chargement.

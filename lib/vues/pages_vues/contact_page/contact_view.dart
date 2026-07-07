@@ -1,7 +1,8 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 import 'package:connect_kasa/vues/pages_vues/contact_page/detail_contact_view.dart';
@@ -13,8 +14,8 @@ class ContactView extends StatelessWidget {
   final String uid;
   final String residenceSelected;
   final String residenceName;
-  final DataBasesResidenceServices _databaseContactServices =
-      DataBasesResidenceServices();
+  final IResidenceRepository _databaseContactServices =
+      FirestoreResidenceRepository();
   late Future<List<Contact>> _allContactsFuture;
 
   ContactView(
@@ -25,8 +26,10 @@ class ContactView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _allContactsFuture =
-        _databaseContactServices.getContactByResidence(residenceSelected);
+    _allContactsFuture = _databaseContactServices
+        .getContactByResidence(residenceSelected)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
 
     return FutureBuilder<List<Contact>>(
         future: _allContactsFuture,

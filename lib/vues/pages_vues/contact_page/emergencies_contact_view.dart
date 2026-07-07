@@ -2,21 +2,24 @@
 
 import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 import 'package:flutter/material.dart';
 
 class EmergenciesContactsView extends StatelessWidget {
-  final DataBasesResidenceServices _databaseContactServices =
-      DataBasesResidenceServices();
+  final IResidenceRepository _databaseContactServices =
+      FirestoreResidenceRepository();
   late Future<List<Contact>> allEmergenciesContactsFuture;
 
   EmergenciesContactsView({super.key});
   @override
   Widget build(BuildContext context) {
-    allEmergenciesContactsFuture =
-        _databaseContactServices.getEmergenciesContacts();
+    allEmergenciesContactsFuture = _databaseContactServices
+        .getEmergenciesContacts()
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
     return FutureBuilder<List<Contact>>(
         future: allEmergenciesContactsFuture,
         builder: (context, snapshot) {

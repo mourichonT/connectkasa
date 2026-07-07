@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/controllers/services/databases_residence_services.dart';
+import 'package:connect_kasa/core/repositories/residence_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -39,8 +40,8 @@ class EventForm extends StatefulWidget {
 }
 
 class EventFormState extends State<EventForm> {
-  final DataBasesResidenceServices _databaseContactServices =
-      DataBasesResidenceServices();
+  final IResidenceRepository _databaseContactServices =
+      FirestoreResidenceRepository();
   final StorageServices _storageServices = StorageServices();
   File? _selectedImage;
 
@@ -74,8 +75,10 @@ class EventFormState extends State<EventForm> {
         List<String>.from(widget.preferedLot!.residenceData['csmembers']);
     _selectedEventTypes =
         !itemsCSMembers.contains(widget.uid) ? {EventType.evenement} : {};
-    itemsPresta =
-        _databaseContactServices.getContactByResidence(widget.residence);
+    itemsPresta = _databaseContactServices
+        .getContactByResidence(widget.residence)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
   }
 
   @override
