@@ -1,4 +1,5 @@
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/lot_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/enum/elements_list.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/structure_residence.dart';
@@ -55,7 +56,7 @@ class _ManageListLotState extends State<ManageListLot> {
   final Map<String, FocusNode> _focusNodes = {};
   final IResidenceRepository _residenceServices =
       FirestoreResidenceRepository();
-  final DataBasesLotServices _lotServices = DataBasesLotServices();
+  final ILotRepository _lotServices = FirestoreLotRepository();
   List<String> nameBuildings = [];
   String typeBuilding = "";
 
@@ -99,8 +100,10 @@ class _ManageListLotState extends State<ManageListLot> {
 
   Future<void> _loadLots() async {
     if (widget.residence.id != null) {
-      final fetchedLots =
-          await _lotServices.getLotByResidence(widget.residence.id);
+      final fetchedLots = await _lotServices
+          .getLotByResidence(widget.residence.id)
+          .then((result) =>
+              result.when(success: (v) => v, failure: (_) => <Lot>[]));
       setState(() {
         lots.clear();
         lots.addAll(fetchedLots);

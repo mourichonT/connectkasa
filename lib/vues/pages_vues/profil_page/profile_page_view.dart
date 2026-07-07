@@ -1,9 +1,7 @@
-import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/core/repositories/residence_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
@@ -45,7 +43,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   final LoadUserController _loadUserController = LoadUserController();
   final DataBasesUserServices userServices = DataBasesUserServices();
-  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
   final IResidenceRepository _basesResidenceServices =
       FirestoreResidenceRepository();
 
@@ -417,7 +414,6 @@ class _ProfilePageState extends State<ProfilePage> {
                                   // déconnecté). Même correctif que
                                   // my_drawer.dart.
                                   context.read<MessageProvider>().reset();
-                                  LoadPreferedData.clearSharedPreferences();
                                   // Attendu avant de naviguer : sans ce await,
                                   // la navigation se faisait en parallèle du
                                   // sign-out (résultat imprévisible).

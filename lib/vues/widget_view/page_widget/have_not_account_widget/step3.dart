@@ -1,5 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
@@ -135,6 +135,10 @@ class _Step3State extends State<Step3> {
                         onValueChanged: (value) {
                           setState(() {
                             batChoice = value;
+                            lotChoice = "";
+                            visible = false;
+                            _numLotFuture =
+                                getSpecificLot(widget.residence, value);
                           });
                         },
                       );
@@ -222,8 +226,10 @@ class _Step3State extends State<Step3> {
   }
 
   Future<List<String>> getBatimentLot(Residence residence) async {
-    List<Lot> lotsTrouves =
-        await DataBasesLotServices().getLotByResidence(residence.id);
+    List<Lot> lotsTrouves = await FirestoreLotRepository()
+        .getLotByResidence(residence.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]));
 
     Set<String> batimentsUniques = {};
 
@@ -237,14 +243,17 @@ class _Step3State extends State<Step3> {
     return batimentLots;
   }
 
-  Future<List<String>> getSpecificLot(Residence residence) async {
-    List<Lot> lotsTrouves =
-        await DataBasesLotServices().getLotByResidence(residence.id);
+  Future<List<String>> getSpecificLot(Residence residence,
+      [String? batiment]) async {
+    List<Lot> lotsTrouves = await FirestoreLotRepository()
+        .getLotByResidence(residence.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]));
 
     Set<String> lotsUniques = {};
 
     for (Lot lot in lotsTrouves) {
-      if (lot.lot != null) {
+      if (lot.lot != null && (batiment == null || lot.batiment == batiment)) {
         lotsUniques.add(lot.lot!);
       }
     }
@@ -254,8 +263,10 @@ class _Step3State extends State<Step3> {
   }
 
   Future<List<String>> getTypeLot(Residence residence) async {
-    List<Lot> lotsTrouves =
-        await DataBasesLotServices().getLotByResidence(residence.id);
+    List<Lot> lotsTrouves = await FirestoreLotRepository()
+        .getLotByResidence(residence.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]));
 
     Set<String> typeLot = {};
 
@@ -269,9 +280,11 @@ class _Step3State extends State<Step3> {
 
   Future<String?> getlot(String residenceId, String bat, String numlot) async {
     try {
-      DataBasesLotServices lotServices = DataBasesLotServices();
-      Lot? specificLot =
-          await lotServices.getUniqueLot(residenceId, bat, numlot);
+      FirestoreLotRepository lotServices = FirestoreLotRepository();
+      Lot? specificLot = await lotServices
+          .getUniqueLot(residenceId, bat, numlot)
+          .then((result) =>
+              result.when(success: (v) => v, failure: (error) => throw error));
 
       if (specificLot != null) {
         return specificLot.refLot;

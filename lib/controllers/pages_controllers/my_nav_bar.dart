@@ -12,7 +12,8 @@ import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/lot_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/controllers/features/route_controller.dart';
 import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -40,7 +41,7 @@ class MyNavBar extends StatefulWidget {
 }
 
 class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
-  final _databasesLotServices = DataBasesLotServices();
+  final ILotRepository _databasesLotServices = FirestoreLotRepository();
   final _loadPreferedData = LoadPreferedData();
   final _loadUserController = LoadUserController();
   late final MyTabBarController tabController;
@@ -77,8 +78,11 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   }
 
   Future<void> _initializeLot() async {
-    _lotsList = await _databasesLotServices.getLotByIdUser(widget.uid);
-    _preferedLot = await _loadPreferedData.loadPreferedLot();
+    _lotsList = await _databasesLotServices
+        .getLotByIdUser(widget.uid)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]));
+    _preferedLot = await _loadPreferedData.loadPreferedLot(widget.uid);
 
     // Aucun lot du tout (ni préféré, ni dans la liste) : rien à afficher
     // dans les onglets habituels. getFirstLotByUserId lèverait une
@@ -91,7 +95,10 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
     }
 
     if (_preferedLot == null) {
-      _defaultLot = await _databasesLotServices.getFirstLotByUserId(widget.uid);
+      _defaultLot = await _databasesLotServices
+          .getFirstLotByUserId(widget.uid)
+          .then((result) =>
+              result.when(success: (v) => v, failure: (error) => throw error));
       final color = _defaultLot.userLotDetails['colorSelected'];
       if (color != null) {
         Provider.of<ColorProvider>(context, listen: false).updateColor(color);
@@ -141,7 +148,10 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
           }
 
           // 3) (optionnel) rafraîchir la liste des lots et relancer l'écoute messages
-          _lotsList = await _databasesLotServices.getLotByIdUser(widget.uid);
+          _lotsList = await _databasesLotServices
+        .getLotByIdUser(widget.uid)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]));
 
           final residenceId = newLot.residenceId;
           if (residenceId.isNotEmpty) {
@@ -227,7 +237,6 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                   await _loadUserController.handleGoogleSignOut();
                   if (!context.mounted) return;
                   Navigator.popUntil(context, ModalRoute.withName('/'));
-                  LoadPreferedData.clearSharedPreferences();
                 },
               ),
             ],

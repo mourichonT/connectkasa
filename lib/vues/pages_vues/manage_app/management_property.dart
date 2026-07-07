@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/lot_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
@@ -27,18 +28,24 @@ class ManagementPropertyState extends State<ManagementProperty> {
   late Color _backgroundColor;
   late Future<List<Lot?>> _lotByUser;
 
-  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
+  final ILotRepository _databasesLotServices = FirestoreLotRepository();
 
   Map<String, Color> _lotColors = {};
 
   @override
   void initState() {
-    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
+    _lotByUser = _databasesLotServices
+        .getLotByIdUser(widget.uid)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]));
     super.initState();
   }
 
   Future<List<Lot?>> _fetchLotsByUser() async {
-    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid);
+    _lotByUser = _databasesLotServices
+        .getLotByIdUser(widget.uid)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]));
 
     return await _lotByUser;
   }

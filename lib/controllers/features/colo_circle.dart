@@ -1,12 +1,13 @@
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/lot_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class ColorCircle extends StatelessWidget {
-  final DataBasesLotServices databaseService = DataBasesLotServices();
+  final ILotRepository databaseService = FirestoreLotRepository();
   final Color color;
   final String userId;
   final String idLot;
@@ -41,10 +42,10 @@ class ColorCircle extends StatelessWidget {
 
           // 3. Mettre à jour dans SharedPreferences
           final loadService = LoadPreferedData();
-          Lot? currentLot = await loadService.loadPreferedLot();
+          Lot? currentLot = await loadService.loadPreferedLot(userId);
           if (currentLot != null && currentLot.id == idLotSelected) {
             currentLot.userLotDetails['colorSelected'] = hexColor;
-            await loadService.savePreferedLot(currentLot);
+            await loadService.savePreferedLot(userId, currentLot);
           }
         }
 

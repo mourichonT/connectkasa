@@ -3,9 +3,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/pages_models/lot.dart';
 
 class LoadPreferedData {
-  Future<Lot?> loadPreferedLot([Lot? selectedLot]) async {
+  // Scopée par uid : sans ça, le lot préféré d'un compte pouvait "fuiter"
+  // vers un autre compte connecté ensuite sur le même appareil, ce qui
+  // obligeait à tout effacer (clearSharedPreferences, supprimé) à chaque
+  // déconnexion - avec pour effet de bord de perdre aussi la préférence
+  // du même utilisateur d'une session à l'autre.
+  Future<Lot?> loadPreferedLot(String uid) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? lotJson = prefs.getString('preferedLot') ?? '';
+    String? lotJson = prefs.getString('preferedLot_$uid') ?? '';
     if (lotJson.isNotEmpty) {
       Map<String, dynamic> lotMap = json.decode(lotJson);
       return Lot.fromJson(lotMap);
@@ -14,14 +19,9 @@ class LoadPreferedData {
     }
   }
 
-  Future<void> savePreferedLot(Lot lot) async {
+  Future<void> savePreferedLot(String uid, Lot lot) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String lotJson = json.encode(lot.toJson());
-    await prefs.setString('preferedLot', lotJson);
-  }
-
-  static void clearSharedPreferences() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.setString('preferedLot_$uid', lotJson);
   }
 }

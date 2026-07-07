@@ -1,4 +1,3 @@
-import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
@@ -51,7 +50,6 @@ class MyDrawer extends StatelessWidget {
                 await _loadUserController.handleGoogleSignOut();
                 if (!context.mounted) return;
                 Navigator.popUntil(context, ModalRoute.withName('/'));
-                LoadPreferedData.clearSharedPreferences();
               },
               child: const Text("Déconnexion"),
             )

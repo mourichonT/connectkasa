@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/pages_controllers/tenant_controller.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/lot_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
@@ -25,7 +26,7 @@ class ManagementTenant extends StatefulWidget {
 class ManagementTenantState extends State<ManagementTenant>
     with SingleTickerProviderStateMixin {
   DataBasesUserServices userServices = DataBasesUserServices();
-  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
+  final ILotRepository _databasesLotServices = FirestoreLotRepository();
 
   late Future<List<Lot?>> _lotByUser;
   late Future<List<DemandeLoc>> _allDemand;
@@ -45,7 +46,11 @@ class ManagementTenantState extends State<ManagementTenant>
   }
 
   Future<List<Lot?>> _fetchLotsByUser() async {
-    _lotByUser = _databasesLotServices.getLotByIdUser(widget.uid).then((lots) {
+    _lotByUser = _databasesLotServices
+        .getLotByIdUser(widget.uid)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]))
+        .then((lots) {
       return lots.where((lot) {
         // Vérifie que le lot est non nul et que le uid est dans idProprietaire
         return lot != null &&

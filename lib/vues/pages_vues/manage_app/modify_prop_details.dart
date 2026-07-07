@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/lot_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -25,7 +26,7 @@ class ModifyPropDetails extends StatefulWidget {
 }
 
 class ModifyPropDetailsState extends State<ModifyPropDetails> {
-  DataBasesLotServices lotServices = DataBasesLotServices();
+  ILotRepository lotServices = FirestoreLotRepository();
 
   TextEditingController name = TextEditingController();
   String? selectedStatut;

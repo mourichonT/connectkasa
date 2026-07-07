@@ -2,7 +2,8 @@ import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
 import 'package:connect_kasa/controllers/providers/name_lot_provider.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/lot_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/modify_prop_details.dart';
@@ -33,7 +34,7 @@ class ModifyProperty extends StatefulWidget {
 }
 
 class _ModifyPropertyState extends State<ModifyProperty> {
-  final DataBasesLotServices lotServices = DataBasesLotServices();
+  final ILotRepository lotServices = FirestoreLotRepository();
   final TextEditingController name = TextEditingController();
   final FocusNode nameFocusNode = FocusNode();
 
@@ -68,17 +69,30 @@ class _ModifyPropertyState extends State<ModifyProperty> {
   }
 
   void _handleSubmit(String field, String label, String value) async {
-    lotServices.updateNameLot(widget.uid, widget.lot.id!, value);
+    final result = await lotServices.updateNameLot(
+        widget.uid, widget.lot.id!, value);
+
+    if (result.isFailure) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text("Erreur lors de la mise à jour du nom du lot")),
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return;
 
     final nameLotProvider =
         Provider.of<NameLotProvider>(context, listen: false);
     nameLotProvider.updateNameLot(value);
 
     final loadService = LoadPreferedData();
-    Lot? currentLot = await loadService.loadPreferedLot();
+    Lot? currentLot = await loadService.loadPreferedLot(widget.uid);
     if (currentLot != null) {
       currentLot.userLotDetails['nameLot'] = value;
-      await loadService.savePreferedLot(currentLot);
+      await loadService.savePreferedLot(widget.uid, currentLot);
     }
     widget.lot.userLotDetails['nameLot'] = value;
     setState(() {});
@@ -133,7 +147,7 @@ class _ModifyPropertyState extends State<ModifyProperty> {
               text: 'Donner un nom à votre bien',
               controller: name,
               focusNode: nameFocusNode,
-              field: widget.lot.userLotDetails['nameLot'],
+              field: 'nameLot',
               onSubmit: _handleSubmit,
               refresh: () => setState(() {}),
               isEditable: true,

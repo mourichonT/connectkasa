@@ -1,7 +1,6 @@
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -36,7 +35,6 @@ class InfoPageView extends StatefulWidget {
 class _InfoPageViewState extends State<InfoPageView> {
   final LoadUserController _loadUserController = LoadUserController();
   final DataBasesUserServices userServices = DataBasesUserServices();
-  final DataBasesLotServices _databasesLotServices = DataBasesLotServices();
 
   User? user;
   Future<List<Lot?>>? _lotByUser;

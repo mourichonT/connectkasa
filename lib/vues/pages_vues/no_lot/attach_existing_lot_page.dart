@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
@@ -100,8 +99,10 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
 
     // Step3 ne renvoie que le refLot (référence métier), pas l'ID Firestore
     // du document nécessaire à addLotToUser/setDocument : on le retrouve ici.
-    final lot = await DataBasesLotServices()
-        .getUniqueLot(_residence!.id, _batiment, _numLot);
+    final lot = await FirestoreLotRepository()
+        .getUniqueLot(_residence!.id, _batiment, _numLot)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => null));
 
     if (lot?.id == null) {
       if (mounted) {
@@ -215,7 +216,6 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
     await _loadUserController.handleGoogleSignOut();
     if (!mounted) return;
     Navigator.of(context).popUntil(ModalRoute.withName('/'));
-    LoadPreferedData.clearSharedPreferences();
   }
 
   @override

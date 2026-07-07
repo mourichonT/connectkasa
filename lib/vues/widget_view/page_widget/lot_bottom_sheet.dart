@@ -45,8 +45,8 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
   }
 
   Future<void> _initializeSelectedLot() async {
-    preferedLot =
-        widget.selectedLot ?? await _loadPreferedData.loadPreferedLot();
+    preferedLot = widget.selectedLot ??
+        await _loadPreferedData.loadPreferedLot(widget.uid);
 
     setState(() {
       selectedLotIndexLocal = findLotInArray(widget.lots);
@@ -67,7 +67,8 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
 
     // Persist the prefered lot
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString('preferedLot', jsonEncode(selectedLot.toJson()));
+    await prefs.setString(
+        'preferedLot_${widget.uid}', jsonEncode(selectedLot.toJson()));
 
     // Récupération des détails utilisateur du lot (local) — on enrichit selectedLot
     try {
@@ -78,7 +79,8 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
 
       if (details != null) {
         selectedLot.userLotDetails = details;
-        await prefs.setString('lotDetails', jsonEncode(details));
+        await prefs.setString(
+            'lotDetails_${widget.uid}', jsonEncode(details));
       }
     } catch (e) {
       debugPrint("Erreur lors du chargement des détails du lot: $e");

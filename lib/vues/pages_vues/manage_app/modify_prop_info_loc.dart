@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/lot_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
@@ -30,7 +31,7 @@ class ModifyPropInfoLoc extends StatefulWidget {
 }
 
 class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
-  DataBasesLotServices lotServices = DataBasesLotServices();
+  ILotRepository lotServices = FirestoreLotRepository();
 
   //TextEditingController nameSyndic = TextEditingController();
   String? selectedStatut;
@@ -197,18 +198,24 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
                       if (!delegated) {
                         // Suppression immédiate des deux champs en base
                         // (référence ou copie custom, selon ce qui était actif)
-                        final okAgency = await lotServices.updateLot(
-                          widget.lot.residenceId,
-                          widget.lot.id!,
-                          'syndicAgency',
-                          FieldValue.delete(),
-                        );
-                        final okRef = await lotServices.updateLot(
-                          widget.lot.residenceId,
-                          widget.lot.id!,
-                          'geranceRef',
-                          FieldValue.delete(),
-                        );
+                        final okAgency = await lotServices
+                            .updateLot(
+                              widget.lot.residenceId,
+                              widget.lot.id!,
+                              'syndicAgency',
+                              FieldValue.delete(),
+                            )
+                            .then((result) => result.when(
+                                success: (v) => v, failure: (_) => false));
+                        final okRef = await lotServices
+                            .updateLot(
+                              widget.lot.residenceId,
+                              widget.lot.id!,
+                              'geranceRef',
+                              FieldValue.delete(),
+                            )
+                            .then((result) => result.when(
+                                success: (v) => v, failure: (_) => false));
                         final ok = okAgency && okRef;
 
                         if (mounted) {
@@ -454,6 +461,11 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
     _controllers["agenceZipCode"]?.text = agency?.zipCode ?? '';
     _controllers["agenceCity"]?.text = agency?.city ?? '';
     _controllers["mail_contact"]?.text = agency?.syndic?.mail ?? '';
+    _controllers["address"]?.text = agency == null
+        ? ''
+        : "${agency.numeros} ${agency.voie} ${agency.street}".trim();
+    _controllers["zipCodeVille"]?.text =
+        agency == null ? '' : "${agency.zipCode} ${agency.city}".trim();
 
     setState(() {});
   }
@@ -510,12 +522,15 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
 
     // 🔁 Mise à jour champ par champ
     for (final entry in updatedData.entries) {
-      final ok = await lotServices.updateLot(
-        widget.lot.residenceId,
-        widget.lot.id!,
-        entry.key,
-        entry.value,
-      );
+      final ok = await lotServices
+          .updateLot(
+            widget.lot.residenceId,
+            widget.lot.id!,
+            entry.key,
+            entry.value,
+          )
+          .then((result) =>
+              result.when(success: (v) => v, failure: (_) => false));
       if (!ok) success = false;
     }
 
@@ -523,7 +538,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(success
-              ? "Résidence mise à jour avec succès"
+              ? "le Lot a été mis à jour avec succès"
               : "Erreur lors de la mise à jour"),
         ),
       );

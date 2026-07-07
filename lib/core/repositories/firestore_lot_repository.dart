@@ -1,0 +1,501 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/core/errors/app_exceptions.dart';
+import 'package:connect_kasa/core/repositories/lot_repository.dart';
+import 'package:connect_kasa/core/result/result.dart';
+import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:flutter/material.dart';
+
+class FirestoreLotRepository implements ILotRepository {
+  final FirebaseFirestore _firestore;
+
+  FirestoreLotRepository({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  Future<List<Lot>> _fetchLotsByUser(String userID) async {
+    List<Lot> lots = [];
+    // Une seule lecture de User/{uid}/lots, puis un accès direct par ID à
+    // chaque résidence/lot concerné — plus de parcours de toutes les
+    // résidences et tous leurs lots (O(nombre de lots de l'utilisateur)
+    // au lieu de O(résidences × lots)).
+    final userLotsSnapshot =
+        await _firestore.collection("User").doc(userID).collection("lots").get();
+
+    for (final userLotDoc in userLotsSnapshot.docs) {
+      final userLotData = userLotDoc.data();
+      final String? residenceId = userLotData['residenceId'];
+      final String lotId = userLotDoc.id;
+
+      if (residenceId == null) continue;
+
+      final residenceSnapshot =
+          await _firestore.collection("Residence").doc(residenceId).get();
+      final lotSnapshot = await _firestore
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("lot")
+          .doc(lotId)
+          .get();
+
+      if (!residenceSnapshot.exists || !lotSnapshot.exists) continue;
+
+      Lot lot = Lot.fromMap(lotSnapshot.data()!);
+      lot.residenceData = residenceSnapshot.data() ?? {};
+      lot.residenceId = residenceId;
+      // colorSelected/nameLot sont déjà dans le doc User/lots, pas besoin
+      // d'un second aller-retour vers getLotDetails.
+      lot.userLotDetails = {
+        "colorSelected": userLotData['colorSelected'],
+        "nameLot": userLotData['nameLot'],
+      };
+
+      lots.add(lot);
+    }
+
+    return lots;
+  }
+
+  @override
+  Future<Result<List<Lot>>> getLotByIdUser(String numUser) async {
+    try {
+      return Result.success(await _fetchLotsByUser(numUser));
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<Lot>> getFirstLotByUserId(String numUser) async {
+    try {
+      final lots = await _fetchLotsByUser(numUser);
+      if (lots.isNotEmpty) {
+        return Result.success(lots.first);
+      }
+      return Result.failure(
+          NotFoundException("Aucun lot trouvé pour l'utilisateur $numUser"));
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<List<Lot>>> getLotByResidence(String residenceId) async {
+    List<Lot> lots = [];
+    try {
+      final querySnapshot = await _firestore
+          .collection("Residence")
+          .where("id", isEqualTo: residenceId)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final residenceDoc = querySnapshot.docs.first;
+        final lotQuerySnapshot =
+            await residenceDoc.reference.collection("lot").get();
+
+        for (var lotDoc in lotQuerySnapshot.docs) {
+          lots.add(Lot.fromMap(lotDoc.data()));
+        }
+      }
+      return Result.success(lots);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<Lot?>> getUniqueLot(
+      String residenceId, String bat, String numlot) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection("Residence")
+          .where("id", isEqualTo: residenceId)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        final residenceDoc = querySnapshot.docs.first;
+
+        final lotQuerySnapshot = await residenceDoc.reference
+            .collection("lot")
+            .where("batiment", isEqualTo: bat)
+            .where("lot", isEqualTo: numlot)
+            .get();
+
+        if (lotQuerySnapshot.docs.isNotEmpty) {
+          return Result.success(Lot.fromMap(lotQuerySnapshot.docs.first.data()));
+        }
+      }
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<int>> countLocatairesExcludingUser(String numUser) async {
+    try {
+      final lots = await _fetchLotsByUser(numUser);
+
+      int count = 0;
+      for (Lot lot in lots) {
+        dynamic idLocataire = lot.idLocataire;
+
+        if (idLocataire is List) {
+          count += idLocataire.where((id) => id != numUser).length;
+        } else if (idLocataire is String && idLocataire != numUser) {
+          count++;
+        }
+      }
+      return Result.success(count);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> updateLotColor(
+      String userUid, String id, Color newColor) async {
+    try {
+      final lotRef =
+          _firestore.collection("User").doc(userUid).collection("lots").doc(id);
+
+      final hexColor = newColor.value.toRadixString(16).padLeft(8, '0');
+
+      await lotRef.update({'colorSelected': hexColor});
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> updateNameLot(
+      String userUid, String id, String newName) async {
+    try {
+      final lotRef =
+          _firestore.collection("User").doc(userUid).collection("lots").doc(id);
+
+      await lotRef.update({'nameLot': newName});
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<bool>> updateLot(
+      String residenceId, String idLot, String field, dynamic upDate) async {
+    try {
+      final lotRef = _firestore
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("lot")
+          .doc(idLot);
+
+      final snapshot = await lotRef.get();
+
+      if (snapshot.exists) {
+        await lotRef.update({field: upDate});
+        return const Result.success(true);
+      }
+      return const Result.success(false);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  // Applique la décision de remplacement ou d'ajout de locataire au lot
+  Future<void> _applyTenantChange(DocumentReference lotRef, String residenceId,
+      String idLot, String tenantId, bool replace) async {
+    await DataBasesUserServices.addLotToUser(
+        userId: tenantId,
+        lotId: idLot,
+        residenceId: residenceId,
+        statutResident: "Locataire",
+        entryDate: Timestamp.now());
+
+    if (replace) {
+      await lotRef.update({
+        'idLocataire': [tenantId]
+      });
+    } else {
+      await lotRef.update({
+        'idLocataire': FieldValue.arrayUnion([tenantId])
+      });
+    }
+
+    // Dénormalisé pour firestore.rules : permet au(x) propriétaire(s) de ce
+    // lot de consulter le dossier locataire (identité, profil, garants).
+    await _recomputeSharedWithLandlords(tenantId);
+  }
+
+  // Reconstruit entièrement User/{tenantId}.sharedWithLandlords à partir des
+  // lots où tenantId est effectivement dans idLocataire, plutôt qu'un
+  // arrayUnion/Remove incrémental : évite les incohérences si un même
+  // propriétaire partage plusieurs lots avec ce locataire.
+  Future<void> _recomputeSharedWithLandlords(String tenantId) async {
+    final lots = await _fetchLotsByUser(tenantId);
+    final Set<String> landlordUids = {};
+
+    for (final lot in lots) {
+      final isTenantHere = lot.idLocataire?.contains(tenantId) ?? false;
+      if (isTenantHere && lot.idProprietaire != null) {
+        landlordUids.addAll(lot.idProprietaire!);
+      }
+    }
+
+    await _firestore.collection("User").doc(tenantId).set({
+      "sharedWithLandlords": landlordUids.toList(),
+    }, SetOptions(merge: true));
+  }
+
+  // Reconstruit entièrement User/{userId}.residencesIds à partir de
+  // User/{userId}/lots, pour rester cohérent avec firestore.rules après un
+  // retrait de lot (voir removeIdLocataire / removeIdProprietaire /
+  // removeUserFromAllLots).
+  Future<void> _recomputeResidencesIds(String userId) async {
+    final userLotsSnapshot =
+        await _firestore.collection("User").doc(userId).collection("lots").get();
+
+    final residenceIds = userLotsSnapshot.docs
+        .map((doc) => doc.data()['residenceId'] as String?)
+        .whereType<String>()
+        .toSet();
+
+    await _firestore.collection("User").doc(userId).set({
+      "residencesIds": residenceIds.toList(),
+    }, SetOptions(merge: true));
+  }
+
+  @override
+  Future<Result<bool>> addTenant(BuildContext context, String residenceId,
+      String idLot, String tenantId) async {
+    try {
+      final lotRef = _firestore
+          .collection("Residence")
+          .doc(residenceId)
+          .collection("lot")
+          .doc(idLot);
+
+      final lotDoc = await lotRef.get();
+
+      if (!lotDoc.exists) return const Result.success(false);
+
+      final currentLocataires =
+          List<dynamic>.from(lotDoc.get('idLocataire') ?? []);
+
+      if (currentLocataires.contains(tenantId)) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Ce locataire est déjà ajouté.")),
+          );
+        }
+        return const Result.success(false);
+      }
+
+      if (currentLocataires.isNotEmpty) {
+        if (!context.mounted) return const Result.success(false);
+        final result = await showDialog<String>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: MyTextStyle.lotName(
+                  "Locataire déjà présent", Colors.black87, SizeFont.h2.size),
+              content: MyTextStyle.lotName(
+                  "Souhaitez-vous remplacer le locataire actuel ou ajouter un colocataire ?",
+                  Colors.black87,
+                  SizeFont.h3.size,
+                  FontWeight.normal),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, 'replace'),
+                  child: const Text("Remplacer"),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, 'add'),
+                  child: const Text("Ajouter"),
+                ),
+              ],
+            );
+          },
+        );
+
+        if (result == 'replace') {
+          await _applyTenantChange(lotRef, residenceId, idLot, tenantId, true);
+          return const Result.success(true);
+        } else if (result == 'add') {
+          await _applyTenantChange(lotRef, residenceId, idLot, tenantId, false);
+          return const Result.success(true);
+        }
+        return const Result.success(false);
+      } else {
+        await _applyTenantChange(lotRef, residenceId, idLot, tenantId, false);
+        return const Result.success(true);
+      }
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> removeUserFromAllLots(String userID) async {
+    try {
+      final lots = await _fetchLotsByUser(userID);
+
+      for (Lot lot in lots) {
+        if (lot.idLocataire != null &&
+            ((lot.idLocataire is List && lot.idLocataire!.contains(userID)) ||
+                (lot.idLocataire is String && lot.idLocataire == userID))) {
+          await _removeIdLocataireInternal(lot.residenceId!, lot.id!, userID);
+        }
+
+        if (lot.idProprietaire != null &&
+            ((lot.idProprietaire is List &&
+                    lot.idProprietaire!.contains(userID)) ||
+                (lot.idProprietaire is String &&
+                    lot.idProprietaire == userID))) {
+          await _removeIdProprietaireInternal(
+              lot.residenceId!, lot.id!, userID);
+        }
+      }
+
+      // Dénormalisé pour firestore.rules : residencesIds doit refléter les
+      // lots restants de l'utilisateur une fois les retraits ci-dessus faits
+      // (sharedWithLandlords est déjà recalculé par removeIdLocataire).
+      await _recomputeResidencesIds(userID);
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  Future<void> _removeIdLocataireInternal(
+      String residenceId, String idLot, String idLocataireToRemove) async {
+    final lotRef = _firestore
+        .collection("Residence")
+        .doc(residenceId)
+        .collection("lot")
+        .doc(idLot);
+
+    final lotSnapshot = await lotRef.get();
+
+    if (lotSnapshot.exists) {
+      final lotData = lotSnapshot.data() as Map<String, dynamic>;
+      final idLocataires = List.from(lotData['idLocataire'] ?? []);
+      idLocataires.remove(idLocataireToRemove);
+      await lotRef.update({'idLocataire': idLocataires});
+
+      // Dénormalisé pour firestore.rules : ce locataire n'a peut-être plus
+      // aucun lot commun avec le(s) propriétaire(s) de celui-ci.
+      await _recomputeSharedWithLandlords(idLocataireToRemove);
+    }
+  }
+
+  @override
+  Future<Result<void>> removeIdLocataire(
+      String residenceId, String idLot, String idLocataireToRemove) async {
+    try {
+      await _removeIdLocataireInternal(residenceId, idLot, idLocataireToRemove);
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  Future<void> _removeIdProprietaireInternal(
+      String residenceId, String idLot, String idProprietaireToRemove) async {
+    final lotRef = _firestore
+        .collection("Residence")
+        .doc(residenceId)
+        .collection("lot")
+        .doc(idLot);
+
+    final lotSnapshot = await lotRef.get();
+
+    if (lotSnapshot.exists) {
+      final lotData = lotSnapshot.data() as Map<String, dynamic>;
+      final idProprietaires = List.from(lotData['idProprietaire'] ?? []);
+      idProprietaires.remove(idProprietaireToRemove);
+      await lotRef.update({'idProprietaire': idProprietaires});
+
+      // Dénormalisé pour firestore.rules : les locataires actuels de ce lot
+      // ne doivent plus voir ce propriétaire dans sharedWithLandlords.
+      final idLocataires = List<String>.from(lotData['idLocataire'] ?? []);
+      for (final tenantId in idLocataires) {
+        await _recomputeSharedWithLandlords(tenantId);
+      }
+    }
+  }
+
+  @override
+  Future<Result<void>> removeIdProprietaire(
+      String residenceId, String idLot, String idProprietaireToRemove) async {
+    try {
+      await _removeIdProprietaireInternal(
+          residenceId, idLot, idProprietaireToRemove);
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> createOrUpdateLot(String residenceId, Lot lot) async {
+    try {
+      final lotRef =
+          _firestore.collection("Residence").doc(residenceId).collection("lot");
+
+      // Défense contre un ID corrompu par des espaces parasites (déjà vu en
+      // production : un ID Firestore avec un espace en préfixe crée un
+      // document fantôme distinct du vrai). Un ID uniquement fait d'espaces
+      // devient vide et retombe donc sur la branche création.
+      final String? trimmedId = lot.id?.trim();
+
+      // Un nouveau lot n'a pas encore d'ID (lot.id == null) : on ne peut pas
+      // s'en servir pour interroger Firestore (where("id", isEqualTo: null)
+      // peut matcher n'importe quel vieux document dont le champ id est
+      // absent, et écraser un lot existant sans rapport). On décide donc
+      // créer/mettre à jour directement en Dart, jamais via une requête sur
+      // un id potentiellement null.
+      if (trimmedId == null || trimmedId.isEmpty) {
+        final newDocRef = await lotRef.add(lot.toJsonForDb());
+        await newDocRef.update({'id': newDocRef.id});
+        // Synchronise l'ID généré sur l'objet local : sans ça, un second
+        // enregistrement dans la même session le traiterait de nouveau
+        // comme un nouveau lot (id encore null) et reproduirait le bug.
+        lot.id = newDocRef.id;
+      } else {
+        lot.id = trimmedId;
+        // set(merge: true) plutôt que update() : reste robuste si l'ID
+        // local ne correspond plus à un document existant (état de l'app
+        // conservé après un hot reload, document supprimé entre-temps...)
+        // au lieu de planter avec cloud_firestore/not-found.
+        await lotRef
+            .doc(trimmedId)
+            .set(lot.toJsonForDb(), SetOptions(merge: true));
+      }
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> deleteLot(String residenceId, String idLot) async {
+    try {
+      final lotRef =
+          _firestore.collection("Residence").doc(residenceId).collection("lot");
+
+      final query = await lotRef.where("id", isEqualTo: idLot).limit(1).get();
+
+      if (query.docs.isNotEmpty) {
+        final docId = query.docs.first.id;
+        await lotRef.doc(docId).delete();
+      }
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+}

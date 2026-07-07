@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_lot_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
@@ -99,10 +99,12 @@ class ShareRentFolder {
 
   static Future<void> showLotSelectionDialog(
       BuildContext context, String userId, String idLocataire) async {
-    final DataBasesLotServices _dataBasesLotServices = DataBasesLotServices();
+    final dataBasesLotServices = FirestoreLotRepository();
 
-    List<Lot> lots = await _dataBasesLotServices
-        .getLotByIdUser(userId); // récupère les lots liés à l'user
+    List<Lot> lots = await dataBasesLotServices
+        .getLotByIdUser(userId) // récupère les lots liés à l'user
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]));
 
     Lot? selectedLot;
 
@@ -148,7 +150,7 @@ class ShareRentFolder {
               onPressed: () async {
                 if (selectedLot != null) {
                   // On met à jour le lot sélectionné
-                  await _dataBasesLotServices.addTenant(
+                  await dataBasesLotServices.addTenant(
                     context,
                     selectedLot!.residenceId,
                     selectedLot!.id!,
