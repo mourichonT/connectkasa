@@ -37,6 +37,16 @@ service cloud.firestore {
         request.auth.uid in get(/databases/$(database)/documents/User/$(tenantUid)).data.sharedWithLandlords;
     }
 
+    // Un document individuel (User/{uid}/lots/{lotId}/documents) est déposé
+    // en copie chez chaque destinataire du lot (locataires + propriétaires,
+    // cf my_docs.dart deleteDocument). Le propriétaire du lot doit donc
+    // pouvoir le supprimer chez tous les destinataires, pas seulement sa
+    // propre copie.
+    function isLotOwner(residenceId, lotId) {
+      return isSignedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/Residence/$(residenceId)/lot/$(lotId)).data.idProprietaire;
+    }
+
     // ---------- User ----------
     match /User/{uid} {
       // Recherche par email/refApp (ajout locataire/garant), affichage
@@ -79,7 +89,9 @@ service cloud.firestore {
         match /documents/{docId} {
           allow read: if isOwner(uid) || isSharedTenantDoc(uid) ||
             isCsMember(get(/databases/$(database)/documents/User/$(uid)/lots/$(lotId)).data.residenceId);
-          allow write: if isOwner(uid);
+          allow write: if isOwner(uid) ||
+            isLotOwner(get(/databases/$(database)/documents/User/$(uid)/lots/$(lotId)).data.residenceId, lotId) ||
+            isCsMember(get(/databases/$(database)/documents/User/$(uid)/lots/$(lotId)).data.residenceId);
         }
       }
 

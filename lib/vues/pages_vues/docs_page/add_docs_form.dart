@@ -53,9 +53,11 @@ class AddDocsFormState extends State<AddDocsForm> {
     docName.addListener(() => setState(() {}));
   }
 
+  bool _submitted = false;
+
   @override
   void dispose() {
-    if (imagePath.isNotEmpty) {
+    if (!_submitted && imagePath.isNotEmpty) {
       // Si un fichier a été téléchargé et que l'on quitte la page sans soumettre, on le supprime
       _removeDocument(imagePath);
     }
@@ -299,6 +301,8 @@ class AddDocsFormState extends State<AddDocsForm> {
         refLot: widget.lotSelected.refLot,
       );
     }
+
+    _submitted = true;
 
     if (mounted) {
       Navigator.pop(context);

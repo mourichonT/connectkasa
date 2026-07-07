@@ -335,7 +335,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     top: _calculatedAppBarHeight,
                   ),
                   child: MydocsPageView(
-                    key: UniqueKey(),
+                    key: ValueKey('${residenceId}_${lot.id}_${widget.uid}'),
                     uid: widget.uid,
                     lotSelected: lot,
                     colorStatut: lotColor,
