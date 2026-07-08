@@ -142,3 +142,15 @@ final allPostsByResidenceProvider =
   return repository.getAllPosts(residenceId).then((result) => result.when(
       success: (v) => v, failure: (error) => throw error));
 });
+
+/// Annonces d'une résidence, SANS pagination : AnnoncesPageView partage
+/// cette même liste entre l'onglet "Tous" (filtré par type) et l'onglet
+/// "Gérer" (filtré sur les annonces de l'utilisateur courant) - paginer
+/// masquerait ses propres annonces au-delà de la première page dans
+/// "Gérer" tant qu'il ne scrolle pas "Tous" jusque-là.
+final annoncesByResidenceProvider =
+    FutureProvider.family<List<Post>, String>((ref, residenceId) async {
+  final repository = ref.watch(postRepositoryProvider);
+  return repository.getAllAnnonces(residenceId).then((result) => result.when(
+      success: (v) => v, failure: (error) => throw error));
+});
