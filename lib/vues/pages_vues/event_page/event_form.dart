@@ -5,7 +5,6 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/core/repositories/residence_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
 import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
@@ -17,6 +16,7 @@ import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
 
 class EventForm extends StatefulWidget {
@@ -42,7 +42,6 @@ class EventForm extends StatefulWidget {
 class EventFormState extends State<EventForm> {
   final IResidenceRepository _databaseContactServices =
       FirestoreResidenceRepository();
-  final StorageServices _storageServices = StorageServices();
   File? _selectedImage;
 
   TextEditingController title = TextEditingController();
@@ -90,13 +89,30 @@ class EventFormState extends State<EventForm> {
     super.dispose();
   }
 
+  /// Construit le Timestamp en interprétant année/mois/jour/heure/minute
+  /// comme une heure de Paris (et non l'heure locale de l'appareil), pour
+  /// que l'heure saisie corresponde à l'heure réellement affichée ensuite
+  /// (MyTextStyle.EventHours convertit toujours vers Europe/Paris).
+  Timestamp _parisTimestamp(DateTime date, TimeOfDay time) {
+    final paris = tz.getLocation('Europe/Paris');
+    final tzDateTime = tz.TZDateTime(
+      paris,
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+    return Timestamp.fromMillisecondsSinceEpoch(
+      tzDateTime.millisecondsSinceEpoch,
+    );
+  }
+
   void updateEventDate({DateTime? dateSelected}) {
     if (dateSelected != null) {
       selectedDate = dateSelected;
       selectedTime = TimeOfDay.fromDateTime(selectedDate!);
-      eventDate = Timestamp.fromMillisecondsSinceEpoch(
-        selectedDate!.millisecondsSinceEpoch,
-      );
+      eventDate = _parisTimestamp(selectedDate!, selectedTime!);
 
       setState(() {
         _timeEventController.text = DateFormat('HH:mm').format(selectedDate!);
@@ -111,9 +127,7 @@ class EventFormState extends State<EventForm> {
         selectedTime!.hour,
         selectedTime!.minute,
       );
-      eventDate = Timestamp.fromMillisecondsSinceEpoch(
-        combinedDateTime.millisecondsSinceEpoch,
-      );
+      eventDate = _parisTimestamp(selectedDate!, selectedTime!);
 
       setState(() {
         _timeEventController.text =

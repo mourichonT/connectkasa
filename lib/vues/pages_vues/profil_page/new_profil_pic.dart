@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
@@ -31,7 +31,7 @@ class ProfilePic extends StatefulWidget {
 class _ProfilePicState extends State<ProfilePic> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   String fileName = const Uuid().v4();
 
   Future<void> _pickImage(ImageSource source) async {
@@ -47,11 +47,9 @@ class _ProfilePicState extends State<ProfilePic> {
 
     _storageServices
         .uploadImg(pickedFile, 'user', widget.uid, "photo", fileName)
-        .then((downloadUrl) {
-      if (downloadUrl != null) {
-        _updateProfilePicture(downloadUrl);
-      }
-    });
+        .then((result) => result.when(
+            success: (downloadUrl) => _updateProfilePicture(downloadUrl),
+            failure: (_) => null));
   }
 
   Future<void> _updateProfilePicture(String imageUrl) async {

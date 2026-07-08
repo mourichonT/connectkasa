@@ -6,7 +6,7 @@ import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 
 import '../../vues/pages_vues/post_page/post_form.dart';
-import '../services/storage_services.dart';
+import '../../core/repositories/firestore_storage_repository.dart';
 
 class PostFormController extends StatelessWidget {
   final Lot preferedLot;
@@ -19,7 +19,7 @@ class PostFormController extends StatelessWidget {
     required this.racineFolder,
   });
 
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   String url = "";
   String folderName = "";
 

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/post_style.dart';
@@ -189,7 +189,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
 
   Future<Uint8List> _capturePng() async {
     try {
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 300));
 
       RenderRepaintBoundary? boundary = _globalKey.currentContext
           ?.findRenderObject() as RenderRepaintBoundary?;
@@ -541,16 +541,21 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                     if (_selectedColor != null &&
                             _selectedColor != Colors.white ||
                         _selectedImagePath != null) {
+                      FocusManager.instance.primaryFocus?.unfocus();
                       Uint8List pngBytes = await _capturePng();
                       File file = await _saveImage(pngBytes);
 
-                      imageUrl = await StorageServices().uploadImg(
-                        XFile(file.path),
-                        "residences",
-                        widget.residence,
-                        widget.post.type,
-                        widget.post.id,
-                      );
+                      imageUrl = await FirestoreStorageRepository()
+                          .uploadImg(
+                            XFile(file.path),
+                            "residences",
+                            widget.residence,
+                            widget.post.type,
+                            widget.post.id,
+                          )
+                          .then((result) => result.when(
+                              success: (v) => v,
+                              failure: (error) => throw error));
                     }
 
                     SubmitPostController.UpdatePost(

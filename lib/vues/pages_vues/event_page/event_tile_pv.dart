@@ -1,7 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -31,7 +31,7 @@ class EventTilepv extends StatefulWidget {
 }
 
 class EventTileState extends State<EventTilepv> {
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   DataBasesPostServices dbService = DataBasesPostServices();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();
   List<List<String>> typeList = TypeList().typeDeclaration();

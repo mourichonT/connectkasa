@@ -1,7 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_doc_controller.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -68,7 +68,7 @@ class AddDocsFormState extends State<AddDocsForm> {
     try {
       if (!widget.isDocCopro) {
         // Supposons que tu utilises le service de stockage Firebase pour supprimer le fichier
-        await StorageServices().removeFile(
+        await FirestoreStorageRepository().removeFile(
           "user", // Remplace par le bon dossier/racine si nécessaire
           widget.uid, // L'ID utilisateur ou autre identifiant nécessaire
           "documentsLot", // Le dossier dans lequel le fichier a été téléchargé
@@ -77,7 +77,7 @@ class AddDocsFormState extends State<AddDocsForm> {
         print("Fichier supprimé avec succès : $downloadUrl");
       } else {
         // Supposons que tu utilises le service de stockage Firebase pour supprimer le fichier
-        await StorageServices().removeFile(
+        await FirestoreStorageRepository().removeFile(
           "residences",
           widget.lotSelected.residenceId, // on passe une liste avec un seul nom
           "documents_copro",

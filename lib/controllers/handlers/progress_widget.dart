@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step0.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step1.dart';
@@ -139,8 +139,8 @@ class ProgressWidgetState extends State<ProgressWidget>
   }
 
   void _deleteStorage() async {
-    final StorageServices _storageServices = StorageServices();
-    _storageServices.removeFolder("user", widget.userId);
+    final storageServices = FirestoreStorageRepository();
+    storageServices.removeFolder("user", widget.userId);
   }
 
   // void _startDeletionTimer() {

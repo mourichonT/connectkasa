@@ -41,6 +41,11 @@ class MyNavBar extends StatefulWidget {
 }
 
 class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
+  final GlobalKey<HomeviewState> _homeviewKey = GlobalKey<HomeviewState>();
+  final GlobalKey<SinistrePageViewState> _sinistreKey =
+      GlobalKey<SinistrePageViewState>();
+  final GlobalKey<EventPageViewState> _eventKey =
+      GlobalKey<EventPageViewState>();
   final ILotRepository _databasesLotServices = FirestoreLotRepository();
   final _loadPreferedData = LoadPreferedData();
   final _loadUserController = LoadUserController();
@@ -246,8 +251,8 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
     );
   }
 
-  void _navigateToPostForm() {
-    Navigator.of(context).push(
+  void _navigateToPostForm() async {
+    await Navigator.of(context).push(
       RouteController().createRoute(
         PostFormController(
           racineFolder: "residences",
@@ -256,6 +261,12 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
         ),
       ),
     );
+    // Le type du post créé (sinistre/incivilité/communication/événement)
+    // n'est connu qu'à l'intérieur du formulaire : on rafraîchit les trois
+    // onglets susceptibles de l'afficher plutôt que de le déterminer ici.
+    _homeviewKey.currentState?.refreshPosts();
+    _sinistreKey.currentState?.updatePostsList();
+    _eventKey.currentState?.refreshEvents();
   }
 
   @override
@@ -290,8 +301,9 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                   padding: EdgeInsets.only(
                       top: max(0, _calculatedAppBarHeight - 15)),
                   child: Homeview(
-                    updatePostsList: () => setState(() {}),
-                    key: UniqueKey(),
+                    updatePostsList: () =>
+                        _homeviewKey.currentState?.refreshPosts(),
+                    key: _homeviewKey,
                     uid: widget.uid,
                     residenceSelected: residenceId,
                     upDatescrollController: widget.scrollController,
@@ -305,7 +317,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     top: _calculatedAppBarHeight,
                   ),
                   child: SinistrePageView(
-                    key: UniqueKey(),
+                    key: _sinistreKey,
                     uid: widget.uid,
                     residenceId: residenceId,
                     colorStatut: lotColor,
@@ -319,6 +331,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     top: _calculatedAppBarHeight,
                   ),
                   child: EventPageView(
+                    key: _eventKey,
                     uid: widget.uid,
                     type: "events",
                     preferedLot: lot,
@@ -331,7 +344,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     top: _calculatedAppBarHeight,
                   ),
                   child: AnnoncesPageView(
-                    key: UniqueKey(),
+                    key: ValueKey('${residenceId}_${widget.uid}_annonces'),
                     uid: widget.uid,
                     residenceSelected: residenceId,
                     type: "annonces",

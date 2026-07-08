@@ -1,7 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -33,7 +33,7 @@ class SinistreTile extends StatefulWidget {
 }
 
 class SinistreTileState extends State<SinistreTile> {
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   DataBasesPostServices dbService = DataBasesPostServices();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();
   List<List<String>> typeList = TypeList().typeDeclaration();
@@ -270,10 +270,15 @@ class SinistreTileState extends State<SinistreTile> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      MyTextStyle.commentDate(
-                                          _signalement!.timeStamp),
-                                      MyTextStyle.lotDesc(_signalement!.statu!,
-                                          SizeFont.para.size),
+                                      Flexible(
+                                        child: MyTextStyle.commentDate(
+                                            _signalement!.timeStamp),
+                                      ),
+                                      Flexible(
+                                        child: MyTextStyle.lotDesc(
+                                            _signalement!.statu!,
+                                            SizeFont.para.size),
+                                      ),
                                     ],
                                   )
                                 ],
@@ -291,9 +296,9 @@ class SinistreTileState extends State<SinistreTile> {
                               children: [
                                 IconButton(
                                     padding: EdgeInsets.zero,
-                                    onPressed: () {
+                                    onPressed: () async {
                                       if (widget.post.type == "communication") {
-                                        Navigator.push(
+                                        await Navigator.push(
                                             context,
                                             CupertinoPageRoute(
                                                 builder: (context) =>
@@ -307,7 +312,7 @@ class SinistreTileState extends State<SinistreTile> {
 
                                       if (widget.post.type == "sinistres" ||
                                           widget.post.type == "incivilites") {
-                                        Navigator.push(
+                                        await Navigator.push(
                                             context,
                                             CupertinoPageRoute(
                                                 builder: (context) =>
@@ -319,7 +324,7 @@ class SinistreTileState extends State<SinistreTile> {
                                                     )));
                                       }
                                       if (widget.post.type == "annonces") {
-                                        Navigator.push(
+                                        await Navigator.push(
                                             context,
                                             CupertinoPageRoute(
                                                 builder: (context) =>
@@ -329,6 +334,13 @@ class SinistreTileState extends State<SinistreTile> {
                                                           widget.residenceId,
                                                       post: _signalement!,
                                                     )));
+                                      }
+                                      // Rafraîchit la liste au retour du
+                                      // formulaire, sinon la modification
+                                      // n'apparaît pas tant que l'écran
+                                      // n'est pas rechargé.
+                                      if (widget.updatePostsList != null) {
+                                        widget.updatePostsList!();
                                       }
                                     },
                                     icon: const Icon(

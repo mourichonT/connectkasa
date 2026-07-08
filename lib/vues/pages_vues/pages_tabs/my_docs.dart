@@ -1,6 +1,6 @@
 import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
@@ -32,7 +32,7 @@ class MydocsPageView extends StatefulWidget {
 class MydocsPageViewState extends State<MydocsPageView>
     with SingleTickerProviderStateMixin {
   final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   late Future<List<Map<String, dynamic>>> _allDocsCopro;
   late Future<List<Map<String, dynamic>>> _allDocsLot;
   late final TabController _tabController;

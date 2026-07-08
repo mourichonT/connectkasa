@@ -185,8 +185,8 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                               padding: const EdgeInsets.only(
                                   top: 10, bottom: 10, left: 20, right: 10),
                               child: ButtonAdd(
-                                function: () {
-                                  Navigator.push(
+                                function: () async {
+                                  await Navigator.push(
                                     context,
                                     CupertinoPageRoute(
                                       builder: (context) => AddAnnonceForm(
@@ -195,6 +195,11 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
                                       ),
                                     ),
                                   );
+                                  // Rafraîchit la liste au retour du
+                                  // formulaire, sinon l'annonce ajoutée
+                                  // n'apparaît pas tant que l'écran
+                                  // n'est pas rechargé.
+                                  if (mounted) updatePostsList();
                                 },
                                 color: color,
                                 icon: Icons.add,

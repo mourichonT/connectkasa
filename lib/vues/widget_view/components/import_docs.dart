@@ -3,7 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 
 class ImportDocs extends StatefulWidget {
@@ -28,7 +28,7 @@ class ImportDocs extends StatefulWidget {
 }
 
 class _ImportDocsState extends State<ImportDocs> {
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   final String fileName = const Uuid().v4();
   File? _selectedFile;
   String? _fileDisplayName;
@@ -85,14 +85,17 @@ class _ImportDocsState extends State<ImportDocs> {
       String? finalDownloadUrl;
 
       for (String userId in widget.filename) {
-        final downloadUrl = await _storageServices.uploadDocFile(
-          file,
-          widget.racineFolder,
-          userId, // On passe une liste avec un seul élément
-          widget.folderName,
-          fileName,
-          widget.reflot,
-        );
+        final downloadUrl = await _storageServices
+            .uploadDocFile(
+              file,
+              widget.racineFolder,
+              userId, // On passe une liste avec un seul élément
+              widget.folderName,
+              fileName,
+              widget.reflot,
+            )
+            .then((result) => result.when(
+                success: (v) => v, failure: (error) => throw error));
 
         // On conserve le dernier downloadUrl (c’est le même si même fichier)
         finalDownloadUrl = downloadUrl;

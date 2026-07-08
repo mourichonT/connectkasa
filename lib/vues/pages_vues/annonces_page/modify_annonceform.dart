@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -27,7 +27,7 @@ class ModifyAnnonceForm extends StatefulWidget {
 }
 
 class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   File? _selectedImage;
   final TypeList _CatList = TypeList();
 
@@ -385,11 +385,9 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
       _storageServices
           .uploadImg(returnedImage, "residences", widget.residence,
               "${widget.post.type}/${widget.post.id}", fileName)
-          .then((downloadUrl) {
-        if (downloadUrl != null) {
-          updateUrl(downloadUrl);
-        }
-      });
+          .then((result) => result.when(
+              success: (downloadUrl) => updateUrl(downloadUrl),
+              failure: (_) => null));
     });
   }
 
@@ -404,11 +402,9 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
       _storageServices
           .uploadImg(returnedImage, "residences", widget.residence,
               "${widget.post.type}/${widget.post.id}", fileName)
-          .then((downloadUrl) {
-        if (downloadUrl != null) {
-          updateUrl(downloadUrl);
-        }
-      });
+          .then((result) => result.when(
+              success: (downloadUrl) => updateUrl(downloadUrl),
+              failure: (_) => null));
     });
   }
 

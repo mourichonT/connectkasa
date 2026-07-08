@@ -62,6 +62,14 @@ class SinistrePageViewState extends State<SinistrePageView>
     });
   }
 
+  @override
+  void didUpdateWidget(covariant SinistrePageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.residenceId != widget.residenceId) {
+      updatePostsList();
+    }
+  }
+
   void updatePostsList() {
     setState(() {
       _allPostsFuture = _databaseServices.getAllPosts(widget.residenceId);

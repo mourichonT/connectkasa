@@ -4,7 +4,7 @@ import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
@@ -36,7 +36,7 @@ class GuarantorDetailState extends State<GuarantorDetail> {
   Future<List<Map<String, dynamic>>>? _documentsFuture;
   late Future<GuarantorInfo?> garant;
   final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   @override
   void initState() {
     super.initState();

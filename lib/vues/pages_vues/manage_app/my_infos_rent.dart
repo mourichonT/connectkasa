@@ -4,7 +4,7 @@ import 'package:connect_kasa/controllers/features/justif_document.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/controllers/features/income_entry.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
@@ -40,7 +40,7 @@ class MyInfosRent extends StatefulWidget {
 class _MyInfosRentState extends State<MyInfosRent> {
   final DataBasesUserServices _userServices = DataBasesUserServices();
   final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   UserInfo? tenantUser;
   bool isLoading = true;
   List<IncomeEntry> incomeEntries = [];

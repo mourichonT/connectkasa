@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
@@ -115,7 +115,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
 
   Future<Uint8List> _capturePng() async {
     try {
-      await Future.delayed(const Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 300));
 
       RenderRepaintBoundary? boundary = _globalKey.currentContext
           ?.findRenderObject() as RenderRepaintBoundary?;
@@ -445,16 +445,21 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
               try {
                 if (_selectedColor != null && _selectedColor != Colors.white ||
                     _selectedImagePath != null) {
+                  FocusManager.instance.primaryFocus?.unfocus();
                   Uint8List pngBytes = await _capturePng();
                   File file = await _saveImage(pngBytes);
 
-                  imageUrl = await StorageServices().uploadImg(
-                    XFile(file.path),
-                    widget.racineFolder,
-                    widget.preferedLot!.residenceId,
-                    widget.folderName,
-                    widget.idPost,
-                  );
+                  imageUrl = await FirestoreStorageRepository()
+                      .uploadImg(
+                        XFile(file.path),
+                        widget.racineFolder,
+                        widget.preferedLot!.residenceId,
+                        widget.folderName,
+                        widget.idPost,
+                      )
+                      .then((result) => result.when(
+                          success: (v) => v,
+                          failure: (error) => throw error));
 
                   widget.updateUrl(imageUrl!);
                 }

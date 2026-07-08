@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 
 class CameraOrFiles extends StatefulWidget {
@@ -16,6 +16,13 @@ class CameraOrFiles extends StatefulWidget {
   final Function(bool)? onCameraStateChanged;
   final Function(String) onImageUploaded;
   final bool cardOverlay;
+  // Optionnels, pas utilisés par les appelants existants (aucun changement
+  // de comportement pour eux) : permettent à un formulaire de désactiver
+  // sa soumission tant que l'upload est en cours, pour éviter une
+  // soumission avec une image pas encore envoyée (course entre l'upload
+  // asynchrone et un bouton "Ajouter"/"Enregistrer" trop rapide).
+  final VoidCallback? onUploadStart;
+  final VoidCallback? onUploadError;
 
   const CameraOrFiles({
     super.key,
@@ -27,6 +34,8 @@ class CameraOrFiles extends StatefulWidget {
     required this.onImageUploaded,
     required this.cardOverlay,
     this.onCameraStateChanged,
+    this.onUploadStart,
+    this.onUploadError,
   });
 
   @override
@@ -35,7 +44,7 @@ class CameraOrFiles extends StatefulWidget {
 
 class CameraOrFilesState extends State<CameraOrFiles> {
   final ImagePicker _picker = ImagePicker();
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   final String fileName = const Uuid().v4();
   File? _selectedImage;
   bool isCameraOpen = false;
@@ -115,6 +124,7 @@ class CameraOrFilesState extends State<CameraOrFiles> {
   }
 
   void _uploadImage(String path) async {
+    widget.onUploadStart?.call();
     final file = File(path);
 
     await _storageServices.removeFile(
@@ -125,19 +135,23 @@ class CameraOrFilesState extends State<CameraOrFiles> {
     );
 
     try {
-      final downloadUrl = await _storageServices.uploadImg(
-        XFile(file.path),
-        widget.racineFolder,
-        widget.residence,
-        _storageFolder,
-        fileName,
-      );
+      final downloadUrl = await _storageServices
+          .uploadImg(
+            XFile(file.path),
+            widget.racineFolder,
+            widget.residence,
+            _storageFolder,
+            fileName,
+          )
+          .then((result) => result.when(
+              success: (v) => v, failure: (error) => throw error));
 
-      if (mounted && downloadUrl != null) {
+      if (mounted) {
         widget.onImageUploaded(downloadUrl);
       }
     } catch (e) {
       print("Erreur lors de l'upload de l'image: $e");
+      widget.onUploadError?.call();
     }
   }
 

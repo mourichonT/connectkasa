@@ -7,7 +7,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 
 class PhotoForId extends StatefulWidget {
   final String racineFolder;
@@ -37,7 +37,7 @@ class PhotoForId extends StatefulWidget {
 
 class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
   final ImagePicker _picker = ImagePicker();
-  final StorageServices _storageServices = StorageServices();
+  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
   String fileName = const Uuid().v4();
   File? _selectedImage;
@@ -150,13 +150,16 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
       widget.onIdDataExtracted(cleanedData);
 
       // Ré-upload (si nécessaire)
-      final downloadUrl = await _storageServices.uploadImg(
-        XFile(imageFile.path),
-        widget.racineFolder,
-        widget.residence,
-        widget.folderName,
-        fileName,
-      );
+      final downloadUrl = await _storageServices
+          .uploadImg(
+            XFile(imageFile.path),
+            widget.racineFolder,
+            widget.residence,
+            widget.folderName,
+            fileName,
+          )
+          .then((result) =>
+              result.when(success: (v) => v, failure: (_) => null));
 
       if (mounted && downloadUrl != null) {
         widget.onImageUploaded(downloadUrl);

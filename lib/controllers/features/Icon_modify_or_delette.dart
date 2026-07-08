@@ -6,7 +6,7 @@ import 'package:connect_kasa/controllers/handlers/fetch_pdfreport.dart';
 import 'package:connect_kasa/controllers/handlers/send_custom_email.dart';
 import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
-import 'package:connect_kasa/controllers/services/storage_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -353,7 +353,7 @@ int _getCurrentStep(String? statut) {
 }
 
 Future<void> _onDeletePost(Post post, Function updatePostsList) async {
-  final storageServices = StorageServices();
+  final storageServices = FirestoreStorageRepository();
   final dbService = DataBasesPostServices();
 
   await dbService.removePost(post.refResidence, post.id);
@@ -366,36 +366,42 @@ Future<void> _onDeletePost(Post post, Function updatePostsList) async {
 
 void showAlertDialog(
     Post post, BuildContext context, Function updatePostsList) {
-  Widget cancelButton = TextButton(
-    child: MyTextStyle.lotName("Annuler", Colors.black87, SizeFont.h3.size),
-    onPressed: () {
-      if (context.mounted) Navigator.pop(context);
-    },
-  );
-  Widget continueButton = TextButton(
-    child: MyTextStyle.lotName("Supprimer", Colors.black87, SizeFont.h3.size),
-    onPressed: () async {
-      Navigator.pop(context); // Ferme le BottomSheet
-      await _onDeletePost(post, updatePostsList);
-      if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop(); // Ferme l'AlertDialog
-      }
-    },
-  );
-
-  AlertDialog alert = AlertDialog(
-    title:
-        MyTextStyle.lotName("Confirmation", Colors.black87, SizeFont.h1.size),
-    content: MyTextStyle.annonceDesc(
-      "Êtes-vous sûr de vouloir supprimer ${post.title} ?",
-      SizeFont.h3.size,
-      3,
-    ),
-    actions: [cancelButton, continueButton],
-  );
-
+  // dialogContext (fourni par le builder de showDialog) sert à fermer la
+  // seule AlertDialog ; context (celui du BottomSheet, capturé avant
+  // l'appel) sert à fermer le BottomSheet séparément. Avant ce correctif,
+  // les deux boutons utilisaient le même `context` capturé avant
+  // showDialog pour les deux Navigator.pop, ce qui fermait les mauvaises
+  // couches dans le mauvais ordre - jusqu'à parfois popper la page
+  // elle-même après la suppression, provoquant un
+  // "setState() called after dispose()".
   showDialog(
     context: context,
-    builder: (BuildContext context) => alert,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: MyTextStyle.lotName(
+            "Confirmation", Colors.black87, SizeFont.h1.size),
+        content: MyTextStyle.annonceDesc(
+          "Êtes-vous sûr de vouloir supprimer ${post.title} ?",
+          SizeFont.h3.size,
+          3,
+        ),
+        actions: [
+          TextButton(
+            child: MyTextStyle.lotName(
+                "Annuler", Colors.black87, SizeFont.h3.size),
+            onPressed: () => Navigator.pop(dialogContext),
+          ),
+          TextButton(
+            child: MyTextStyle.lotName(
+                "Supprimer", Colors.black87, SizeFont.h3.size),
+            onPressed: () async {
+              Navigator.pop(dialogContext); // Ferme l'AlertDialog
+              Navigator.pop(context); // Ferme le BottomSheet
+              await _onDeletePost(post, updatePostsList);
+            },
+          ),
+        ],
+      );
+    },
   );
 }

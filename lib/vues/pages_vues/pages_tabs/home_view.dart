@@ -31,10 +31,10 @@ class Homeview extends StatefulWidget {
   });
 
   @override
-  _HomeviewState createState() => _HomeviewState();
+  HomeviewState createState() => HomeviewState();
 }
 
-class _HomeviewState extends State<Homeview> {
+class HomeviewState extends State<Homeview> {
   late ScrollController _scrollController;
   final DataBasesPostServices _databaseServices = DataBasesPostServices();
   late Future<List<Post>> _allPostsFuture;
@@ -57,6 +57,14 @@ class _HomeviewState extends State<Homeview> {
     }
   }
 
+  @override
+  void didUpdateWidget(covariant Homeview oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.residenceSelected != widget.residenceSelected) {
+      _loadPosts();
+    }
+  }
+
   Future<void> _loadPosts() async {
     final posts = await _databaseServices.getAllPosts(widget.residenceSelected);
     if (mounted) {
@@ -69,6 +77,10 @@ class _HomeviewState extends State<Homeview> {
   Future<void> _handleRefresh() async {
     await _loadPosts();
   }
+
+  /// Rafraîchit la liste depuis l'extérieur (ex: my_nav_bar.dart au retour
+  /// du formulaire de création de post), via un GlobalKey<HomeviewState>.
+  Future<void> refreshPosts() => _loadPosts();
 
   @override
   void dispose() {

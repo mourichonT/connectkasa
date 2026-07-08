@@ -69,6 +69,14 @@ class EventPageViewState extends State<EventPageView>
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant EventPageView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.residenceSelected != widget.residenceSelected) {
+      _refreshEventList();
+    }
+  }
+
   void _filterEvents() async {
     List<Post> allEvents = await _allEventsFuture;
     if (!mounted) return;
@@ -280,8 +288,13 @@ class EventPageViewState extends State<EventPageView>
       _allEventsFuture =
           _databaseServices.getAllPosts(widget.residenceSelected);
       _loadEventDays();
+      _filterEvents();
     });
   }
+
+  /// Rafraîchit la liste depuis l'extérieur (ex: my_nav_bar.dart au retour
+  /// du formulaire de création de post), via un GlobalKey<EventPageViewState>.
+  void refreshEvents() => _refreshEventList();
 
   @override
   Widget build(BuildContext context) {
