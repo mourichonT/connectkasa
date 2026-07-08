@@ -131,3 +131,14 @@ class SignalementsPaginatedNotifier
 final signalementsByResidenceProvider = AsyncNotifierProvider.family<
     SignalementsPaginatedNotifier, PaginatedPosts, String>(
     SignalementsPaginatedNotifier.new);
+
+/// Tous les posts d'une résidence, SANS pagination (contrairement à
+/// postsByResidenceProvider) : utilisé par EventPageView, qui a besoin de
+/// l'historique complet pour construire les marqueurs du calendrier et
+/// filtrer par jour sélectionné, pas d'un défilement infini.
+final allPostsByResidenceProvider =
+    FutureProvider.family<List<Post>, String>((ref, residenceId) async {
+  final repository = ref.watch(postRepositoryProvider);
+  return repository.getAllPosts(residenceId).then((result) => result.when(
+      success: (v) => v, failure: (error) => throw error));
+});

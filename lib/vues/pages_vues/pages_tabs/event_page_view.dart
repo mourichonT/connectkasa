@@ -1,5 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/core/providers/post_providers.dart';
 import 'package:connect_kasa/core/repositories/post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -12,10 +12,11 @@ import 'package:connect_kasa/vues/pages_vues/event_page/event_form.dart';
 import 'package:connect_kasa/vues/pages_vues/event_page/event_page_details.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Importez ce package
 import 'package:table_calendar/table_calendar.dart';
 
-class EventPageView extends StatefulWidget {
+class EventPageView extends ConsumerStatefulWidget {
   final Lot? preferedLot;
   final String residenceSelected;
   final String uid;
@@ -32,19 +33,18 @@ class EventPageView extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => EventPageViewState();
+  ConsumerState<EventPageView> createState() => EventPageViewState();
 }
 
-class EventPageViewState extends State<EventPageView>
+class EventPageViewState extends ConsumerState<EventPageView>
     with SingleTickerProviderStateMixin {
-  late Post? updatedPost;
-  late Post? selectedPost;
   final IPostRepository _databaseServices = FirestorePostRepository();
-  late Future<List<Post>> _allEventsFuture;
-  late List<Post> _futureEvents;
-  late List<Post> _pastEvents;
+  Post? updatedPost;
+  Post? selectedPost;
   DateTime _today = DateTime.now();
-  late List<DateTime> _eventDays;
+  // Jour sélectionné sur le calendrier : filtre "Événements futurs"/
+  // "passés" sur ce seul jour. null = pas de filtre, liste complète.
+  DateTime? _selectedDay;
   bool _isPastDate =
       false; // Variable pour suivre si la date sélectionnée est passée
 
@@ -54,16 +54,7 @@ class EventPageViewState extends State<EventPageView>
   void initState() {
     super.initState();
     initializeDateFormatting('fr_FR', null);
-    _allEventsFuture = _databaseServices
-        .getAllPosts(widget.residenceSelected)
-        .then((result) => result.when(success: (v) => v, failure: (_) => []));
-    _eventDays = [];
-    _futureEvents = [];
-    _pastEvents = [];
     _tabController = TabController(length: 2, vsync: this);
-
-    _loadEventDays();
-    _filterEvents(); //  Filtrer directement les événements
   }
 
   @override
@@ -72,81 +63,62 @@ class EventPageViewState extends State<EventPageView>
     super.dispose();
   }
 
-  @override
-  void didUpdateWidget(covariant EventPageView oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.residenceSelected != widget.residenceSelected) {
-      _refreshEventList();
-    }
+  List<Post> _eventsOnly(List<Post> allPosts) =>
+      allPosts.where((post) => post.eventDate != null).toList();
+
+  List<DateTime> _eventDaysFrom(List<Post> events) {
+    return events
+        .where((post) {
+          final eventDate = post.eventDate!.toDate();
+          return eventDate.year > _today.year ||
+              (eventDate.year == _today.year &&
+                  eventDate.month >= _today.month);
+        })
+        .map((post) {
+          final d = post.eventDate!.toDate();
+          return DateTime(d.year, d.month, d.day);
+        })
+        .toList();
   }
 
-  void _filterEvents() async {
-    List<Post> allEvents = await _allEventsFuture;
+  void _onDaySelected(DateTime day, DateTime focusedDay, List<Post> allEvents) {
     if (!mounted) return;
 
-    setState(() {
-      _futureEvents = allEvents
-          .where((event) =>
-              event.eventDate != null &&
-              event.eventDate!.toDate().isAfter(DateTime.now()))
-          .toList();
-
-      _pastEvents = allEvents
-          .where((event) =>
-              event.eventDate != null &&
-              event.eventDate!.toDate().isBefore(DateTime.now()))
-          .toList();
-    });
-  }
-
-  void _onDaySelected(DateTime day, DateTime focusedDay) {
-    if (!mounted) return;
+    final now = DateTime.now();
+    final dayEvents =
+        allEvents.where((event) => isSameDay(event.eventDate!.toDate(), day)).toList();
+    final futureOnDay =
+        dayEvents.where((event) => event.eventDate!.toDate().isAfter(now)).toList();
+    final pastOnDay =
+        dayEvents.where((event) => event.eventDate!.toDate().isBefore(now)).toList();
 
     setState(() {
       _today = day;
-      _filterEventsForSelectedDay(day);
-      _isPastDate = day.isBefore(DateTime.now());
+      _selectedDay = day;
+      _isPastDate = day.isBefore(now);
     });
 
-    _showEventsDialog(day);
+    // Sélection automatique de l'onglet en fonction des événements trouvés
+    if (pastOnDay.isNotEmpty && futureOnDay.isEmpty) {
+      _tabController.animateTo(1); // Aller à "Événements passés"
+    } else {
+      _tabController.animateTo(0); // Aller à "Événements futurs"
+    }
+
+    _showEventsDialog(day, allEvents);
   }
 
-  void _filterEventsForSelectedDay(DateTime day) async {
-    List<Post> allEvents = await _allEventsFuture;
-
-    DateTime today = DateTime.now();
-
-    List<Post> selectedEvents = allEvents.where((event) {
-      if (event.eventDate == null)
-        return false; // Ignore les événements sans date
-      DateTime eventDate = event.eventDate!.toDate();
-      return isSameDay(eventDate, day);
-    }).toList();
-
-    if (!mounted) return;
-
-    setState(() {
-      _futureEvents = selectedEvents
-          .where((event) => event.eventDate!.toDate().isAfter(today))
-          .toList();
-      _pastEvents = selectedEvents
-          .where((event) => event.eventDate!.toDate().isBefore(today))
-          .toList();
-
-      // Sélection automatique de l'onglet en fonction des événements trouvés
-      if (_pastEvents.isNotEmpty && _futureEvents.isEmpty) {
-        _tabController.animateTo(1); // Aller à "Événements passés"
-      } else {
-        _tabController.animateTo(0); // Aller à "Événements futurs"
-      }
-    });
-  }
-
-  void _showEventsDialog(DateTime day) {
+  void _showEventsDialog(DateTime day, List<Post> allEvents) {
     DateTime now = DateTime.now();
     DateTime selectedDate =
         DateTime(day.year, day.month, day.day, now.hour, now.minute)
             .subtract(Duration(seconds: 10));
+    final dayEvents =
+        allEvents.where((event) => isSameDay(event.eventDate!.toDate(), day)).toList();
+    final pastEvents =
+        dayEvents.where((event) => event.eventDate!.toDate().isBefore(now)).toList();
+    final futureEvents =
+        dayEvents.where((event) => event.eventDate!.toDate().isAfter(now)).toList();
     if (!mounted) return;
     showDialog(
       context: context,
@@ -157,8 +129,8 @@ class EventPageViewState extends State<EventPageView>
               Colors.black87,
               SizeFont.h1.size),
           content: (selectedDate.isBefore(DateTime.now())
-                  ? _pastEvents.isEmpty
-                  : _futureEvents.isEmpty)
+                  ? pastEvents.isEmpty
+                  : futureEvents.isEmpty)
               ? MyTextStyle.annonceDesc(
                   "Aucun événement pour ce jour.", SizeFont.h3.size, 1)
               : SizedBox(
@@ -166,12 +138,12 @@ class EventPageViewState extends State<EventPageView>
                   child: ListView.builder(
                     shrinkWrap: true,
                     itemCount: selectedDate.isBefore(DateTime.now())
-                        ? _pastEvents.length
-                        : _futureEvents.length,
+                        ? pastEvents.length
+                        : futureEvents.length,
                     itemBuilder: (context, index) {
                       Post event = selectedDate.isBefore(DateTime.now())
-                          ? _pastEvents[index]
-                          : _futureEvents[index];
+                          ? pastEvents[index]
+                          : futureEvents[index];
                       return ListTile(
                         trailing: MyTextStyle.lotDesc(
                             MyTextStyle.EventHours(event.eventDate!),
@@ -210,6 +182,7 @@ class EventPageViewState extends State<EventPageView>
                                   widget.residenceSelected, event.id)
                               .then((result) => result.when(
                                   success: (v) => v, failure: (_) => null));
+                          if (!context.mounted) return;
                           Navigator.of(context).push(
                             CupertinoPageRoute(
                               builder: (context) => EventPageDetails(
@@ -271,40 +244,57 @@ class EventPageViewState extends State<EventPageView>
     );
   }
 
-  void _loadEventDays() async {
-    List<Post> posts = await _allEventsFuture;
-    _eventDays.clear();
-    if (!mounted) return;
-    for (var post in posts) {
-      if (post.eventDate != null) {
-        Timestamp timestamp = post.eventDate!;
-        DateTime dateTime = timestamp.toDate();
-        if (dateTime.year > _today.year ||
-            (dateTime.year == _today.year && dateTime.month >= _today.month)) {
-          _eventDays.add(DateTime(dateTime.year, dateTime.month, dateTime.day));
-        }
-      }
-    }
-    setState(() {});
-  }
-
   void _refreshEventList() {
-    if (!mounted) return;
-    setState(() {
-      _allEventsFuture = _databaseServices
-          .getAllPosts(widget.residenceSelected)
-          .then((result) => result.when(success: (v) => v, failure: (_) => []));
-      _loadEventDays();
-      _filterEvents();
-    });
+    ref.invalidate(allPostsByResidenceProvider(widget.residenceSelected));
+    if (mounted) {
+      setState(() {
+        _selectedDay = null;
+      });
+    }
   }
 
   /// Rafraîchit la liste depuis l'extérieur (ex: my_nav_bar.dart au retour
-  /// du formulaire de création de post), via un GlobalKey<EventPageViewState>.
+  /// du formulaire de création de post), via un `GlobalKey<EventPageViewState>`.
   void refreshEvents() => _refreshEventList();
 
   @override
   Widget build(BuildContext context) {
+    final eventsAsync =
+        ref.watch(allPostsByResidenceProvider(widget.residenceSelected));
+
+    return eventsAsync.when(
+      loading: () =>
+          const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(child: Text('Erreur: $error')),
+      data: (allPosts) {
+        final allEvents = _eventsOnly(allPosts);
+        final eventDays = _eventDaysFrom(allEvents);
+        final now = DateTime.now();
+        final relevantEvents = _selectedDay == null
+            ? allEvents
+            : allEvents
+                .where((event) =>
+                    isSameDay(event.eventDate!.toDate(), _selectedDay!))
+                .toList();
+        final futureEvents = relevantEvents
+            .where((event) => event.eventDate!.toDate().isAfter(now))
+            .toList();
+        final pastEvents = relevantEvents
+            .where((event) => event.eventDate!.toDate().isBefore(now))
+            .toList();
+
+        return _buildScaffold(context, allEvents, eventDays, futureEvents, pastEvents);
+      },
+    );
+  }
+
+  Widget _buildScaffold(
+    BuildContext context,
+    List<Post> allEvents,
+    List<DateTime> eventDays,
+    List<Post> futureEvents,
+    List<Post> pastEvents,
+  ) {
     DateTime nextYear = DateTime.utc(_today.year + 1, _today.month, _today.day);
 
     return Scaffold(
@@ -334,7 +324,8 @@ class EventPageViewState extends State<EventPageView>
                 focusedDay: _today,
                 firstDay: DateTime.utc(2023, 01, 01),
                 lastDay: nextYear,
-                onDaySelected: _onDaySelected,
+                onDaySelected: (day, focusedDay) =>
+                    _onDaySelected(day, focusedDay, allEvents),
                 calendarStyle: CalendarStyle(
                   markerSizeScale: 0.2,
                   markerSize: 7,
@@ -351,7 +342,7 @@ class EventPageViewState extends State<EventPageView>
                   ),
                 ),
                 eventLoader: (day) {
-                  return _eventDays
+                  return eventDays
                       .where((eventDay) => isSameDay(eventDay, day))
                       .toList();
                 },
@@ -398,8 +389,8 @@ class EventPageViewState extends State<EventPageView>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildEventList(_futureEvents),
-                  _buildEventList(_pastEvents),
+                  _buildEventList(futureEvents),
+                  _buildEventList(pastEvents),
                 ],
               ),
             ),
@@ -420,9 +411,10 @@ class EventPageViewState extends State<EventPageView>
         return InkWell(
           onTap: () async {
             updatedPost = await _databaseServices
-                .getUpdatePost(widget.residenceSelected, events[0].id)
+                .getUpdatePost(widget.residenceSelected, post.id)
                 .then((result) =>
                     result.when(success: (v) => v, failure: (_) => null));
+            if (!context.mounted) return;
             Navigator.of(context).push(CupertinoPageRoute(
               builder: (context) => EventPageDetails(
                 returnHomePage: false,
