@@ -1,7 +1,7 @@
 import 'dart:math';
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -127,11 +127,14 @@ class _PartipedTileState extends State<PartipedTile> {
 
   Future<void> participedUser() async {
     if (!alreadyParticipated) {
-      await DataBasesPostServices().updatePostParticipants(
-        widget.residenceSelected,
-        widget.post.id,
-        widget.uid,
-      );
+      await FirestorePostRepository()
+          .updatePostParticipants(
+            widget.residenceSelected,
+            widget.post.id,
+            widget.uid,
+          )
+          .then((result) => result.when(
+              success: (_) {}, failure: (error) => throw error));
       setState(() {
         alreadyParticipated = true;
         widget.post.participants!
@@ -140,11 +143,14 @@ class _PartipedTileState extends State<PartipedTile> {
         participants = getUsersForParticipants(widget.post.participants!);
       });
     } else {
-      await DataBasesPostServices().removePostParticipants(
-        widget.residenceSelected,
-        widget.post.id,
-        widget.uid,
-      );
+      await FirestorePostRepository()
+          .removePostParticipants(
+            widget.residenceSelected,
+            widget.post.id,
+            widget.uid,
+          )
+          .then((result) => result.when(
+              success: (_) {}, failure: (error) => throw error));
       setState(() {
         alreadyParticipated = false;
         widget.post.participants!

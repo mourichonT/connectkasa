@@ -3,7 +3,6 @@ import 'package:connect_kasa/models/enum/statut_post_list.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/core/repositories/residence_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/my_multiselected_dropdown.dart';
@@ -41,7 +40,6 @@ class FilterAllPostController extends StatefulWidget {
 class FilterAllPostControllerState extends State<FilterAllPostController> {
   final TextEditingController _dateFromController = TextEditingController();
   final TextEditingController _dateToController = TextEditingController();
-  final DataBasesPostServices _databaseServices = DataBasesPostServices();
   final IResidenceRepository _ResServices = FirestoreResidenceRepository();
   late Future<List<Map<String, String>>> _allLocationsFuture;
   late Post post;

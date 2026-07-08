@@ -11,6 +11,7 @@ Future<void> sendCustomEmail({
   required Post post,
   required String email,
   required String subjectMail,
+  String? declarantStatus,
 }) async {
   final formattedDate = DateFormat('dd/MM/yyyy à HH:mm').format(
     post.timeStamp.toDate(),
@@ -35,6 +36,7 @@ Future<void> sendCustomEmail({
         " ${post.location_element} • Etage : ${post.location_floor} • Précision : ${post.location_details?.join(', ')}",
     "postDate": formattedDate,
     "postDescription": post.description,
+    "declarantStatus": declarantStatus ?? '',
   });
 
   final response = await http.post(

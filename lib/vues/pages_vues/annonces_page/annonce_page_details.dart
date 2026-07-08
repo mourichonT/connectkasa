@@ -4,7 +4,8 @@ import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -41,15 +42,17 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
   late Future<User?> userPost;
   late Future<User?> userCurrent;
   late Future<List<Post>> _allAnnonceFuture;
-  final DataBasesPostServices _databaseServices = DataBasesPostServices();
+  final IPostRepository _databaseServices = FirestorePostRepository();
 
   @override
   void initState() {
     super.initState();
     userCurrent = DataBasesUserServices.getUserById(widget.uid);
     userPost = DataBasesUserServices.getUserById(widget.post.user);
-    _allAnnonceFuture =
-        _databaseServices.getAnnonceById(widget.residence, widget.post.user);
+    _allAnnonceFuture = _databaseServices
+        .getAnnonceById(widget.residence, widget.post.user)
+        .then((result) => result.when(
+            success: (v) => v, failure: (error) => throw error));
   }
 
   @override

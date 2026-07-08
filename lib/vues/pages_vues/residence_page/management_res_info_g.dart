@@ -588,9 +588,11 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
       'street': _controllers["street"]?.text ?? '',
       'zipCode': _controllers["zipCode"]?.text ?? '',
       'city': _controllers["city"]?.text ?? '',
-      'mail_contact': !delegated
-          ? mailContact
-          : widget.residence.syndicAgency?.syndic?.mail ?? '',
+      // Non délégué : le mail saisi par l'utilisateur fait foi. Délégué :
+      // mail_contact est vidé plutôt que de dupliquer le mail de l'agence -
+      // la résolution se fait à la lecture (geranceRef/syndicAgency), pas
+      // via une copie qui peut devenir périmée.
+      'mail_contact': !delegated ? mailContact : '',
     };
 
     // Gestion de l'agence si délégué

@@ -1,7 +1,8 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:connect_kasa/controllers/features/line_interaction.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/signalement_count_controller.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
@@ -34,7 +35,7 @@ class PostWidget extends StatefulWidget {
 class PostWidgetState extends State<PostWidget> {
   late Future<List<Post>> _signalementFuture;
   late Future<Post?> _getPostFuture;
-  DataBasesPostServices dbService = DataBasesPostServices();
+  IPostRepository dbService = FirestorePostRepository();
   List<List<String>> typeList = TypeList().typeDeclaration();
   int postCount = 0;
   int likeCount = 0;
@@ -42,8 +43,10 @@ class PostWidgetState extends State<PostWidget> {
   void initState() {
     super.initState();
     //likeCount = widget.post.like.length;
-    _signalementFuture = dbService.getSignalements(widget.residence,
-        widget.post.id); // Initialisez post à partir des propriétés du widget
+    _signalementFuture = dbService
+        .getSignalements(widget.residence, widget.post.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
   }
 
   @override
@@ -102,8 +105,12 @@ class PostWidgetState extends State<PostWidget> {
                         items: signalements.map((postSelected) {
                           return InkWell(
                             onTap: () {
-                              _getPostFuture = dbService.getUpdatePost(
-                                  widget.residence, widget.post.id);
+                              _getPostFuture = dbService
+                                  .getUpdatePost(
+                                      widget.residence, widget.post.id)
+                                  .then((result) => result.when(
+                                      success: (v) => v,
+                                      failure: (error) => throw error));
 
                               Navigator.push(
                                 context,
@@ -122,10 +129,13 @@ class PostWidgetState extends State<PostWidget> {
                                         if (postUpdated != null) {
                                           return PopScope(
                                             onPopInvoked: (didPop) async {
-                                              Post? postChanges =
-                                                  await dbService.getUpdatePost(
+                                              Post? postChanges = await dbService
+                                                  .getUpdatePost(
                                                       widget.residence,
-                                                      widget.post.id);
+                                                      widget.post.id)
+                                                  .then((result) => result.when(
+                                                      success: (v) => v,
+                                                      failure: (_) => null));
 
                                               setState(() {
                                                 widget.post = postChanges!;

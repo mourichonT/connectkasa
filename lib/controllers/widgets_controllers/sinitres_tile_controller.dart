@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/pages_vues/post_page/sinistre_tile.dart';
@@ -31,11 +32,13 @@ class SinitresTileController extends StatefulWidget {
 class SinitresTileControllerState extends State<SinitresTileController> {
   bool showSignalement = false;
   late Future<List<Post>> _signalementFuture;
-  DataBasesPostServices dbService = DataBasesPostServices();
+  IPostRepository dbService = FirestorePostRepository();
   int postCount = 0;
   void _loadSignalements() {
-    _signalementFuture =
-        dbService.getSignalementsList(widget.residenceId, widget.post.id);
+    _signalementFuture = dbService
+        .getSignalementsList(widget.residenceId, widget.post.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
     _signalementFuture.then((signalements) {
       if (!mounted) return;
       setState(() {

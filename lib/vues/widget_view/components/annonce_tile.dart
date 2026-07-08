@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -26,7 +27,7 @@ class AnnonceTile extends StatefulWidget {
 
 class AnnonceTileState extends State<AnnonceTile> {
   late Future<List<Post>> _signalementFuture;
-  DataBasesPostServices dbService = DataBasesPostServices();
+  IPostRepository dbService = FirestorePostRepository();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();
 
   int postCount = 0;
@@ -36,8 +37,10 @@ class AnnonceTileState extends State<AnnonceTile> {
   void initState() {
     super.initState();
     _isMounted = true;
-    _signalementFuture =
-        dbService.getSignalements(widget.residence, widget.post.id);
+    _signalementFuture = dbService
+        .getSignalements(widget.residence, widget.post.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
     _loadSignalements();
   }
 
@@ -48,8 +51,10 @@ class AnnonceTileState extends State<AnnonceTile> {
   }
 
   void _loadSignalements() async {
-    final signalements =
-        await dbService.getSignalements(widget.residence, widget.post.id);
+    final signalements = await dbService
+        .getSignalements(widget.residence, widget.post.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Post>[]));
     if (_isMounted) {
       setState(() {
         postCount = signalements.length;

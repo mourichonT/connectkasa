@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/pages_controllers/filter_allannounced_controller..dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
@@ -32,7 +33,7 @@ class AnnoncesPageView extends StatefulWidget {
 
 class AnnoncesPageViewState extends State<AnnoncesPageView>
     with SingleTickerProviderStateMixin {
-  final DataBasesPostServices _databaseServices = DataBasesPostServices();
+  final IPostRepository _databaseServices = FirestorePostRepository();
   late final TabController _tabController;
   late Future<List<Post>> _allPostsFuture;
   bool _showFilters = false;
@@ -45,8 +46,10 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _allPostsFuture =
-        _databaseServices.getAllAnnonces(widget.residenceSelected);
+    _allPostsFuture = _databaseServices
+        .getAllAnnonces(widget.residenceSelected)
+        .then((result) => result.when(
+            success: (v) => v, failure: (error) => throw error));
     _tabController.addListener(_handleTabChange);
     _selectedTab = _tabController.index == 0;
   }
@@ -59,8 +62,10 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
 
   void updatePostsList() {
     setState(() {
-      _allPostsFuture =
-          _databaseServices.getAllAnnonces(widget.residenceSelected);
+      _allPostsFuture = _databaseServices
+          .getAllAnnonces(widget.residenceSelected)
+          .then((result) => result.when(
+              success: (v) => v, failure: (error) => throw error));
     });
   }
 
@@ -91,14 +96,18 @@ class AnnoncesPageViewState extends State<AnnoncesPageView>
               required int priceMax,
             }) {
               setState(() {
-                _allPostsFuture = _databaseServices.getAllAnnoncesWithFilters(
-                  doc: widget.residenceSelected,
-                  subtype: categorie,
-                  dateFrom: dateFrom,
-                  dateTo: dateTo,
-                  priceMin: priceMin,
-                  priceMax: priceMax,
-                );
+                _allPostsFuture = _databaseServices
+                    .getAllAnnoncesWithFilters(
+                      doc: widget.residenceSelected,
+                      subtype: categorie,
+                      dateFrom: dateFrom,
+                      dateTo: dateTo,
+                      priceMin: priceMin,
+                      priceMax: priceMax,
+                    )
+                    .then((result) => result.when(
+                        success: (v) => v,
+                        failure: (error) => throw error));
               });
             },
           ),

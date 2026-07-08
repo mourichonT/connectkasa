@@ -1,6 +1,7 @@
 // ignore_for_file: must_be_immutable
 
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
@@ -49,7 +50,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
   late Post? updatedPost;
-  DataBasesPostServices postServices = DataBasesPostServices();
+  IPostRepository postServices = FirestorePostRepository();
 
   @override
   void initState() {
@@ -86,8 +87,10 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
               ),
               InkWell(
                 onTap: () async {
-                  updatedPost = await postServices.getUpdatePost(
-                      widget.residenceSelected, widget.post.id);
+                  updatedPost = await postServices
+                      .getUpdatePost(widget.residenceSelected, widget.post.id)
+                      .then((result) => result.when(
+                          success: (v) => v, failure: (_) => null));
 
                   Navigator.of(context).push(CupertinoPageRoute(
                     builder: (context) => AnnoncePageDetails(

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/post_style.dart';
 import 'package:flutter/material.dart';
@@ -72,7 +73,7 @@ class SubmitPostController {
       List<String>? eventType,
       Timestamp? eventDate,
       String? prestaName}) {
-    DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
+    IPostRepository dataBasesPostServices = FirestorePostRepository();
 
     final newPost = _buildPost(
       uid: uid,
@@ -118,7 +119,7 @@ class SubmitPostController {
     Timestamp? eventDate,
     String? prestaName,
   }) async {
-    DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
+    IPostRepository dataBasesPostServices = FirestorePostRepository();
 
     final duplicateResponse = await checkDuplicatePost(
       docRes: docRes,
@@ -313,7 +314,7 @@ class SubmitPostController {
       List<String>? eventType,
       PostStyle? style,
       String? prestaName}) {
-    DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
+    IPostRepository dataBasesPostServices = FirestorePostRepository();
 
     // Créer un nouvel objet Post
     Post updatePost = Post(

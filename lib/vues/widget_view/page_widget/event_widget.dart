@@ -1,7 +1,8 @@
 import 'package:connect_kasa/controllers/features/line_interaction.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/participed_button.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -46,7 +47,7 @@ class _EventWidgetState extends State<EventWidget> {
   late Future<List<User?>> participants;
   //late Timestamp _selectedDate;
   DataBasesUserServices dbService = DataBasesUserServices();
-  DataBasesPostServices postServices = DataBasesPostServices();
+  IPostRepository postServices = FirestorePostRepository();
   int userParticipatedCount = 0;
 
   @override
@@ -83,8 +84,10 @@ class _EventWidgetState extends State<EventWidget> {
             ),
             InkWell(
               onTap: () async {
-                updatedPost = await postServices.getUpdatePost(
-                    widget.residenceSelected, widget.post.id);
+                updatedPost = await postServices
+                    .getUpdatePost(widget.residenceSelected, widget.post.id)
+                    .then((result) => result.when(
+                        success: (v) => v, failure: (_) => null));
 
                 Navigator.of(context).push(CupertinoPageRoute(
                   builder: (context) => EventPageDetails(

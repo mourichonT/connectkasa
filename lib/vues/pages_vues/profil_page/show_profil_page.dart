@@ -1,5 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -230,7 +230,10 @@ class ShowProfilPage extends StatelessWidget {
 
   Widget userPostsListByType(String userId, String refLot, List<String> types) {
     return FutureBuilder<List<Post>>(
-      future: DataBasesPostServices.getPostsByUser(refLot, userId),
+      future: FirestorePostRepository()
+          .getPostsByUser(refLot, userId)
+          .then((result) =>
+              result.when(success: (v) => v, failure: (_) => <Post>[])),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(

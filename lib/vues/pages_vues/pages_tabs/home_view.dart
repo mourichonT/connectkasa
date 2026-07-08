@@ -1,7 +1,8 @@
 // ignore_for_file: must_be_immutable, library_private_types_in_public_api
 
 import 'dart:async';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/post_page_widget/asking_neighbors_widget.dart';
@@ -36,7 +37,7 @@ class Homeview extends StatefulWidget {
 
 class HomeviewState extends State<Homeview> {
   late ScrollController _scrollController;
-  final DataBasesPostServices _databaseServices = DataBasesPostServices();
+  final IPostRepository _databaseServices = FirestorePostRepository();
   late Future<List<Post>> _allPostsFuture;
   double scrollPosition = 0.0;
   @override
@@ -46,7 +47,10 @@ class HomeviewState extends State<Homeview> {
       initialScrollOffset: widget.upDatescrollController ?? 0,
     );
     _scrollController.addListener(_scrollListener);
-    _allPostsFuture = _databaseServices.getAllPosts(widget.residenceSelected);
+    _allPostsFuture = _databaseServices
+        .getAllPosts(widget.residenceSelected)
+        .then((result) => result.when(
+            success: (v) => v, failure: (error) => throw error));
   }
 
   void _scrollListener() {
@@ -66,12 +70,20 @@ class HomeviewState extends State<Homeview> {
   }
 
   Future<void> _loadPosts() async {
-    final posts = await _databaseServices.getAllPosts(widget.residenceSelected);
+    // Réassigne _allPostsFuture vers le nouveau Future AVANT de l'attendre,
+    // pour que le FutureBuilder repasse par son état "waiting" (spinner)
+    // pendant le rechargement, au lieu de continuer à afficher l'ancien
+    // résultat (déjà résolu, potentiellement vide) jusqu'à la fin du fetch.
+    final future = _databaseServices
+        .getAllPosts(widget.residenceSelected)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Post>[]));
     if (mounted) {
       setState(() {
-        _allPostsFuture = Future.value(posts);
+        _allPostsFuture = future;
       });
     }
+    await future;
   }
 
   Future<void> _handleRefresh() async {
@@ -99,6 +111,12 @@ class HomeviewState extends State<Homeview> {
         } else if (snapshot.hasError) {
           return Text('Erreur: ${snapshot.error}');
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          // residenceSelected encore vide le temps que my_nav_bar.dart
+          // résolve le vrai lot (placeholder _defaultLot au tout premier
+          // build) : pas encore "aucun post", juste pas encore chargé.
+          if (widget.residenceSelected.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
           return const Center(
             child: Text("Aucun post n'a été publié pour le moment"),
           );

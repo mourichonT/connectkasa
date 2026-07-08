@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
@@ -34,7 +35,7 @@ class SinistreTile extends StatefulWidget {
 
 class SinistreTileState extends State<SinistreTile> {
   final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
-  DataBasesPostServices dbService = DataBasesPostServices();
+  IPostRepository dbService = FirestorePostRepository();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();
   List<List<String>> typeList = TypeList().typeDeclaration();
   String url = "";
@@ -57,8 +58,10 @@ class SinistreTileState extends State<SinistreTile> {
   }
 
   Future<void> _fetchPost() async {
-    Post signalement =
-        await dbService.getPost(widget.residenceId, widget.post.id);
+    Post signalement = await dbService
+        .getPost(widget.residenceId, widget.post.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
     if (_isMounted) {
       setState(() {
         _signalement = signalement;
@@ -87,8 +90,11 @@ class SinistreTileState extends State<SinistreTile> {
             context,
             MaterialPageRoute(
                 builder: (context) => FutureBuilder<Post?>(
-                      future: dbService.getUpdatePost(
-                          widget.residenceId, widget.post.id),
+                      future: dbService
+                          .getUpdatePost(widget.residenceId, widget.post.id)
+                          .then((result) => result.when(
+                              success: (v) => v,
+                              failure: (error) => throw error)),
                       builder: (BuildContext context,
                           AsyncSnapshot<Post?> snapshot) {
                         if (snapshot.connectionState ==
@@ -101,9 +107,12 @@ class SinistreTileState extends State<SinistreTile> {
                           if (postUpdated != null) {
                             return PopScope(
                               onPopInvoked: (didPop) async {
-                                Post? postChanges =
-                                    await dbService.getUpdatePost(
-                                        widget.residenceId, widget.post.id);
+                                Post? postChanges = await dbService
+                                    .getUpdatePost(
+                                        widget.residenceId, widget.post.id)
+                                    .then((result) => result.when(
+                                        success: (v) => v,
+                                        failure: (_) => null));
 
                                 if (postChanges != null && mounted) {
                                   setState(() {
@@ -410,8 +419,10 @@ class SinistreTileState extends State<SinistreTile> {
   }
 
   void _onDeletePost() async {
-    // final DataBasesPostServices _databaseServices = DataBasesPostServices();
-    await dbService.removePost(widget.residenceId, widget.post.id);
+    await dbService
+        .removePost(widget.residenceId, widget.post.id)
+        .then((result) => result.when(
+            success: (_) {}, failure: (error) => throw error));
     await _storageServices.removeFileFromUrl(widget.post.pathImage!);
     // await _databaseServices.getAllPostsToModify(widget.residenceId);
     widget.updatePostsList!();

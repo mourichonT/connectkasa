@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -38,7 +39,7 @@ class EventPageViewState extends State<EventPageView>
     with SingleTickerProviderStateMixin {
   late Post? updatedPost;
   late Post? selectedPost;
-  final DataBasesPostServices _databaseServices = DataBasesPostServices();
+  final IPostRepository _databaseServices = FirestorePostRepository();
   late Future<List<Post>> _allEventsFuture;
   late List<Post> _futureEvents;
   late List<Post> _pastEvents;
@@ -53,7 +54,9 @@ class EventPageViewState extends State<EventPageView>
   void initState() {
     super.initState();
     initializeDateFormatting('fr_FR', null);
-    _allEventsFuture = _databaseServices.getAllPosts(widget.residenceSelected);
+    _allEventsFuture = _databaseServices
+        .getAllPosts(widget.residenceSelected)
+        .then((result) => result.when(success: (v) => v, failure: (_) => []));
     _eventDays = [];
     _futureEvents = [];
     _pastEvents = [];
@@ -202,8 +205,11 @@ class EventPageViewState extends State<EventPageView>
                         // subtitle: MyTextStyle.annonceDesc(
                         //     event.description ?? "", SizeFont.h3.size, 3),
                         onTap: () async {
-                          selectedPost = await _databaseServices.getUpdatePost(
-                              widget.residenceSelected, event.id);
+                          selectedPost = await _databaseServices
+                              .getUpdatePost(
+                                  widget.residenceSelected, event.id)
+                              .then((result) => result.when(
+                                  success: (v) => v, failure: (_) => null));
                           Navigator.of(context).push(
                             CupertinoPageRoute(
                               builder: (context) => EventPageDetails(
@@ -285,8 +291,9 @@ class EventPageViewState extends State<EventPageView>
   void _refreshEventList() {
     if (!mounted) return;
     setState(() {
-      _allEventsFuture =
-          _databaseServices.getAllPosts(widget.residenceSelected);
+      _allEventsFuture = _databaseServices
+          .getAllPosts(widget.residenceSelected)
+          .then((result) => result.when(success: (v) => v, failure: (_) => []));
       _loadEventDays();
       _filterEvents();
     });
@@ -412,8 +419,10 @@ class EventPageViewState extends State<EventPageView>
         final post = events[index];
         return InkWell(
           onTap: () async {
-            updatedPost = await _databaseServices.getUpdatePost(
-                widget.residenceSelected, events[0].id);
+            updatedPost = await _databaseServices
+                .getUpdatePost(widget.residenceSelected, events[0].id)
+                .then((result) =>
+                    result.when(success: (v) => v, failure: (_) => null));
             Navigator.of(context).push(CupertinoPageRoute(
               builder: (context) => EventPageDetails(
                 returnHomePage: false,

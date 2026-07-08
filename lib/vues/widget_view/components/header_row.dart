@@ -54,8 +54,7 @@ class CustomHeaderRow extends StatelessWidget {
           MyTextStyle.statuColor(post.statu!, colorStatut),
           Visibility(
               visible: isCsMember,
-              child: IconModifyOrDelette(post, lot!, context, updatePostsList,
-                  lot.residenceData['mail_contact'])),
+              child: IconModifyOrDelette(post, lot!, context, updatePostsList)),
         ],
       ),
     );

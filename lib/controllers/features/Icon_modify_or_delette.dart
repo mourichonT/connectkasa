@@ -1,21 +1,102 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
 import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/handlers/fetch_pdfreport.dart';
 import 'package:connect_kasa/controllers/handlers/send_custom_email.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:flutter/material.dart';
 
 FetchPdfreport fetchPDFreport = FetchPdfreport();
-Widget IconModifyOrDelette(Post post, Lot lot, BuildContext context,
-    Function updatePostsList, String mail) {
+
+/// Résout le mail de notification d'un sinistre : mail_contact (résidence
+/// non déléguée) en priorité, sinon la gérance/agence résolue (déléguée -
+/// mail_contact est volontairement vidé dans ce cas côté
+/// management_res_info_g.dart, pour ne pas dupliquer une donnée qui peut
+/// devenir périmée).
+///
+/// Lit directement Firestore plutôt que lot.residenceData : ce dernier est
+/// une copie chargée une fois puis mise en cache (SharedPreferences, "lot
+/// préféré") qui ne se rafraîchit pas quand la résidence est modifiée
+/// ailleurs (ex. management_res_info_g.dart) sans que l'utilisateur ne
+/// resélectionne son lot - un simple hot restart ne suffit pas à la
+/// rafraîchir.
+Future<String?> _resolveContactEmail(String residenceId) async {
+  final residenceSnapshot = await FirebaseFirestore.instance
+      .collection("Residence")
+      .doc(residenceId)
+      .get();
+  final residenceData = residenceSnapshot.data();
+  if (residenceData == null) return null;
+
+  final directMail = residenceData['mail_contact'] as String?;
+  if (directMail != null && directMail.isNotEmpty) {
+    return directMail;
+  }
+
+  final geranceRefData = residenceData['geranceRef'];
+  if (geranceRefData != null) {
+    final geranceRef =
+        GeranceRef.fromJson(Map<String, dynamic>.from(geranceRefData));
+    final flow = AgencySearchFlow(serviceType: 'serviceSyndic');
+    final agency = await flow.resolve(geranceRef);
+    final agencyMail = agency?.syndic?.mail;
+    if (agencyMail != null && agencyMail.isNotEmpty) {
+      return agencyMail;
+    }
+  }
+
+  final syndicAgencyData = residenceData['syndicAgency'];
+  if (syndicAgencyData != null) {
+    final customMail =
+        (syndicAgencyData as Map)['syndic']?['mail'] as String?;
+    if (customMail != null && customMail.isNotEmpty) {
+      return customMail;
+    }
+  }
+
+  return null;
+}
+
+/// Rôle du déclarant (post.user) dans son lot de cette résidence :
+/// "Propriétaire" ou "Locataire". Retrouve son lot via User/{uid}/lots
+/// plutôt que d'utiliser le lot du CS member consultant le post - ce n'est
+/// pas forcément le même (le déclarant peut être dans un lot différent).
+Future<String?> _resolveDeclarantStatus(Post post) async {
+  final lots = await FirestoreLotRepository()
+      .getLotByIdUser(post.user)
+      .then((result) => result.when(success: (v) => v, failure: (_) => <Lot>[]));
+
+  Lot? declarantLot;
+  for (final l in lots) {
+    if (l.residenceId == post.refResidence) {
+      declarantLot = l;
+      break;
+    }
+  }
+  if (declarantLot == null) return null;
+
+  if (declarantLot.idProprietaire?.contains(post.user) ?? false) {
+    return 'Propriétaire';
+  }
+  if (declarantLot.idLocataire?.contains(post.user) ?? false) {
+    return 'Locataire';
+  }
+  return null;
+}
+
+Widget IconModifyOrDelette(
+    Post post, Lot lot, BuildContext context, Function updatePostsList) {
   return Container(
     padding: const EdgeInsets.only(left: 20, right: 10),
     child: GestureDetector(
@@ -78,12 +159,19 @@ Widget IconModifyOrDelette(Post post, Lot lot, BuildContext context,
                           element: post.location_details,
                           declaredDate: Timestamp.now(),
                         );
-                        await sendCustomEmail(
-                          lot: lot!,
-                          post: post,
-                          email: mail,
-                          subjectMail: 'Nouveau signalement ConnectKasa',
-                        );
+                        final contactEmail =
+                            await _resolveContactEmail(post.refResidence);
+                        if (contactEmail != null && contactEmail.isNotEmpty) {
+                          final declarantStatus =
+                              await _resolveDeclarantStatus(post);
+                          await sendCustomEmail(
+                            lot: lot!,
+                            post: post,
+                            email: contactEmail,
+                            subjectMail: 'Nouveau signalement ConnectKasa',
+                            declarantStatus: declarantStatus,
+                          );
+                        }
 
                         setState(() {
                           currentStep = 1;
@@ -354,9 +442,12 @@ int _getCurrentStep(String? statut) {
 
 Future<void> _onDeletePost(Post post, Function updatePostsList) async {
   final storageServices = FirestoreStorageRepository();
-  final dbService = DataBasesPostServices();
+  final IPostRepository dbService = FirestorePostRepository();
 
-  await dbService.removePost(post.refResidence, post.id);
+  await dbService
+      .removePost(post.refResidence, post.id)
+      .then((result) => result.when(
+          success: (_) {}, failure: (error) => throw error));
   if (post.pathImage != null) {
     await storageServices.removeFileFromUrl(post.pathImage!);
   }

@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/sinitres_tile_controller.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/pages_vues/post_page/sinistre_tile.dart';
@@ -31,7 +32,7 @@ class SinistrePageView extends StatefulWidget {
 
 class SinistrePageViewState extends State<SinistrePageView>
     with SingleTickerProviderStateMixin {
-  final DataBasesPostServices _databaseServices = DataBasesPostServices();
+  final IPostRepository _databaseServices = FirestorePostRepository();
   late final TabController _tabController;
   late Future<List<Post>> _allPostsFuture;
   late Future<List<Post>> _allSignalementFuture;
@@ -42,9 +43,14 @@ class SinistrePageViewState extends State<SinistrePageView>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _allPostsFuture = _databaseServices.getAllPosts(widget.residenceId);
-    _allSignalementFuture =
-        _databaseServices.getAllPostsToModify(widget.residenceId);
+    _allPostsFuture = _databaseServices
+        .getAllPosts(widget.residenceId)
+        .then((result) => result.when(
+            success: (v) => v, failure: (error) => throw error));
+    _allSignalementFuture = _databaseServices
+        .getAllPostsToModify(widget.residenceId)
+        .then((result) => result.when(
+            success: (v) => v, failure: (error) => throw error));
     _tabController.addListener(_handleTabChange);
     _selectedTab = _tabController.index == 0;
   }
@@ -72,9 +78,14 @@ class SinistrePageViewState extends State<SinistrePageView>
 
   void updatePostsList() {
     setState(() {
-      _allPostsFuture = _databaseServices.getAllPosts(widget.residenceId);
-      _allSignalementFuture =
-          _databaseServices.getAllPostsToModify(widget.residenceId);
+      _allPostsFuture = _databaseServices
+          .getAllPosts(widget.residenceId)
+          .then((result) => result.when(
+              success: (v) => v, failure: (error) => throw error));
+      _allSignalementFuture = _databaseServices
+          .getAllPostsToModify(widget.residenceId)
+          .then((result) => result.when(
+              success: (v) => v, failure: (error) => throw error));
     });
   }
 
@@ -108,14 +119,18 @@ class SinistrePageViewState extends State<SinistrePageView>
                   required List<String?> statut,
                 }) {
                   setState(() {
-                    _allPostsFuture = _databaseServices.getAllPostsWithFilters(
-                      doc: widget.residenceId,
-                      locationElement: locationElement,
-                      type: type,
-                      dateFrom: dateFrom,
-                      dateTo: dateTo,
-                      statut: statut,
-                    );
+                    _allPostsFuture = _databaseServices
+                        .getAllPostsWithFilters(
+                          doc: widget.residenceId,
+                          locationElement: locationElement,
+                          type: type,
+                          dateFrom: dateFrom,
+                          dateTo: dateTo,
+                          statut: statut,
+                        )
+                        .then((result) => result.when(
+                            success: (v) => v,
+                            failure: (error) => throw error));
                   });
                 },
                 updateShowFilter: ({required bool showFilter}) {

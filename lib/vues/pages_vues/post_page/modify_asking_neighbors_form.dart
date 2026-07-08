@@ -13,7 +13,6 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 
@@ -111,7 +110,6 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
     },
   );
 
-  DataBasesPostServices dataBasesPostServices = DataBasesPostServices();
   Color? _selectedColor;
   String? _selectedImagePath;
   String _selectedText = '';

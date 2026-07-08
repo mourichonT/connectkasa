@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -32,7 +33,7 @@ class EventTilepv extends StatefulWidget {
 
 class EventTileState extends State<EventTilepv> {
   final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
-  DataBasesPostServices dbService = DataBasesPostServices();
+  IPostRepository dbService = FirestorePostRepository();
   final DataBasesUserServices databasesUserServices = DataBasesUserServices();
   List<List<String>> typeList = TypeList().typeDeclaration();
   String url = "";
@@ -55,7 +56,10 @@ class EventTileState extends State<EventTilepv> {
   }
 
   Future<void> _fetchPost() async {
-    Post event = await dbService.getPost(widget.residenceId, widget.post.id);
+    Post event = await dbService
+        .getPost(widget.residenceId, widget.post.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (error) => throw error));
     if (_isMounted) {
       setState(() {
         _event = event;
@@ -84,8 +88,11 @@ class EventTileState extends State<EventTilepv> {
             context,
             MaterialPageRoute(
               builder: (context) => FutureBuilder<Post?>(
-                future:
-                    dbService.getUpdatePost(widget.residenceId, widget.post.id),
+                future: dbService
+                    .getUpdatePost(widget.residenceId, widget.post.id)
+                    .then((result) => result.when(
+                        success: (v) => v,
+                        failure: (error) => throw error)),
                 builder: (BuildContext context, AsyncSnapshot<Post?> snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const CircularProgressIndicator();
@@ -96,8 +103,11 @@ class EventTileState extends State<EventTilepv> {
                     if (postUpdated != null) {
                       return PopScope(
                         onPopInvoked: (didPop) async {
-                          Post? postChanges = await dbService.getUpdatePost(
-                              widget.residenceId, widget.post.id);
+                          Post? postChanges = await dbService
+                              .getUpdatePost(
+                                  widget.residenceId, widget.post.id)
+                              .then((result) => result.when(
+                                  success: (v) => v, failure: (_) => null));
 
                           if (postChanges != null) {
                             setState(() {
@@ -346,8 +356,10 @@ class EventTileState extends State<EventTilepv> {
   }
 
   void _onDeletePost() async {
-    // final DataBasesPostServices _databaseServices = DataBasesPostServices();
-    await dbService.removePost(widget.residenceId, widget.post.id);
+    await dbService
+        .removePost(widget.residenceId, widget.post.id)
+        .then((result) => result.when(
+            success: (_) {}, failure: (error) => throw error));
     await _storageServices.removeFileFromUrl(widget.post.pathImage!);
     // await _databaseServices.getAllPostsToModify(widget.residenceId);
     widget.updatePostsList!();

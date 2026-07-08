@@ -1,6 +1,5 @@
 import 'package:connect_kasa/controllers/features/line_interaction.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -44,7 +43,6 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
   late Post? updatedPost;
-  DataBasesPostServices postServices = DataBasesPostServices();
 
   @override
   void initState() {

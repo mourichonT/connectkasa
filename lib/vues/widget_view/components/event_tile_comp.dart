@@ -1,5 +1,4 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
@@ -10,13 +9,11 @@ class EventTileComp extends StatelessWidget {
   final String uid;
   final String residence;
 
-  EventTileComp(
+  const EventTileComp(
       {super.key,
       required this.post,
       required this.uid,
       required this.residence});
-
-  DataBasesPostServices dbService = DataBasesPostServices();
 
   @override
   Widget build(BuildContext context) {

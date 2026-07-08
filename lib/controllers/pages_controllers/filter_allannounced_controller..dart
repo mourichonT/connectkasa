@@ -2,7 +2,8 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_post_services.dart';
+import 'package:connect_kasa/core/repositories/post_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/my_multiselected_dropdown.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -34,7 +35,7 @@ class FilterAllAnnouncedControllerState
     extends State<FilterAllAnnouncedController> {
   final TextEditingController _dateFromController = TextEditingController();
   final TextEditingController _dateToController = TextEditingController();
-  final DataBasesPostServices _databaseServices = DataBasesPostServices();
+  final IPostRepository _databaseServices = FirestorePostRepository();
 
   int _lowerValue = 0;
   int _upperValue = 0;
@@ -65,8 +66,11 @@ class FilterAllAnnouncedControllerState
   }
 
   void _fetchMinMaxPrices() async {
-    var prices =
-        await _databaseServices.getMinMaxPrices(widget.residenceSelected);
+    var prices = await _databaseServices
+        .getMinMaxPrices(widget.residenceSelected)
+        .then((result) => result.when(
+            success: (v) => v,
+            failure: (_) => {'priceMin': 999999999, 'priceMax': 0}));
     setState(() {
       _lowerValue = prices['priceMin']!;
       _upperValue = prices['priceMax']!;
