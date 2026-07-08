@@ -1,5 +1,23 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/core/result/result.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
+
+/// Une page de résultats pour les listes de posts paginées (Homeview,
+/// SinistrePageView) : les posts de cette page, le curseur Firestore à
+/// passer en startAfter pour la page suivante (null si plus rien à charger
+/// après cette page), et hasMore pour savoir s'il faut proposer de charger
+/// la suite.
+class PostPage {
+  final List<Post> posts;
+  final DocumentSnapshot? lastDocument;
+  final bool hasMore;
+
+  const PostPage({
+    required this.posts,
+    required this.lastDocument,
+    required this.hasMore,
+  });
+}
 
 /// Remplace DataBasesPostServices (Phase 2 du chantier architecture).
 abstract interface class IPostRepository {
@@ -23,6 +41,22 @@ abstract interface class IPostRepository {
   Future<Result<List<Post>>> getAllPosts(String doc);
 
   Future<Result<List<Post>>> getAllPostsToModify(String doc);
+
+  /// Variante paginée de getAllPosts, pour Homeview et l'onglet "Toutes"
+  /// de SinistrePageView (chargement au scroll).
+  Future<Result<PostPage>> getPostsPage(
+    String doc, {
+    required int limit,
+    DocumentSnapshot? startAfter,
+  });
+
+  /// Variante paginée de getAllPostsToModify, pour l'onglet "Mes
+  /// déclarations" de SinistrePageView.
+  Future<Result<PostPage>> getPostsToModifyPage(
+    String doc, {
+    required int limit,
+    DocumentSnapshot? startAfter,
+  });
 
   Future<Result<Post?>> addPost(Post newPost, String docRes);
 

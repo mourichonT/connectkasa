@@ -1,13 +1,11 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
 import 'package:connect_kasa/core/repositories/post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
 import 'package:connect_kasa/vues/pages_vues/annonces_page/annonce_page_details.dart';
 import 'package:connect_kasa/vues/pages_vues/post_page/communication_detail.dart';
@@ -17,6 +15,7 @@ import 'package:connect_kasa/vues/pages_vues/post_page/modify_postform.dart';
 import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class SinistreTile extends StatefulWidget {
   late Post post;
@@ -37,38 +36,10 @@ class SinistreTile extends StatefulWidget {
 class SinistreTileState extends State<SinistreTile> {
   final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   IPostRepository dbService = FirestorePostRepository();
-  final IUserRepository userRepository = FirestoreUserRepository();
   List<List<String>> typeList = TypeList().typeDeclaration();
   String url = "";
-  Post? _signalement;
 
   int postCount = 0;
-  bool _isMounted = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _isMounted = true;
-    _fetchPost();
-  }
-
-  @override
-  void dispose() {
-    _isMounted = false;
-    super.dispose();
-  }
-
-  Future<void> _fetchPost() async {
-    Post signalement = await dbService
-        .getPost(widget.residenceId, widget.post.id)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (error) => throw error));
-    if (_isMounted) {
-      setState(() {
-        _signalement = signalement;
-      });
-    }
-  }
 
   String getType(Post post) {
     for (var type in typeList) {
@@ -187,13 +158,11 @@ class SinistreTileState extends State<SinistreTile> {
               padding: const EdgeInsetsDirectional.symmetric(
                   horizontal: 10, vertical: 10),
               width: MediaQuery.of(context).size.width * 0.95,
-              child: _signalement == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : Row(
+              child: Row(
                       children: [
-                        if (_signalement!.pathImage != "" &&
-                            _signalement!.pathImage != null &&
-                            _signalement!.pathImage!.isNotEmpty)
+                        if (widget.post.pathImage != "" &&
+                            widget.post.pathImage != null &&
+                            widget.post.pathImage!.isNotEmpty)
                           ClipRRect(
                             borderRadius: BorderRadius.circular(35.0),
                             child: Container(
@@ -201,7 +170,7 @@ class SinistreTileState extends State<SinistreTile> {
                               width: 120,
                               height: 120,
                               child: Image.network(
-                                _signalement!.pathImage!,
+                                widget.post.pathImage!,
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -230,53 +199,39 @@ class SinistreTileState extends State<SinistreTile> {
                                   children: [
                                     MyTextStyle.postDesc(getType(widget.post),
                                         SizeFont.para.size, Colors.black87),
-                                    if (!_signalement!.hideUser)
+                                    if (!widget.post.hideUser)
                                       if (!widget.canModify)
-                                        FutureBuilder<User?>(
-                                            future: userRepository
-                                                .getUserById(
-                                                    _signalement!.user)
-                                                .then((result) => result.when(
-                                                    success: (v) => v,
-                                                    failure: (error) =>
-                                                        throw error)),
-                                            builder: (context, snapshot) {
-                                              if (snapshot.connectionState ==
-                                                  ConnectionState.waiting) {
-                                                return const Center(
-                                                    child:
-                                                        CircularProgressIndicator());
-                                              } else if (snapshot.hasError) {
-                                                return Text(
-                                                    'Error: ${snapshot.error}');
-                                              } else {
-                                                var user = snapshot.data;
-                                                if (user != null) {
-                                                  return widget.post.user ==
-                                                          widget.uid
-                                                      ? MyTextStyle.annonceDesc(
-                                                          "Vous",
-                                                          SizeFont.para.size,
-                                                          1)
-                                                      : MyTextStyle.annonceDesc(
-                                                          user.pseudo ?? "",
-                                                          SizeFont.para.size,
-                                                          1);
-                                                } else {
-                                                  return Container();
-                                                }
-                                              }
-                                            }),
+                                        Consumer(
+                                            builder: (context, ref, child) {
+                                          final userAsync = ref.watch(
+                                              userByIdProvider(
+                                                  widget.post.user));
+                                          final user = userAsync.valueOrNull;
+                                          if (user != null) {
+                                            return widget.post.user ==
+                                                    widget.uid
+                                                ? MyTextStyle.annonceDesc(
+                                                    "Vous",
+                                                    SizeFont.para.size,
+                                                    1)
+                                                : MyTextStyle.annonceDesc(
+                                                    user.pseudo ?? "",
+                                                    SizeFont.para.size,
+                                                    1);
+                                          } else {
+                                            return Container();
+                                          }
+                                        }),
                                   ],
                                 ),
                               Column(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  MyTextStyle.lotName(_signalement!.title,
+                                  MyTextStyle.lotName(widget.post.title,
                                       Colors.black87, SizeFont.h3.size),
                                   MyTextStyle.annonceDesc(
-                                      _signalement!.description,
+                                      widget.post.description,
                                       SizeFont.para.size,
                                       2),
                                   const Divider(),
@@ -286,11 +241,11 @@ class SinistreTileState extends State<SinistreTile> {
                                     children: [
                                       Flexible(
                                         child: MyTextStyle.commentDate(
-                                            _signalement!.timeStamp),
+                                            widget.post.timeStamp),
                                       ),
                                       Flexible(
                                         child: MyTextStyle.lotDesc(
-                                            _signalement!.statu!,
+                                            widget.post.statu!,
                                             SizeFont.para.size),
                                       ),
                                     ],
@@ -320,7 +275,7 @@ class SinistreTileState extends State<SinistreTile> {
                                                       uid: widget.uid,
                                                       residence:
                                                           widget.residenceId,
-                                                      post: _signalement!,
+                                                      post: widget.post,
                                                     )));
                                       }
 
@@ -334,7 +289,7 @@ class SinistreTileState extends State<SinistreTile> {
                                                       uid: widget.uid,
                                                       residence:
                                                           widget.residenceId,
-                                                      post: _signalement!,
+                                                      post: widget.post,
                                                     )));
                                       }
                                       if (widget.post.type == "annonces") {
@@ -346,7 +301,7 @@ class SinistreTileState extends State<SinistreTile> {
                                                       uid: widget.uid,
                                                       residence:
                                                           widget.residenceId,
-                                                      post: _signalement!,
+                                                      post: widget.post,
                                                     )));
                                       }
                                       // Rafraîchit la liste au retour du
@@ -365,7 +320,7 @@ class SinistreTileState extends State<SinistreTile> {
                                     padding: EdgeInsets.zero,
                                     onPressed: () {
                                       showAlertDialog(
-                                          context, _signalement!.title);
+                                          context, widget.post.title);
                                     },
                                     icon: const Icon(
                                       Icons.delete,

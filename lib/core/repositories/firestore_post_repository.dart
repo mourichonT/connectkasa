@@ -274,6 +274,89 @@ class FirestorePostRepository implements IPostRepository {
   }
 
   @override
+  Future<Result<PostPage>> getPostsPage(
+    String doc, {
+    required int limit,
+    DocumentSnapshot? startAfter,
+  }) async {
+    if (doc.isEmpty) {
+      return const Result.success(
+          PostPage(posts: [], lastDocument: null, hasMore: false));
+    }
+    try {
+      Query<Map<String, dynamic>> query = _firestore
+          .collection("Residence")
+          .doc(doc)
+          .collection("post")
+          .orderBy('timeStamp', descending: true)
+          .limit(limit + 1);
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      final querySnapshot = await query.get();
+      final hasMore = querySnapshot.docs.length > limit;
+      final pageDocs = hasMore
+          ? querySnapshot.docs.sublist(0, limit)
+          : querySnapshot.docs;
+      final posts =
+          pageDocs.map((docSnapshot) => Post.fromMap(docSnapshot.data())).toList();
+      return Result.success(PostPage(
+        posts: posts,
+        lastDocument: pageDocs.isNotEmpty ? pageDocs.last : null,
+        hasMore: hasMore,
+      ));
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<PostPage>> getPostsToModifyPage(
+    String doc, {
+    required int limit,
+    DocumentSnapshot? startAfter,
+  }) async {
+    if (doc.isEmpty) {
+      return const Result.success(
+          PostPage(posts: [], lastDocument: null, hasMore: false));
+    }
+    try {
+      Query<Map<String, dynamic>> query = _firestore
+          .collection("Residence")
+          .doc(doc)
+          .collection("post")
+          .orderBy('timeStamp', descending: true)
+          .limit(limit + 1);
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+      final querySnapshot = await query.get();
+      final hasMore = querySnapshot.docs.length > limit;
+      final pageDocs = hasMore
+          ? querySnapshot.docs.sublist(0, limit)
+          : querySnapshot.docs;
+
+      final posts = <Post>[];
+      for (final docSnapshot in pageDocs) {
+        posts.add(Post.fromMap(docSnapshot.data()));
+
+        final signalementsQuery =
+            await docSnapshot.reference.collection("signalements").get();
+        for (final signalementSnapshot in signalementsQuery.docs) {
+          posts.add(Post.fromMap(signalementSnapshot.data()));
+        }
+      }
+      return Result.success(PostPage(
+        posts: posts,
+        lastDocument: pageDocs.isNotEmpty ? pageDocs.last : null,
+        hasMore: hasMore,
+      ));
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
   Future<Result<Post?>> addPost(Post newPost, String docRes) async {
     try {
       await _firestore

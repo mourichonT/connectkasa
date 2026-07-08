@@ -1,23 +1,18 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Widget ProfilTile(
     String uid, double radius1, double radius2, double size, bool pseudoHidden,
     [Color? color, double? pseudoFontSize]) {
-  final double radiusT = radius2;
-  late Future<User?> user;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
-  return FutureBuilder<User?>(
-    future: user = FirestoreUserRepository()
-        .getUserById(uid)
-        .then((result) => result.when(success: (v) => v, failure: (_) => null)),
-    builder: (context, snapshot) {
-      // Maintenant, vous pouvez utiliser l'objet User ici
-      if (snapshot.hasData && snapshot.data != null) {
-        var userUnique = snapshot.data!;
+  return Consumer(
+    builder: (context, ref, child) {
+      final userAsync = ref.watch(userByIdProvider(uid));
+      final userUnique = userAsync.valueOrNull;
+      if (userUnique != null) {
 
         // Extraire uniquement la première lettre de userUnique.name et la mettre en majuscule
         String firstName = userUnique.name;
