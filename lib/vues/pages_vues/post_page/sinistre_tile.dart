@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/core/repositories/post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
@@ -36,7 +37,7 @@ class SinistreTile extends StatefulWidget {
 class SinistreTileState extends State<SinistreTile> {
   final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   IPostRepository dbService = FirestorePostRepository();
-  final DataBasesUserServices databasesUserServices = DataBasesUserServices();
+  final IUserRepository userRepository = FirestoreUserRepository();
   List<List<String>> typeList = TypeList().typeDeclaration();
   String url = "";
   Post? _signalement;
@@ -232,9 +233,13 @@ class SinistreTileState extends State<SinistreTile> {
                                     if (!_signalement!.hideUser)
                                       if (!widget.canModify)
                                         FutureBuilder<User?>(
-                                            future: DataBasesUserServices
+                                            future: userRepository
                                                 .getUserById(
-                                                    _signalement!.user),
+                                                    _signalement!.user)
+                                                .then((result) => result.when(
+                                                    success: (v) => v,
+                                                    failure: (error) =>
+                                                        throw error)),
                                             builder: (context, snapshot) {
                                               if (snapshot.connectionState ==
                                                   ConnectionState.waiting) {

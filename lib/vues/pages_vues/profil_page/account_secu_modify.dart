@@ -1,6 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_user.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/account_deletion_controller.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/legal_texts/info_centre.dart';
@@ -37,7 +36,6 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
   TextEditingController surname = TextEditingController();
   TextEditingController pseudo = TextEditingController();
   TextEditingController bio = TextEditingController();
-  DataBasesUserServices userServices = DataBasesUserServices();
   String? profilPic = "";
 
   FocusNode nameFocusNode = FocusNode();

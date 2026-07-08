@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
 import 'package:connect_kasa/core/repositories/docs_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
@@ -40,7 +41,7 @@ class SubmitUser {
     bool? informationsCorrectes,
     String? fcmToken,
   }) async {
-    final dataBasesUserServices = DataBasesUserServices();
+    final IUserRepository dataBasesUserServices = FirestoreUserRepository();
     final IDocsRepository docsRepository = FirestoreDocsRepository();
 
     // Résout l'ID réel du document Residence/{id}/lot/{docId} à partir du
@@ -71,15 +72,17 @@ class SubmitUser {
       placeOfborn: placeOfborn,
     );
 
-    await dataBasesUserServices.setUser(
-        newUser,
-        realLotId,
-        residence.id,
-        companyName,
-        intendedFor,
-        statutResident,
-        informationsCorrectes,
-        fcmToken);
+    await dataBasesUserServices
+        .setUser(
+            newUser,
+            realLotId,
+            residence.id,
+            companyName,
+            intendedFor,
+            statutResident,
+            informationsCorrectes,
+            fcmToken)
+        .then((result) => result.when(success: (_) {}, failure: (_) {}));
 
     // Document pièce d'identité
     if (imagepathIDrecto != null && imagepathIDverso != null) {
@@ -131,8 +134,11 @@ class SubmitUser {
       String? value,
       bool? newBool}) async {
     try {
-      await DataBasesUserServices.updateUserField(
-          uid: uid, field: field, value: value, newBool: newBool);
+      await FirestoreUserRepository()
+          .updateUserField(
+              uid: uid, field: field, value: value, newBool: newBool)
+          .then((result) => result.when(
+              success: (_) {}, failure: (error) => throw error));
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -154,10 +160,12 @@ class SubmitUser {
 
     // tu peux ajouter ici d'autres paramètres comme la liste des revenus etc.
   }) async {
-    final dataBasesUserServices = DataBasesUserServices();
+    final IUserRepository dataBasesUserServices = FirestoreUserRepository();
     if (user == null) return;
 
-    bool success = await dataBasesUserServices.updateUserInfo(user);
+    bool success = await dataBasesUserServices
+        .updateUserInfo(user)
+        .then((result) => result.when(success: (v) => v, failure: (_) => false));
 
     if (success) {
       if (!context.mounted) return;

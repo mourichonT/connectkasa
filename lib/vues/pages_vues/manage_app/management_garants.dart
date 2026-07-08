@@ -1,5 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -27,11 +28,15 @@ class ManagementGarants extends StatefulWidget {
 
 class ManagementGarantsState extends State<ManagementGarants> {
   late Future<List<GuarantorInfo?>> _garantByUser;
+  final IUserRepository _userRepository = FirestoreUserRepository();
 
   @override
   void initState() {
     super.initState();
-    _garantByUser = DataBasesUserServices.getGarants(widget.uid);
+    _garantByUser = _userRepository
+        .getGarants(widget.uid)
+        .then((result) => result.when(
+            success: (v) => v, failure: (error) => throw error));
   }
 
   @override
@@ -83,8 +88,11 @@ class ManagementGarantsState extends State<ManagementGarants> {
                       ),
                     );
                     setState(() {
-                      _garantByUser =
-                          DataBasesUserServices.getGarants(widget.uid);
+                      _garantByUser = _userRepository
+                          .getGarants(widget.uid)
+                          .then((result) => result.when(
+                              success: (v) => v,
+                              failure: (error) => throw error));
                     });
                   },
                 );
@@ -112,7 +120,11 @@ class ManagementGarantsState extends State<ManagementGarants> {
                   ),
                 );
                 setState(() {
-                  _garantByUser = DataBasesUserServices.getGarants(widget.uid);
+                  _garantByUser = _userRepository
+                      .getGarants(widget.uid)
+                      .then((result) => result.when(
+                          success: (v) => v,
+                          failure: (error) => throw error));
                 });
               },
               text: "Ajouter un garant",

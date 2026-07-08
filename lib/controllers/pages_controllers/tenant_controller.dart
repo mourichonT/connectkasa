@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -46,8 +46,9 @@ class _TenantControllerState extends State<TenantController> {
   }
 
   Future<void> openDemande() async {
-    await DataBasesUserServices.markDemandeAsRead(
-        widget.uid, widget.demandeId!);
+    await FirestoreUserRepository()
+        .markDemandeAsRead(widget.uid, widget.demandeId!)
+        .then((result) => result.when(success: (_) {}, failure: (_) {}));
     widget.refreshUnseeCounter!(); // Appelle la fonction callback du parent
   }
 

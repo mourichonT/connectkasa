@@ -1,8 +1,6 @@
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -17,8 +15,6 @@ class MyDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    DataBasesUserServices dataBasesUserServices = DataBasesUserServices();
-    late Future<User?> userProfil = DataBasesUserServices.getUserById(uid);
     return Drawer(
       child: Column(
           //mainAxisAlignment: MainAxisAlignment.center,

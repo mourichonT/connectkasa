@@ -4,11 +4,9 @@ import 'package:connect_kasa/core/repositories/post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
@@ -46,24 +44,13 @@ class AnnonceWidget extends StatefulWidget {
 }
 
 class AnnonceWidgetState extends State<AnnonceWidget> {
-  late Future<User?> userPost;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
-  final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
   late Post? updatedPost;
   IPostRepository postServices = FirestorePostRepository();
 
   @override
-  void initState() {
-    super.initState();
-    //post = widget.post;
-    userPost = DataBasesUserServices.getUserById(widget.post.user);
-    // Initialisez post à partir des propriétés du widget
-  }
-
-  @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    DataBasesUserServices.getUserById(widget.post.user);
     return Container(
       decoration: const BoxDecoration(boxShadow: [
         BoxShadow(color: Colors.grey, blurRadius: 10, offset: Offset(0, 3))
@@ -135,6 +122,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                       MaterialPageRoute(
                                           builder: (context) => ShowProfilPage(
                                               uid: widget.post.user,
+                                              currentUid: widget.uid,
                                               refLot:
                                                   widget.residenceSelected)),
                                     );

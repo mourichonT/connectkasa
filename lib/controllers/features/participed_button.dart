@@ -2,7 +2,8 @@ import 'dart:math';
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -36,7 +37,7 @@ class _PartipedTileState extends State<PartipedTile> {
   bool alreadyParticipated = false;
   int userParticipatedCount = 0;
   late Future<List<User?>> participants;
-  DataBasesUserServices dbService = DataBasesUserServices();
+  final IUserRepository _userRepository = FirestoreUserRepository();
 
   @override
   void initState() {
@@ -165,7 +166,9 @@ class _PartipedTileState extends State<PartipedTile> {
       List<String> participantIds) async {
     List<User?> users = [];
     for (String id in participantIds) {
-      User? user = await DataBasesUserServices.getUserById(id);
+      User? user = await _userRepository
+          .getUserById(id)
+          .then((result) => result.when(success: (v) => v, failure: (_) => null));
       users.add(user);
     }
     return users;

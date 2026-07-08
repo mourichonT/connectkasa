@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
@@ -13,8 +13,9 @@ class ShareRentFolder {
   static Future<List<GuarantorInfo>> showGuarantorSelectionDialog(
       BuildContext context, String uid) async {
     DemandeLoc demande = DemandeLoc();
-    List<GuarantorInfo> allGarants =
-        await DataBasesUserServices.getGarants(uid);
+    List<GuarantorInfo> allGarants = await FirestoreUserRepository()
+        .getGarants(uid)
+        .then((result) => result.when(success: (v) => v, failure: (_) => []));
     List<String> selected = [];
 
     print('Garants disponibles:');

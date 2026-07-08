@@ -2,7 +2,8 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/pages_controllers/tenant_controller.dart';
 import 'package:connect_kasa/core/repositories/lot_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -25,7 +26,7 @@ class ManagementTenant extends StatefulWidget {
 
 class ManagementTenantState extends State<ManagementTenant>
     with SingleTickerProviderStateMixin {
-  DataBasesUserServices userServices = DataBasesUserServices();
+  IUserRepository userServices = FirestoreUserRepository();
   final ILotRepository _databasesLotServices = FirestoreLotRepository();
 
   late Future<List<Lot?>> _lotByUser;
@@ -63,7 +64,10 @@ class ManagementTenantState extends State<ManagementTenant>
   }
 
   Future<List<DemandeLoc>> _fetchDemande() async {
-    _allDemand = DataBasesUserServices.getDemande(widget.uid);
+    _allDemand = userServices
+        .getDemande(widget.uid)
+        .then((result) => result.when(
+            success: (v) => v, failure: (error) => throw error));
     final demandes = await _allDemand;
     setState(() {
       _unseenDemandCount = demandes.where((d) => d.open == false).length;
@@ -80,8 +84,11 @@ class ManagementTenantState extends State<ManagementTenant>
         if (lot != null && lot.idLocataire != null) {
           for (var idLocataire in lot.idLocataire!) {
             if (idLocataire != widget.uid) {
-              userFutures
-                  .add(userServices.getUserWithInfo(idLocataire).then((user) {
+              userFutures.add(userServices
+                  .getUserWithInfo(idLocataire)
+                  .then((result) =>
+                      result.when(success: (v) => v, failure: (_) => null))
+                  .then((user) {
                 return {'user': user, 'residence': lot.residenceId, 'lot': lot};
               }));
             }
@@ -265,7 +272,9 @@ class ManagementTenantState extends State<ManagementTenant>
 
                       return FutureBuilder<UserInfo?>(
                         future: userServices
-                            .getUserWithInfo(demande.tenantId ?? ""),
+                            .getUserWithInfo(demande.tenantId ?? "")
+                            .then((result) => result.when(
+                                success: (v) => v, failure: (_) => null)),
                         builder: (context, snapshot) {
                           if (!snapshot.hasData) {
                             return const ListTile(

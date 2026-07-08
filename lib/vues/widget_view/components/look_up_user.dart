@@ -1,6 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -45,14 +45,17 @@ class LookUpUser {
                 }
 
                 // Recherche utilisateur
-                User? user =
-                    await DataBasesUserServices.getUserWithEmailOrRefApp(
-                        input, input);
+                User? user = await FirestoreUserRepository()
+                    .getUserWithEmailOrRefApp(input, input)
+                    .then((result) => result.when(
+                        success: (v) => v, failure: (_) => null));
 
                 if (user != null) {
                   // L'utilisateur existe -> partage du fichier
-                  await DataBasesUserServices.shareFile(
-                      demande, user.uid); // ou autre clé selon ton modèle User
+                  await FirestoreUserRepository()
+                      .shareFile(demande, user.uid)
+                      .then((result) => result.when(
+                          success: (_) {}, failure: (_) {}));
                   Navigator.of(context).pop(input); // Fermer avec succès
                   print('DemandeLoc envoyée avec succès !');
                 } else {
@@ -120,9 +123,10 @@ class LookUpUser {
                 }
 
                 // Recherche utilisateur
-                User? user =
-                    await DataBasesUserServices.getUserWithEmailOrRefApp(
-                        input, input);
+                User? user = await FirestoreUserRepository()
+                    .getUserWithEmailOrRefApp(input, input)
+                    .then((result) => result.when(
+                        success: (v) => v, failure: (_) => null));
 
                 if (user != null) {
                   // L'utilisateur existe -> partage du fichier

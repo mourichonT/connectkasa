@@ -138,7 +138,9 @@ class MyTextStyle {
     return Text(
       initiales,
       style: GoogleFonts.roboto(
-          fontWeight: FontWeight.bold, fontSize: size, color: Colors.black54),
+          fontWeight: FontWeight.bold,
+          fontSize: size - 3,
+          color: Colors.black54),
     );
   }
 

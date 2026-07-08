@@ -1,12 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/core/repositories/auth_repository.dart';
 import 'package:connect_kasa/core/repositories/firebase_auth_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class LoadUserController {
   final IAuthRepository _authRepository = FirebaseAuthRepository();
-  DataBasesUserServices dataBasesUserServices = DataBasesUserServices();
   firebase_auth.UserCredential? user;
 
   Future<void> registerUserInFirestore(firebase_auth.User user) async {

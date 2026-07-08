@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_user.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/legal_texts/info_centre.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -41,7 +40,6 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
   TextEditingController pseudo = TextEditingController();
   TextEditingController bio = TextEditingController();
   TextEditingController profession = TextEditingController();
-  DataBasesUserServices userServices = DataBasesUserServices();
   String? profilPic = "";
 
   FocusNode nameFocusNode = FocusNode();

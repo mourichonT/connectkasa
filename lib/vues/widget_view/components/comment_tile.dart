@@ -1,7 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
@@ -48,7 +48,6 @@ class CommentTileState extends State<CommentTile> {
   TextEditingController _textEditingController = TextEditingController();
   late Future<User?> user;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
-  final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
   late Comment comment;
 
   @override
@@ -56,7 +55,10 @@ class CommentTileState extends State<CommentTile> {
     super.initState();
     _textEditingController = TextEditingController();
     comment = widget.comment;
-    user = DataBasesUserServices.getUserById(comment.user);
+    user = FirestoreUserRepository()
+        .getUserById(comment.user)
+        .then((result) => result.when(
+            success: (v) => v, failure: (error) => throw error));
   }
 
   @override
@@ -118,7 +120,9 @@ class CommentTileState extends State<CommentTile> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => ShowProfilPage(
-                              uid: comment.user, refLot: widget.residence)),
+                              uid: comment.user,
+                              currentUid: widget.uid,
+                              refLot: widget.residence)),
                     );
                   },
                   child: ProfilTile(
@@ -208,7 +212,9 @@ class CommentTileState extends State<CommentTile> {
 
   void _replyToComment(
       Comment currentComment, bool isReply, String? initComment) async {
-    User? user = await DataBasesUserServices.getUserById(currentComment.user);
+    User? user = await FirestoreUserRepository()
+        .getUserById(currentComment.user)
+        .then((result) => result.when(success: (v) => v, failure: (_) => null));
     if (user != null) {
       FocusScope.of(context).requestFocus(widget.focusNode);
       widget.getUsertoreply(_textEditingController);

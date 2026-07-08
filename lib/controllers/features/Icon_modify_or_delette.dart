@@ -8,7 +8,6 @@ import 'package:connect_kasa/controllers/handlers/send_custom_email.dart';
 import 'package:connect_kasa/core/repositories/post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/gerance_ref.dart';

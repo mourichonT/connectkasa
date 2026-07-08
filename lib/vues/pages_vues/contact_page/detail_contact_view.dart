@@ -2,7 +2,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 
 import '../../../models/pages_models/user.dart';
@@ -22,7 +22,10 @@ class DetailContactView extends StatelessWidget {
             "Détails du contact", Colors.black87, SizeFont.h1.size),
       ),
       body: FutureBuilder(
-        future: DataBasesUserServices.getUserById(uid),
+        future: FirestoreUserRepository()
+            .getUserById(uid)
+            .then((result) => result.when(
+                success: (v) => v, failure: (error) => throw error)),
         builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(

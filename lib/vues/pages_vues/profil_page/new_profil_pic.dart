@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
@@ -32,6 +33,7 @@ class _ProfilePicState extends State<ProfilePic> {
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
   final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
+  final IUserRepository _userRepository = FirestoreUserRepository();
   String fileName = const Uuid().v4();
 
   Future<void> _pickImage(ImageSource source) async {
@@ -54,8 +56,10 @@ class _ProfilePicState extends State<ProfilePic> {
 
   Future<void> _updateProfilePicture(String imageUrl) async {
     try {
-      await DataBasesUserServices.updateUserField(
-          uid: widget.uid, field: 'profilPic', value: imageUrl);
+      await _userRepository
+          .updateUserField(uid: widget.uid, field: 'profilPic', value: imageUrl)
+          .then((result) => result.when(
+              success: (_) {}, failure: (error) => throw error));
       widget.refresh();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Photo de profil mise à jour avec succès!')),

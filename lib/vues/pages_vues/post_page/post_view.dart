@@ -1,6 +1,5 @@
 // ignore_for_file: must_be_immutable
 
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
@@ -9,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/widget_view/components/comment_button.dart';
 import 'package:connect_kasa/vues/widget_view/components/like_button_post.dart';
 import 'package:connect_kasa/vues/widget_view/components/share_button.dart';
@@ -18,7 +16,6 @@ class PostView extends StatefulWidget {
   late Post postOrigin;
   late Post? postSelected;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
-  final DataBasesUserServices _databasesUserServices = DataBasesUserServices();
   final String residence;
   final String uid;
   final double? scrollController;
@@ -71,8 +68,6 @@ class PostViewState extends State<PostView> {
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
     final double height = MediaQuery.of(context).size.height;
-    late Future<User?> userPost =
-        DataBasesUserServices.getUserById(widget.postSelected!.user);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -153,6 +148,7 @@ class PostViewState extends State<PostView> {
                               MaterialPageRoute(
                                   builder: (context) => ShowProfilPage(
                                       uid: widget.postSelected!.user,
+                                      currentUid: widget.uid,
                                       refLot: widget.residence)),
                             );
                           },

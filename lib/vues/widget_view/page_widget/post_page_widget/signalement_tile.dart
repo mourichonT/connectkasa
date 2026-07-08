@@ -1,9 +1,7 @@
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
@@ -21,8 +19,6 @@ class SignalementTile extends StatelessWidget {
       {super.key});
 
   final FormatProfilPic formatProfilPic = FormatProfilPic();
-  final DataBasesUserServices databasesUserServices = DataBasesUserServices();
-  late Future<User?> userPost = DataBasesUserServices.getUserById(post.user);
   @override
   Widget build(BuildContext context) {
     postCountCallback(postCount);
@@ -69,7 +65,9 @@ class SignalementTile extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => ShowProfilPage(
-                                    uid: post.user, refLot: residence)),
+                                    uid: post.user,
+                                    currentUid: uid,
+                                    refLot: residence)),
                           );
                         },
                         child: ProfilTile(post.user, 22, 19, 22, true,

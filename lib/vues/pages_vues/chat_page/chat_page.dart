@@ -115,7 +115,9 @@ class ChatPageState extends State<ChatPage> {
               context,
               MaterialPageRoute(
                   builder: (context) => ShowProfilPage(
-                      uid: widget.idUserTo, refLot: widget.residence)),
+                      uid: widget.idUserTo,
+                      currentUid: widget.idUserFrom,
+                      refLot: widget.residence)),
             );
 
             // Refresh après retour de ChatPage

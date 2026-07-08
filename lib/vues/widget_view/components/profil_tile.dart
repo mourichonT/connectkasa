@@ -1,5 +1,5 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +10,10 @@ Widget ProfilTile(
   final double radiusT = radius2;
   late Future<User?> user;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
-  final DataBasesUserServices databasesUserServices = DataBasesUserServices();
   return FutureBuilder<User?>(
-    future: user = DataBasesUserServices.getUserById(uid),
+    future: user = FirestoreUserRepository()
+        .getUserById(uid)
+        .then((result) => result.when(success: (v) => v, failure: (_) => null)),
     builder: (context, snapshot) {
       // Maintenant, vous pouvez utiliser l'objet User ici
       if (snapshot.hasData && snapshot.data != null) {

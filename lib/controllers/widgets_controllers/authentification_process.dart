@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/vues/pages_vues/no_approval_page.dart';
 import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as Firebase;
@@ -14,7 +15,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/vues/pages_vues/no_approval_page.dart';
 import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as Firebase;
@@ -33,7 +33,7 @@ class AuthentificationProcess {
     required this.loadUserController,
   });
 
-  final DataBasesUserServices _userDataBases = DataBasesUserServices();
+  final IUserRepository _userDataBases = FirestoreUserRepository();
   Future<Firebase.User?> fluttLogInWithGoogle() async {
     try {
       // 1. Déconnexion de Firebase et Google
@@ -59,7 +59,10 @@ class AuthentificationProcess {
       print("✅ Compte Google connecté : UID=$uid | EMAIL=$email");
 
       // 4. Chercher dans Firestore si l'utilisateur existe
-      final userData = await DataBasesUserServices.getUserById(uid);
+      final userData = await _userDataBases
+          .getUserById(uid)
+          .then((result) => result.when(
+              success: (v) => v, failure: (error) => throw error));
 
       if (userData != null && userData.approved == true) {
         navigateToMyApp(uid, firestore);
@@ -194,7 +197,9 @@ class AuthentificationProcess {
     User checkUser = userCredential.user!;
 
     // Récupérer les données de l'utilisateur à partir de la base de données
-    var userData = await DataBasesUserServices.getUserById(checkUser.uid);
+    var userData = await _userDataBases
+        .getUserById(checkUser.uid)
+        .then((result) => result.when(success: (v) => v, failure: (_) => null));
 
     if (userData?.uid == checkUser.uid && userData?.approved == true) {
       // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
@@ -264,7 +269,7 @@ class AuthentificationProcess {
   void initUserFcmToken(uid) async {
     FirebaseApi.getToken().then((value) {
       if (value != null) {
-        DataBasesUserServices.updateFcmToken(uid: uid, token: value);
+        _userDataBases.updateFcmToken(uid: uid, token: value);
       }
     });
   }

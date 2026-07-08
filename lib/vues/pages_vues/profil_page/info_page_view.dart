@@ -1,7 +1,8 @@
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -34,7 +35,7 @@ class InfoPageView extends StatefulWidget {
 
 class _InfoPageViewState extends State<InfoPageView> {
   final LoadUserController _loadUserController = LoadUserController();
-  final DataBasesUserServices userServices = DataBasesUserServices();
+  final IUserRepository userServices = FirestoreUserRepository();
 
   User? user;
   Future<List<Lot?>>? _lotByUser;
@@ -63,7 +64,9 @@ class _InfoPageViewState extends State<InfoPageView> {
 
   Future<void> _loadUser(String uid) async {
     if (uid.isNotEmpty) {
-      User? fetchedUser = await DataBasesUserServices.getUserById(uid);
+      User? fetchedUser = await userServices
+          .getUserById(uid)
+          .then((result) => result.when(success: (v) => v, failure: (_) => null));
       if (fetchedUser != null) {
         setState(() {
           user = fetchedUser;

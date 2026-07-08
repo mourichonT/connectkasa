@@ -1,7 +1,8 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
@@ -34,7 +35,7 @@ class EventTilepv extends StatefulWidget {
 class EventTileState extends State<EventTilepv> {
   final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   IPostRepository dbService = FirestorePostRepository();
-  final DataBasesUserServices databasesUserServices = DataBasesUserServices();
+  final IUserRepository userRepository = FirestoreUserRepository();
   List<List<String>> typeList = TypeList().typeDeclaration();
   String url = "";
   Post? _event;
@@ -185,8 +186,12 @@ class EventTileState extends State<EventTilepv> {
                                     if (!_event!.hideUser)
                                       if (!widget.canModify)
                                         FutureBuilder<User?>(
-                                            future: DataBasesUserServices
-                                                .getUserById(_event!.user),
+                                            future: userRepository
+                                                .getUserById(_event!.user)
+                                                .then((result) => result.when(
+                                                    success: (v) => v,
+                                                    failure: (error) =>
+                                                        throw error)),
                                             builder: (context, snapshot) {
                                               if (snapshot.connectionState ==
                                                   ConnectionState.waiting) {

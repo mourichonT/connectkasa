@@ -1,7 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/post_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
@@ -28,7 +27,6 @@ class AnnonceTile extends StatefulWidget {
 class AnnonceTileState extends State<AnnonceTile> {
   late Future<List<Post>> _signalementFuture;
   IPostRepository dbService = FirestorePostRepository();
-  final DataBasesUserServices databasesUserServices = DataBasesUserServices();
 
   int postCount = 0;
   bool _isMounted = false;

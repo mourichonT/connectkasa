@@ -3,7 +3,8 @@ import 'package:connect_kasa/controllers/features/job_entry.dart';
 import 'package:connect_kasa/controllers/features/justif_document.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/controllers/features/income_entry.dart';
@@ -38,7 +39,7 @@ class MyInfosRent extends StatefulWidget {
 }
 
 class _MyInfosRentState extends State<MyInfosRent> {
-  final DataBasesUserServices _userServices = DataBasesUserServices();
+  final IUserRepository _userServices = FirestoreUserRepository();
   final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
   final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   UserInfo? tenantUser;
@@ -62,7 +63,9 @@ class _MyInfosRentState extends State<MyInfosRent> {
   }
 
   Future<void> fetchTenantUser() async {
-    final user = await _userServices.getUserWithInfo(widget.uid);
+    final user = await _userServices
+        .getUserWithInfo(widget.uid)
+        .then((result) => result.when(success: (v) => v, failure: (_) => null));
     if (mounted) {
       setState(() {
         tenantUser = user;
@@ -484,7 +487,9 @@ class _MyInfosRentState extends State<MyInfosRent> {
       phone: tenantUser!.phone,
     );
 
-    bool success = await _userServices.updateUserInfo(updatedUser);
+    bool success = await _userServices
+        .updateUserInfo(updatedUser)
+        .then((result) => result.when(success: (v) => v, failure: (_) => false));
 
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(

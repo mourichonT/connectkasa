@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
@@ -30,7 +31,7 @@ class SubtitleMessage extends StatefulWidget {
 
 class _SubtitleMessageState extends State<SubtitleMessage>
     with TickerProviderStateMixin {
-  final DataBasesUserServices _dataBasesUserServices = DataBasesUserServices();
+  final IUserRepository _dataBasesUserServices = FirestoreUserRepository();
   late Future<List<String>> listNumUsers;
   late Future<List<User>> _allUsersInResidence;
 
@@ -42,8 +43,10 @@ class _SubtitleMessageState extends State<SubtitleMessage>
   void initState() {
     super.initState();
     getNbrTab();
-    listNumUsers = _dataBasesUserServices.getNumUsersByResidence(
-        widget.residence, widget.uid);
+    listNumUsers = _dataBasesUserServices
+        .getNumUsersByResidence(widget.residence, widget.uid)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <String>[]));
     _fetchAllUsers();
     _allUsersInResidence = Future.value(
         []); // Initialisation avec une liste vide pour éviter les erreurs de type
@@ -85,7 +88,10 @@ class _SubtitleMessageState extends State<SubtitleMessage>
 
       // Créer une liste de futures pour récupérer les utilisateurs
       List<Future<User?>> userFutures = uniqueUserIds
-          .map((userId) => DataBasesUserServices.getUserById(userId))
+          .map((userId) => _dataBasesUserServices
+              .getUserById(userId)
+              .then((result) =>
+                  result.when(success: (v) => v, failure: (_) => null)))
           .toList();
 
       // Attendre que toutes les futures soient terminées
@@ -381,6 +387,8 @@ class _SubtitleMessageState extends State<SubtitleMessage>
                             radius: 23,
                             idUserFrom:
                                 uid, // Utilisation du uid correspondant à cet index
+                            idUserTo: widget.uid,
+                            residenceId: widget.residence,
                           ),
                         );
                       },

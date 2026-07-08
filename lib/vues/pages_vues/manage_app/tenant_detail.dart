@@ -3,7 +3,8 @@ import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
@@ -41,6 +42,7 @@ class TenantDetail extends StatefulWidget {
 class TenantDetailState extends State<TenantDetail> {
   Future<List<Map<String, dynamic>>>? _documentsFuture;
   final FirestoreLotRepository _dataBasesLotServices = FirestoreLotRepository();
+  final IUserRepository _userRepository = FirestoreUserRepository();
   @override
   void initState() {
     super.initState();
@@ -105,8 +107,10 @@ class TenantDetailState extends State<TenantDetail> {
               Visibility(
                 child: ButtonAdd(
                   function: () async {
-                    await DataBasesUserServices.deleteDemande(
-                        widget.senderUid, widget.demandeId!);
+                    await _userRepository
+                        .deleteDemande(widget.senderUid, widget.demandeId!)
+                        .then((result) =>
+                            result.when(success: (_) {}, failure: (_) {}));
                     if (widget.refreshUnseeCounter != null) {
                       widget.refreshUnseeCounter!();
                     }

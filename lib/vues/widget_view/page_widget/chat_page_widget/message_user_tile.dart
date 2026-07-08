@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/pages_controllers/chat_controller.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
@@ -34,7 +34,9 @@ class MessageUserTileState extends State<MessageUserTile> {
   void initState() {
     super.initState();
     // On charge juste l'user une fois, pas de setState ici
-    user = DataBasesUserServices.getUserById(widget.idUserFrom);
+    user = FirestoreUserRepository()
+        .getUserById(widget.idUserFrom)
+        .then((result) => result.when(success: (v) => v, failure: (_) => null));
   }
 
   @override

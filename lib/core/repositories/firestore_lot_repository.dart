@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/errors/app_exceptions.dart';
 import 'package:connect_kasa/core/repositories/lot_repository.dart';
@@ -208,12 +208,15 @@ class FirestoreLotRepository implements ILotRepository {
   // Applique la décision de remplacement ou d'ajout de locataire au lot
   Future<void> _applyTenantChange(DocumentReference lotRef, String residenceId,
       String idLot, String tenantId, bool replace) async {
-    await DataBasesUserServices.addLotToUser(
-        userId: tenantId,
-        lotId: idLot,
-        residenceId: residenceId,
-        statutResident: "Locataire",
-        entryDate: Timestamp.now());
+    await FirestoreUserRepository()
+        .addLotToUser(
+            userId: tenantId,
+            lotId: idLot,
+            residenceId: residenceId,
+            statutResident: "Locataire",
+            entryDate: Timestamp.now())
+        .then((result) => result.when(
+            success: (_) {}, failure: (error) => throw error));
 
     if (replace) {
       await lotRef.update({

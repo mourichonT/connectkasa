@@ -5,7 +5,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
@@ -114,13 +114,16 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
       return;
     }
 
-    await DataBasesUserServices.addLotToUser(
-      userId: widget.uid,
-      lotId: lot!.id!,
-      residenceId: _residence!.id,
-      intendedFor: _intendedFor,
-      statutResident: _typeResident,
-    );
+    await FirestoreUserRepository()
+        .addLotToUser(
+          userId: widget.uid,
+          lotId: lot!.id!,
+          residenceId: _residence!.id,
+          intendedFor: _intendedFor,
+          statutResident: _typeResident,
+        )
+        .then((result) => result.when(
+            success: (_) {}, failure: (error) => throw error));
 
     // addLotToUser ne dénormalise que côté User/{uid}/lots : le lot
     // Residence/{id}/lot/{id} lui-même (idLocataire/idProprietaire, lu par

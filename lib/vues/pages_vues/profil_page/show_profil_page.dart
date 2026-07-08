@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -17,15 +18,20 @@ import 'package:flutter/material.dart';
 class ShowProfilPage extends StatelessWidget {
   final String uid;
   final String refLot;
+  final String currentUid;
 
   const ShowProfilPage({
     super.key,
     required this.uid,
     required this.refLot,
+    required this.currentUid,
   });
 
   Future<User?> _loadUser(String uid) async {
-    return await DataBasesUserServices.getUserById(uid);
+    final IUserRepository userRepository = FirestoreUserRepository();
+    return userRepository
+        .getUserById(uid)
+        .then((result) => result.when(success: (v) => v, failure: (_) => null));
   }
 
   final bool isSelectedComments = true;
@@ -55,7 +61,7 @@ class ShowProfilPage extends StatelessWidget {
         final String pseudo = user.pseudo ?? "";
         final String bio = user.bio ?? "";
         final bool privateAccount = user.private;
-        final String userTo = user.uid;
+        final bool isOwnProfile = currentUid == uid;
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -110,7 +116,8 @@ class ShowProfilPage extends StatelessWidget {
                           FontStyle.italic,
                           FontWeight.normal,
                         ),
-                      Padding(
+                      if (!isOwnProfile)
+                        Padding(
                         padding: EdgeInsets.symmetric(vertical: 20),
                         child: ButtonAdd(
                             text: "Ecrire",
@@ -123,8 +130,8 @@ class ShowProfilPage extends StatelessWidget {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) => ChatPage(
-                                        idUserFrom: uid,
-                                        idUserTo: userTo,
+                                        idUserFrom: currentUid,
+                                        idUserTo: uid,
                                         residence: refLot)),
                               );
                             }),

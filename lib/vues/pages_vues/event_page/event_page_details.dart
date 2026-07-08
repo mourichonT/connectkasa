@@ -1,7 +1,7 @@
 import 'package:connect_kasa/controllers/features/line_interaction.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/participed_button.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
@@ -34,7 +34,6 @@ class EventPageDetails extends StatefulWidget {
 class EventPageDetailsState extends State<EventPageDetails> {
   late Future<List<User?>> participants;
   late Future<User?> userOrga;
-  DataBasesUserServices dbService = DataBasesUserServices();
   bool alreadyParticipated = false;
   int userParticipatedCount = 0;
 
@@ -43,8 +42,10 @@ class EventPageDetailsState extends State<EventPageDetails> {
     super.initState();
     alreadyParticipated = widget.post.participants!.contains(widget.uid);
     userParticipatedCount = widget.post.participants!.length;
-    userOrga = DataBasesUserServices.getUserById(
-        widget.post.user); // assuming organizerId is a field in Post model
+    userOrga = FirestoreUserRepository()
+        .getUserById(widget.post.user)
+        .then((result) => result.when(
+            success: (v) => v, failure: (error) => throw error));
   }
 
   Widget buildOrganizerInfo(

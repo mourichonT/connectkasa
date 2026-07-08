@@ -3,7 +3,8 @@ import 'package:connect_kasa/controllers/features/job_entry.dart';
 import 'package:connect_kasa/controllers/features/justif_document.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/controllers/features/income_entry.dart';
@@ -38,7 +39,7 @@ class MyGarantInfos extends StatefulWidget {
 }
 
 class _MyGarantInfosState extends State<MyGarantInfos> {
-  final DataBasesUserServices _userServices = DataBasesUserServices();
+  final IUserRepository _userServices = FirestoreUserRepository();
   final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
   final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
 
@@ -484,7 +485,7 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
                       colorText: Colors.red[800]!,
                       borderColor: Colors.red[800]!,
                       function: () {
-                        DataBasesUserServices.deleteGarant(
+                        _userServices.deleteGarant(
                             widget.uid, currentGarant!.id!);
                         Navigator.pop(context);
                       }),
@@ -695,11 +696,13 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
         phone: phone.text,
       );
 
-      newGarantId = await DataBasesUserServices.updateSingleGarant(
-        garant: updatedGarant,
-        uid: widget.uid,
-        garantDocId: currentGarant!.id!,
-      );
+      newGarantId = await _userServices
+          .updateSingleGarant(
+            garant: updatedGarant,
+            uid: widget.uid,
+            garantDocId: currentGarant!.id!,
+          )
+          .then((result) => result.when(success: (v) => v, failure: (_) => null));
     } else {
       // Création d’un nouveau garant (sans ID au début)
       GuarantorInfo tempGarant = GuarantorInfo(
@@ -718,10 +721,12 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
         phone: phone.text,
       );
 
-      newGarantId = await DataBasesUserServices.updateSingleGarant(
-        garant: tempGarant,
-        uid: widget.uid,
-      );
+      newGarantId = await _userServices
+          .updateSingleGarant(
+            garant: tempGarant,
+            uid: widget.uid,
+          )
+          .then((result) => result.when(success: (v) => v, failure: (_) => null));
     }
 
     if (newGarantId == null) {

@@ -30,8 +30,8 @@ class CommunicationDetails extends StatelessWidget {
             await Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      ShowProfilPage(uid: uid, refLot: residenceId)),
+                  builder: (context) => ShowProfilPage(
+                      uid: uid, currentUid: uid, refLot: residenceId)),
             );
           },
           child: ProfilTile(

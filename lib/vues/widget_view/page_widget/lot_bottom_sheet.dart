@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/widget_view/components/lot_tile_view.dart';
 import 'package:flutter/material.dart';
@@ -72,10 +72,10 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
 
     // Récupération des détails utilisateur du lot (local) — on enrichit selectedLot
     try {
-      final details = await DataBasesUserServices().getLotDetails(
-        widget.uid,
-       selectedLot.refLot,
-      );
+      final details = await FirestoreUserRepository()
+          .getLotDetails(widget.uid, selectedLot.refLot)
+          .then((result) => result.when(
+              success: (v) => v, failure: (error) => throw error));
 
       if (details != null) {
         selectedLot.userLotDetails = details;

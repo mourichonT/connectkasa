@@ -4,7 +4,8 @@ import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/core/repositories/residence_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
@@ -42,7 +43,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final LoadUserController _loadUserController = LoadUserController();
-  final DataBasesUserServices userServices = DataBasesUserServices();
+  final IUserRepository userServices = FirestoreUserRepository();
   final IResidenceRepository _basesResidenceServices =
       FirestoreResidenceRepository();
 
@@ -122,7 +123,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadUser(String uid) async {
     if (uid.isNotEmpty) {
-      User? fetchedUser = await DataBasesUserServices.getUserById(uid);
+      User? fetchedUser = await userServices
+          .getUserById(uid)
+          .then((result) => result.when(success: (v) => v, failure: (_) => null));
       if (fetchedUser != null) {
         user = fetchedUser;
         name = fetchedUser.name;

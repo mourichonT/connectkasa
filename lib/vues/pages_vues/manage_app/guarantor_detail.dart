@@ -3,7 +3,8 @@ import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
@@ -37,6 +38,7 @@ class GuarantorDetailState extends State<GuarantorDetail> {
   late Future<GuarantorInfo?> garant;
   final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
   final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
+  final IUserRepository _userRepository = FirestoreUserRepository();
   @override
   void initState() {
     super.initState();
@@ -44,8 +46,10 @@ class GuarantorDetailState extends State<GuarantorDetail> {
 
     _documentsFuture = _fetchGarantDocuments();
 
-    garant = DataBasesUserServices.getUniqueGarant(
-        widget.tenantUid, widget.garantid);
+    garant = _userRepository
+        .getUniqueGarant(widget.tenantUid, widget.garantid)
+        .then((result) => result.when(
+            success: (v) => v, failure: (error) => throw error));
   }
 
   @override

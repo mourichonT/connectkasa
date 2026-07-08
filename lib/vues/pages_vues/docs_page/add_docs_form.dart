@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_doc_controller.dart';
-import 'package:connect_kasa/controllers/services/databases_user_services.dart';
+import 'package:connect_kasa/core/repositories/user_repository.dart';
+import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
@@ -31,6 +32,7 @@ class AddDocsForm extends StatefulWidget {
 class AddDocsFormState extends State<AddDocsForm> {
   double fontSize = 12;
   final TypeList _CatList = TypeList();
+  final IUserRepository _userRepository = FirestoreUserRepository();
 
   late TextEditingController textEditingController;
   TextEditingController docName = TextEditingController();
@@ -119,7 +121,10 @@ class AddDocsFormState extends State<AddDocsForm> {
     if (locataires != null && locataires.isNotEmpty) {
       for (String locataireId in locataires) {
         try {
-          final user = await DataBasesUserServices.getUserById(locataireId);
+          final user = await _userRepository
+              .getUserById(locataireId)
+              .then((result) => result.when(
+                  success: (v) => v, failure: (error) => throw error));
           if (user != null) {
             final fullName = "${user.name} ${user.surname}".trim();
             destinatairesLabels.add(fullName);
