@@ -1,15 +1,16 @@
 import 'package:connect_kasa/controllers/features/line_interaction.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/participed_button.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
 import 'package:connect_kasa/models/enum/event_type.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class EventPageDetails extends StatefulWidget {
+class EventPageDetails extends ConsumerStatefulWidget {
   final Post post;
   final String uid;
   final String residence;
@@ -28,12 +29,10 @@ class EventPageDetails extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => EventPageDetailsState();
+  ConsumerState<EventPageDetails> createState() => EventPageDetailsState();
 }
 
-class EventPageDetailsState extends State<EventPageDetails> {
-  late Future<List<User?>> participants;
-  late Future<User?> userOrga;
+class EventPageDetailsState extends ConsumerState<EventPageDetails> {
   bool alreadyParticipated = false;
   int userParticipatedCount = 0;
 
@@ -42,27 +41,20 @@ class EventPageDetailsState extends State<EventPageDetails> {
     super.initState();
     alreadyParticipated = widget.post.participants!.contains(widget.uid);
     userParticipatedCount = widget.post.participants!.length;
-    userOrga = FirestoreUserRepository()
-        .getUserById(widget.post.user)
-        .then((result) => result.when(
-            success: (v) => v, failure: (error) => throw error));
   }
 
-  Widget buildOrganizerInfo(
-      BuildContext context, AsyncSnapshot<User?> snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-      return const CircularProgressIndicator();
-    } else if (snapshot.hasError) {
-      return Text("Error: ${snapshot.error}");
-    } else if (!snapshot.hasData || snapshot.data == null) {
-      return const Text("No data found");
-    } else {
-      User user = snapshot.data!;
-      return MyTextStyle.lotName(
-          user.pseudo != "" ? "${user.pseudo}" : "${user.surname} ${user.name}",
-          Colors.black54,
-          SizeFont.h2.size);
-    }
+  Widget buildOrganizerInfo(AsyncValue<User?> userAsync) {
+    return userAsync.when(
+      loading: () => const CircularProgressIndicator(),
+      error: (error, stackTrace) => Text("Error: $error"),
+      data: (user) {
+        if (user == null) return const Text("No data found");
+        return MyTextStyle.lotName(
+            user.pseudo != "" ? "${user.pseudo}" : "${user.surname} ${user.name}",
+            Colors.black54,
+            SizeFont.h2.size);
+      },
+    );
   }
 
   @override
@@ -160,12 +152,8 @@ class EventPageDetailsState extends State<EventPageDetails> {
                                   "Organisateur",
                                   Theme.of(context).primaryColor,
                                   SizeFont.h2.size)),
-                          FutureBuilder<User?>(
-                            future: userOrga,
-                            builder: (context, snapshot) {
-                              return buildOrganizerInfo(context, snapshot);
-                            },
-                          ),
+                          buildOrganizerInfo(
+                              ref.watch(userByIdProvider(widget.post.user))),
                         ],
                       ),
                     ]),
