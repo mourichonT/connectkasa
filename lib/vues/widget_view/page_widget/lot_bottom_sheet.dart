@@ -56,7 +56,13 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
   int? findLotInArray(List<Lot> lots) {
     final currentLot = widget.selectedLot ?? preferedLot;
     if (currentLot != null) {
-      return lots.indexWhere((element) => element.refLot == currentLot.refLot);
+      // Comparaison par id (identifiant Firestore unique) plutôt que refLot
+      // (référence métier, ex: "A1") : refLot n'est unique que PAR
+      // résidence, donc un utilisateur ayant un lot dans plusieurs
+      // résidences portant la même référence (ex: "A1" partout) faisait
+      // toujours matcher le premier trouvé, peu importe le lot réellement
+      // préféré.
+      return lots.indexWhere((element) => element.id == currentLot.id);
     } else {
       return null;
     }

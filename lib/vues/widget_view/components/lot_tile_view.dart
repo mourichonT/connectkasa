@@ -34,74 +34,79 @@ class _LotTileViewState extends State<LotTileView> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          //crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.only(right: 15),
-              child: const Icon(Icons.home_work_outlined, size: 30),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  MyTextStyle.lotName(
-                    (widget.lot.userLotDetails['nameLot'] == null ||
-                            widget.lot.userLotDetails['nameLot']
-                                .toString()
-                                .trim()
-                                .isEmpty)
-                        ? ((widget.lot.residenceData["name"] ?? "")
-                                    .toString()
-                                    .trim()
-                                    .isNotEmpty ||
-                                (widget.lot.batiment ?? "")
-                                    .toString()
-                                    .trim()
-                                    .isNotEmpty ||
-                                (widget.lot.lot ?? "")
-                                    .toString()
-                                    .trim()
-                                    .isNotEmpty)
-                            ? "${widget.lot.residenceData["name"] ?? ""} ${widget.lot.batiment ?? ""}${widget.lot.lot ?? ""}"
-                                .trim()
-                            : ""
-                        : widget.lot.userLotDetails['nameLot'].toString(),
-                    Colors.black87,
-                    SizeFont.h2.size,
-                  ),
-                  Container(padding: const EdgeInsets.only(left: 2)),
-                ]),
-                Row(
+        Expanded(
+          child: Row(
+            //crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.only(right: 15),
+                child: const Icon(Icons.home_work_outlined, size: 30),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    MyTextStyle.lotDesc(
-                        widget.lot.residenceData["numero"] ?? "",
-                        SizeFont.h3.size),
-                    Container(padding: const EdgeInsets.only(left: 2)),
-                    MyTextStyle.lotDesc(widget.lot.residenceData["voie"] ?? "",
-                        SizeFont.h3.size),
-                    Container(padding: const EdgeInsets.only(left: 2)),
-                    MyTextStyle.lotDesc(
-                        widget.lot.residenceData["street"] ?? "",
-                        SizeFont.h3.size),
-                    Container(padding: const EdgeInsets.only(left: 2)),
+                    MyTextStyle.lotName(
+                      (widget.lot.userLotDetails['nameLot'] == null ||
+                              widget.lot.userLotDetails['nameLot']
+                                  .toString()
+                                  .trim()
+                                  .isEmpty)
+                          ? ((widget.lot.residenceData["name"] ?? "")
+                                      .toString()
+                                      .trim()
+                                      .isNotEmpty ||
+                                  (widget.lot.batiment ?? "")
+                                      .toString()
+                                      .trim()
+                                      .isNotEmpty ||
+                                  (widget.lot.lot ?? "")
+                                      .toString()
+                                      .trim()
+                                      .isNotEmpty)
+                              ? "${widget.lot.residenceData["name"] ?? ""} ${widget.lot.batiment ?? ""}${widget.lot.lot ?? ""}"
+                                  .trim()
+                              : ""
+                          : widget.lot.userLotDetails['nameLot'].toString(),
+                      Colors.black87,
+                      SizeFont.h2.size,
+                      null,
+                      TextOverflow.ellipsis,
+                      1,
+                    ),
+                    Row(
+                      children: [
+                        MyTextStyle.lotDesc(
+                            widget.lot.residenceData["numero"] ?? "",
+                            SizeFont.h3.size),
+                        Container(padding: const EdgeInsets.only(left: 2)),
+                        MyTextStyle.lotDesc(
+                            widget.lot.residenceData["voie"] ?? "",
+                            SizeFont.h3.size),
+                        Container(padding: const EdgeInsets.only(left: 2)),
+                        MyTextStyle.lotDesc(
+                            widget.lot.residenceData["street"] ?? "",
+                            SizeFont.h3.size),
+                        Container(padding: const EdgeInsets.only(left: 2)),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        MyTextStyle.lotDesc(
+                            widget.lot.residenceData["zipCode"] ?? "",
+                            SizeFont.h3.size),
+                        Container(padding: const EdgeInsets.only(left: 2)),
+                        MyTextStyle.lotDesc(
+                            widget.lot.residenceData["city"] ?? "",
+                            SizeFont.h3.size),
+                      ],
+                    ),
                   ],
                 ),
-                Row(
-                  children: [
-                    MyTextStyle.lotDesc(
-                        widget.lot.residenceData["zipCode"] ?? "",
-                        SizeFont.h3.size),
-                    Container(padding: const EdgeInsets.only(left: 2)),
-                    MyTextStyle.lotDesc(widget.lot.residenceData["city"] ?? "",
-                        SizeFont.h3.size),
-                  ],
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
         if (widget.toShow)
           CircleAvatar(

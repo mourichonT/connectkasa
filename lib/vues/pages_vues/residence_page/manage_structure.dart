@@ -1,6 +1,7 @@
 import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
+import 'package:connect_kasa/core/providers/agency_search_flow_provider.dart';
 import 'package:connect_kasa/core/repositories/residence_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/elements_list.dart';
@@ -14,8 +15,9 @@ import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ManageStructure extends StatefulWidget {
+class ManageStructure extends ConsumerStatefulWidget {
   final Residence residence;
   final Color color;
   // Si renseigné, la carte de ce bâtiment s'ouvre automatiquement et défile
@@ -31,11 +33,11 @@ class ManageStructure extends StatefulWidget {
   });
 
   @override
-  State<ManageStructure> createState() => ManageStructureState();
+  ConsumerState<ManageStructure> createState() => ManageStructureState();
 }
 
-class ManageStructureState extends State<ManageStructure> {
-  final AgencySearchFlow _flow = AgencySearchFlow(serviceType: 'serviceSyndic');
+class ManageStructureState extends ConsumerState<ManageStructure> {
+  late final AgencySearchFlow _flow;
   final IResidenceRepository _residenceServices =
       FirestoreResidenceRepository();
   List<Agent> agents = [];
@@ -62,6 +64,7 @@ class ManageStructureState extends State<ManageStructure> {
   @override
   void initState() {
     super.initState();
+    _flow = ref.read(agencySearchFlowProvider('serviceSyndic'));
     _loadBuildings();
     itemsElements = ElementsList.elements();
   }

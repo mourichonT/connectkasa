@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
+import 'package:connect_kasa/core/providers/agency_search_flow_provider.dart';
 import 'package:connect_kasa/core/repositories/residence_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -13,8 +14,9 @@ import 'package:connect_kasa/vues/pages_vues/residence_page/manage_structure.dar
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ManagementResInfoG extends StatefulWidget {
+class ManagementResInfoG extends ConsumerStatefulWidget {
   final Residence residence;
   final Color color;
 
@@ -25,7 +27,7 @@ class ManagementResInfoG extends StatefulWidget {
   });
 
   @override
-  State<ManagementResInfoG> createState() => _ManagementResInfoGState();
+  ConsumerState<ManagementResInfoG> createState() => _ManagementResInfoGState();
 }
 
 /// Une exception au syndic principal : un bâtiment dont `hasDifferentSyndic`
@@ -44,7 +46,7 @@ class _SyndicException {
   });
 }
 
-class _ManagementResInfoGState extends State<ManagementResInfoG> {
+class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
   bool _isLoading = true;
   bool _itemSelected = false;
   bool delegated = false;
@@ -55,7 +57,7 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
   List<_SyndicException> _syndicExceptions = [];
   bool _loadingExceptions = true;
 
-  final AgencySearchFlow _flow = AgencySearchFlow(serviceType: 'serviceSyndic');
+  late final AgencySearchFlow _flow;
   final IResidenceRepository _residenceServices =
       FirestoreResidenceRepository();
 
@@ -65,6 +67,7 @@ class _ManagementResInfoGState extends State<ManagementResInfoG> {
   @override
   void initState() {
     super.initState();
+    _flow = ref.read(agencySearchFlowProvider('serviceSyndic'));
     _initFields();
     delegated = widget.residence.geranceRef != null ||
         (widget.residence.syndicAgency?.name.isNotEmpty ?? false);

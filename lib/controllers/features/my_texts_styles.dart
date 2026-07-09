@@ -63,8 +63,13 @@ class MyTextStyle {
   }
 
   static Text lotName(String text, Color color,
-      [double? size, FontWeight? fontweight]) {
+      [double? size,
+      FontWeight? fontweight,
+      TextOverflow? overflow,
+      int? maxLines]) {
     return Text(text,
+        overflow: overflow,
+        maxLines: maxLines,
         style: GoogleFonts.robotoCondensed(
           fontWeight: fontweight ?? FontWeight.w600,
           fontSize: size ?? SizeFont.h3.size,

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
+import 'package:connect_kasa/core/providers/agency_search_flow_provider.dart';
 import 'package:connect_kasa/core/repositories/lot_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
@@ -13,8 +14,9 @@ import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ModifyPropInfoLoc extends StatefulWidget {
+class ModifyPropInfoLoc extends ConsumerStatefulWidget {
   final Lot lot;
   final String idLotSelected;
   final String uid;
@@ -27,10 +29,10 @@ class ModifyPropInfoLoc extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => ModifyPropInfoLocState();
+  ConsumerState<ModifyPropInfoLoc> createState() => ModifyPropInfoLocState();
 }
 
-class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
+class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
   ILotRepository lotServices = FirestoreLotRepository();
 
   //TextEditingController nameSyndic = TextEditingController();
@@ -38,8 +40,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
   bool isProprietaire = false;
   bool isSearching = false;
   List<Agency> searchResults = [];
-  final AgencySearchFlow _flow =
-      AgencySearchFlow(serviceType: 'geranceLocative');
+  late final AgencySearchFlow _flow;
 
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
@@ -65,6 +66,7 @@ class ModifyPropInfoLocState extends State<ModifyPropInfoLoc> {
   @override
   void initState() {
     super.initState();
+    _flow = ref.read(agencySearchFlowProvider('geranceLocative'));
     _initFields();
     isProprietaire = widget.lot.idProprietaire?.contains(widget.uid) ?? false;
     nameSyndicFocusNode.addListener(() => setState(() {}));

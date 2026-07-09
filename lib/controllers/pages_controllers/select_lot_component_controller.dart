@@ -49,10 +49,12 @@ class SelectLotComponentControllerState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    LotTileView(
-                      toShow: false,
-                      lot: widget.defaultLot,
-                      uid: widget.uid,
+                    Expanded(
+                      child: LotTileView(
+                        toShow: false,
+                        lot: widget.defaultLot,
+                        uid: widget.uid,
+                      ),
                     ),
                     const Icon(Icons.arrow_drop_down),
                   ],
