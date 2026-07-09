@@ -2,13 +2,11 @@ import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
+import 'package:connect_kasa/core/providers/residence_repository_provider.dart';
+import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
 import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/management_property.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/residence_page.dart';
@@ -17,13 +15,13 @@ import 'package:connect_kasa/vues/pages_vues/profil_page/info_page_view.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/new_profil_pic.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/param_page_view.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/info_pers_page_modify.dart';
 import 'package:connect_kasa/vues/pages_vues/residence_page/residence_page_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 
-class ProfilePage extends StatefulWidget {
+class ProfilePage extends ConsumerStatefulWidget {
   final String uid;
   final Color color;
   final String idLot;
@@ -38,42 +36,32 @@ class ProfilePage extends StatefulWidget {
   });
 
   @override
-  _ProfilePageState createState() => _ProfilePageState();
+  ConsumerState<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends ConsumerState<ProfilePage> {
   final LoadUserController _loadUserController = LoadUserController();
-  final IUserRepository userServices = FirestoreUserRepository();
-  final IResidenceRepository _basesResidenceServices =
-      FirestoreResidenceRepository();
+  late final IResidenceRepository _basesResidenceServices;
 
-  User? user;
-
-  int nbrLot = 0;
   int nbrCS = 0;
-  bool loca = false;
-  String name = "";
-  String surname = "";
-  String pseudo = "";
-  String bio = "";
-  String job = "";
-  String profilPic = "";
-  bool privateAccount = true;
   String email = "";
   bool isOwner = false;
   bool isMemberCS = false;
   List<Residence> residenceObjects = [];
 
-  bool _isLoading = true; // ✅ loading global
+  bool _isLoading = true; // ✅ loading global (CS + email, indépendant du profil utilisateur en cache)
 
   @override
   void initState() {
     super.initState();
-    _initializeUserData();
+    _basesResidenceServices = ref.read(residenceRepositoryProvider);
+    _initializeExtraData();
   }
 
-  Future<void> _initializeUserData() async {
-    await _loadUser(widget.uid);
+  Future<void> _initializeExtraData() async {
+    _checkOwnership();
+    await _checkCSMember();
+    email = await LoadUserController.getUserEmail(widget.uid);
     setState(() {
       _isLoading =
           false; // ✅ on affiche le contenu seulement quand tout est prêt
@@ -121,44 +109,11 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _loadUser(String uid) async {
-    if (uid.isNotEmpty) {
-      User? fetchedUser = await userServices
-          .getUserById(uid)
-          .then((result) => result.when(success: (v) => v, failure: (_) => null));
-      if (fetchedUser != null) {
-        user = fetchedUser;
-        name = fetchedUser.name;
-        surname = fetchedUser.surname;
-        pseudo = fetchedUser.pseudo ?? "";
-        bio = fetchedUser.bio ?? "";
-        privateAccount = fetchedUser.private;
-        profilPic = fetchedUser.profilPic ?? "";
-        _checkOwnership();
-        await _checkCSMember();
-      }
-      email = await LoadUserController.getUserEmail(uid);
-    }
-  }
-
-  void _navigateToModifyPage() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => InfoPersoPageModify(
-          email: email,
-          uid: widget.uid,
-          color: widget.color,
-          refresh: _initializeUserData,
-          user: user!,
-          idLot: widget.idLot,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final userAsync = ref.watch(userByIdProvider(widget.uid));
+    final user = userAsync.valueOrNull;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -172,7 +127,7 @@ class _ProfilePageState extends State<ProfilePage> {
           },
         ),
       ),
-      body: _isLoading
+      body: (_isLoading || userAsync.isLoading)
           ? const Center(child: CircularProgressIndicator()) // ✅ Loader global
           : LayoutBuilder(
               builder: (context, constraints) {
@@ -187,11 +142,12 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: Column(
                               children: [
                                 ProfilePic(
-                                  imagePath: profilPic,
+                                  imagePath: user?.profilPic ?? "",
                                   uid: widget.uid,
                                   color: widget.color,
                                   idLot: widget.idLot,
-                                  refresh: _initializeUserData,
+                                  refresh: () => ref
+                                      .invalidate(userByIdProvider(widget.uid)),
                                 ),
                                 Padding(
                                   padding:
@@ -203,14 +159,14 @@ class _ProfilePageState extends State<ProfilePage> {
                                             MainAxisAlignment.center,
                                         children: [
                                           MyTextStyle.lotDesc(
-                                            name,
+                                            user?.name ?? "",
                                             SizeFont.h3.size,
                                             FontStyle.normal,
                                             FontWeight.bold,
                                           ),
                                           const SizedBox(width: 5),
                                           MyTextStyle.lotDesc(
-                                            surname,
+                                            user?.surname ?? "",
                                             SizeFont.h3.size,
                                             FontStyle.normal,
                                             FontWeight.bold,
@@ -218,9 +174,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                         ],
                                       ),
                                       Visibility(
-                                        visible: pseudo.isNotEmpty,
+                                        visible:
+                                            (user?.pseudo ?? "").isNotEmpty,
                                         child: MyTextStyle.lotDesc(
-                                          "@$pseudo",
+                                          "@${user?.pseudo ?? ""}",
                                           SizeFont.h3.size,
                                           FontStyle.italic,
                                           FontWeight.normal,
@@ -233,7 +190,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                               MainAxisAlignment.center,
                                           children: [
                                             Icon(
-                                              privateAccount
+                                              (user?.private ?? true)
                                                   ? Icons.lock_outlined
                                                   : Icons.public,
                                               size: SizeFont.h3.size,
@@ -241,7 +198,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                             ),
                                             const SizedBox(width: 10),
                                             MyTextStyle.lotDesc(
-                                              privateAccount
+                                              (user?.private ?? true)
                                                   ? "Ce compte est privé"
                                                   : "Ce compte est public",
                                               SizeFont.h3.size,
@@ -258,7 +215,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   padding: const EdgeInsets.only(
                                       left: 20, right: 15, bottom: 20),
                                   child: MyTextStyle.lotDesc(
-                                    bio,
+                                    user?.bio ?? "",
                                     SizeFont.h3.size,
                                     FontStyle.normal,
                                     FontWeight.normal,
@@ -282,7 +239,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                           color: widget.color,
                                         ),
                                       ),
-                                    ).then((_) => _initializeUserData());
+                                    ).then((_) => ref
+                                        .invalidate(userByIdProvider(widget.uid)));
                                   },
                                   isLogOut: false,
                                 ),
@@ -389,7 +347,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                           color: widget.color,
                                         ),
                                       ),
-                                    ).then((_) => _initializeUserData());
+                                    ).then((_) => ref
+                                        .invalidate(userByIdProvider(widget.uid)));
                                   },
                                   isLogOut: false,
                                 ),
@@ -424,8 +383,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                   if (!context.mounted) return;
                                   Navigator.popUntil(
                                       context, ModalRoute.withName('/'));
-                                  Provider.of<ColorProvider>(context,
-                                          listen: false)
+                                  context
+                                      .read<ColorProvider>()
                                       .updateColor("ff48775b");
                                 },
                                 isLogOut: true,
