@@ -1,12 +1,13 @@
-import 'package:connect_kasa/core/repositories/firestore_comment_repository.dart';
+import 'package:connect_kasa/core/providers/comment_repository_provider.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/section_comment.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../controllers/features/my_texts_styles.dart';
 import '../../../models/pages_models/post.dart';
 
-class CommentButton extends StatefulWidget {
+class CommentButton extends ConsumerStatefulWidget {
   final Post post;
   final String residenceSelected;
   final String uid;
@@ -24,20 +25,19 @@ class CommentButton extends StatefulWidget {
       this.colorText});
 
   @override
-  State<StatefulWidget> createState() => CommentButtonState();
+  ConsumerState<CommentButton> createState() => CommentButtonState();
 }
 
-class CommentButtonState extends State<CommentButton> {
+class CommentButtonState extends ConsumerState<CommentButton> {
   int commentCount = 0;
-  final FirestoreCommentRepository _commentRepository =
-      FirestoreCommentRepository();
   late Post post;
   late String idPost;
   late Future<List<Comment>> comment;
   bool _isDisposed = false;
 
   Future<List<Comment>> _fetchComments() {
-    return _commentRepository
+    return ref
+        .read(commentRepositoryProvider)
         .getComments(widget.residenceSelected, widget.post.id)
         .then((result) =>
             result.when(success: (c) => c, failure: (error) => throw error));

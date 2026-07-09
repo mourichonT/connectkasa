@@ -1,24 +1,23 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/like_button_comment.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
 
-class CommentTile extends StatefulWidget {
+class CommentTile extends ConsumerStatefulWidget {
   final Function(bool) onReply;
   final Function(String) getCommentId;
   final Function(TextEditingController) getUsertoreply;
   late Comment comment;
   final String residence;
   final String postId;
-  late Future<User?> user;
   final String uid;
   FocusNode focusNode;
   bool isReply = false;
@@ -41,12 +40,11 @@ class CommentTile extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => CommentTileState();
+  ConsumerState<CommentTile> createState() => CommentTileState();
 }
 
-class CommentTileState extends State<CommentTile> {
+class CommentTileState extends ConsumerState<CommentTile> {
   TextEditingController _textEditingController = TextEditingController();
-  late Future<User?> user;
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   late Comment comment;
 
@@ -55,10 +53,6 @@ class CommentTileState extends State<CommentTile> {
     super.initState();
     _textEditingController = TextEditingController();
     comment = widget.comment;
-    user = FirestoreUserRepository()
-        .getUserById(comment.user)
-        .then((result) => result.when(
-            success: (v) => v, failure: (error) => throw error));
   }
 
   @override
@@ -95,6 +89,18 @@ class CommentTileState extends State<CommentTile> {
           ),
       ],
     );
+  }
+
+  Widget _buildAuthorName() {
+    final userAsync = ref.watch(userByIdProvider(comment.user));
+    final user = userAsync.valueOrNull;
+    if (user != null) {
+      return MyTextStyle.lotName(
+          user.pseudo ?? "", Colors.black87, SizeFont.h3.size);
+    } else {
+      return MyTextStyle.lotName(
+          "Utilisateur inconnu", Colors.black87, SizeFont.h3.size);
+    }
   }
 
   Widget _buildCommentTile(Comment comment) {
@@ -142,26 +148,7 @@ class CommentTileState extends State<CommentTile> {
                 children: [
                   Row(
                     children: [
-                      FutureBuilder<User?>(
-                        future: user,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const CircularProgressIndicator();
-                          } else if (snapshot.hasError) {
-                            return Text("Error: ${snapshot.error}");
-                          } else if (snapshot.hasData &&
-                              snapshot.data != null) {
-                            var user = snapshot.data!;
-                            String? pseudo = user.pseudo;
-                            return MyTextStyle.lotName(
-                                pseudo!, Colors.black87, SizeFont.h3.size);
-                          } else {
-                            return MyTextStyle.lotName("Utilisteur inconnu",
-                                Colors.black87, SizeFont.h3.size);
-                          }
-                        },
-                      ),
+                      _buildAuthorName(),
                       const SizedBox(width: 10),
                       Container(
                         child: MyTextStyle.commentDate(comment.timestamp),
@@ -212,9 +199,8 @@ class CommentTileState extends State<CommentTile> {
 
   void _replyToComment(
       Comment currentComment, bool isReply, String? initComment) async {
-    User? user = await FirestoreUserRepository()
-        .getUserById(currentComment.user)
-        .then((result) => result.when(success: (v) => v, failure: (_) => null));
+    final user =
+        await ref.read(userByIdProvider(currentComment.user).future);
     if (user != null) {
       FocusScope.of(context).requestFocus(widget.focusNode);
       widget.getUsertoreply(_textEditingController);

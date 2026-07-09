@@ -1,9 +1,10 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/core/providers/post_repository_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/pages_models/post.dart';
 
-class LikePostButton extends StatefulWidget {
+class LikePostButton extends ConsumerStatefulWidget {
   final Post post;
   final String residence;
   final String uid;
@@ -24,7 +25,7 @@ class LikePostButton extends StatefulWidget {
   LikePostButtonState createState() => LikePostButtonState();
 }
 
-class LikePostButtonState extends State<LikePostButton> {
+class LikePostButtonState extends ConsumerState<LikePostButton> {
   bool alreadyLiked = false;
   int likeCount = 0;
   @override
@@ -46,7 +47,8 @@ class LikePostButtonState extends State<LikePostButton> {
           onPressed: () async {
             //Appeler la méthode pour mettre à jour les likes dans la base de données
             if (!alreadyLiked) {
-              await FirestorePostRepository()
+              await ref
+                  .read(postRepositoryProvider)
                   .updatePostLikes(
                     widget.residence,
                     widget.post.id,
@@ -59,7 +61,8 @@ class LikePostButtonState extends State<LikePostButton> {
                 likeCount++; // Incrémentez likeCount après l'ajout de like
               });
             } else {
-              await FirestorePostRepository()
+              await ref
+                  .read(postRepositoryProvider)
                   .removePostLike(
                     widget.residence,
                     widget.post.id,

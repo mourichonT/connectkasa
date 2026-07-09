@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/providers/current_user_provider.dart';
+import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
@@ -12,8 +12,9 @@ import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/chat_page_widget/message_gerance_tile.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/chat_page_widget/message_user_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SubtitleMessage extends StatefulWidget {
+class SubtitleMessage extends ConsumerStatefulWidget {
   final String residence;
   final String uid;
   final Lot? selectedLot;
@@ -26,12 +27,11 @@ class SubtitleMessage extends StatefulWidget {
   });
 
   @override
-  State<SubtitleMessage> createState() => _SubtitleMessageState();
+  ConsumerState<SubtitleMessage> createState() => _SubtitleMessageState();
 }
 
-class _SubtitleMessageState extends State<SubtitleMessage>
+class _SubtitleMessageState extends ConsumerState<SubtitleMessage>
     with TickerProviderStateMixin {
-  final IUserRepository _dataBasesUserServices = FirestoreUserRepository();
   late Future<List<String>> listNumUsers;
   late Future<List<User>> _allUsersInResidence;
 
@@ -43,7 +43,8 @@ class _SubtitleMessageState extends State<SubtitleMessage>
   void initState() {
     super.initState();
     getNbrTab();
-    listNumUsers = _dataBasesUserServices
+    listNumUsers = ref
+        .read(userRepositoryProvider)
         .getNumUsersByResidence(widget.residence, widget.uid)
         .then((result) =>
             result.when(success: (v) => v, failure: (_) => <String>[]));
@@ -86,12 +87,13 @@ class _SubtitleMessageState extends State<SubtitleMessage>
       // Initialiser un ensemble pour stocker les IDs d'utilisateurs uniques
       Set<String> uniqueUserIds = userIds.toSet();
 
-      // Créer une liste de futures pour récupérer les utilisateurs
+      // Créer une liste de futures pour récupérer les utilisateurs. Passe
+      // par userByIdProvider (cache partagé) plutôt qu'un appel direct au
+      // repository : les tuiles MessageUserTile/ProfilTile affichées plus
+      // bas pour ces mêmes uids réutilisent le même résultat au lieu de
+      // le refetcher individuellement.
       List<Future<User?>> userFutures = uniqueUserIds
-          .map((userId) => _dataBasesUserServices
-              .getUserById(userId)
-              .then((result) =>
-                  result.when(success: (v) => v, failure: (_) => null)))
+          .map((userId) => ref.read(userByIdProvider(userId).future))
           .toList();
 
       // Attendre que toutes les futures soient terminées

@@ -1,9 +1,10 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_comment_repository.dart';
+import 'package:connect_kasa/core/providers/comment_repository_provider.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LikeButtonComment extends StatefulWidget {
+class LikeButtonComment extends ConsumerStatefulWidget {
   final Comment comment;
   final String residence;
   final String uid;
@@ -22,7 +23,7 @@ class LikeButtonComment extends StatefulWidget {
   LikeButtonPostState createState() => LikeButtonPostState();
 }
 
-class LikeButtonPostState extends State<LikeButtonComment> {
+class LikeButtonPostState extends ConsumerState<LikeButtonComment> {
   bool alreadyLiked = false;
   int likeCount = 0;
   @override
@@ -45,7 +46,8 @@ class LikeButtonPostState extends State<LikeButtonComment> {
           onPressed: () async {
             //Appeler la méthode pour mettre à jour les likes dans la base de données
             if (!alreadyLiked) {
-              final result = await FirestoreCommentRepository().updateCommentLikes(
+              final result =
+                  await ref.read(commentRepositoryProvider).updateCommentLikes(
                 widget.residence,
                 widget.postId,
                 widget.comment.id,
@@ -58,7 +60,8 @@ class LikeButtonPostState extends State<LikeButtonComment> {
                 });
               }
             } else {
-              final result = await FirestoreCommentRepository().removeCommentLike(
+              final result =
+                  await ref.read(commentRepositoryProvider).removeCommentLike(
                 widget.residence,
                 widget.postId,
                 widget.comment.id,
