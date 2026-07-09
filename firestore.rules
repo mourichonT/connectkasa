@@ -165,8 +165,12 @@ service cloud.firestore {
 
         match /signalements/{id} {
           allow create: if isResidenceMember(residenceId);
-          // File de modération IA : traitée par les CS members.
-          allow read, update, delete: if isCsMember(residenceId);
+          // Affiché à tout résident de la résidence (carrousel de
+          // doublons sur un post dans Homeview, "Voir plus (N)" sur les
+          // tuiles sinistres/incivilités/annonces) - la modération
+          // (update/delete) reste réservée aux CS members.
+          allow read: if isResidenceMember(residenceId);
+          allow update, delete: if isCsMember(residenceId);
         }
 
         match /comments/{id} {

@@ -28,9 +28,15 @@ que ces comptes voient effectivement le lot dans le sélecteur de l'app
 (cf. addLotToUser dans firestore_user_repository.dart), en plus de
 Residence/{id}/lot/{id}.idProprietaire/idLocataire.
 
+Inclut un bâtiment "A" par résidence (Residence/{id}/structure) : requis
+par getAllLocalisation() (firestore_residence_repository.dart), donc par
+le champ "Localisation" de SinistreForm - une résidence sans aucune
+structure y affiche "aucune localisation disponible" (bug vécu en
+omettant cette collection au premier passage de ce script).
+
 Hors périmètre (non inclus) : contacts de résidence, gérance/syndic,
-structures (bâtiments) en sous-collection dédiée, posts/événements/
-commentaires/chat. Uniquement résidences + lots, comme demandé.
+posts/événements/commentaires/chat. Uniquement résidences + lots (+ 1
+bâtiment par résidence, nécessaire aux posts), comme demandé.
 
 Exécution : depuis functions_python/, avec le venv activé :
     python seed_test_residences.py
@@ -226,6 +232,24 @@ for i, res in enumerate(RESIDENCES):
     print(f"  {created} lots créés (5 Appartement + 5 Place de parking) - "
           f"propriétaire(s) {owner_ids or '(aucun)'}, "
           f"locataire(s) {tenant_ids or '(aucun)'} sur A1")
+
+    # Bâtiment "A" (cohérent avec le champ batiment: "Bâtiment A" déjà
+    # écrit sur les lots) : requis par getAllLocalisation(), donc par le
+    # champ "Localisation" de SinistreForm.
+    struct_ref = res_ref.collection("structure").document()
+    struct_ref.set({
+        "name": "A",
+        "type": "Bâtiment",
+        "elements": [
+            "Cage escalier", "Porte entrée", "Boîte aux lettres",
+            "Porte Hall", "Porte", "Miroir", "Canalisation", "Caméra",
+            "Lumières", "Portail", "Poubelle", "Arbres",
+        ],
+        "etage": ["RDC", "1er étage", "2ème étage", "3ème étage"],
+        "hasUnderground": False,
+        "hasDifferentSyndic": False,
+    })
+    print(f"  Structure/{struct_ref.id} : Bâtiment A créé")
 
 print()
 print("Terminé.")

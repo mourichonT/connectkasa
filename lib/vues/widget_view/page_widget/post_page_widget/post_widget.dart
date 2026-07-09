@@ -43,8 +43,13 @@ class PostWidgetState extends State<PostWidget> {
   void initState() {
     super.initState();
     //likeCount = widget.post.like.length;
+    // getSignalementsList ne renvoie QUE les signalements imbriqués (pas
+    // le post lui-même, contrairement à getSignalements) : widget.post
+    // est déjà disponible directement, pas besoin de le re-télécharger.
+    // Ça évite aussi que le post entier devienne invisible (carrousel
+    // vide) si cette requête échoue ou ne trouve rien.
     _signalementFuture = dbService
-        .getSignalements(widget.residence, widget.post.id)
+        .getSignalementsList(widget.residence, widget.post.id)
         .then((result) =>
             result.when(success: (v) => v, failure: (error) => throw error));
   }
@@ -85,7 +90,13 @@ class PostWidgetState extends State<PostWidget> {
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else {
-                  List<Post> signalements = snapshot.data!;
+                  // widget.post en premier (toujours disponible, jamais
+                  // dépendant de la requête), suivi des vrais signalements
+                  // imbriqués trouvés (doublons détectés par la Cloud
+                  // Function). postCount inclut le post lui-même, pour
+                  // garder le même comptage "N signalement(s)" qu'avant.
+                  List<Post> nestedSignalements = snapshot.data!;
+                  List<Post> signalements = [widget.post, ...nestedSignalements];
                   postCount = signalements.length;
                   return Column(
                     children: [
