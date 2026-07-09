@@ -1,6 +1,6 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/core/providers/residence_repository_provider.dart';
 import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart'; // Importez votre modèle Contact
@@ -9,22 +9,22 @@ import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ManageContact extends StatefulWidget {
+class ManageContact extends ConsumerStatefulWidget {
   final Color color; // La couleur peut être passée de la page parente
   final Residence residence;
 
   ManageContact({super.key, required this.color, required this.residence});
 
   @override
-  State<ManageContact> createState() => ManageContactState();
+  ConsumerState<ManageContact> createState() => ManageContactState();
 }
 
-class ManageContactState extends State<ManageContact> {
+class ManageContactState extends ConsumerState<ManageContact> {
   // Liste des contacts à gérer. Initialisez-la avec des données si vous en chargez depuis une base.
   List<Contact> contacts = [];
-  final IResidenceRepository _residenceServices =
-      FirestoreResidenceRepository();
+  late final IResidenceRepository _residenceServices;
 
   // État d'ouverture des cartes : purement local (UI), jamais persisté en
   // base. Basé sur l'identité de l'objet (comme ObjectKey ci-dessous), donc
@@ -38,6 +38,7 @@ class ManageContactState extends State<ManageContact> {
   @override
   void initState() {
     super.initState();
+    _residenceServices = ref.read(residenceRepositoryProvider);
     _loadContacts();
     // Vous pouvez initialiser 'contacts' ici avec des données existantes si vous en avez.
     // Par exemple: contacts = await _contactService.getContacts();
