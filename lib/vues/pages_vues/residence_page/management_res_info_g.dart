@@ -3,8 +3,8 @@ import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
 import 'package:connect_kasa/core/providers/agency_search_flow_provider.dart';
+import 'package:connect_kasa/core/providers/residence_repository_provider.dart';
 import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/agency_dept.dart';
@@ -58,8 +58,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
   bool _loadingExceptions = true;
 
   late final AgencySearchFlow _flow;
-  final IResidenceRepository _residenceServices =
-      FirestoreResidenceRepository();
+  late final IResidenceRepository _residenceServices;
 
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
@@ -68,6 +67,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
   void initState() {
     super.initState();
     _flow = ref.read(agencySearchFlowProvider('serviceSyndic'));
+    _residenceServices = ref.read(residenceRepositoryProvider);
     _initFields();
     delegated = widget.residence.geranceRef != null ||
         (widget.residence.syndicAgency?.name.isNotEmpty ?? false);

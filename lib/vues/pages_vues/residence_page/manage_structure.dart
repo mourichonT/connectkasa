@@ -2,8 +2,8 @@ import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
 import 'package:connect_kasa/core/providers/agency_search_flow_provider.dart';
+import 'package:connect_kasa/core/providers/residence_repository_provider.dart';
 import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
 import 'package:connect_kasa/models/enum/elements_list.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
@@ -38,8 +38,7 @@ class ManageStructure extends ConsumerStatefulWidget {
 
 class ManageStructureState extends ConsumerState<ManageStructure> {
   late final AgencySearchFlow _flow;
-  final IResidenceRepository _residenceServices =
-      FirestoreResidenceRepository();
+  late final IResidenceRepository _residenceServices;
   List<Agent> agents = [];
   List<StructureResidence> buildings = [];
 
@@ -65,6 +64,7 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
   void initState() {
     super.initState();
     _flow = ref.read(agencySearchFlowProvider('serviceSyndic'));
+    _residenceServices = ref.read(residenceRepositoryProvider);
     _loadBuildings();
     itemsElements = ElementsList.elements();
   }
