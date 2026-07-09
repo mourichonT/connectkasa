@@ -154,3 +154,15 @@ final annoncesByResidenceProvider =
   return repository.getAllAnnonces(residenceId).then((result) => result.when(
       success: (v) => v, failure: (error) => throw error));
 });
+
+/// Publications d'un utilisateur donné dans une résidence (ShowProfilPage) :
+/// une seule requête partagée par les 3 onglets (déclarations/annonces/
+/// événements), qui filtrent ensuite côté client par type - au lieu de
+/// relancer la même requête à chaque changement d'onglet.
+final userPostsByResidenceProvider = FutureProvider.family<List<Post>,
+    ({String residenceId, String userId})>((ref, args) async {
+  final repository = ref.watch(postRepositoryProvider);
+  return repository
+      .getPostsByUser(args.residenceId, args.userId)
+      .then((result) => result.when(success: (v) => v, failure: (_) => <Post>[]));
+});

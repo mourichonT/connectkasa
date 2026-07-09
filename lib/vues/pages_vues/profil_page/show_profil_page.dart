@@ -1,10 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/providers/post_providers.dart';
+import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/pages_vues/annonces_page/annonce_page_details.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:connect_kasa/vues/pages_vues/event_page/event_page_details.dart';
@@ -14,8 +11,9 @@ import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ShowProfilPage extends StatelessWidget {
+class ShowProfilPage extends ConsumerWidget {
   final String uid;
   final String refLot;
   final String currentUid;
@@ -27,35 +25,27 @@ class ShowProfilPage extends StatelessWidget {
     required this.currentUid,
   });
 
-  Future<User?> _loadUser(String uid) async {
-    final IUserRepository userRepository = FirestoreUserRepository();
-    return userRepository
-        .getUserById(uid)
-        .then((result) => result.when(success: (v) => v, failure: (_) => null));
-  }
-
-  final bool isSelectedComments = true;
-
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<User?>(
-      future: _loadUser(uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            backgroundColor: Colors.white,
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(userByIdProvider(uid));
 
-        if (!snapshot.hasData || snapshot.data == null) {
+    return userAsync.when(
+      loading: () => const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (error, stackTrace) => const Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(child: Text("Erreur de chargement du profil.")),
+      ),
+      data: (user) {
+        if (user == null) {
           return const Scaffold(
             backgroundColor: Colors.white,
             body: Center(child: Text("Erreur de chargement du profil.")),
           );
         }
 
-        final user = snapshot.data!;
         final String name = user.name;
         final String surname = user.surname;
         final String pseudo = user.pseudo ?? "";
@@ -194,10 +184,21 @@ class ShowProfilPage extends StatelessWidget {
                             controller: tabController,
                             labelColor: Colors.black87,
                             indicatorColor: Theme.of(context).primaryColor,
+                            labelPadding:
+                                const EdgeInsets.symmetric(horizontal: 4),
                             tabs: const [
-                              Tab(text: "Déclarations"),
-                              Tab(text: "Petites Annonces"),
-                              Tab(text: "Events"),
+                              Tab(
+                                  child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text("Déclarations"))),
+                              Tab(
+                                  child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text("Petites Annonces"))),
+                              Tab(
+                                  child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text("Events"))),
                             ],
                           ),
                           ValueListenableBuilder(
@@ -207,17 +208,17 @@ class ShowProfilPage extends StatelessWidget {
                               return Column(
                                 children: [
                                   if (currentIndex == 0)
-                                    userPostsListByType(uid, refLot, [
+                                    userPostsListByType(ref, uid, refLot, [
                                       "sinistres",
                                       "incivilites",
                                       "communication"
                                     ]),
                                   if (currentIndex == 1)
                                     userPostsListByType(
-                                        uid, refLot, ["annonces"]),
+                                        ref, uid, refLot, ["annonces"]),
                                   if (currentIndex == 2)
                                     userPostsListByType(
-                                        uid, refLot, ["events"]),
+                                        ref, uid, refLot, ["events"]),
                                 ],
                               );
                             },
@@ -235,115 +236,116 @@ class ShowProfilPage extends StatelessWidget {
     );
   }
 
-  Widget userPostsListByType(String userId, String refLot, List<String> types) {
-    return FutureBuilder<List<Post>>(
-      future: FirestorePostRepository()
-          .getPostsByUser(refLot, userId)
-          .then((result) =>
-              result.when(success: (v) => v, failure: (_) => <Post>[])),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.only(top: 30),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
+  Widget userPostsListByType(
+      WidgetRef ref, String userId, String refLot, List<String> types) {
+    final postsAsync = ref.watch(
+        userPostsByResidenceProvider((residenceId: refLot, userId: userId)));
 
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text("Aucune publication disponible."));
-        }
+    return Builder(builder: (context) {
+      return postsAsync.when(
+        loading: () => const Padding(
+          padding: EdgeInsets.only(top: 30),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+        error: (error, stackTrace) =>
+            const Center(child: Text("Aucune publication disponible.")),
+        data: (posts) {
+          if (posts.isEmpty) {
+            return const Center(child: Text("Aucune publication disponible."));
+          }
 
-        final filteredPosts =
-            snapshot.data!.where((post) => types.contains(post.type)).toList();
+          final filteredPosts =
+              posts.where((post) => types.contains(post.type)).toList();
 
-        if (filteredPosts.isEmpty) {
-          return const Center(
-              child: Text("Aucune publication pour cette catégorie."));
-        }
+          if (filteredPosts.isEmpty) {
+            return const Center(
+                child: Text("Aucune publication pour cette catégorie."));
+          }
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            separatorBuilder: (context, index) => const Divider(),
-            itemCount: filteredPosts.length,
-            itemBuilder: (context, index) {
-              final post = filteredPosts[index];
-              return ListTile(
-                title: MyTextStyle.lotDesc(
-                  post.title,
-                  SizeFont.h3.size,
-                  FontStyle.normal,
-                ),
-                subtitle: Text(post.description),
-                leading: (post.pathImage != null && post.pathImage!.isNotEmpty)
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(35.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          width: 90,
-                          height: 70,
-                          child: Image.network(
-                            post.pathImage!,
-                            fit: BoxFit.cover,
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              separatorBuilder: (context, index) => const Divider(),
+              itemCount: filteredPosts.length,
+              itemBuilder: (context, index) {
+                final post = filteredPosts[index];
+                return ListTile(
+                  title: MyTextStyle.lotDesc(
+                    post.title,
+                    SizeFont.h3.size,
+                    FontStyle.normal,
+                  ),
+                  subtitle: Text(post.description),
+                  leading: (post.pathImage != null && post.pathImage!.isNotEmpty)
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(35.0),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            width: 90,
+                            height: 70,
+                            child: Image.network(
+                              post.pathImage!,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        )
+                      : ClipRRect(
+                          borderRadius: BorderRadius.circular(35.0),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            width: 90,
+                            height: 70,
+                            child: ImageAnnounced(context, 90, 70),
                           ),
                         ),
-                      )
-                    : ClipRRect(
-                        borderRadius: BorderRadius.circular(35.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          width: 90,
-                          height: 70,
-                          child: ImageAnnounced(context, 90, 70),
-                        ),
-                      ),
-                onTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) {
-                      if (post.type == "sinistres" ||
-                          post.type == "incivilites") {
-                        return PostView(
-                          postOrigin: post,
-                          residence: refLot,
-                          uid: uid,
-                          postSelected: post,
-                          returnHomePage: false,
-                        );
-                      } else if (post.type == "communication") {
-                        return CommunicationDetails(
-                          uid: uid,
-                          post: post,
-                          residenceId: refLot,
-                        );
-                      } else if (post.type == "event") {
-                        return EventPageDetails(
-                          post: post,
-                          uid: uid,
-                          residence: refLot,
-                          colorStatut: Theme.of(context).primaryColor,
-                          scrollController: 0,
-                          returnHomePage: false,
-                        );
-                      } else {
-                        return AnnoncePageDetails(
-                          returnHomePage: false,
-                          post: post,
-                          uid: uid,
-                          residence: refLot,
-                          colorStatut: Theme.of(context).primaryColor,
-                        );
-                      }
-                    }),
-                  );
-                },
-              );
-            },
-          ),
-        );
-      },
-    );
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) {
+                        if (post.type == "sinistres" ||
+                            post.type == "incivilites") {
+                          return PostView(
+                            postOrigin: post,
+                            residence: refLot,
+                            uid: uid,
+                            postSelected: post,
+                            returnHomePage: false,
+                          );
+                        } else if (post.type == "communication") {
+                          return CommunicationDetails(
+                            uid: uid,
+                            post: post,
+                            residenceId: refLot,
+                          );
+                        } else if (post.type == "event") {
+                          return EventPageDetails(
+                            post: post,
+                            uid: uid,
+                            residence: refLot,
+                            colorStatut: Theme.of(context).primaryColor,
+                            scrollController: 0,
+                            returnHomePage: false,
+                          );
+                        } else {
+                          return AnnoncePageDetails(
+                            returnHomePage: false,
+                            post: post,
+                            uid: uid,
+                            residence: refLot,
+                            colorStatut: Theme.of(context).primaryColor,
+                          );
+                        }
+                      }),
+                    );
+                  },
+                );
+              },
+            ),
+          );
+        },
+      );
+    });
   }
 }
