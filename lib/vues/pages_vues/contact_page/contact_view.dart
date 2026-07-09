@@ -1,103 +1,86 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
+import 'package:connect_kasa/core/providers/residence_providers.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 import 'package:connect_kasa/vues/pages_vues/contact_page/detail_contact_view.dart';
 import 'package:connect_kasa/vues/pages_vues/contact_page/emergencies_contact_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ContactView extends StatelessWidget {
+class ContactView extends ConsumerWidget {
   final String uid;
   final String residenceSelected;
   final String residenceName;
-  final IResidenceRepository _databaseContactServices =
-      FirestoreResidenceRepository();
-  late Future<List<Contact>> _allContactsFuture;
 
-  ContactView(
+  const ContactView(
       {super.key,
       required this.residenceSelected,
       required this.residenceName,
       required this.uid});
 
   @override
-  Widget build(BuildContext context) {
-    _allContactsFuture = _databaseContactServices
-        .getContactByResidence(residenceSelected)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (error) => throw error));
+  Widget build(BuildContext context, WidgetRef ref) {
+    final contactsAsync = ref.watch(contactsByResidenceProvider(residenceSelected));
 
-    return FutureBuilder<List<Contact>>(
-        future: _allContactsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            // Affichez un indicateur de chargement si les données ne sont pas encore disponibles
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (snapshot.hasError) {
-            // Gérez les erreurs ici
-            return Text('Error: ${snapshot.error}');
-          } else {
-            List<Contact> allContact = snapshot.data!;
-            return Scaffold(
-              appBar: AppBar(
-                title: Container(
-                    child: MyTextStyle.lotName(
-                        'Numéros utiles du $residenceName',
-                        Colors.black87,
-                        SizeFont.h1.size)),
-              ),
-              body: SingleChildScrollView(
-                child: Column(children: [
-                  ListView.separated(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: allContact.length,
-                      itemBuilder: (context, index) {
-                        Contact contact = allContact[index];
-                        return Material(
-                          child: ListTile(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                CupertinoPageRoute(
-                                    builder: (context) => DetailContactView(
-                                          contact: contact,
-                                          uid: uid,
-                                        )),
-                              );
-                            },
-                            leading: SizedBox(
-                                width: MediaQuery.of(context).size.width / 4,
-                                child: MyTextStyle.lotName(contact.service,
-                                    Colors.black87, SizeFont.h3.size)),
-                            title: MyTextStyle.lotName(
-                                contact.name, Colors.black87, SizeFont.h3.size),
-                            subtitle: MyTextStyle.lotDesc(
-                                contact.phone, SizeFont.h3.size),
-                            trailing: const Icon(
-                              Icons.arrow_forward_ios,
-                              color: Color(0xFF757575),
-                              size: 22,
-                            ),
-                          ),
-                        );
-                      },
-                      separatorBuilder: (BuildContext context, int index) =>
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 18),
-                            child: const Divider(),
-                          )),
-                  EmergenciesContactsView(),
-                ]),
-              ),
-            );
-          }
-        });
+    return contactsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Text('Error: $error'),
+      data: (allContact) {
+        return Scaffold(
+          appBar: AppBar(
+            title: Container(
+                child: MyTextStyle.lotName('Numéros utiles du $residenceName',
+                    Colors.black87, SizeFont.h1.size)),
+          ),
+          body: SingleChildScrollView(
+            child: Column(children: [
+              ListView.separated(
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  itemCount: allContact.length,
+                  itemBuilder: (context, index) {
+                    Contact contact = allContact[index];
+                    return Material(
+                      child: ListTile(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(
+                                builder: (context) => DetailContactView(
+                                      contact: contact,
+                                      uid: uid,
+                                    )),
+                          );
+                        },
+                        leading: SizedBox(
+                            width: MediaQuery.of(context).size.width / 4,
+                            child: MyTextStyle.lotName(contact.service,
+                                Colors.black87, SizeFont.h3.size)),
+                        title: MyTextStyle.lotName(
+                            contact.name, Colors.black87, SizeFont.h3.size),
+                        subtitle: MyTextStyle.lotDesc(
+                            contact.phone, SizeFont.h3.size),
+                        trailing: const Icon(
+                          Icons.arrow_forward_ios,
+                          color: Color(0xFF757575),
+                          size: 22,
+                        ),
+                      ),
+                    );
+                  },
+                  separatorBuilder: (BuildContext context, int index) =>
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 18),
+                        child: const Divider(),
+                      )),
+              EmergenciesContactsView(),
+            ]),
+          ),
+        );
+      },
+    );
   }
 }
