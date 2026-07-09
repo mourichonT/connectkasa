@@ -1,13 +1,12 @@
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 
-import '../../../models/pages_models/user.dart';
-
-class DetailContactView extends StatelessWidget {
+class DetailContactView extends ConsumerWidget {
   final Contact contact;
   final String uid;
 
@@ -15,30 +14,23 @@ class DetailContactView extends StatelessWidget {
       {super.key, required this.contact, required this.uid});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(userByIdProvider(uid));
+
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
             "Détails du contact", Colors.black87, SizeFont.h1.size),
       ),
-      body: FutureBuilder(
-        future: FirestoreUserRepository()
-            .getUserById(uid)
-            .then((result) => result.when(
-                success: (v) => v, failure: (error) => throw error)),
-        builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else {
-            if (snapshot.hasError) {
-              return Center(
-                child: Text('Error: ${snapshot.error}'),
-              );
-            } else {
-              final userContact = snapshot.data;
-              return SingleChildScrollView(
+      body: userAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(),
+        ),
+        error: (error, stackTrace) => Center(
+          child: Text('Error: $error'),
+        ),
+        data: (userContact) {
+          return SingleChildScrollView(
                 child: Column(
                   children: [
                     const SizedBox(height: 40),
@@ -169,8 +161,6 @@ class DetailContactView extends StatelessWidget {
                   ],
                 ),
               );
-            }
-          }
         },
       ),
     );
