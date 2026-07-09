@@ -1,21 +1,15 @@
-import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/management_folder_rent.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/my_infos_rent.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/info_pers_page_modify.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/account_secu_modify.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/profile_page_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class InfoPageView extends StatefulWidget {
+class InfoPageView extends ConsumerStatefulWidget {
   final String uid;
   final Color color;
   final String idLot;
@@ -30,68 +24,45 @@ class InfoPageView extends StatefulWidget {
   });
 
   @override
-  _InfoPageViewState createState() => _InfoPageViewState();
+  ConsumerState<InfoPageView> createState() => _InfoPageViewState();
 }
 
-class _InfoPageViewState extends State<InfoPageView> {
-  final LoadUserController _loadUserController = LoadUserController();
-  final IUserRepository userServices = FirestoreUserRepository();
-
-  User? user;
-  Future<List<Lot?>>? _lotByUser;
-  List<Lot>? _lotsList;
-  int nbrLot = 0;
-  int nbrLoc = 0;
-  //bool loca = false;
-  String name = "";
-  String surname = "";
-  String pseudo = "";
-  String bio = "";
-  String job = "";
-  String profilPic = "";
-  bool privateAccount = true;
+class _InfoPageViewState extends ConsumerState<InfoPageView> {
   String email = "";
 
   @override
   void initState() {
     super.initState();
-    _initializeUserData();
+    _loadEmail();
   }
 
-  void _initializeUserData() {
-    _loadUser(widget.uid);
-  }
-
-  Future<void> _loadUser(String uid) async {
-    if (uid.isNotEmpty) {
-      User? fetchedUser = await userServices
-          .getUserById(uid)
-          .then((result) => result.when(success: (v) => v, failure: (_) => null));
-      if (fetchedUser != null) {
-        setState(() {
-          user = fetchedUser;
-          name = fetchedUser.name;
-          surname = fetchedUser.surname;
-          pseudo = fetchedUser.pseudo ?? "";
-          bio = fetchedUser.bio ?? "";
-          privateAccount = fetchedUser.private;
-          profilPic = fetchedUser.profilPic ?? "";
-        });
-      }
-      email = await LoadUserController.getUserEmail(uid);
+  Future<void> _loadEmail() async {
+    if (widget.uid.isEmpty) return;
+    final fetchedEmail = await LoadUserController.getUserEmail(widget.uid);
+    if (mounted) {
+      setState(() {
+        email = fetchedEmail;
+      });
     }
   }
 
   void _navigateToModifyPage() async {
-    final updatedUser = await Navigator.push(
+    final user = await ref.read(userByIdProvider(widget.uid).future);
+    if (user == null || !mounted) return;
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => InfoPersoPageModify(
           email: email,
           uid: widget.uid,
           color: widget.color,
-          refresh: _initializeUserData, // Passer la fonction de mise à jour
-          user: user!,
+          // Invalide le cache partagé plutôt que de recharger un état
+          // local : InfoPageView n'affiche de toute façon aucune donnée
+          // utilisateur directement, seuls les autres widgets qui
+          // consomment userByIdProvider(uid) (ProfilTile...) en
+          // bénéficient.
+          refresh: () => ref.invalidate(userByIdProvider(widget.uid)),
+          user: user,
           idLot: widget.idLot,
         ),
       ),
