@@ -556,7 +556,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                               failure: (error) => throw error));
                     }
 
-                    SubmitPostController.UpdatePost(
+                    await SubmitPostController.UpdatePost(
                         uid: widget.uid,
                         like: widget.post.like,
                         idPost: widget.post.id,
@@ -573,9 +573,17 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                           fontSize: _selectedFontSize,
                           fontWeight: _selectedFontWeight.toString(),
                         ));
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                   } catch (e) {
-                    print("Erreur lors de la capture de l'image: $e");
+                    print("Erreur lors de la mise à jour du post: $e");
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.red,
+                        content: Text("Erreur lors de la modification : $e"),
+                      ),
+                    );
                   }
                 },
                 child: MyTextStyle.lotName("Mettre à jour",

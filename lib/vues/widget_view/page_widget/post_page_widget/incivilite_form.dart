@@ -143,17 +143,29 @@ class InciviliteFormState extends State<InciviliteForm> {
             Center(
               child: ElevatedButton(
                 style: style,
-                onPressed: () {
-                  SubmitPostController.submitForm(
-                    uid: widget.uid,
-                    idPost: widget.idPost,
-                    selectedLabel: widget.folderName,
-                    imagePath: imagePath,
-                    title: title,
-                    desc: desc,
-                    anonymPost: anonymPost,
-                    docRes: widget.preferedLot.residenceId,
-                  );
+                onPressed: () async {
+                  try {
+                    await SubmitPostController.submitForm(
+                      uid: widget.uid,
+                      idPost: widget.idPost,
+                      selectedLabel: widget.folderName,
+                      imagePath: imagePath,
+                      title: title,
+                      desc: desc,
+                      anonymPost: anonymPost,
+                      docRes: widget.preferedLot.residenceId,
+                    );
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.red,
+                        content: Text("Erreur lors de l'envoi : $e"),
+                      ),
+                    );
+                    return;
+                  }
+                  if (!context.mounted) return;
                   Navigator.pop(context);
                 },
                 child: MyTextStyle.lotName("Soumettre",

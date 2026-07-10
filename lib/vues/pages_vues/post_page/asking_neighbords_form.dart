@@ -462,7 +462,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                   widget.updateUrl(imageUrl!);
                 }
 
-                SubmitPostController.submitForm(
+                await SubmitPostController.submitForm(
                     uid: widget.uid,
                     idPost: widget.idPost,
                     selectedLabel: widget.folderName,
@@ -479,9 +479,17 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                       fontWeight: _selectedFontWeight.toString(),
                     ));
 
+                if (!context.mounted) return;
                 Navigator.pop(context);
               } catch (e) {
-                print("Erreur lors de la capture de l'image: $e");
+                print("Erreur lors de la soumission du post: $e");
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: Colors.red,
+                    content: Text("Erreur lors de l'envoi : $e"),
+                  ),
+                );
               }
             },
             child: MyTextStyle.lotName(

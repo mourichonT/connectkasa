@@ -264,18 +264,31 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                   ElevatedButton(
                     onPressed: _isUploadingImage
                         ? null
-                        : () {
-                      SubmitPostController.submitForm(
-                          uid: widget.uid,
-                          idPost: idPost,
-                          selectedLabel: "annonces",
-                          imagePath: imagePath,
-                          subtype: categorie,
-                          price: int.tryParse(price.text) ?? 0,
-                          title: title,
-                          desc: desc,
-                          anonymPost: anonymPost,
-                          docRes: widget.residence);
+                        : () async {
+                      try {
+                        await SubmitPostController.submitForm(
+                            uid: widget.uid,
+                            idPost: idPost,
+                            selectedLabel: "annonces",
+                            imagePath: imagePath,
+                            subtype: categorie,
+                            price: int.tryParse(price.text) ?? 0,
+                            title: title,
+                            desc: desc,
+                            anonymPost: anonymPost,
+                            docRes: widget.residence);
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Colors.red,
+                            content: Text(
+                                "Erreur lors de l'ajout de l'annonce : $e"),
+                          ),
+                        );
+                        return;
+                      }
+                      if (!context.mounted) return;
                       Navigator.pop(context);
                     },
                     child: MyTextStyle.lotName("Ajouter",

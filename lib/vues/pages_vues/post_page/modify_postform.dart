@@ -426,21 +426,33 @@ class ModifyPostFormState extends State<ModifyPostForm> {
               height: 30,
             ),
             ElevatedButton(
-              onPressed: () {
-                SubmitPostController.UpdatePost(
-                  like: widget.post.like,
-                  uid: widget.uid,
-                  idPost: widget.post.id,
-                  selectedLabel: type!,
-                  imagePath: imagePath,
-                  title: title.text,
-                  desc: desc.text,
-                  anonymPost: anonymPost,
-                  docRes: widget.post.refResidence,
-                  localisation: localisation,
-                  etage: etage,
-                  element: widget.post.location_details!,
-                );
+              onPressed: () async {
+                try {
+                  await SubmitPostController.UpdatePost(
+                    like: widget.post.like,
+                    uid: widget.uid,
+                    idPost: widget.post.id,
+                    selectedLabel: type!,
+                    imagePath: imagePath,
+                    title: title.text,
+                    desc: desc.text,
+                    anonymPost: anonymPost,
+                    docRes: widget.post.refResidence,
+                    localisation: localisation,
+                    etage: etage,
+                    element: widget.post.location_details!,
+                  );
+                } catch (e) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: Colors.red,
+                      content: Text("Erreur lors de la modification : $e"),
+                    ),
+                  );
+                  return;
+                }
+                if (!context.mounted) return;
                 Navigator.pop(context);
               },
               child: MyTextStyle.lotName(

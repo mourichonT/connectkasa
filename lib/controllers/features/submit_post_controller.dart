@@ -54,7 +54,7 @@ class SubmitPostController {
     );
   }
 
-  static submitForm(
+  static Future<void> submitForm(
       {required String uid,
       required String idPost,
       required String selectedLabel,
@@ -72,7 +72,7 @@ class SubmitPostController {
       List<String>? participants,
       List<String>? eventType,
       Timestamp? eventDate,
-      String? prestaName}) {
+      String? prestaName}) async {
     IPostRepository dataBasesPostServices = FirestorePostRepository();
 
     final newPost = _buildPost(
@@ -96,7 +96,10 @@ class SubmitPostController {
       prestaName: prestaName,
     );
 
-    dataBasesPostServices.addPost(newPost, docRes);
+    await dataBasesPostServices
+        .addPost(newPost, docRes)
+        .then((result) => result.when(
+            success: (_) {}, failure: (error) => throw error));
   }
 
   static Future<void> addPostAfterChecking({
@@ -153,15 +156,20 @@ class SubmitPostController {
 
     if (duplicateResponse['status'] == "duplicate_found") {
       print("Doublon trouvé. ID du doublon : ${duplicateResponse['post_id']}");
-      dataBasesPostServices.addSignalement(
-          post, docRes, duplicateResponse['post_id']);
+      await dataBasesPostServices
+          .addSignalement(post, docRes, duplicateResponse['post_id'])
+          .then((result) => result.when(
+              success: (_) {}, failure: (error) => throw error));
       print("Post est un doublon, signalement ajouté.");
     } else if (duplicateResponse['status'] == "post_not_found") {
       print("Post non trouvé. ID du post : ${duplicateResponse['post_id']}");
       // Aucun ajout si post introuvable
     } else {
       print("Aucun doublon trouvé, création du nouveau post...");
-      dataBasesPostServices.addPost(post, docRes);
+      await dataBasesPostServices
+          .addPost(post, docRes)
+          .then((result) => result.when(
+              success: (_) {}, failure: (error) => throw error));
       print("Post ajouté avec succès.");
     }
   }
@@ -292,7 +300,7 @@ class SubmitPostController {
   //   }
   // }
 
-  static UpdatePost(
+  static Future<void> UpdatePost(
       {required String uid,
       required String idPost,
       required String selectedLabel,
@@ -313,7 +321,7 @@ class SubmitPostController {
       List<String>? participants,
       List<String>? eventType,
       PostStyle? style,
-      String? prestaName}) {
+      String? prestaName}) async {
     IPostRepository dataBasesPostServices = FirestorePostRepository();
 
     // Créer un nouvel objet Post
@@ -340,7 +348,10 @@ class SubmitPostController {
         declaredDate: declaredDate,
         prestaName: prestaName);
 
-    // Appeler la méthode addPost pour ajouter le nouveau post
-    dataBasesPostServices.updatePost(updatePost, docRes, idPost);
+    // Appeler la méthode updatePost pour mettre à jour le post
+    await dataBasesPostServices
+        .updatePost(updatePost, docRes, idPost)
+        .then((result) => result.when(
+            success: (_) {}, failure: (error) => throw error));
   }
 }

@@ -346,19 +346,32 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
                   const Divider(),
                   const SizedBox(height: 30),
                   ElevatedButton(
-                    onPressed: () {
-                      SubmitPostController.UpdatePost(
-                          subtype: categorie,
-                          like: widget.post.like,
-                          uid: widget.uid,
-                          selectedLabel: widget.post.type,
-                          idPost: widget.post.id,
-                          imagePath: imagePath!,
-                          title: title.text,
-                          desc: desc.text,
-                          anonymPost: anonymPost,
-                          docRes: widget.post.refResidence,
-                          price: int.parse(price.text));
+                    onPressed: () async {
+                      try {
+                        await SubmitPostController.UpdatePost(
+                            subtype: categorie,
+                            like: widget.post.like,
+                            uid: widget.uid,
+                            selectedLabel: widget.post.type,
+                            idPost: widget.post.id,
+                            imagePath: imagePath!,
+                            title: title.text,
+                            desc: desc.text,
+                            anonymPost: anonymPost,
+                            docRes: widget.post.refResidence,
+                            price: int.parse(price.text));
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Colors.red,
+                            content:
+                                Text("Erreur lors de la modification : $e"),
+                          ),
+                        );
+                        return;
+                      }
+                      if (!context.mounted) return;
                       Navigator.pop(context);
                     },
                     child: MyTextStyle.lotName("Modifier",

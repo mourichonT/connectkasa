@@ -418,7 +418,7 @@ class EventFormState extends State<EventForm> {
                 horizontal: 20,
                 vertical: 5,
                 size: SizeFont.h3.size,
-                function: () {
+                function: () async {
                   if (imagePath.isEmpty ||
                       _dateEventController.text.isEmpty ||
                       title.text.isEmpty ||
@@ -436,18 +436,31 @@ class EventFormState extends State<EventForm> {
                     );
                     return;
                   }
-                  SubmitPostController.submitForm(
-                    uid: widget.uid,
-                    idPost: idPost,
-                    eventType: _selectedEventTypes.map((e) => e.value).toList(),
-                    prestaName: presta,
-                    selectedLabel: "events",
-                    imagePath: imagePath,
-                    eventDate: eventDate,
-                    title: title,
-                    desc: desc,
-                    docRes: widget.residence,
-                  );
+                  try {
+                    await SubmitPostController.submitForm(
+                      uid: widget.uid,
+                      idPost: idPost,
+                      eventType:
+                          _selectedEventTypes.map((e) => e.value).toList(),
+                      prestaName: presta,
+                      selectedLabel: "events",
+                      imagePath: imagePath,
+                      eventDate: eventDate,
+                      title: title,
+                      desc: desc,
+                      docRes: widget.residence,
+                    );
+                  } catch (e) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        backgroundColor: Colors.red,
+                        content: Text(
+                            "Erreur lors de l'ajout de l'événement : $e"),
+                      ),
+                    );
+                    return;
+                  }
                   widget.onEventAdded();
                 },
               ),

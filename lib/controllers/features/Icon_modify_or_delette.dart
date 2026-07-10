@@ -139,112 +139,132 @@ Widget IconModifyOrDelette(
                   builder: (BuildContext context, StateSetter setState) {
                     int currentStep = _getCurrentStep(post.statu);
 
-                    Future<void> handleContinue() async {
-                      if (currentStep == 0) {
-                        await SubmitPostController.UpdatePost(
-                          like: post.like,
-                          uid: post.user,
-                          statu: "Prise en compte",
-                          timeStamp: post.timeStamp,
-                          idPost: post.id,
-                          selectedLabel: post.type,
-                          imagePath: post.pathImage,
-                          title: post.title,
-                          desc: post.description,
-                          anonymPost: post.hideUser,
-                          docRes: post.refResidence,
-                          localisation: post.location_element,
-                          etage: post.location_floor,
-                          element: post.location_details,
-                          declaredDate: Timestamp.now(),
-                        );
-                        final contactEmail =
-                            await _resolveContactEmail(post.refResidence);
-                        if (contactEmail != null && contactEmail.isNotEmpty) {
-                          final declarantStatus =
-                              await _resolveDeclarantStatus(post);
-                          await sendCustomEmail(
-                            lot: lot!,
-                            post: post,
-                            email: contactEmail,
-                            subjectMail: 'Nouveau signalement ConnectKasa',
-                            declarantStatus: declarantStatus,
-                          );
-                        }
+                    void showUpdateError(Object e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.red,
+                          content:
+                              Text('Erreur lors de la mise à jour : $e'),
+                        ),
+                      );
+                    }
 
-                        setState(() {
-                          currentStep = 1;
-                          post.statu = "Prise en compte";
-                        });
-                      } else if (currentStep == 1) {
-                        await SubmitPostController.UpdatePost(
-                          like: post.like,
-                          uid: post.user,
-                          statu: "Terminé",
-                          idPost: post.id,
-                          selectedLabel: post.type,
-                          imagePath: post.pathImage,
-                          title: post.title,
-                          timeStamp: post.timeStamp,
-                          desc: post.description,
-                          anonymPost: post.hideUser,
-                          docRes: post.refResidence,
-                          localisation: post.location_element,
-                          etage: post.location_floor,
-                          element: post.location_details,
-                        );
-                        setState(() {
-                          currentStep = 2;
-                          post.statu = "Terminé";
-                        });
+                    Future<void> handleContinue() async {
+                      try {
+                        if (currentStep == 0) {
+                          await SubmitPostController.UpdatePost(
+                            like: post.like,
+                            uid: post.user,
+                            statu: "Prise en compte",
+                            timeStamp: post.timeStamp,
+                            idPost: post.id,
+                            selectedLabel: post.type,
+                            imagePath: post.pathImage,
+                            title: post.title,
+                            desc: post.description,
+                            anonymPost: post.hideUser,
+                            docRes: post.refResidence,
+                            localisation: post.location_element,
+                            etage: post.location_floor,
+                            element: post.location_details,
+                            declaredDate: Timestamp.now(),
+                          );
+                          final contactEmail =
+                              await _resolveContactEmail(post.refResidence);
+                          if (contactEmail != null &&
+                              contactEmail.isNotEmpty) {
+                            final declarantStatus =
+                                await _resolveDeclarantStatus(post);
+                            await sendCustomEmail(
+                              lot: lot!,
+                              post: post,
+                              email: contactEmail,
+                              subjectMail: 'Nouveau signalement ConnectKasa',
+                              declarantStatus: declarantStatus,
+                            );
+                          }
+
+                          setState(() {
+                            currentStep = 1;
+                            post.statu = "Prise en compte";
+                          });
+                        } else if (currentStep == 1) {
+                          await SubmitPostController.UpdatePost(
+                            like: post.like,
+                            uid: post.user,
+                            statu: "Terminé",
+                            idPost: post.id,
+                            selectedLabel: post.type,
+                            imagePath: post.pathImage,
+                            title: post.title,
+                            timeStamp: post.timeStamp,
+                            desc: post.description,
+                            anonymPost: post.hideUser,
+                            docRes: post.refResidence,
+                            localisation: post.location_element,
+                            etage: post.location_floor,
+                            element: post.location_details,
+                          );
+                          setState(() {
+                            currentStep = 2;
+                            post.statu = "Terminé";
+                          });
+                        }
+                      } catch (e) {
+                        showUpdateError(e);
                       }
                     }
 
                     Future<void> handleCanceled() async {
-                      if (currentStep == 1) {
-                        await SubmitPostController.UpdatePost(
-                          like: post.like,
-                          uid: post.user,
-                          statu: "En attente",
-                          idPost: post.id,
-                          selectedLabel: post.type,
-                          imagePath: post.pathImage,
-                          title: post.title,
-                          timeStamp: post.timeStamp,
-                          desc: post.description,
-                          anonymPost: post.hideUser,
-                          docRes: post.refResidence,
-                          localisation: post.location_element,
-                          etage: post.location_floor,
-                          element: post.location_details,
-                        );
+                      try {
+                        if (currentStep == 1) {
+                          await SubmitPostController.UpdatePost(
+                            like: post.like,
+                            uid: post.user,
+                            statu: "En attente",
+                            idPost: post.id,
+                            selectedLabel: post.type,
+                            imagePath: post.pathImage,
+                            title: post.title,
+                            timeStamp: post.timeStamp,
+                            desc: post.description,
+                            anonymPost: post.hideUser,
+                            docRes: post.refResidence,
+                            localisation: post.location_element,
+                            etage: post.location_floor,
+                            element: post.location_details,
+                          );
 
-                        setState(() {
-                          currentStep = 0;
-                          post.statu = "En attente";
-                        });
-                      } else if (currentStep == 2) {
-                        await SubmitPostController.UpdatePost(
-                          like: post.like,
-                          uid: post.user,
-                          statu: "Prise en compte",
-                          timeStamp: post.timeStamp,
-                          idPost: post.id,
-                          selectedLabel: post.type,
-                          imagePath: post.pathImage,
-                          title: post.title,
-                          desc: post.description,
-                          anonymPost: post.hideUser,
-                          docRes: post.refResidence,
-                          localisation: post.location_element,
-                          etage: post.location_floor,
-                          element: post.location_details,
-                          declaredDate: Timestamp.now(),
-                        );
-                        setState(() {
-                          currentStep = 0;
-                          post.statu = "Prise en compte";
-                        });
+                          setState(() {
+                            currentStep = 0;
+                            post.statu = "En attente";
+                          });
+                        } else if (currentStep == 2) {
+                          await SubmitPostController.UpdatePost(
+                            like: post.like,
+                            uid: post.user,
+                            statu: "Prise en compte",
+                            timeStamp: post.timeStamp,
+                            idPost: post.id,
+                            selectedLabel: post.type,
+                            imagePath: post.pathImage,
+                            title: post.title,
+                            desc: post.description,
+                            anonymPost: post.hideUser,
+                            docRes: post.refResidence,
+                            localisation: post.location_element,
+                            etage: post.location_floor,
+                            element: post.location_details,
+                            declaredDate: Timestamp.now(),
+                          );
+                          setState(() {
+                            currentStep = 0;
+                            post.statu = "Prise en compte";
+                          });
+                        }
+                      } catch (e) {
+                        showUpdateError(e);
                       }
                     }
 
@@ -487,7 +507,17 @@ void showAlertDialog(
             onPressed: () async {
               Navigator.pop(dialogContext); // Ferme l'AlertDialog
               Navigator.pop(context); // Ferme le BottomSheet
-              await _onDeletePost(post, updatePostsList);
+              try {
+                await _onDeletePost(post, updatePostsList);
+              } catch (e) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    backgroundColor: Colors.red,
+                    content: Text('Erreur lors de la suppression : $e'),
+                  ),
+                );
+              }
             },
           ),
         ],

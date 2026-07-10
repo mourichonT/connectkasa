@@ -255,7 +255,7 @@ class SinistreFormState extends State<SinistreForm> {
               /// **Bouton Soumettre**
               Center(
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (localisation.isEmpty ||
                         etage.isEmpty ||
                         title.text.isEmpty ||
@@ -273,20 +273,32 @@ class SinistreFormState extends State<SinistreForm> {
                       return;
                     }
 
-                    SubmitPostController.addPostAfterChecking(
-                      uid: widget.uid,
-                      docRes: widget.preferedLot!.residenceId,
-                      idPost: widget.idPost,
-                      selectedLabel: widget.folderName,
-                      imagePath: imagePath,
-                      title: title,
-                      desc: desc,
-                      anonymPost: anonymPost,
-                      localisation: localisation,
-                      etage: etage,
-                      element: filters,
-                    );
+                    try {
+                      await SubmitPostController.addPostAfterChecking(
+                        uid: widget.uid,
+                        docRes: widget.preferedLot!.residenceId,
+                        idPost: widget.idPost,
+                        selectedLabel: widget.folderName,
+                        imagePath: imagePath,
+                        title: title,
+                        desc: desc,
+                        anonymPost: anonymPost,
+                        localisation: localisation,
+                        etage: etage,
+                        element: filters,
+                      );
+                    } catch (e) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.red,
+                          content: Text("Erreur lors de l'envoi : $e"),
+                        ),
+                      );
+                      return;
+                    }
 
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                   },
                   child: MyTextStyle.lotName("Soumettre",
