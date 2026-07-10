@@ -5,6 +5,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/pages_vues/privacy_policy_page.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
 import 'package:connect_kasa/vues/pages_vues/profil_page/account_secu_modify.dart';
+import 'package:connect_kasa/vues/pages_vues/profil_page/notifications_settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -66,6 +67,20 @@ class _ParamPageState extends ConsumerState<ParamPage> {
     );
   }
 
+  void _navigateToNotifications() async {
+    final user = await ref.read(userByIdProvider(widget.uid).future);
+    if (user == null || !mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => NotificationsSettingsPage(
+          user: user,
+          refresh: () => ref.invalidate(userByIdProvider(widget.uid)),
+        ),
+      ),
+    );
+  }
+
   void _navigateToPrivacyPolicy() async {
     final user = await ref.read(userByIdProvider(widget.uid).future);
     if (user == null || !mounted) return;
@@ -116,15 +131,15 @@ class _ParamPageState extends ConsumerState<ParamPage> {
                     isLogOut: false,
                   ),
                 ),
-                // ProfileMenu(
-                //   uid: widget.uid,
-                //   color: widget.color,
-                //   idLot: widget.idLot,
-                //   text: "Notifications",
-                //   icon: const Icon(Icons.notifications_none_rounded, size: 22),
-                //   press: () {},
-                //   isLogOut: false,
-                // ),
+                ProfileMenu(
+                  uid: widget.uid,
+                  color: widget.color,
+                  idLot: widget.idLot,
+                  text: "Notifications",
+                  icon: const Icon(Icons.notifications_none_rounded, size: 22),
+                  press: _navigateToNotifications,
+                  isLogOut: false,
+                ),
                 ProfileMenu(
                   uid: widget.uid,
                   color: widget.color,

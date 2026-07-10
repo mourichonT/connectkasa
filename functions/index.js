@@ -20,6 +20,37 @@ async function deleteStorageFolder(prefix) {
 }
 
 /**
+ * Renvoie le token FCM d'un utilisateur, sauf s'il a désactivé le type de
+ * notification demandé (User/{uid}.notificationPrefs.<type>, opt-out : une
+ * clé absente ou à `true` autorise l'envoi, seule une valeur explicite
+ * `false` le bloque). Voir NotificationType
+ * (lib/models/enum/notification_type.dart) côté Flutter pour la liste
+ * des clés possibles.
+ * @param {FirebaseFirestore.Firestore} db
+ * @param {string} uid
+ * @param {string} type Clé de notificationPrefs (ex: "message", "sinistres").
+ * @return {Promise<string|null>}
+ */
+async function getTokenIfNotificationAllowed(db, uid, type) {
+  try {
+    const [tokenDoc, userDoc] = await Promise.all([
+      db.collection("User").doc(uid).collection("private").doc("fcm").get(),
+      db.collection("User").doc(uid).get(),
+    ]);
+
+    if (!tokenDoc.exists || !tokenDoc.data().token) return null;
+
+    const prefs = (userDoc.exists && userDoc.data().notificationPrefs) || {};
+    if (prefs[type] === false) return null;
+
+    return tokenDoc.data().token;
+  } catch (error) {
+    console.error(`Erreur récupération token pour uid ${uid} :`, error);
+    return null;
+  }
+}
+
+/**
  * Nettoyage complet des données Firestore/Storage d'un utilisateur supprimé.
  * Équivalent, côté Admin SDK (bypass firestore.rules), de l'ancien
  * DataBasesUserServices.purgeUserData() côté client — devenu impossible à
@@ -214,36 +245,21 @@ exports.notifyNewPost = onDocumentCreated(
         return null;
       }
 
-      // Étape 2 : récupérer les tokens FCM des utilisateurs individuellement
+      // Étape 2 : récupérer les tokens FCM des utilisateurs individuellement,
+      // en excluant ceux qui ont désactivé les notifications pour ce type de
+      // publication (notificationPrefs sur User/{uid}). Lectures
+      // parallélisées (Promise.all) plutôt qu'une boucle séquentielle : pour
+      // une résidence de N résidents, N lectures en parallèle au lieu de N
+      // lectures l'une après l'autre. Chaque promesse gère sa propre erreur
+      // (renvoie null) pour qu'un token en échec ne fasse pas échouer
+      // Promise.all() pour tout le monde.
       users = users.filter(
           (uid) => typeof uid === "string" &&
         uid.trim() !== "");
-      // Lectures parallélisées (Promise.all) plutôt qu'une boucle
-      // séquentielle : pour une résidence de N résidents, N lectures en
-      // parallèle au lieu de N lectures l'une après l'autre. Chaque
-      // promesse gère sa propre erreur (renvoie null) pour qu'un token
-      // en échec ne fasse pas échouer Promise.all() pour tout le monde.
-      const tokenDocs = await Promise.all(
+      const tokens = (await Promise.all(
           users.map((uid) =>
-            // Token FCM dans User/{uid}/private/fcm, pas directement sur
-            // User/{uid} (voir firestore.rules : lecture restreinte au
-            // propriétaire, impossible à faire champ par champ sur le
-            // document principal qui reste lisible par tous).
-            db.collection("User").doc(uid)
-                .collection("private").doc("fcm").get()
-                .catch((error) => {
-                  console.error(
-                      `Erreur récupération token pour uid ${uid} :`, error);
-                  return null;
-                }),
-          ),
-      );
-
-      const tokens = tokenDocs
-          .filter((tokenDoc) => tokenDoc && tokenDoc.exists)
-          .map((tokenDoc) => tokenDoc.data())
-          .filter((tokenData) => tokenData && tokenData.token)
-          .map((tokenData) => tokenData.token);
+            getTokenIfNotificationAllowed(db, uid, postData.type)),
+      )).filter((token) => !!token);
 
       if (tokens.length === 0) {
         console.log("Aucun token FCM disponible.");
@@ -258,6 +274,7 @@ exports.notifyNewPost = onDocumentCreated(
           body: postData.titre || "Nouvelle publication dans la résidence.",
         },
         data: {
+          type: postData.type || "",
           click_action: "FLUTTER_NOTIFICATION_CLICK",
         },
         android: {priority: "high"},
@@ -271,6 +288,7 @@ exports.notifyNewPost = onDocumentCreated(
             await messaging.sendEachForMulticast({
               tokens,
               notification: message.notification,
+              data: message.data,
               android: message.android,
               apns: message.apns,
             });
@@ -319,11 +337,13 @@ exports.notifyNewMessage = onDocumentCreated(
       try {
         const senderDoc = await db.collection("User")
             .doc(message.userIdFrom).get();
-        const receiverTokenDoc = await db.collection("User")
-            .doc(message.userIdTo).collection("private").doc("fcm").get();
+        const receiverToken = await getTokenIfNotificationAllowed(
+            db, message.userIdTo, "message");
 
-        if (!receiverTokenDoc.exists || !receiverTokenDoc.data().token) {
-          console.log("Token FCM manquant pour le destinataire.");
+        if (!receiverToken) {
+          console.log(
+              "Token FCM manquant ou notifications désactivées " +
+            "pour le destinataire.");
           return null;
         }
 
@@ -351,7 +371,7 @@ exports.notifyNewMessage = onDocumentCreated(
             chatId: chatId,
 
           },
-          token: receiverTokenDoc.data().token,
+          token: receiverToken,
           android: {priority: "high"},
           apns: {headers: {"apns-priority": "10"}},
         };
@@ -391,15 +411,15 @@ exports.notifyDemandeLoc = onDocumentCreated(
       }
 
       try {
-        const tokenDoc = await db.collection("User").doc(proprietaireUid)
-            .collection("private").doc("fcm").get();
+        const token = await getTokenIfNotificationAllowed(
+            db, proprietaireUid, "demande_loc");
 
-        if (!tokenDoc.exists || !tokenDoc.data().token) {
-          console.log("Token FCM manquant pour le propriétaire.");
+        if (!token) {
+          console.log(
+              "Token FCM manquant ou notifications désactivées " +
+            "pour le propriétaire.");
           return null;
         }
-
-        const token = tokenDoc.data().token;
 
         const notificationPayload = {
           notification: {

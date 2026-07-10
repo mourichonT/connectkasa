@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/models/enum/notification_type.dart';
 
 class User {
   String email;
@@ -16,6 +17,7 @@ class User {
   bool approved;
   bool private;
   bool privacyPolicy;
+  Map<String, bool> notificationPrefs;
 
   User({
     required this.privacyPolicy,
@@ -33,7 +35,8 @@ class User {
     required this.approved,
     this.createdDate,
     this.bio,
-  }) {
+    Map<String, bool>? notificationPrefs,
+  }) : notificationPrefs = notificationPrefs ?? NotificationType.defaultPrefs {
     _profilPic = profilPic;
   }
 
@@ -76,6 +79,14 @@ class User {
       uid: map['uid'] ?? "",
       bio: map['bio'] ?? "",
       private: map['private'] ?? false,
+      // Fusionne avec les valeurs par défaut (tout activé) pour couvrir les
+      // utilisateurs existants qui n'ont pas encore ce champ, ou les
+      // nouveaux types de notification ajoutés après leur inscription.
+      notificationPrefs: {
+        ...NotificationType.defaultPrefs,
+        ...(map['notificationPrefs'] as Map<String, dynamic>? ?? {})
+            .map((key, value) => MapEntry(key, value as bool)),
+      },
     );
   }
 
@@ -95,6 +106,7 @@ class User {
       'uid': uid,
       'bio': bio,
       'private': private,
+      'notificationPrefs': notificationPrefs,
     };
   }
 }
