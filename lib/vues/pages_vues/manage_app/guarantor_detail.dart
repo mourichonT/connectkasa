@@ -1,25 +1,17 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/contact_features.dart';
-import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
+import 'package:connect_kasa/core/providers/docs_repository_provider.dart';
+import 'package:connect_kasa/core/providers/garant_providers.dart';
+import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-//import 'package:connect_kasa/vues/components/locascore_header.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class GuarantorDetail extends StatefulWidget {
+class GuarantorDetail extends ConsumerStatefulWidget {
   final String garantid;
   final String tenantUid;
 
@@ -30,45 +22,32 @@ class GuarantorDetail extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => GuarantorDetailState();
+  ConsumerState<GuarantorDetail> createState() => GuarantorDetailState();
 }
 
-class GuarantorDetailState extends State<GuarantorDetail> {
-  Future<List<Map<String, dynamic>>>? _documentsFuture;
-  late Future<GuarantorInfo?> garant;
-  final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
-  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
-  final IUserRepository _userRepository = FirestoreUserRepository();
+class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
+  late final ({String tenantUid, String garantId}) _garantArgs;
+
   @override
   void initState() {
     super.initState();
-    //  _documentsFuture = fetchDocuments();
-
-    _documentsFuture = _fetchGarantDocuments();
-
-    garant = _userRepository
-        .getUniqueGarant(widget.tenantUid, widget.garantid)
-        .then((result) => result.when(
-            success: (v) => v, failure: (error) => throw error));
+    _garantArgs =
+        (tenantUid: widget.tenantUid, garantId: widget.garantid);
   }
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
+    final garantAsync = ref.watch(uniqueGarantProvider(_garantArgs));
 
     return Scaffold(
-      body: FutureBuilder<GuarantorInfo?>(
-        future: garant,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Erreur : ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data == null) {
+      body: garantAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stackTrace) =>
+            Center(child: Text('Erreur : $error')),
+        data: (g) {
+          if (g == null) {
             return const Center(child: Text("Aucun garant trouvé."));
           }
-
-          final g = snapshot.data!;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(10.0),
@@ -131,7 +110,8 @@ class GuarantorDetailState extends State<GuarantorDetail> {
                 _buildSectionHeader("Liste des documents & justificatifs"),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 30),
-                  child: _buildGridSection(),
+                  child: _buildGridSection(
+                      ref.watch(garantDocumentsProvider(_garantArgs))),
                 ),
                 const SizedBox(height: 50),
               ],
@@ -171,74 +151,62 @@ class GuarantorDetailState extends State<GuarantorDetail> {
     );
   }
 
-  Widget _buildGridSection() {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _documentsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Erreur : ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+  Widget _buildGridSection(AsyncValue<List<Map<String, dynamic>>> documentsAsync) {
+    return documentsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(child: Text('Erreur : $error')),
+      data: (documentList) {
+        if (documentList.isEmpty) {
           return const Center(child: Text('Aucun document trouvéICI.'));
-        } else {
-          final documentList = snapshot.data!;
-          return ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: documentList.length,
-            separatorBuilder: (context, index) => const Divider(),
-            itemBuilder: (context, index) {
-              final docMap = documentList[index];
-              final String docId = docMap['id'];
-              final DocumentModel doc = docMap['document'];
-
-              IconsExtension? fileType = getFileType(doc.extension);
-
-              return ListTile(
-                leading: fileType != null
-                    ? fileType.icon
-                    : Image.asset('images/icon_extension/default.png'),
-                title: Text(doc.type ?? ""),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.download_rounded),
-                      onPressed: () async {
-                        final url = Uri.parse(doc.documentPathRecto);
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content:
-                                  Text("Impossible de télécharger le document"),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                        }
-                      },
-                    ),
-                    IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _removeDoc(
-                            doc.documentPathRecto, widget.tenantUid, docId)),
-                  ],
-                ),
-              );
-            },
-          );
         }
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: documentList.length,
+          separatorBuilder: (context, index) => const Divider(),
+          itemBuilder: (context, index) {
+            final docMap = documentList[index];
+            final String docId = docMap['id'];
+            final DocumentModel doc = docMap['document'];
+
+            IconsExtension? fileType = getFileType(doc.extension);
+
+            return ListTile(
+              leading: fileType != null
+                  ? fileType.icon
+                  : Image.asset('images/icon_extension/default.png'),
+              title: Text(doc.type ?? ""),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.download_rounded),
+                    onPressed: () async {
+                      final url = Uri.parse(doc.documentPathRecto);
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text("Impossible de télécharger le document"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => _removeDoc(
+                          doc.documentPathRecto, widget.tenantUid, docId)),
+                ],
+              ),
+            );
+          },
+        );
       },
     );
-  }
-
-  Future<List<Map<String, dynamic>>> _fetchGarantDocuments() {
-    return docsRepository
-        .fetchGarantDocuments(widget.tenantUid, widget.garantid)
-        .then((result) =>
-            result.when(success: (docs) => docs, failure: (error) => throw error));
   }
 
   Future<void> _removeDoc(
@@ -246,14 +214,13 @@ class GuarantorDetailState extends State<GuarantorDetail> {
     String uid,
     String docId,
   ) async {
-    await _storageServices.removeFileFromUrl(url);
-    await docsRepository.deleteGarantDocuments(
-      uid, widget.garantid, docId, // <- L'ID récupéré depuis Firestore
-    );
-    setState(() {
-      _documentsFuture = _fetchGarantDocuments();
-    });
+    await ref.read(storageRepositoryProvider).removeFileFromUrl(url);
+    await ref
+        .read(docsRepositoryProvider)
+        .deleteGarantDocuments(uid, widget.garantid, docId);
+    ref.invalidate(garantDocumentsProvider(_garantArgs));
 
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Document supprimé avec succès")),
     );
