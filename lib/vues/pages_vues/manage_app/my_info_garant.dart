@@ -2,10 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/job_entry.dart';
 import 'package:connect_kasa/controllers/features/justif_document.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
+import 'package:connect_kasa/core/providers/current_user_provider.dart';
+import 'package:connect_kasa/core/providers/docs_repository_provider.dart';
+import 'package:connect_kasa/core/providers/garant_providers.dart';
+import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
+import 'package:connect_kasa/core/repositories/docs_repository.dart';
+import 'package:connect_kasa/core/repositories/storage_repository.dart';
 import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/controllers/features/income_entry.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
@@ -13,16 +16,16 @@ import 'package:connect_kasa/models/enum/tenant_list.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
 import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/import_docs.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class MyGarantInfos extends StatefulWidget {
+class MyGarantInfos extends ConsumerStatefulWidget {
   final String uid; // UID de l'utilisateur (locataire)
   final GuarantorInfo? garant; // ID du garant
   final Color color;
@@ -35,13 +38,13 @@ class MyGarantInfos extends StatefulWidget {
   });
 
   @override
-  State<MyGarantInfos> createState() => _MyGarantInfosState();
+  ConsumerState<MyGarantInfos> createState() => _MyGarantInfosState();
 }
 
-class _MyGarantInfosState extends State<MyGarantInfos> {
-  final IUserRepository _userServices = FirestoreUserRepository();
-  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
-  final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
+class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
+  late final IUserRepository _userServices;
+  late final IStorageRepository _storageServices;
+  late final IDocsRepository docsRepository;
 
   //Controllers
   TextEditingController name = TextEditingController();
@@ -65,23 +68,21 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
   List<JustifDocument> documents = [];
   List<IncomeEntry> incomeEntries = [];
   List<JobEntry> jobEntries = [];
-
-  Future<List<Map<String, dynamic>>>? _documentsFuture;
-
-  Future<List<Map<String, dynamic>>> _fetchGarantDocuments(String garantId) {
-    return docsRepository.fetchGarantDocuments(widget.uid, garantId).then(
-        (result) =>
-            result.when(success: (docs) => docs, failure: (error) => throw error));
-  }
+  // État d'ouverture des cartes d'activité : purement local (UI), jamais
+  // persisté en base. Basé sur l'identité de l'objet (comme
+  // ManageStructure/_expandedBuildings) - fonctionne car les champs de
+  // JobEntry sont maintenant mutables (plus de remplacement de l'objet à
+  // chaque modification).
+  final Set<JobEntry> _expandedJobs = {};
 
   @override
   void initState() {
     super.initState();
+    _userServices = ref.read(userRepositoryProvider);
+    _storageServices = ref.read(storageRepositoryProvider);
+    docsRepository = ref.read(docsRepositoryProvider);
     currentGarant = widget.garant;
     fetchGarantUser();
-    if (widget.garant != null) {
-      _documentsFuture = _fetchGarantDocuments(widget.garant!.id!);
-    }
   }
 
   @override
@@ -334,66 +335,74 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
               SizeFont.h2.size,
             ),
             const SizedBox(height: 30),
-            FutureBuilder<List<Map<String, dynamic>>>(
-              future: _documentsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Erreur : ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Aucun document trouvé.'));
-                } else {
-                  final documentList = snapshot.data!;
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: documentList.length,
-                    separatorBuilder: (context, index) => const Divider(),
-                    itemBuilder: (context, index) {
-                      final docMap = documentList[index];
-                      final String docId = docMap['id'];
-                      final DocumentModel doc = docMap['document'];
+            if (currentGarant?.id == null)
+              const Center(child: Text('Aucun document trouvé.'))
+            else
+              Builder(builder: (context) {
+                final documentsAsync = ref.watch(garantDocumentsProvider(
+                    (tenantUid: widget.uid, garantId: currentGarant!.id!)));
+                return documentsAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (error, stackTrace) =>
+                      Center(child: Text('Erreur : $error')),
+                  data: (documentList) {
+                    if (documentList.isEmpty) {
+                      return const Center(
+                          child: Text('Aucun document trouvé.'));
+                    }
+                    return ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: documentList.length,
+                      separatorBuilder: (context, index) => const Divider(),
+                      itemBuilder: (context, index) {
+                        final docMap = documentList[index];
+                        final String docId = docMap['id'];
+                        final DocumentModel doc = docMap['document'];
 
-                      IconsExtension? fileType = getFileType(doc.extension);
+                        IconsExtension? fileType = getFileType(doc.extension);
 
-                      return ListTile(
-                        leading: fileType != null
-                            ? fileType.icon
-                            : Image.asset('images/icon_extension/default.png'),
-                        title: Text(doc.type ?? ""),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.download_rounded),
-                              onPressed: () async {
-                                final url = Uri.parse(doc.documentPathRecto);
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          "Impossible de télécharger le document"),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                            IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => _removeDoc(
-                                    doc.documentPathRecto, widget.uid, docId)),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                }
-              },
-            ),
+                        return ListTile(
+                          leading: fileType != null
+                              ? fileType.icon
+                              : Image.asset(
+                                  'images/icon_extension/default.png'),
+                          title: Text(doc.type ?? ""),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.download_rounded),
+                                onPressed: () async {
+                                  final url = Uri.parse(doc.documentPathRecto);
+                                  if (await canLaunchUrl(url)) {
+                                    await launchUrl(url);
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                            "Impossible de télécharger le document"),
+                                        backgroundColor: Colors.red,
+                                      ),
+                                    );
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                  icon: const Icon(Icons.delete),
+                                  onPressed: () => _removeDoc(
+                                      doc.documentPathRecto,
+                                      widget.uid,
+                                      docId)),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              }),
             Column(
               children: [
                 ...documents.asMap().entries.map((entry) {
@@ -430,9 +439,10 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
                               documents[index].fileUrl = downloadUrl;
                               // On utilise index ici
                               fileExtension = extension;
-                              _documentsFuture =
-                                  _fetchGarantDocuments(widget.garant!.id!);
                             });
+                            ref.invalidate(garantDocumentsProvider(
+                                (tenantUid: widget.uid,
+                                  garantId: widget.garant!.id!)));
                             downloadImagePath(downloadUrl,
                                 extension); // Appel de ta fonction existante
                           },
@@ -509,68 +519,88 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
       int index = entry.key;
       JobEntry job = entry.value;
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomTextFieldWidget(
-            label: "Activité professionnelle",
-            controller: TextEditingController(text: job.profession),
-            isEditable: true,
-            onChanged: (val) {
-              jobEntries[index] = JobEntry(
-                profession: val,
-                typeContract: job.typeContract,
-                entryJobDate: job.entryJobDate,
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-          MyDropDownMenu(
-            width,
-            "Type de contrat",
-            job.typeContract,
-            false,
-            items: TenantList.jobcontractList(),
-            onValueChanged: (value) {
-              setState(() {
-                jobEntries[index] = JobEntry(
-                  typeContract: value,
-                  profession: job.profession,
-                  entryJobDate: job.entryJobDate,
-                );
-              });
-            },
-          ),
-          const SizedBox(height: 10),
-          CustomTextFieldWidget(
-            label: "Date d'entrée",
-            controller: TextEditingController(
-              text: job.entryJobDate != null
-                  ? DateFormat('dd/MM/yyyy').format(job.entryJobDate!.toDate())
-                  : '',
-            ),
-            isEditable: true,
-            pickDate: () async {
-              final pickedDate = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2000),
-                lastDate: DateTime(2101),
-              );
-              if (pickedDate != null) {
-                setState(() {
-                  jobEntries[index] = JobEntry(
-                    entryJobDate: Timestamp.fromDate(pickedDate),
-                    typeContract: job.typeContract,
-                    profession: job.profession,
-                  );
-                });
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 8.0),
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: ExpansionTile(
+          key: ObjectKey(job),
+          initiallyExpanded: _expandedJobs.contains(job),
+          onExpansionChanged: (expanded) {
+            setState(() {
+              if (expanded) {
+                _expandedJobs.add(job);
+              } else {
+                _expandedJobs.remove(job);
               }
-            },
+            });
+          },
+          tilePadding:
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          title: MyTextStyle.lotName(
+            job.profession.isNotEmpty
+                ? (job.typeContract.isNotEmpty
+                    ? "${job.profession} - ${job.typeContract}"
+                    : job.profession)
+                : "Nouvelle activité",
+            Colors.black87,
+            SizeFont.h2.size,
           ),
-          _removeJob("l'activité", index),
-          const SizedBox(height: 10),
-        ],
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomTextFieldWidget(
+                    label: "Activité professionnelle",
+                    controller: TextEditingController(text: job.profession),
+                    isEditable: true,
+                    onChanged: (val) => job.profession = val,
+                  ),
+                  const SizedBox(height: 10),
+                  MyDropDownMenu(
+                    width,
+                    "Type de contrat",
+                    job.typeContract,
+                    false,
+                    items: TenantList.jobcontractList(),
+                    onValueChanged: (value) {
+                      setState(() => job.typeContract = value);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  CustomTextFieldWidget(
+                    label: "Date d'entrée",
+                    controller: TextEditingController(
+                      text: job.entryJobDate != null
+                          ? DateFormat('dd/MM/yyyy')
+                              .format(job.entryJobDate!.toDate())
+                          : '',
+                    ),
+                    isEditable: true,
+                    pickDate: () async {
+                      final pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (pickedDate != null) {
+                        setState(
+                            () => job.entryJobDate = Timestamp.fromDate(pickedDate));
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _removeJob("l'activité", index),
+                ],
+              ),
+            ),
+          ],
+        ),
       );
     }).toList();
   }
@@ -595,8 +625,8 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
                   items: TenantList.incomesType(),
                   onValueChanged: (value) {
                     setState(() {
-                      incomeEntries[index] =
-                          IncomeEntry(label: value, amount: income.amount);
+                      incomeEntries[index] = IncomeEntry(
+                          label: value, amount: incomeEntries[index].amount);
                     });
                   },
                 ),
@@ -610,8 +640,8 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
                   controller: TextEditingController(text: income.amount),
                   isEditable: true,
                   onChanged: (val) {
-                    incomeEntries[index] =
-                        IncomeEntry(label: income.label, amount: val);
+                    incomeEntries[index] = IncomeEntry(
+                        label: incomeEntries[index].label, amount: val);
                   },
                 ),
               ),
@@ -651,8 +681,10 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
 
   void addJobEntry() {
     setState(() {
-      jobEntries
-          .add(JobEntry(profession: "", typeContract: "", entryJobDate: null));
+      final job =
+          JobEntry(profession: "", typeContract: "", entryJobDate: null);
+      jobEntries.add(job);
+      _expandedJobs.add(job);
     });
   }
 
@@ -778,9 +810,10 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
         phone: phone.text,
       );
 
-      _documentsFuture = _fetchGarantDocuments(newGarantId!);
       documents.clear();
     });
+    ref.invalidate(garantDocumentsProvider(
+        (tenantUid: widget.uid, garantId: newGarantId)));
   }
 
   Future<void> _removeDoc(
@@ -792,10 +825,10 @@ class _MyGarantInfosState extends State<MyGarantInfos> {
     await docsRepository.deleteGarantDocuments(
       uid, widget.garant!.id!, docId, // <- L'ID récupéré depuis Firestore
     );
-    setState(() {
-      _documentsFuture = _fetchGarantDocuments(widget.garant!.id!);
-    });
+    ref.invalidate(garantDocumentsProvider(
+        (tenantUid: widget.uid, garantId: widget.garant!.id!)));
 
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Document supprimé avec succès")),
     );

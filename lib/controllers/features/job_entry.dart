@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:intl/intl.dart';
 
 class JobEntry {
   Timestamp? entryJobDate;
-  final String profession;
-  final String typeContract;
+  String profession;
+  String typeContract;
 
   JobEntry({
     required this.typeContract,
