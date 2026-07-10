@@ -1,72 +1,51 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/contact_features.dart';
-import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/providers/current_user_provider.dart';
+import 'package:connect_kasa/core/providers/docs_providers.dart';
+import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-//import 'package:connect_kasa/vues/components/locascore_header.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:connect_kasa/vues/widget_view/components/share_rent_folder.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class TenantDetail extends StatefulWidget {
+class TenantDetail extends ConsumerWidget {
   final UserInfo tenant;
   final String senderUid;
   final String? residenceId;
+  // ID du lot occupé par ce locataire - nécessaire pour le révoquer de
+  // manière scopée à ce seul lot (removeIdLocataire).
+  final String? lotId;
   final String? demandeId;
   final Color color;
   Function()? refreshUnseeCounter;
+  // Rafraîchit la liste des locataires de ManagementTenant après une
+  // révocation réussie (l'onglet "Actuels" doit perdre ce locataire,
+  // l'onglet "Historique" doit le gagner).
+  Function()? refreshTenants;
 
   TenantDetail(
       {super.key,
       this.refreshUnseeCounter,
+      this.refreshTenants,
       required this.tenant,
       required this.color,
       required this.senderUid,
       this.residenceId,
+      this.lotId,
       this.demandeId});
 
   @override
-  State<StatefulWidget> createState() => TenantDetailState();
-}
-
-class TenantDetailState extends State<TenantDetail> {
-  Future<List<Map<String, dynamic>>>? _documentsFuture;
-  final FirestoreLotRepository _dataBasesLotServices = FirestoreLotRepository();
-  final IUserRepository _userRepository = FirestoreUserRepository();
-  @override
-  void initState() {
-    super.initState();
-    _documentsFuture = fetchDocuments();
-  }
-
-  Future<List<Map<String, dynamic>>> fetchDocuments() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('User')
-        .doc(widget.tenant.uid)
-        .collection('documents')
-        .get();
-
-    return snapshot.docs.map((doc) {
-      return {
-        'id': doc.id,
-        'document': DocumentModel.fromJson(doc.data()),
-      };
-    }).toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     double width = MediaQuery.of(context).size.width;
+    final bool isCurrentTenant =
+        residenceId != null && residenceId!.isNotEmpty;
     return Scaffold(
       bottomSheet: Container(
         width: width,
@@ -78,41 +57,60 @@ class TenantDetailState extends State<TenantDetail> {
           children: [
             ButtonAdd(
               function: () async {
-                if (widget.residenceId != null &&
-                    widget.residenceId!.isNotEmpty) {
-                  await _dataBasesLotServices
-                      .removeUserFromAllLots(widget.tenant.uid);
+                if (isCurrentTenant) {
+                  if (lotId == null || lotId!.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            "Impossible de révoquer : lot introuvable."),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+                  final result = await ref
+                      .read(lotRepositoryProvider)
+                      .removeIdLocataire(residenceId!, lotId!, tenant.uid);
+                  if (!context.mounted) return;
+                  result.when(
+                    success: (_) {
+                      refreshTenants?.call();
+                      Navigator.pop(context);
+                    },
+                    failure: (error) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text("Erreur lors de la révocation : $error"),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    },
+                  );
                 } else {
                   await ShareRentFolder.showLotSelectionDialog(
-                      context, widget.senderUid, widget.tenant.uid);
+                      context, senderUid, tenant.uid);
                 }
               },
-              color:
-                  (widget.residenceId != null && widget.residenceId!.isNotEmpty)
-                      ? Colors.red[800]!
-                      : Theme.of(context).primaryColor,
-              icon:
-                  (widget.residenceId != null && widget.residenceId!.isNotEmpty)
-                      ? Icons.clear
-                      : Icons.add,
-              text:
-                  (widget.residenceId != null && widget.residenceId!.isNotEmpty)
-                      ? "Revoquer"
-                      : "Ajouter",
+              color: isCurrentTenant
+                  ? Colors.red[800]!
+                  : Theme.of(context).primaryColor,
+              icon: isCurrentTenant ? Icons.clear : Icons.add,
+              text: isCurrentTenant ? "Revoquer" : "Ajouter",
               horizontal: 20,
               vertical: 10,
               size: SizeFont.h3.size,
             ),
-            if (widget.residenceId == null || widget.residenceId!.isEmpty)
+            if (!isCurrentTenant)
               Visibility(
                 child: ButtonAdd(
                   function: () async {
-                    await _userRepository
-                        .deleteDemande(widget.senderUid, widget.demandeId!)
+                    await ref
+                        .read(userRepositoryProvider)
+                        .deleteDemande(senderUid, demandeId!)
                         .then((result) =>
                             result.when(success: (_) {}, failure: (_) {}));
-                    if (widget.refreshUnseeCounter != null) {
-                      widget.refreshUnseeCounter!();
+                    if (refreshUnseeCounter != null) {
+                      refreshUnseeCounter!();
                     }
                     Navigator.pop(context);
                   },
@@ -140,25 +138,25 @@ class TenantDetailState extends State<TenantDetail> {
                   Icons.cake,
                   "Date de naissance",
                   DateFormat('dd/MM/yyyy')
-                      .format(widget.tenant.birthday.toDate())),
-              lineToWrite(Icons.flag, "Nationalité", widget.tenant.nationality),
+                      .format(tenant.birthday.toDate())),
+              lineToWrite(Icons.flag, "Nationalité", tenant.nationality),
               lineToWrite(
-                  Icons.diamond, "Situation", widget.tenant.familySituation),
-              if (widget.tenant.dependent != 0)
+                  Icons.diamond, "Situation", tenant.familySituation),
+              if (tenant.dependent != 0)
                 lineToWrite(Icons.favorite_outlined, "Personne à charge",
-                    widget.tenant.dependent.toString()),
+                    tenant.dependent.toString()),
 
               //contact
               _buildSectionHeader("Contact locataire"),
               InkWell(
                 onTap: () {
-                  ContactFeatures.launchPhoneCall(widget.tenant.phone);
+                  ContactFeatures.launchPhoneCall(tenant.phone);
                 },
                 child:
-                    lineToWrite(Icons.phone, "Téléphone", widget.tenant.phone),
+                    lineToWrite(Icons.phone, "Téléphone", tenant.phone),
               ),
-              lineToWrite(Icons.email, "mail", widget.tenant.email),
-              if (widget.residenceId != "")
+              lineToWrite(Icons.email, "mail", tenant.email),
+              if (residenceId != "")
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   child: Row(
@@ -170,9 +168,9 @@ class TenantDetailState extends State<TenantDetail> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => ChatPage(
-                                residence: widget.residenceId ?? '',
-                                idUserFrom: widget.senderUid,
-                                idUserTo: widget.tenant.uid,
+                                residence: residenceId ?? '',
+                                idUserFrom: senderUid,
+                                idUserTo: tenant.uid,
                               ),
                             ),
                           );
@@ -192,29 +190,29 @@ class TenantDetailState extends State<TenantDetail> {
 
               // Profil locataire
               _buildSectionHeader("Profil locataire"),
-              if (widget.tenant.jobIncomes.isEmpty)
+              if (tenant.jobIncomes.isEmpty)
                 const Text("Aucune activité renseignée")
               else ...[
-                for (int i = 0; i < widget.tenant.jobIncomes.length; i++) ...[
+                for (int i = 0; i < tenant.jobIncomes.length; i++) ...[
                   lineToWrite(
                     Icons.work_rounded,
                     "Profession",
-                    widget.tenant.jobIncomes[i].profession,
+                    tenant.jobIncomes[i].profession,
                   ),
                   lineToWrite(
                     Icons.file_open,
                     "Type de contrat",
-                    widget.tenant.jobIncomes[i].typeContract,
+                    tenant.jobIncomes[i].typeContract,
                   ),
                   lineToWrite(
                     Icons.calendar_month,
                     "Date début contrat",
                     DateFormat('dd/MM/yyyy').format(
-                      widget.tenant.jobIncomes[i].entryJobDate!.toDate(),
+                      tenant.jobIncomes[i].entryJobDate!.toDate(),
                     ),
                   ),
                   if (i <
-                      widget.tenant.jobIncomes.length -
+                      tenant.jobIncomes.length -
                           1) // 👈 uniquement avant le dernier
                     const Padding(
                       padding:
@@ -225,10 +223,10 @@ class TenantDetailState extends State<TenantDetail> {
               ],
 
               _buildSectionHeader("Revenus"),
-              if (widget.tenant.incomes.isEmpty)
+              if (tenant.incomes.isEmpty)
                 const Text("Aucun revenu renseigné")
               else ...[
-                ...widget.tenant.incomes.map((income) {
+                ...tenant.incomes.map((income) {
                   double amountDouble = double.tryParse(income.amount) ?? 0.0;
                   return lineToWrite(
                     null,
@@ -243,7 +241,7 @@ class TenantDetailState extends State<TenantDetail> {
                 lineToWrite(
                   Icons.euro,
                   "Total des revenus",
-                  "${widget.tenant.incomes.map((e) => double.tryParse(e.amount) ?? 0.0).fold(0.0, (a, b) => a + b).toStringAsFixed(2)} €",
+                  "${tenant.incomes.map((e) => double.tryParse(e.amount) ?? 0.0).fold(0.0, (a, b) => a + b).toStringAsFixed(2)} €",
                 ),
               ],
 
@@ -251,7 +249,8 @@ class TenantDetailState extends State<TenantDetail> {
 
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 30),
-                child: _buildGridSection(),
+                child: _buildGridSection(
+                    ref.watch(tenantDocumentsProvider(tenant.uid))),
               ),
               const SizedBox(
                 height: 50,
@@ -292,75 +291,71 @@ class TenantDetailState extends State<TenantDetail> {
     );
   }
 
-  Widget _buildGridSection() {
-    return FutureBuilder<List<Map<String, dynamic>>>(
-      future: _documentsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Erreur : ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+  Widget _buildGridSection(
+      AsyncValue<List<Map<String, dynamic>>> documentsAsync) {
+    return documentsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(child: Text('Erreur : $error')),
+      data: (documentList) {
+        if (documentList.isEmpty) {
           return const Center(child: Text('Aucun document trouvé.'));
-        } else {
-          final documentList = snapshot.data!;
-          return GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, // 2 cartes par ligne
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 3 / 2,
-            ),
-            itemCount: documentList.length,
-            itemBuilder: (context, index) {
-              final docMap = documentList[index];
-              final String docId = docMap['id'];
-              final DocumentModel doc = docMap['document'];
+        }
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2, // 2 cartes par ligne
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 3 / 2,
+          ),
+          itemCount: documentList.length,
+          itemBuilder: (context, index) {
+            final docMap = documentList[index];
+            final String docId = docMap['id'];
+            final DocumentModel doc = docMap['document'];
 
-              final fileType = getFileType(doc.extension);
+            final fileType = getFileType(doc.extension);
 
-              return Card(
-                elevation: 3,
-                child: InkWell(
-                  onTap: () async {
-                    final url = Uri.parse(doc.documentPathRecto);
-                    if (await canLaunchUrl(url)) {
-                      await launchUrl(url);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content:
-                              Text("Impossible de télécharger le document"),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        fileType != null
-                            ? Container(width: 30, child: fileType.icon)
-                            : Image.asset(
-                                'images/icon_extension/default.png',
-                                height: 20,
-                              ),
-                        MyTextStyle.postDesc(
-                            doc.type, SizeFont.h3.size, Colors.black87,
-                            fontweight: FontWeight.normal,
-                            textAlign: TextAlign.center),
-                      ],
-                    ),
+            return Card(
+              elevation: 3,
+              child: InkWell(
+                onTap: () async {
+                  final url = Uri.parse(doc.documentPathRecto);
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content:
+                            Text("Impossible de télécharger le document"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(15.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      fileType != null
+                          ? Container(width: 30, child: fileType.icon)
+                          : Image.asset(
+                              'images/icon_extension/default.png',
+                              height: 20,
+                            ),
+                      MyTextStyle.postDesc(
+                          doc.type, SizeFont.h3.size, Colors.black87,
+                          fontweight: FontWeight.normal,
+                          textAlign: TextAlign.center),
+                    ],
                   ),
                 ),
-              );
-            },
-          );
-        }
+              ),
+            );
+          },
+        );
       },
     );
   }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/pages_controllers/tenant_controller.dart';
 import 'package:connect_kasa/core/repositories/lot_repository.dart';
@@ -8,11 +9,9 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail_withheader.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class ManagementTenant extends StatefulWidget {
   final Color color;
@@ -32,6 +31,7 @@ class ManagementTenantState extends State<ManagementTenant>
   late Future<List<Lot?>> _lotByUser;
   late Future<List<DemandeLoc>> _allDemand;
   late Future<List<Map<String, dynamic>>> tenantsAndLots;
+  late Future<List<Map<String, dynamic>>> formerTenantsAndLots;
   late TabController _tabController;
 
   int _unseenDemandCount = 0;
@@ -39,11 +39,24 @@ class ManagementTenantState extends State<ManagementTenant>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _fetchLotsByUser();
     _fetchDemande();
     tenantsAndLots = Future.value([]);
+    formerTenantsAndLots = Future.value([]);
     initializeTenants();
+    initializeFormerTenants();
+  }
+
+  // Rafraîchit la liste des locataires actuels + l'historique après une
+  // révocation réussie depuis TenantDetail (l'onglet "Actuels" doit perdre
+  // ce locataire, l'onglet "Historique" doit le gagner).
+  void refreshTenantsList() {
+    setState(() {
+      _fetchLotsByUser();
+      initializeTenants();
+      initializeFormerTenants();
+    });
   }
 
   Future<List<Lot?>> _fetchLotsByUser() async {
@@ -102,6 +115,34 @@ class ManagementTenantState extends State<ManagementTenant>
     });
   }
 
+  // Historique (onglet "Historique") : un ancien locataire par entrée de
+  // Lot.idLocataireOld, avec la date à laquelle il a quitté ce lot.
+  void initializeFormerTenants() {
+    formerTenantsAndLots = _lotByUser.then((lots) async {
+      List<Future<Map<String, dynamic>>> userFutures = [];
+
+      for (var lot in lots) {
+        if (lot != null) {
+          for (var former in lot.idLocataireOld) {
+            userFutures.add(userServices
+                .getUserWithInfo(former.uid)
+                .then((result) =>
+                    result.when(success: (v) => v, failure: (_) => null))
+                .then((user) {
+              return {'user': user, 'lot': lot, 'leftAt': former.leftAt};
+            }));
+          }
+        }
+      }
+
+      // Plus récent en premier.
+      final results = await Future.wait(userFutures);
+      results.sort((a, b) =>
+          (b['leftAt'] as Timestamp).compareTo(a['leftAt'] as Timestamp));
+      return results;
+    });
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -149,6 +190,7 @@ class ManagementTenantState extends State<ManagementTenant>
                 ],
               ),
             ),
+            const Tab(text: 'Historique'),
           ],
         ),
       ),
@@ -209,6 +251,8 @@ class ManagementTenantState extends State<ManagementTenant>
                                       color: widget.color,
                                       uid: widget.uid,
                                       residenceId: tenantMap['residence'],
+                                      lotId: lot.id,
+                                      refreshTenants: refreshTenantsList,
                                     ),
                                   ),
                                 );
@@ -312,6 +356,55 @@ class ManagementTenantState extends State<ManagementTenant>
                             },
                           );
                         },
+                      );
+                    },
+                    separatorBuilder: (context, index) =>
+                        const Divider(thickness: 0.7),
+                  );
+                }
+              },
+            ),
+          ),
+
+          // Tab 3 : Historique
+          Padding(
+            padding: const EdgeInsets.only(top: 20),
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: formerTenantsAndLots,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Erreur: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                      child: Text('Aucun ancien locataire.'));
+                } else {
+                  final formerTenants = snapshot.data!;
+                  return ListView.separated(
+                    itemCount: formerTenants.length,
+                    itemBuilder: (context, index) {
+                      final entry = formerTenants[index];
+                      final UserInfo? tenant = entry['user'];
+                      final Lot lot = entry['lot'];
+                      final Timestamp leftAt = entry['leftAt'];
+                      final String? lotName = lot.userLotDetails["nameLot"];
+                      final String showLotName = (lotName == "" ||
+                              lotName == null)
+                          ? "${lot.residenceData["name"]} ${lot.batiment} ${lot.lot}"
+                          : lotName;
+
+                      return ListTile(
+                        leading: const Icon(Icons.history),
+                        title: MyTextStyle.lotName(
+                          tenant != null
+                              ? "${tenant.surname} ${tenant.name}"
+                              : "Locataire non trouvé",
+                          Colors.black87,
+                          SizeFont.h3.size,
+                        ),
+                        subtitle: Text(
+                            'Lot: $showLotName - Parti le ${DateFormat('dd/MM/yyyy').format(leftAt.toDate())}'),
                       );
                     },
                     separatorBuilder: (context, index) =>

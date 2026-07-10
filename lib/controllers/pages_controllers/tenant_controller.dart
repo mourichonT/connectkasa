@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
-import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/guarantor_detail.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
@@ -14,8 +13,16 @@ class TenantController extends StatefulWidget {
   final UserInfo tenant;
   final String uid;
   final String? residenceId;
+  // ID du lot (Residence/{residenceId}/lot/{lotId}) occupé par ce
+  // locataire - nécessaire pour révoquer son accès de manière scopée à ce
+  // seul lot (removeIdLocataire), plutôt que de tous ses lots. Absent pour
+  // une simple demande de location pas encore acceptée.
+  final String? lotId;
   final Color color;
   Function()? refreshUnseeCounter;
+  // Rafraîchit la liste des locataires de ManagementTenant après une
+  // révocation réussie depuis TenantDetail.
+  Function()? refreshTenants;
   final String? demandeId;
 
   TenantController({
@@ -23,8 +30,10 @@ class TenantController extends StatefulWidget {
     required this.tenant,
     required this.uid,
     this.residenceId,
+    this.lotId,
     required this.color,
     this.refreshUnseeCounter,
+    this.refreshTenants,
     this.demandeId,
   });
 
@@ -111,10 +120,12 @@ class _TenantControllerState extends State<TenantController> {
           TenantDetail(
             demandeId: widget.demandeId,
             residenceId: widget.residenceId,
+            lotId: widget.lotId,
             senderUid: widget.uid,
             tenant: widget.tenant,
             color: widget.color,
             refreshUnseeCounter: widget.refreshUnseeCounter,
+            refreshTenants: widget.refreshTenants,
           ),
           if (hasGarant1)
             GuarantorDetail(tenantUid: widget.tenant.uid, garantid: garants[0]),

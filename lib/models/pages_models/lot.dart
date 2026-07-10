@@ -1,4 +1,5 @@
 import 'package:connect_kasa/models/pages_models/agency.dart';
+import 'package:connect_kasa/models/pages_models/former_tenant.dart';
 import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 
 class Lot {
@@ -11,6 +12,9 @@ class Lot {
   String type;
   List<String>? idProprietaire;
   List<String>? idLocataire;
+  // Historique des locataires révoqués de ce lot (onglet "Historique" de
+  // ManagementTenant) - jamais null, [] par défaut.
+  List<FormerTenant> idLocataireOld;
   String residenceId;
   Map<String, dynamic> residenceData;
   Map<String, dynamic> userLotDetails;
@@ -38,6 +42,7 @@ class Lot {
     required this.type,
     required this.idProprietaire,
     this.idLocataire,
+    this.idLocataireOld = const [],
     required this.residenceId,
     required this.residenceData,
     required this.userLotDetails,
@@ -64,6 +69,12 @@ class Lot {
       idLocataire: json["idLocataire"] != null && json["idLocataire"] is List
           ? List<String>.from(json["idLocataire"])
           : [],
+      idLocataireOld:
+          json["idLocataireOld"] != null && json["idLocataireOld"] is List
+              ? (json["idLocataireOld"] as List)
+                  .map((e) => FormerTenant.fromMap(Map<String, dynamic>.from(e)))
+                  .toList()
+              : [],
       residenceId: json["residenceId"] ?? "",
       residenceData: json["residenceData"] != null
           ? Map<String, dynamic>.from(json["residenceData"])
@@ -91,6 +102,7 @@ class Lot {
       "type": type,
       "idProprietaire": idProprietaire,
       "idLocataire": idLocataire,
+      "idLocataireOld": idLocataireOld.map((e) => e.toMap()).toList(),
       "residenceId": residenceId,
       "residenceData": residenceData,
       'userLotDetails': userLotDetails,
@@ -131,6 +143,11 @@ class Lot {
           : [],
       idLocataire:
           map['idLocataire'] is List ? List<String>.from(map['idLocataire']) : [],
+      idLocataireOld: map['idLocataireOld'] is List
+          ? (map['idLocataireOld'] as List)
+              .map((e) => FormerTenant.fromMap(Map<String, dynamic>.from(e)))
+              .toList()
+          : [],
       residenceId: map["residenceId"] ?? "",
       residenceData: map["residenceData"] != null
           ? Map<String, dynamic>.from(map["residenceData"])

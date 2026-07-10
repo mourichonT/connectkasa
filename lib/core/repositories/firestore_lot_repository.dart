@@ -386,8 +386,29 @@ class FirestoreLotRepository implements ILotRepository {
     if (lotSnapshot.exists) {
       final lotData = lotSnapshot.data() as Map<String, dynamic>;
       final idLocataires = List.from(lotData['idLocataire'] ?? []);
-      idLocataires.remove(idLocataireToRemove);
-      await lotRef.update({'idLocataire': idLocataires});
+      if (idLocataires.contains(idLocataireToRemove)) {
+        idLocataires.remove(idLocataireToRemove);
+        await lotRef.update({
+          'idLocataire': idLocataires,
+          // Historique (onglet "Historique" de ManagementTenant) : une
+          // entrée horodatée par révocation, jamais réécrite.
+          'idLocataireOld': FieldValue.arrayUnion([
+            {'uid': idLocataireToRemove, 'leftAt': Timestamp.now()}
+          ]),
+        });
+      }
+
+      // Nettoyage côté locataire retiré : sa référence à CE lot précis
+      // (pas les autres, qu'il conserve), puis residencesIds recalculé à
+      // partir de ce qu'il lui reste - sinon il garderait un accès
+      // résiduel à cette résidence via la dénormalisation firestore.rules.
+      await _firestore
+          .collection("User")
+          .doc(idLocataireToRemove)
+          .collection("lots")
+          .doc(idLot)
+          .delete();
+      await _recomputeResidencesIds(idLocataireToRemove);
 
       // Dénormalisé pour firestore.rules : ce locataire n'a peut-être plus
       // aucun lot commun avec le(s) propriétaire(s) de celui-ci.
