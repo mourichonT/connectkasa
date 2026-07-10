@@ -46,6 +46,12 @@ class _MyInfosRentState extends State<MyInfosRent> {
   bool isLoading = true;
   List<IncomeEntry> incomeEntries = [];
   List<JobEntry> jobEntries = [];
+  // État d'ouverture des cartes d'activité : purement local (UI), jamais
+  // persisté en base. Basé sur l'identité de l'objet (comme
+  // ManageStructure/_expandedBuildings et MyGarantInfos/_expandedJobs) -
+  // fonctionne car JobEntry est mutable (mutation en place, pas de
+  // remplacement de l'objet à chaque modification).
+  final Set<JobEntry> _expandedJobs = {};
   Future<List<Map<String, dynamic>>>? _documentsFuture;
   String fileExtension = "";
   String docUrl = "";
@@ -118,72 +124,7 @@ class _MyInfosRentState extends State<MyInfosRent> {
             ),
 
             const SizedBox(height: 20),
-            ...jobEntries.asMap().entries.map((entry) {
-              int index = entry.key;
-              JobEntry job = entry.value;
-
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomTextFieldWidget(
-                    label: "Activité professionnelle",
-                    controller: TextEditingController(text: job.profession),
-                    isEditable: true,
-                    onChanged: (val) {
-                      jobEntries[index] = JobEntry(
-                          profession: val,
-                          typeContract: job.typeContract,
-                          entryJobDate: job.entryJobDate);
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  MyDropDownMenu(
-                    width,
-                    "Type de contrat",
-                    job.typeContract,
-                    false,
-                    items: TenantList.jobcontractList(),
-                    onValueChanged: (value) {
-                      setState(() {
-                        jobEntries[index] = JobEntry(
-                            typeContract: value,
-                            profession: job.profession,
-                            entryJobDate: job.entryJobDate);
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 10),
-                  CustomTextFieldWidget(
-                    label: "Date d'entrée",
-                    controller: TextEditingController(
-                      text: job.entryJobDate != null
-                          ? DateFormat('dd/MM/yyyy')
-                              .format(job.entryJobDate!.toDate())
-                          : '',
-                    ),
-                    isEditable: true,
-                    pickDate: () async {
-                      final pickedDate = await showDatePicker(
-                        context: context,
-                        initialDate: DateTime.now(),
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2101),
-                      );
-                      if (pickedDate != null) {
-                        setState(() {
-                          jobEntries[index] = JobEntry(
-                              entryJobDate: Timestamp.fromDate(pickedDate),
-                              typeContract: job.typeContract,
-                              profession: job.profession);
-                        });
-                      }
-                    },
-                  ),
-                  _removeJob("l'activité", index),
-                  const SizedBox(height: 10),
-                ],
-              );
-            }).toList(),
+            ..._buildJobSection(width),
             Center(
               child: ButtonAdd(
                 color: Colors.transparent,
@@ -229,7 +170,8 @@ class _MyInfosRentState extends State<MyInfosRent> {
                           onValueChanged: (value) {
                             setState(() {
                               incomeEntries[index] = IncomeEntry(
-                                  label: value, amount: income.amount);
+                                  label: value,
+                                  amount: incomeEntries[index].amount);
                             });
                           },
                         ),
@@ -244,8 +186,9 @@ class _MyInfosRentState extends State<MyInfosRent> {
                               TextEditingController(text: income.amount),
                           isEditable: true,
                           onChanged: (val) {
-                            incomeEntries[index] =
-                                IncomeEntry(label: income.label, amount: val);
+                            incomeEntries[index] = IncomeEntry(
+                                label: incomeEntries[index].label,
+                                amount: val);
                           },
                         ),
                       ),
@@ -527,12 +470,105 @@ class _MyInfosRentState extends State<MyInfosRent> {
 
   void addJobEntry() {
     setState(() {
-      jobEntries.add(JobEntry(
+      final job = JobEntry(
         typeContract: '',
         entryJobDate: null,
         profession: '',
-      ));
+      );
+      jobEntries.add(job);
+      _expandedJobs.add(job);
     });
+  }
+
+  List<Widget> _buildJobSection(double width) {
+    return jobEntries.asMap().entries.map((entry) {
+      int index = entry.key;
+      JobEntry job = entry.value;
+
+      return Card(
+        margin: const EdgeInsets.symmetric(vertical: 8.0),
+        elevation: 2.0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: ExpansionTile(
+          key: ObjectKey(job),
+          initiallyExpanded: _expandedJobs.contains(job),
+          onExpansionChanged: (expanded) {
+            setState(() {
+              if (expanded) {
+                _expandedJobs.add(job);
+              } else {
+                _expandedJobs.remove(job);
+              }
+            });
+          },
+          tilePadding:
+              const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          title: MyTextStyle.lotName(
+            job.profession.isNotEmpty
+                ? (job.typeContract.isNotEmpty
+                    ? "${job.profession} - ${job.typeContract}"
+                    : job.profession)
+                : "Nouvelle activité",
+            Colors.black87,
+            SizeFont.h2.size,
+          ),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomTextFieldWidget(
+                    label: "Activité professionnelle",
+                    controller: TextEditingController(text: job.profession),
+                    isEditable: true,
+                    onChanged: (val) => job.profession = val,
+                  ),
+                  const SizedBox(height: 10),
+                  MyDropDownMenu(
+                    width,
+                    "Type de contrat",
+                    job.typeContract,
+                    false,
+                    items: TenantList.jobcontractList(),
+                    onValueChanged: (value) {
+                      setState(() => job.typeContract = value);
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  CustomTextFieldWidget(
+                    label: "Date d'entrée",
+                    controller: TextEditingController(
+                      text: job.entryJobDate != null
+                          ? DateFormat('dd/MM/yyyy')
+                              .format(job.entryJobDate!.toDate())
+                          : '',
+                    ),
+                    isEditable: true,
+                    pickDate: () async {
+                      final pickedDate = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
+                      );
+                      if (pickedDate != null) {
+                        setState(
+                            () => job.entryJobDate = Timestamp.fromDate(pickedDate));
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 10),
+                  _removeJob("l'activité", index),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
   }
 
   Future<List<Map<String, dynamic>>> fetchDocuments() async {
