@@ -3,9 +3,9 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
-import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/providers/current_user_provider.dart';
+import 'package:connect_kasa/core/providers/docs_repository_provider.dart';
+import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
@@ -16,6 +16,7 @@ import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widge
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step2.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step3.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
 
 /// Rattache un utilisateur déjà existant (connecté) à une résidence/un lot
@@ -38,7 +39,7 @@ import 'package:provider/provider.dart';
 /// ManagementProperty : un utilisateur déjà actif qui rattache un lot
 /// supplémentaire à son compte), on ne touche pas à `approved` — il n'y a
 /// pas lieu de re-suspendre l'accès d'un utilisateur déjà validé.
-class AttachExistingLotPage extends StatefulWidget {
+class AttachExistingLotPage extends ConsumerStatefulWidget {
   final String uid;
   final bool resetApproval;
 
@@ -49,10 +50,12 @@ class AttachExistingLotPage extends StatefulWidget {
   });
 
   @override
-  State<AttachExistingLotPage> createState() => _AttachExistingLotPageState();
+  ConsumerState<AttachExistingLotPage> createState() =>
+      _AttachExistingLotPageState();
 }
 
-class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
+class _AttachExistingLotPageState
+    extends ConsumerState<AttachExistingLotPage> {
   final PageController _pageController = PageController();
   final LoadUserController _loadUserController = LoadUserController();
 
@@ -99,7 +102,8 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
 
     // Step3 ne renvoie que le refLot (référence métier), pas l'ID Firestore
     // du document nécessaire à addLotToUser/setDocument : on le retrouve ici.
-    final lot = await FirestoreLotRepository()
+    final lot = await ref
+        .read(lotRepositoryProvider)
         .getUniqueLot(_residence!.id, _batiment, _numLot)
         .then((result) =>
             result.when(success: (v) => v, failure: (_) => null));
@@ -114,7 +118,8 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
       return;
     }
 
-    await FirestoreUserRepository()
+    await ref
+        .read(userRepositoryProvider)
         .addLotToUser(
           userId: widget.uid,
           lotId: lot!.id!,
@@ -141,7 +146,7 @@ class _AttachExistingLotPageState extends State<AttachExistingLotPage> {
       field: FieldValue.arrayUnion([widget.uid]),
     });
 
-    final docsRepository = FirestoreDocsRepository();
+    final docsRepository = ref.read(docsRepositoryProvider);
 
     if (docTypeJustif.isNotEmpty && justifPath.isNotEmpty) {
       await docsRepository.setDocument(

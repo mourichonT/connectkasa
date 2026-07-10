@@ -1,8 +1,9 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_doc_controller.dart';
+import 'package:connect_kasa/core/providers/current_user_provider.dart';
+import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
+import 'package:connect_kasa/core/repositories/storage_repository.dart';
 import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
@@ -12,9 +13,10 @@ import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu_cb.dar
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:connect_kasa/vues/widget_view/components/import_docs.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
-class AddDocsForm extends StatefulWidget {
+class AddDocsForm extends ConsumerStatefulWidget {
   final Lot lotSelected;
   final String uid;
   final bool isDocCopro;
@@ -26,13 +28,14 @@ class AddDocsForm extends StatefulWidget {
       required this.isDocCopro});
 
   @override
-  State<StatefulWidget> createState() => AddDocsFormState();
+  ConsumerState<AddDocsForm> createState() => AddDocsFormState();
 }
 
-class AddDocsFormState extends State<AddDocsForm> {
+class AddDocsFormState extends ConsumerState<AddDocsForm> {
   double fontSize = 12;
   final TypeList _CatList = TypeList();
-  final IUserRepository _userRepository = FirestoreUserRepository();
+  late final IUserRepository _userRepository;
+  late final IStorageRepository _storageRepository;
 
   late TextEditingController textEditingController;
   TextEditingController docName = TextEditingController();
@@ -51,6 +54,8 @@ class AddDocsFormState extends State<AddDocsForm> {
   @override
   void initState() {
     super.initState();
+    _userRepository = ref.read(userRepositoryProvider);
+    _storageRepository = ref.read(storageRepositoryProvider);
     fetchDestinataires();
     docName.addListener(() => setState(() {}));
   }
@@ -70,7 +75,7 @@ class AddDocsFormState extends State<AddDocsForm> {
     try {
       if (!widget.isDocCopro) {
         // Supposons que tu utilises le service de stockage Firebase pour supprimer le fichier
-        await FirestoreStorageRepository().removeFile(
+        await _storageRepository.removeFile(
           "user", // Remplace par le bon dossier/racine si nécessaire
           widget.uid, // L'ID utilisateur ou autre identifiant nécessaire
           "documentsLot", // Le dossier dans lequel le fichier a été téléchargé
@@ -79,7 +84,7 @@ class AddDocsFormState extends State<AddDocsForm> {
         print("Fichier supprimé avec succès : $downloadUrl");
       } else {
         // Supposons que tu utilises le service de stockage Firebase pour supprimer le fichier
-        await FirestoreStorageRepository().removeFile(
+        await _storageRepository.removeFile(
           "residences",
           widget.lotSelected.residenceId, // on passe une liste avec un seul nom
           "documents_copro",
@@ -303,7 +308,7 @@ class AddDocsFormState extends State<AddDocsForm> {
         category: type,
         docPath: imagePath,
         uid: destinatairesReal,
-        refLot: widget.lotSelected.refLot,
+        lotId: widget.lotSelected.id!,
       );
     }
 
