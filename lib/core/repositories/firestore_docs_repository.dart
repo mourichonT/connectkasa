@@ -119,7 +119,7 @@ class FirestoreDocsRepository implements IDocsRepository {
 
   @override
   Future<Result<List<Map<String, dynamic>>>> getDocByUser(
-      String uid, String refLot) async {
+      String uid, String lotId) async {
     List<Map<String, dynamic>> docs = [];
 
     try {
@@ -127,7 +127,7 @@ class FirestoreDocsRepository implements IDocsRepository {
           .collection("User")
           .doc(uid)
           .collection("lots")
-          .doc(refLot)
+          .doc(lotId)
           .collection("documents");
 
       QuerySnapshot docQuerySnapshot = await documentsRef.get();
@@ -150,7 +150,7 @@ class FirestoreDocsRepository implements IDocsRepository {
   @override
   Future<Result<void>> deleteDocument({
     String? userId,
-    List<List<String>>? userIdsMatrix,
+    List<String>? recipientUids,
     required String? lotId,
     required String documentId,
     required String? residenceId,
@@ -174,19 +174,21 @@ class FirestoreDocsRepository implements IDocsRepository {
             .doc(documentId)
             .delete();
       } else if (lotId != null) {
-        if (userIdsMatrix != null && userIdsMatrix.isNotEmpty) {
-          // Cas plusieurs groupes de users
-          for (var userList in userIdsMatrix) {
-            for (String uid in userList) {
-              await _firestore
-                  .collection("User")
-                  .doc(uid)
-                  .collection("lots")
-                  .doc(lotId)
-                  .collection("documents")
-                  .doc(documentId)
-                  .delete();
-            }
+        if (recipientUids != null && recipientUids.isNotEmpty) {
+          // Cas document déposé chez plusieurs destinataires (documents
+          // individuels) : ne nettoie que les vrais destinataires
+          // enregistrés sur le document (DocumentModel.destinataire), pas
+          // tous les membres actuels du lot - certains peuvent avoir été
+          // révoqués depuis, ou n'avoir jamais reçu ce document précis.
+          for (String uid in recipientUids) {
+            await _firestore
+                .collection("User")
+                .doc(uid)
+                .collection("lots")
+                .doc(lotId)
+                .collection("documents")
+                .doc(documentId)
+                .delete();
           }
         } else if (userId != null) {
           // Cas classique avec un seul user

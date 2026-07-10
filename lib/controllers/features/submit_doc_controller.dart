@@ -34,7 +34,7 @@ class SubmitDocController {
 
   static Future<void> submitFormIndividuel({
     required List<String> uid,
-    required String refLot,
+    required String lotId,
     required String residenceId,
     required String docExtension,
     required String docName,
@@ -48,17 +48,37 @@ class SubmitDocController {
       "extension": docExtension,
       "documentPathRecto": docPath,
       "timeStamp": Timestamp.now(),
+      // Liste des vrais destinataires (lue par deleteDocument() pour ne
+      // nettoyer que les copies réellement déposées, pas tous les membres
+      // actuels du lot - certains peuvent avoir été révoqués depuis, ou
+      // n'avoir jamais reçu ce document précis).
+      "destinataire": uid,
     };
 
     try {
+      // Même ID de document chez chaque destinataire (généré une seule
+      // fois, puis .set() au lieu de .add() par destinataire) : nécessaire
+      // pour que deleteDocument() (my_docs.dart), qui supprime "ce
+      // documentId" chez tous les destinataires d'un coup, cible bien le
+      // même document partout au lieu d'IDs auto-générés indépendamment.
+      final documentId = FirebaseFirestore.instance
+          .collection("User")
+          .doc(uid.first)
+          .collection("lots")
+          .doc(lotId)
+          .collection("documents")
+          .doc()
+          .id;
+
       for (String userId in uid) {
         await FirebaseFirestore.instance
             .collection("User")
             .doc(userId)
             .collection("lots")
-            .doc(refLot)
+            .doc(lotId)
             .collection("documents")
-            .add(data);
+            .doc(documentId)
+            .set(data);
       }
 
       print("✅ Document ajouté avec succès pour tous les destinataires !");

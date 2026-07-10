@@ -21,11 +21,11 @@ abstract interface class IDocsRepository {
       String residenceId);
 
   Future<Result<List<Map<String, dynamic>>>> getDocByUser(
-      String uid, String refLot);
+      String uid, String lotId);
 
   Future<Result<void>> deleteDocument({
     String? userId,
-    List<List<String>>? userIdsMatrix,
+    List<String>? recipientUids,
     required String? lotId,
     required String documentId,
     required String? residenceId,

@@ -89,8 +89,16 @@ service cloud.firestore {
         match /documents/{docId} {
           allow read: if isOwner(uid) || isSharedTenantDoc(uid) ||
             isCsMember(get(/databases/$(database)/documents/User/$(uid)/lots/$(lotId)).data.residenceId);
+          // isLotOwner résout residenceId depuis le lot du PROPRIÉTAIRE
+          // AGISSANT (request.auth.uid), pas celui du destinataire {uid} :
+          // un propriétaire doit pouvoir nettoyer la copie d'un locataire
+          // depuis révoqué (User/{uid}/lots/{lotId} déjà supprimé par la
+          // révocation - cf _removeIdLocataireInternal), donc on ne peut
+          // pas dépendre d'un document qui n'existe plus forcément côté
+          // destinataire. Le propriétaire, lui, a toujours son propre
+          // User/{request.auth.uid}/lots/{lotId} tant qu'il possède ce lot.
           allow write: if isOwner(uid) ||
-            isLotOwner(get(/databases/$(database)/documents/User/$(uid)/lots/$(lotId)).data.residenceId, lotId) ||
+            isLotOwner(get(/databases/$(database)/documents/User/$(request.auth.uid)/lots/$(lotId)).data.residenceId, lotId) ||
             isCsMember(get(/databases/$(database)/documents/User/$(uid)/lots/$(lotId)).data.residenceId);
         }
       }

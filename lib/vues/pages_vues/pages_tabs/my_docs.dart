@@ -54,7 +54,7 @@ class MydocsPageViewState extends State<MydocsPageView>
 
   Future<List<Map<String, dynamic>>> _fetchDocsLot() {
     return docsRepository
-        .getDocByUser(widget.uid, widget.lotSelected.refLot)
+        .getDocByUser(widget.uid, widget.lotSelected.id!)
         .then((result) =>
             result.when(success: (docs) => docs, failure: (error) => throw error));
   }
@@ -234,16 +234,33 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                 await _storageServices
                                                     .removeFileFromUrl(
                                                         doc.documentPathRecto);
-                                                await docsRepository
-                                                    .deleteDocument(
+                                                final result =
+                                                    await docsRepository
+                                                        .deleteDocument(
                                                   lotId:
-                                                    widget.lotSelected.refLot,
+                                                      widget.lotSelected.id,
                                                   documentId: docId,
                                                   residenceId: widget
                                                       .lotSelected.residenceId,
                                                   documentType: doc.extension ??
                                                       'unknown',
                                                   isCopro: true,
+                                                );
+                                                if (!mounted) return;
+                                                result.when(
+                                                  success: (_) {},
+                                                  failure: (error) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      SnackBar(
+                                                        backgroundColor:
+                                                            Colors.red,
+                                                        content: Text(
+                                                            'Erreur lors de la suppression : $error'),
+                                                      ),
+                                                    );
+                                                  },
                                                 );
                                                 if (mounted) {
                                                   setState(() {
@@ -433,16 +450,26 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                 await _storageServices
                                                     .removeFileFromUrl(docPerso
                                                         .documentPathRecto);
-                                                await docsRepository
-                                                    .deleteDocument(
-                                                  userIdsMatrix: [
-                                                    widget.lotSelected
-                                                        .idLocataire!,
-                                                    widget.lotSelected
-                                                        .idProprietaire!
-                                                  ],
+                                                // Documents déposés avant
+                                                // l'ajout du champ
+                                                // destinataire : on ne
+                                                // connaît que sa propre
+                                                // copie, faute de mieux.
+                                                final recipients =
+                                                    (docPerso.destinataire !=
+                                                                null &&
+                                                            docPerso
+                                                                .destinataire!
+                                                                .isNotEmpty)
+                                                        ? docPerso
+                                                            .destinataire!
+                                                        : [widget.uid];
+                                                final result =
+                                                    await docsRepository
+                                                        .deleteDocument(
+                                                  recipientUids: recipients,
                                                   lotId:
-                                                    widget.lotSelected.refLot,
+                                                      widget.lotSelected.id,
                                                   documentId: docId,
                                                   residenceId: widget
                                                       .lotSelected.residenceId,
@@ -450,6 +477,22 @@ class MydocsPageViewState extends State<MydocsPageView>
                                                       docPerso.extension ??
                                                           'unknown',
                                                   isCopro: false,
+                                                );
+                                                if (!mounted) return;
+                                                result.when(
+                                                  success: (_) {},
+                                                  failure: (error) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      SnackBar(
+                                                        backgroundColor:
+                                                            Colors.red,
+                                                        content: Text(
+                                                            'Erreur lors de la suppression : $error'),
+                                                      ),
+                                                    );
+                                                  },
                                                 );
                                                 if (mounted) {
                                                   setState(() {
