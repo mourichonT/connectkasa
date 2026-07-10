@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
 import 'package:connect_kasa/models/pages_models/former_tenant.dart';
 import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
@@ -69,10 +70,18 @@ class Lot {
       idLocataire: json["idLocataire"] != null && json["idLocataire"] is List
           ? List<String>.from(json["idLocataire"])
           : [],
+      // idLocataireOld est encodé par toJson() ci-dessous en JSON pur
+      // (leftAt en millisecondsSinceEpoch, pas un Timestamp Firestore) :
+      // fromJson() lit donc ce format-là, pas celui de fromMap() (lecture
+      // directe Firestore, Timestamp natif).
       idLocataireOld:
           json["idLocataireOld"] != null && json["idLocataireOld"] is List
               ? (json["idLocataireOld"] as List)
-                  .map((e) => FormerTenant.fromMap(Map<String, dynamic>.from(e)))
+                  .map((e) => FormerTenant(
+                        uid: e['uid'] ?? '',
+                        leftAt: Timestamp.fromMillisecondsSinceEpoch(
+                            e['leftAt'] ?? 0),
+                      ))
                   .toList()
               : [],
       residenceId: json["residenceId"] ?? "",
@@ -102,7 +111,16 @@ class Lot {
       "type": type,
       "idProprietaire": idProprietaire,
       "idLocataire": idLocataire,
-      "idLocataireOld": idLocataireOld.map((e) => e.toMap()).toList(),
+      // Format JSON pur (leftAt en millisecondsSinceEpoch), pas
+      // FormerTenant.toMap() (Timestamp Firestore natif, non encodable par
+      // jsonEncode - cause de "JsonUnsupportedObjectError: Instance of
+      // 'Timestamp'" dans lot_bottom_sheet.dart avant ce correctif).
+      "idLocataireOld": idLocataireOld
+          .map((e) => {
+                'uid': e.uid,
+                'leftAt': e.leftAt.millisecondsSinceEpoch,
+              })
+          .toList(),
       "residenceId": residenceId,
       "residenceData": residenceData,
       'userLotDetails': userLotDetails,
