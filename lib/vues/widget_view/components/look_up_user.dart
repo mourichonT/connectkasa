@@ -5,9 +5,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/user.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_text_fied.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 
 class LookUpUser {
   static Future<String?> searchUserForm(
@@ -18,7 +16,8 @@ class LookUpUser {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: MyTextStyle.lotName("Destinataire", Colors.black87),
+          title: MyTextStyle.lotName(
+              "Destinataire", Colors.black87, SizeFont.h2.size),
           content: MyTextField(
               hintText: "Mail ou N° utilisateur",
               osbcureText: false,
@@ -30,7 +29,9 @@ class LookUpUser {
               onPressed: () {
                 Navigator.of(context).pop(null); // L'utilisateur annule
               },
-              child: Text('Annuler'),
+              child: MyTextStyle.lotName(
+                  "Annuler", Colors.black54, SizeFont.h3.size,
+                  FontWeight.normal),
             ),
             TextButton(
               onPressed: () async {
@@ -52,31 +53,47 @@ class LookUpUser {
 
                 if (user != null) {
                   // L'utilisateur existe -> partage du fichier
-                  await FirestoreUserRepository()
-                      .shareFile(demande, user.uid)
-                      .then((result) => result.when(
-                          success: (_) {}, failure: (_) {}));
-                  Navigator.of(context).pop(input); // Fermer avec succès
-                  print('DemandeLoc envoyée avec succès !');
+                  final result = await FirestoreUserRepository()
+                      .shareFile(demande, user.uid);
+                  if (!context.mounted) return;
+                  result.when(
+                    success: (_) {
+                      Navigator.of(context).pop(input); // Fermer avec succès
+                    },
+                    failure: (error) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Erreur lors de l\'envoi : $error'),
+                        ),
+                      );
+                    },
+                  );
                 } else {
                   // Aucun utilisateur trouvé
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: Text('Erreur'),
-                      content: Text(
-                          "Aucun utilisateur trouvé avec ces informations."),
+                      title: MyTextStyle.lotName(
+                          "Erreur", Colors.red[800]!, SizeFont.h2.size),
+                      content: MyTextStyle.annonceDesc(
+                          "Aucun utilisateur trouvé avec ces informations.",
+                          SizeFont.h3.size,
+                          3),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: Text('OK'),
+                          child: MyTextStyle.lotName(
+                              "OK", Colors.black87, SizeFont.h3.size,
+                              FontWeight.normal),
                         )
                       ],
                     ),
                   );
                 }
               },
-              child: Text('Valider'),
+              child: MyTextStyle.lotName(
+                  "Valider", Colors.black87, SizeFont.h3.size,
+                  FontWeight.normal),
             ),
           ],
         );
@@ -108,7 +125,9 @@ class LookUpUser {
               onPressed: () {
                 Navigator.of(context).pop(null); // L'utilisateur annule
               },
-              child: Text('Annuler'),
+              child: MyTextStyle.lotName(
+                  "Annuler", Colors.black54, SizeFont.h3.size,
+                  FontWeight.normal),
             ),
             TextButton(
               onPressed: () async {
@@ -129,55 +148,72 @@ class LookUpUser {
                         success: (v) => v, failure: (_) => null));
 
                 if (user != null) {
-                  // L'utilisateur existe -> partage du fichier
-                  // await DataBasesUserServices.shareFile(
-                  //     demande, user.uid); // ou autre clé selon ton modèle User
-
-                  await FirestoreResidenceRepository()
+                  // L'utilisateur existe -> ajout au conseil syndical
+                  final result = await FirestoreResidenceRepository()
                       .addCsMember(residenceId, user.uid);
-                  onUserAdded(user);
-                  Navigator.of(context).pop(input); // Fermer avec succès
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: MyTextStyle.lotName('Ajouté!',
-                          Theme.of(context).primaryColor, SizeFont.h1.size),
-                      content: MyTextStyle.postDesc(
-                        '${user.name} ${user.surname} a été ajouté avec succès !',
-                        SizeFont.h3.size,
-                        Colors.black54,
-                        fontweight: FontWeight.normal,
-                        textAlign: TextAlign.justify,
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text('OK'),
-                        )
-                      ],
-                    ),
+                  if (!context.mounted) return;
+                  result.when(
+                    success: (_) {
+                      onUserAdded(user);
+                      Navigator.of(context).pop(input); // Fermer avec succès
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: MyTextStyle.lotName('Ajouté!',
+                              Theme.of(context).primaryColor,
+                              SizeFont.h1.size),
+                          content: MyTextStyle.postDesc(
+                            '${user.name} ${user.surname} a été ajouté avec succès !',
+                            SizeFont.h3.size,
+                            Colors.black54,
+                            fontweight: FontWeight.normal,
+                            textAlign: TextAlign.justify,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: MyTextStyle.lotName(
+                                  "OK", Colors.black87, SizeFont.h3.size,
+                                  FontWeight.normal),
+                            )
+                          ],
+                        ),
+                      );
+                    },
+                    failure: (error) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Erreur lors de l\'ajout : $error'),
+                        ),
+                      );
+                    },
                   );
-                  print(
-                      '${user.name} ${user.surname} a été ajouté avec succès !');
                 } else {
                   // Aucun utilisateur trouvé
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
-                      title: MyTextStyle.lotName('Erreur', Colors.red[800]!),
-                      content: Text(
-                          "Aucun utilisateur trouvé avec ces informations."),
+                      title: MyTextStyle.lotName(
+                          "Erreur", Colors.red[800]!, SizeFont.h2.size),
+                      content: MyTextStyle.annonceDesc(
+                          "Aucun utilisateur trouvé avec ces informations.",
+                          SizeFont.h3.size,
+                          3),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: Text('OK'),
+                          child: MyTextStyle.lotName(
+                              "OK", Colors.black87, SizeFont.h3.size,
+                              FontWeight.normal),
                         )
                       ],
                     ),
                   );
                 }
               },
-              child: Text('Valider'),
+              child: MyTextStyle.lotName(
+                  "Valider", Colors.black87, SizeFont.h3.size,
+                  FontWeight.normal),
             ),
           ],
         );

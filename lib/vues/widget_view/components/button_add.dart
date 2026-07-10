@@ -43,6 +43,7 @@ class ButtonAdd extends StatelessWidget {
         child: icon != null
             ? Row(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     icon,
