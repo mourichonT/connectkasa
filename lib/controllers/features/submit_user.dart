@@ -82,7 +82,8 @@ class SubmitUser {
             statutResident,
             informationsCorrectes,
             fcmToken)
-        .then((result) => result.when(success: (_) {}, failure: (_) {}));
+        .then((result) => result.when(
+            success: (_) {}, failure: (error) => throw error));
 
     // Document pièce d'identité
     if (imagepathIDrecto != null && imagepathIDverso != null) {

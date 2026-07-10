@@ -84,6 +84,7 @@ class _Step4State extends State<Step4> {
   String justifChoice = "";
   String idChoice = "";
   bool _isChecked = false;
+  bool _isSubmitting = false;
   String? fmcToken = "";
 
   final List<String> idType = TypeList.idTypes;
@@ -211,35 +212,50 @@ class _Step4State extends State<Step4> {
                           : 0.5, // opacité réduite si désactivé
                     ),
               ),
-              onPressed: (visibleJustif && _isChecked)
-                  ? () {
+              onPressed: (visibleJustif && _isChecked && !_isSubmitting)
+                  ? () async {
                       widget.recupererInformationsStep4(true);
-                      SubmitUser.submitUser(
-                        privacyPolicy: _isChecked,
-                        emailUser: widget.emailUser,
-                        name: widget.name,
-                        surname: widget.surname,
-                        sex: widget.sex,
-                        nationality: widget.nationality,
-                        placeOfborn: widget.placeOfBorn,
-                        pseudo: widget.pseudo,
-                        newUserId: widget.userId,
-                        statutResident: widget.residentType,
-                        typeChoice: widget.typeLot,
-                        intendedFor: widget.intendedFor,
-                        compagnyBuy: widget.compagnyBuy,
-                        kbisPath: widget.kbisPath,
-                        residence: widget.residence,
-                        lotId: widget.refLot,
-                        docTypeID: widget.docTypeId,
-                        docTypeJustif: justifChoice,
-                        imagepathIDrecto: widget.imagepathIDrecto,
-                        imagepathIDverso: widget.imagepathIDverso,
-                        imagepathJustif: imagePathJustif,
-                        birthday: widget.birthday,
-                        informationsCorrectes: widget.informationsCorrectes,
-                        fcmToken: fmcToken,
-                      );
+                      setState(() => _isSubmitting = true);
+                      try {
+                        await SubmitUser.submitUser(
+                          privacyPolicy: _isChecked,
+                          emailUser: widget.emailUser,
+                          name: widget.name,
+                          surname: widget.surname,
+                          sex: widget.sex,
+                          nationality: widget.nationality,
+                          placeOfborn: widget.placeOfBorn,
+                          pseudo: widget.pseudo,
+                          newUserId: widget.userId,
+                          statutResident: widget.residentType,
+                          typeChoice: widget.typeLot,
+                          intendedFor: widget.intendedFor,
+                          compagnyBuy: widget.compagnyBuy,
+                          kbisPath: widget.kbisPath,
+                          residence: widget.residence,
+                          lotId: widget.refLot,
+                          docTypeID: widget.docTypeId,
+                          docTypeJustif: justifChoice,
+                          imagepathIDrecto: widget.imagepathIDrecto,
+                          imagepathIDverso: widget.imagepathIDverso,
+                          imagepathJustif: imagePathJustif,
+                          birthday: widget.birthday,
+                          informationsCorrectes: widget.informationsCorrectes,
+                          fcmToken: fmcToken,
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        setState(() => _isSubmitting = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Colors.red,
+                            content: Text(
+                                'Erreur lors de la création du compte : $e'),
+                          ),
+                        );
+                        return;
+                      }
+                      if (!context.mounted) return;
                       widget.cancelDeletionTimer();
                       showDialog(
                         context: context,
