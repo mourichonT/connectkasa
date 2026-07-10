@@ -392,7 +392,10 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
             ),
           ),
         ),
-        value: selectedStatut,
+        // Défense contre une valeur absente de la liste (lot sans statut
+        // renseigné, ex. donnée de test) : DropdownButtonFormField plante
+        // si value ne correspond à aucun item plutôt que de l'ignorer.
+        value: statuts.contains(selectedStatut) ? selectedStatut : null,
         items: statuts.map((statut) {
           return DropdownMenuItem(
             value: statut, // Assurez-vous que chaque valeur est unique
