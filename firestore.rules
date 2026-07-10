@@ -142,10 +142,12 @@ service cloud.firestore {
         allow create, delete: if isCsMember(residenceId);
         // Le propriétaire du lot peut ajouter/retirer des locataires
         // (addTenant / removeIdLocataire) sans être CS member, mais
-        // uniquement sur le champ idLocataire.
+        // uniquement sur idLocataire (+ idLocataireOld, l'historique des
+        // locataires révoqués, écrit dans la même requête).
         allow update: if isCsMember(residenceId) ||
           (isSignedIn() && request.auth.uid in resource.data.idProprietaire &&
-           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['idLocataire']));
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['idLocataire', 'idLocataireOld']));
       }
 
       match /post/{postId} {

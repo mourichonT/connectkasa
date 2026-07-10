@@ -381,6 +381,81 @@ def sync_gerance_contacts(event: firestore_fn.Event) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Lot : synchronisation des données locataire dénormalisées sur User/{uid}
+# après ajout/révocation (addTenant / tenant_detail.dart "Revoquer")
+# ---------------------------------------------------------------------------
+# firestore.rules n'autorise un propriétaire de lot (non membre du CS) qu'à
+# modifier idLocataire/idLocataireOld sur Residence/{id}/lot/{lotId} - jamais
+# à écrire directement sur User/{uid} d'un tiers. Ce déclencheur, exécuté
+# côté serveur avec les privilèges Admin (bypass firestore.rules), fait le
+# nettoyage/la mise à jour dénormalisée qui échouait silencieusement
+# (PermissionDeniedException) côté client, aussi bien dans
+# FirestoreLotRepository._removeIdLocataireInternal (retrait) que dans
+# _applyTenantChange (ajout) - même trou de permission dans les deux sens.
+
+def _recompute_tenant_denormalization(db, uid, lot_id_just_removed=None):
+    """Reconstruit User/{uid}.residencesIds et .sharedWithLandlords à partir
+    de User/{uid}/lots, comme _recomputeResidencesIds/
+    _recomputeSharedWithLandlords côté Dart. lot_id_just_removed, si fourni,
+    est supprimé de User/{uid}/lots avant reconstruction (retrait)."""
+    user_ref = db.collection("User").document(uid)
+
+    if lot_id_just_removed is not None:
+        user_ref.collection("lots").document(lot_id_just_removed).delete()
+
+    remaining_lots = list(user_ref.collection("lots").stream())
+
+    residence_ids = sorted({
+        lot.get("residenceId") for lot in remaining_lots
+        if lot.get("residenceId")
+    })
+    user_ref.set({"residencesIds": residence_ids}, merge=True)
+
+    landlord_uids = set()
+    for remaining_lot in remaining_lots:
+        residence_id = remaining_lot.get("residenceId")
+        if not residence_id:
+            continue
+        remote_lot = db.collection("Residence").document(residence_id) \
+            .collection("lot").document(remaining_lot.id).get()
+        if remote_lot.exists and uid in (remote_lot.get("idLocataire") or []):
+            landlord_uids.update(remote_lot.get("idProprietaire") or [])
+    user_ref.set({"sharedWithLandlords": sorted(landlord_uids)}, merge=True)
+
+
+@firestore_fn.on_document_written(document="Residence/{residenceId}/lot/{lotId}")
+def sync_lot_tenants(event: firestore_fn.Event) -> None:
+    before = event.data.before
+    after = event.data.after
+
+    before_tenants = set((before.get("idLocataire") or []) if before and before.exists else [])
+    after_tenants = set((after.get("idLocataire") or []) if after and after.exists else [])
+
+    removed_tenants = before_tenants - after_tenants
+    added_tenants = after_tenants - before_tenants
+    if not removed_tenants and not added_tenants:
+        return
+
+    db = firestore.client()
+    residence_id = event.params["residenceId"]
+    lot_id = event.params["lotId"]
+
+    for uid in removed_tenants:
+        _recompute_tenant_denormalization(db, uid, lot_id_just_removed=lot_id)
+
+    for uid in added_tenants:
+        # S'assure d'abord que User/{uid}/lots/{lotId} existe (comme
+        # addLotToUser côté Dart, qui échoue silencieusement pour le même
+        # motif de permission quand ce n'est pas le locataire lui-même qui
+        # l'appelle) : sans ce doc, le recalcul ci-dessous ne verrait pas ce
+        # lot et laisserait residencesIds/sharedWithLandlords incomplets.
+        db.collection("User").document(uid).collection("lots").document(lot_id).set({
+            "residenceId": residence_id,
+        }, merge=True)
+        _recompute_tenant_denormalization(db, uid)
+
+
+# ---------------------------------------------------------------------------
 # ENVOI - fallback, via requête HTTP
 # Body JSON attendu : {"to": "...", "subject": "...", "body": "...", "html": "..."}
 # ---------------------------------------------------------------------------

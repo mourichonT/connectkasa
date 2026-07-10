@@ -68,6 +68,41 @@ class TenantDetail extends ConsumerWidget {
                     );
                     return;
                   }
+
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: MyTextStyle.lotName(
+                          "Confirmer la révocation",
+                          Colors.black87,
+                          SizeFont.h2.size),
+                      content: MyTextStyle.annonceDesc(
+                          "Vous êtes sur le point de révoquer ${tenant.name} ${tenant.surname}, êtes-vous sûr de confirmer ? Cette action est définitive, le locataire n'aura plus accès à la résidence.",
+                          SizeFont.h3.size,
+                          5),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: MyTextStyle.lotName(
+                              "Annuler",
+                              Colors.black54,
+                              SizeFont.h3.size,
+                              FontWeight.normal),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: MyTextStyle.lotName(
+                              "Révoquer",
+                              Colors.red[800]!,
+                              SizeFont.h3.size,
+                              FontWeight.normal),
+                        ),
+                      ],
+                    ),
+                  );
+                  if (confirmed != true) return;
+                  if (!context.mounted) return;
+
                   final result = await ref
                       .read(lotRepositoryProvider)
                       .removeIdLocataire(residenceId!, lotId!, tenant.uid);

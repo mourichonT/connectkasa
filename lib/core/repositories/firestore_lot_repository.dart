@@ -388,6 +388,14 @@ class FirestoreLotRepository implements ILotRepository {
       final idLocataires = List.from(lotData['idLocataire'] ?? []);
       if (idLocataires.contains(idLocataireToRemove)) {
         idLocataires.remove(idLocataireToRemove);
+        // Seuls idLocataire/idLocataireOld sont modifiables ici par un
+        // simple propriétaire (non CS member) - cf. firestore.rules. Le
+        // nettoyage côté locataire (sa référence à ce lot dans
+        // User/{uid}/lots, residencesIds, sharedWithLandlords) est fait
+        // côté serveur par la Cloud Function sync_lot_tenant_removal
+        // (functions_python/main.py), déclenchée par cette écriture : un
+        // propriétaire n'a pas le droit d'écrire directement sur le
+        // document User d'un tiers.
         await lotRef.update({
           'idLocataire': idLocataires,
           // Historique (onglet "Historique" de ManagementTenant) : une
@@ -397,22 +405,6 @@ class FirestoreLotRepository implements ILotRepository {
           ]),
         });
       }
-
-      // Nettoyage côté locataire retiré : sa référence à CE lot précis
-      // (pas les autres, qu'il conserve), puis residencesIds recalculé à
-      // partir de ce qu'il lui reste - sinon il garderait un accès
-      // résiduel à cette résidence via la dénormalisation firestore.rules.
-      await _firestore
-          .collection("User")
-          .doc(idLocataireToRemove)
-          .collection("lots")
-          .doc(idLot)
-          .delete();
-      await _recomputeResidencesIds(idLocataireToRemove);
-
-      // Dénormalisé pour firestore.rules : ce locataire n'a peut-être plus
-      // aucun lot commun avec le(s) propriétaire(s) de celui-ci.
-      await _recomputeSharedWithLandlords(idLocataireToRemove);
     }
   }
 
