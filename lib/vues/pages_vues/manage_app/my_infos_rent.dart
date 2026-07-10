@@ -2,29 +2,31 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/job_entry.dart';
 import 'package:connect_kasa/controllers/features/justif_document.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
+import 'package:connect_kasa/core/providers/current_user_provider.dart';
+import 'package:connect_kasa/core/providers/docs_providers.dart';
+import 'package:connect_kasa/core/providers/docs_repository_provider.dart';
+import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
+import 'package:connect_kasa/core/repositories/docs_repository.dart';
+import 'package:connect_kasa/core/repositories/storage_repository.dart';
 import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/controllers/features/income_entry.dart';
 import 'package:connect_kasa/models/enum/icons_extension.dart';
 import 'package:connect_kasa/models/enum/tenant_list.dart';
 import 'package:connect_kasa/models/pages_models/demande_loc.dart';
 import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
 import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/import_docs.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:connect_kasa/vues/widget_view/components/share_rent_folder.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class MyInfosRent extends StatefulWidget {
+class MyInfosRent extends ConsumerStatefulWidget {
   final String uid;
   final Color color;
 
@@ -35,13 +37,13 @@ class MyInfosRent extends StatefulWidget {
   });
 
   @override
-  State<MyInfosRent> createState() => _MyInfosRentState();
+  ConsumerState<MyInfosRent> createState() => _MyInfosRentState();
 }
 
-class _MyInfosRentState extends State<MyInfosRent> {
-  final IUserRepository _userServices = FirestoreUserRepository();
-  final FirestoreDocsRepository docsRepository = FirestoreDocsRepository();
-  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
+class _MyInfosRentState extends ConsumerState<MyInfosRent> {
+  late final IUserRepository _userServices;
+  late final IDocsRepository docsRepository;
+  late final IStorageRepository _storageServices;
   UserInfo? tenantUser;
   bool isLoading = true;
   List<IncomeEntry> incomeEntries = [];
@@ -52,7 +54,6 @@ class _MyInfosRentState extends State<MyInfosRent> {
   // fonctionne car JobEntry est mutable (mutation en place, pas de
   // remplacement de l'objet à chaque modification).
   final Set<JobEntry> _expandedJobs = {};
-  Future<List<Map<String, dynamic>>>? _documentsFuture;
   String fileExtension = "";
   String docUrl = "";
   String contactType = "";
@@ -64,8 +65,10 @@ class _MyInfosRentState extends State<MyInfosRent> {
   @override
   void initState() {
     super.initState();
+    _userServices = ref.read(userRepositoryProvider);
+    docsRepository = ref.read(docsRepositoryProvider);
+    _storageServices = ref.read(storageRepositoryProvider);
     fetchTenantUser();
-    _documentsFuture = fetchDocuments();
   }
 
   Future<void> fetchTenantUser() async {
@@ -222,66 +225,7 @@ class _MyInfosRentState extends State<MyInfosRent> {
             ),
             const SizedBox(height: 30),
 
-            FutureBuilder<List<Map<String, dynamic>>>(
-              future: _documentsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Erreur : ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('Aucun document trouvé.'));
-                } else {
-                  final documentList = snapshot.data!;
-                  return ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: documentList.length,
-                    separatorBuilder: (context, index) => const Divider(),
-                    itemBuilder: (context, index) {
-                      final docMap = documentList[index];
-                      final String docId = docMap['id'];
-                      final DocumentModel doc = docMap['document'];
-
-                      IconsExtension? fileType = getFileType(doc.extension);
-
-                      return ListTile(
-                        leading: fileType != null
-                            ? fileType.icon
-                            : Image.asset('images/icon_extension/default.png'),
-                        title: Text(doc.type ?? ""),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.download_rounded),
-                              onPressed: () async {
-                                final url = Uri.parse(doc.documentPathRecto);
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(url);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          "Impossible de télécharger le document"),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                            IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () => _removeDoc(
-                                    doc.documentPathRecto, widget.uid, docId)),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                }
-              },
-            ),
+            _buildDocumentsSection(),
 
             Column(
               children: [
@@ -333,8 +277,9 @@ class _MyInfosRentState extends State<MyInfosRent> {
                               setState(() {
                                 doc.fileUrl = downloadUrl;
                                 doc.isUploaded = true; // ✅ Masquer le bloc
-                                _documentsFuture = fetchDocuments();
                               });
+                              ref.invalidate(
+                                  tenantDocumentsProvider(widget.uid));
                             }
                           },
                         ),
@@ -443,9 +388,7 @@ class _MyInfosRentState extends State<MyInfosRent> {
         const SnackBar(content: Text("Erreur lors de la mise à jour")),
       );
     }
-    setState(() {
-      _documentsFuture = fetchDocuments();
-    });
+    ref.invalidate(tenantDocumentsProvider(widget.uid));
   }
 
   Timestamp? _parseDate(String dateStr) {
@@ -571,19 +514,64 @@ class _MyInfosRentState extends State<MyInfosRent> {
     }).toList();
   }
 
-  Future<List<Map<String, dynamic>>> fetchDocuments() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('User')
-        .doc(widget.uid)
-        .collection('documents')
-        .get();
+  Widget _buildDocumentsSection() {
+    final documentsAsync = ref.watch(tenantDocumentsProvider(widget.uid));
 
-    return snapshot.docs.map((doc) {
-      return {
-        'id': doc.id,
-        'document': DocumentModel.fromJson(doc.data()),
-      };
-    }).toList();
+    return documentsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, stackTrace) => Center(child: Text('Erreur : $error')),
+      data: (documentList) {
+        if (documentList.isEmpty) {
+          return const Center(child: Text('Aucun document trouvé.'));
+        }
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: documentList.length,
+          separatorBuilder: (context, index) => const Divider(),
+          itemBuilder: (context, index) {
+            final docMap = documentList[index];
+            final String docId = docMap['id'];
+            final DocumentModel doc = docMap['document'];
+
+            IconsExtension? fileType = getFileType(doc.extension);
+
+            return ListTile(
+              leading: fileType != null
+                  ? fileType.icon
+                  : Image.asset('images/icon_extension/default.png'),
+              title: Text(doc.type ?? ""),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.download_rounded),
+                    onPressed: () async {
+                      final url = Uri.parse(doc.documentPathRecto);
+                      if (await canLaunchUrl(url)) {
+                        await launchUrl(url);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text("Impossible de télécharger le document"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () => _removeDoc(
+                          doc.documentPathRecto, widget.uid, docId)),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void downloadImagePath(String downloadUrl, String extension) {
@@ -641,10 +629,9 @@ class _MyInfosRentState extends State<MyInfosRent> {
       userId: uid,
       documentId: docId, // <- L'ID récupéré depuis Firestore
     );
-    setState(() {
-      _documentsFuture = fetchDocuments();
-    });
+    ref.invalidate(tenantDocumentsProvider(widget.uid));
 
+    if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Document supprimé avec succès")),
     );

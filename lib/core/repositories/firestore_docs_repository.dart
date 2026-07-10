@@ -279,4 +279,27 @@ class FirestoreDocsRepository implements IDocsRepository {
       return Result.failure(AppException.from(e));
     }
   }
+
+  @override
+  Future<Result<List<Map<String, dynamic>>>> fetchTenantDocuments(
+      String uid) async {
+    try {
+      final docSnapshot = await _firestore
+          .collection('User')
+          .doc(uid)
+          .collection('documents')
+          .get();
+
+      final docs = docSnapshot.docs.map((doc) {
+        return {
+          'id': doc.id,
+          'document': DocumentModel.fromJson(doc.data()),
+        };
+      }).toList();
+
+      return Result.success(docs);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
 }

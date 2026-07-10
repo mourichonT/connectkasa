@@ -44,4 +44,6 @@ abstract interface class IDocsRepository {
 
   Future<Result<List<Map<String, dynamic>>>> fetchGarantDocuments(
       String uid, String garantId);
+
+  Future<Result<List<Map<String, dynamic>>>> fetchTenantDocuments(String uid);
 }
