@@ -1,11 +1,13 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
+import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
+import 'package:connect_kasa/core/repositories/lot_repository.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class Step3 extends StatefulWidget {
+class Step3 extends ConsumerStatefulWidget {
   final Residence residence;
   final String typeResident;
   final Function(String, String, String, String) recupererInformationsStep3;
@@ -22,10 +24,11 @@ class Step3 extends StatefulWidget {
   });
 
   @override
-  _Step3State createState() => _Step3State();
+  ConsumerState<Step3> createState() => _Step3State();
 }
 
-class _Step3State extends State<Step3> {
+class _Step3State extends ConsumerState<Step3> {
+  late final ILotRepository _lotRepository;
   bool visible = false;
   late List<Lot?> lotsTrouves;
   late String expressionTypeChoice;
@@ -57,6 +60,7 @@ class _Step3State extends State<Step3> {
   @override
   void initState() {
     super.initState();
+    _lotRepository = ref.read(lotRepositoryProvider);
     expressionTypeChoice =
         widget.typeResident == "Locataire" ? "loué" : "acheté";
     _typeLotFuture = getTypeLot(widget.residence);
@@ -226,7 +230,7 @@ class _Step3State extends State<Step3> {
   }
 
   Future<List<String>> getBatimentLot(Residence residence) async {
-    List<Lot> lotsTrouves = await FirestoreLotRepository()
+    List<Lot> lotsTrouves = await _lotRepository
         .getLotByResidence(residence.id)
         .then((result) =>
             result.when(success: (v) => v, failure: (_) => <Lot>[]));
@@ -245,7 +249,7 @@ class _Step3State extends State<Step3> {
 
   Future<List<String>> getSpecificLot(Residence residence,
       [String? batiment]) async {
-    List<Lot> lotsTrouves = await FirestoreLotRepository()
+    List<Lot> lotsTrouves = await _lotRepository
         .getLotByResidence(residence.id)
         .then((result) =>
             result.when(success: (v) => v, failure: (_) => <Lot>[]));
@@ -263,7 +267,7 @@ class _Step3State extends State<Step3> {
   }
 
   Future<List<String>> getTypeLot(Residence residence) async {
-    List<Lot> lotsTrouves = await FirestoreLotRepository()
+    List<Lot> lotsTrouves = await _lotRepository
         .getLotByResidence(residence.id)
         .then((result) =>
             result.when(success: (v) => v, failure: (_) => <Lot>[]));
@@ -280,8 +284,7 @@ class _Step3State extends State<Step3> {
 
   Future<String?> getlot(String residenceId, String bat, String numlot) async {
     try {
-      FirestoreLotRepository lotServices = FirestoreLotRepository();
-      Lot? specificLot = await lotServices
+      Lot? specificLot = await _lotRepository
           .getUniqueLot(residenceId, bat, numlot)
           .then((result) =>
               result.when(success: (v) => v, failure: (error) => throw error));
