@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class MyInfosRent extends ConsumerStatefulWidget {
   final String uid;
@@ -578,8 +579,8 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
     setState(() {
       docUrl = downloadUrl;
       fileExtension = extension;
-      print("FileEXTESION / $fileExtension");
-      print("docURL / $docUrl");
+      appLog("FileEXTESION / $fileExtension");
+      appLog("docURL / $docUrl");
     });
   }
 

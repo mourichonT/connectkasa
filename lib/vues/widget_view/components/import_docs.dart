@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class ImportDocs extends StatefulWidget {
   final String racineFolder;
@@ -105,7 +106,7 @@ class _ImportDocsState extends State<ImportDocs> {
         widget.onDocumentUploaded(finalDownloadUrl, _fileExtension!);
       }
     } catch (e) {
-      print("Erreur lors de l'upload du document : $e");
+      appLog("Erreur lors de l'upload du document : $e");
     }
   }
 
@@ -129,7 +130,7 @@ class _ImportDocsState extends State<ImportDocs> {
         _fileExtension = null;
       });
     } catch (e) {
-      print("Erreur lors de la suppression du fichier : $e");
+      appLog("Erreur lors de la suppression du fichier : $e");
     }
   }
 

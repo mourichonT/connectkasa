@@ -13,6 +13,7 @@ import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class ManageListLot extends StatefulWidget {
   final Color color;
@@ -65,7 +66,7 @@ class _ManageListLotState extends State<ManageListLot> {
     super.initState();
     _loadLots();
     _loadBuildings();
-    print("ID résidence = ${widget.residence.id}");
+    appLog("ID résidence = ${widget.residence.id}");
   }
 
   Future<void> _loadBuildings() async {
@@ -90,11 +91,11 @@ class _ManageListLotState extends State<ManageListLot> {
               return a.compareTo(b);
             });
 
-          print("Nom des bâtiments : $nameBuildings");
+          appLog("Nom des bâtiments : $nameBuildings");
         });
       }
     } catch (e) {
-      print("Erreur lors du chargement des bâtiments : $e");
+      appLog("Erreur lors du chargement des bâtiments : $e");
     }
   }
 
@@ -445,7 +446,7 @@ class _ManageListLotState extends State<ManageListLot> {
     }
 
     if (duplicateErrors.isNotEmpty) {
-      print("Validation des lots échouée : $duplicateErrors");
+      appLog("Validation des lots échouée : $duplicateErrors");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(duplicateErrors.join('\n')),

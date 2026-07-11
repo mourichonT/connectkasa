@@ -8,6 +8,7 @@ import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/guarantor_detail.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class TenantController extends StatefulWidget {
   final UserInfo tenant;
@@ -50,7 +51,7 @@ class _TenantControllerState extends State<TenantController> {
     _demandesFuture = fetchDemandesLoc();
     if (widget.demandeId != null && widget.demandeId!.isNotEmpty) {
       openDemande();
-      print("demandeID : ${widget.demandeId}");
+      appLog("demandeID : ${widget.demandeId}");
     }
   }
 

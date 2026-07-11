@@ -8,6 +8,7 @@ import 'package:connect_kasa/vues/widget_view/components/my_text_fied.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/create_account_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class LoginPageView extends StatelessWidget {
   final FirebaseFirestore firestore;
@@ -241,7 +242,7 @@ class LoginPageView extends StatelessWidget {
         ),
       );
 
-      print("error occured due to ${ex.code.toString()}");
+      appLog("error occured due to ${ex.code.toString()}");
     }
   }
 }

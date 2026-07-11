@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/core/repositories/auth_repository.dart';
 import 'package:connect_kasa/core/repositories/firebase_auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class LoadUserController {
   final IAuthRepository _authRepository = FirebaseAuthRepository();
@@ -48,7 +49,7 @@ class LoadUserController {
     result.when(
       success: (_) {},
       failure: (error) =>
-          print('Erreur lors de la déconnexion avec Google: $error'),
+          appLog('Erreur lors de la déconnexion avec Google: $error'),
     );
   }
 

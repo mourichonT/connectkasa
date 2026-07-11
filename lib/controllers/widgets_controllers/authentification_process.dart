@@ -21,6 +21,7 @@ import 'package:firebase_auth/firebase_auth.dart' as Firebase;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class AuthentificationProcess {
   final BuildContext context;
@@ -49,14 +50,14 @@ class AuthentificationProcess {
       final user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
-        print("Aucun utilisateur Google authentifié.");
+        appLog("Aucun utilisateur Google authentifié.");
         return null;
       }
 
       final uid = user.uid;
       final email = user.email;
 
-      print("✅ Compte Google connecté : UID=$uid | EMAIL=$email");
+      appLog("✅ Compte Google connecté : UID=$uid | EMAIL=$email");
 
       // 4. Chercher dans Firestore si l'utilisateur existe
       final userData = await _userDataBases
@@ -77,13 +78,13 @@ class AuthentificationProcess {
         return null;
       } else {
         // L'utilisateur n'existe pas encore dans Firestore
-        print("🚨 Utilisateur non trouvé dans Firestore → Redirection Step0");
+        appLog("🚨 Utilisateur non trouvé dans Firestore → Redirection Step0");
 
         navigateToStep0(user);
         return null;
       }
     } catch (e) {
-      print("❌ Erreur lors de la connexion Google : $e");
+      appLog("❌ Erreur lors de la connexion Google : $e");
       return null;
     }
   }
@@ -105,7 +106,7 @@ class AuthentificationProcess {
   //     );
 
   //     // Affiche les informations d'authentification récupérées
-  //     print(credential);
+  //     appLog(credential);
 
   //     // Créer un OAuthCredential Firebase à partir des informations d'Apple
   //     final oauthCredential = Firebase.OAuthProvider("apple.com").credential(
@@ -130,17 +131,17 @@ class AuthentificationProcess {
   //       } else {
   //         loadUserController.handleGoogleSignOut();
   //         navigateToStep0(user);
-  //         print("Les données utilisateur ne sont pas disponibles dans la base de données.");
+  //         appLog("Les données utilisateur ne sont pas disponibles dans la base de données.");
   //         // Gérer le cas où les données utilisateur ne sont pas disponibles dans la base de données
   //         return null;
   //       }
   //     } else {
-  //       print("Aucun utilisateur connecté.");
+  //       appLog("Aucun utilisateur connecté.");
   //       return null;
   //     }
   //   } catch (e) {
   //     // Gérer les erreurs éventuelles
-  //     print("Erreur lors de la connexion avec Apple : $e");
+  //     appLog("Erreur lors de la connexion avec Apple : $e");
   //     return null;
   //   }
   // }
@@ -168,7 +169,7 @@ class AuthentificationProcess {
   //           loadUserController.handleGoogleSignOut();
 
   //           navigateToStep0(user);
-  //           print(
+  //           appLog(
   //               "Les données utilisateur ne sont pas disponibles dans la base de données.");
   //           // Gérer le cas où les données utilisateur ne sont pas disponibles dans la base de données
   //           // Peut-être afficher un message d'erreur ou effectuer une autre action appropriée
@@ -177,17 +178,17 @@ class AuthentificationProcess {
   //       } else {
   //         // Gérer le cas où aucun utilisateur n'est connecté
   //         // Peut-être afficher un message ou effectuer une autre action appropriée
-  //         print("Aucun utilisateur connecté.");
+  //         appLog("Aucun utilisateur connecté.");
   //         return null;
   //       }
   //     }, onError: (dynamic error) {
-  //       print(
+  //       appLog(
   //           'Erreur lors de l\'écoute des changements d\'état d\'authentification : $error');
   //       // Gérer l'erreur
   //     });
   //   } catch (e) {
   //     // Gérer les erreurs éventuelles
-  //     print("Erreur lors de la connexion : $e");
+  //     appLog("Erreur lors de la connexion : $e");
   //     // Afficher un message d'erreur ou effectuer une autre action appropriée
   //     return null;
   //   }
@@ -216,7 +217,7 @@ class AuthentificationProcess {
       loadUserController.handleGoogleSignOut();
 
       navigateToStep0(checkUser);
-      print(
+      appLog(
           "Les données utilisateur ne sont pas disponibles dans la base de données.");
       // Gérer le cas où les données utilisateur ne sont pas disponibles dans la base de données
       // Peut-être afficher un message d'erreur ou effectuer une autre action appropriée

@@ -13,6 +13,7 @@ import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class ModifyPostForm extends StatefulWidget {
   final Post post;
@@ -74,7 +75,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                 .map((structure) => '${structure.type} ${structure.name}')
                 .toList() ??
             [];
-        print(locationElements);
+        appLog(locationElements);
 
         locationsFloor = residence.structures?.values
                 .expand((structure) => structure.etage ?? [])

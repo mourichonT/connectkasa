@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class ChatController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -35,7 +36,7 @@ class ChatController {
         return null;
       }
     } catch (e) {
-      print("Erreur dans getChatInfo: $e");
+      appLog("Erreur dans getChatInfo: $e");
       return null;
     }
   }
@@ -67,15 +68,15 @@ class ChatController {
       } else if (data['to_id'] == userId) {
         champAAffacer = 'to_msg_num';
       } else {
-        print(
+        appLog(
             "⚠️ L'utilisateur n'est ni l'expéditeur ni le destinataire du chat");
         return;
       }
 
       await docRef.update({champAAffacer: 0});
-      print("✅ $champAAffacer réinitialisé pour $userId");
+      appLog("✅ $champAAffacer réinitialisé pour $userId");
     } else {
-      print("❌ Le document du chat n'existe pas.");
+      appLog("❌ Le document du chat n'existe pas.");
     }
   }
 

@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:connect_kasa/models/pages_models/comment.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class CommentTile extends ConsumerStatefulWidget {
   final Function(bool) onReply;
@@ -216,7 +217,7 @@ class CommentTileState extends ConsumerState<CommentTile> {
       );
       widget.getUsertoreply(_textEditingController);
     } else {
-      print("Utilisateur non trouvé");
+      appLog("Utilisateur non trouvé");
     }
   }
 }

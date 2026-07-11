@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class PhotoForId extends StatefulWidget {
   final String racineFolder;
@@ -90,7 +91,7 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
       final decoded = await decodeImageFromList(await file.readAsBytes());
       return decoded != null;
     } catch (e) {
-      debugPrint("📛 Image invalide ou non décodable : $e");
+      appLog("📛 Image invalide ou non décodable : $e");
       return false;
     }
   }
@@ -99,13 +100,13 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
     try {
       if (await file.exists()) {
         await file.delete();
-        debugPrint("🗑️ Fichier supprimé : ${file.path}");
+        appLog("🗑️ Fichier supprimé : ${file.path}");
       }
       setState(() {
         _selectedImage = null;
       });
     } catch (e) {
-      debugPrint("❌ Erreur suppression fichier : $e");
+      appLog("❌ Erreur suppression fichier : $e");
     }
   }
 
@@ -165,7 +166,7 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
         widget.onImageUploaded(downloadUrl);
       }
     } catch (e) {
-      print("❌ Erreur globale : $e");
+      appLog("❌ Erreur globale : $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors du traitement de l\'image: $e')),
       );
@@ -198,7 +199,7 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
       final rawJson = Map<String, dynamic>.from(result.data as Map);
       return rawJson.map((key, value) => MapEntry(key, value.toString()));
     } catch (e) {
-      print("❌ Erreur lors de l'extraction : $e");
+      appLog("❌ Erreur lors de l'extraction : $e");
       return {};
     }
   }

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/core/repositories/firestore_chat_repository.dart';
 import 'package:connect_kasa/models/pages_models/message.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class MessageProvider extends ChangeNotifier {
   final FirestoreChatRepository _chatRepository = FirestoreChatRepository();
@@ -25,7 +26,7 @@ class MessageProvider extends ChangeNotifier {
   StreamSubscription<QuerySnapshot>? _chatSubscription;
 
   MessageProvider() {
-    print('[MessageProvider] Initialisé');
+    appLog('[MessageProvider] Initialisé');
   }
 
   /// Initialise la détection du dernier message (existant)
@@ -35,7 +36,7 @@ class MessageProvider extends ChangeNotifier {
     required String userTo,
   }) {
     _userFrom = userFrom;
-    print(
+    appLog(
         '[MessageProvider.init] residenceId=$residenceId, userFrom=$userFrom, userTo=$userTo');
 
     _messageSubscription?.cancel();
@@ -47,7 +48,7 @@ class MessageProvider extends ChangeNotifier {
     )
         .listen((result) {
       final message = result.when(success: (m) => m, failure: (_) => null);
-      print('[MessageProvider.init] Nouveau message reçu : $message');
+      appLog('[MessageProvider.init] Nouveau message reçu : $message');
 
       final bool isFromOtherUser =
           message != null && message.userIdFrom != _userFrom;
@@ -56,7 +57,7 @@ class MessageProvider extends ChangeNotifier {
 
       final bool shouldNotify = isFromOtherUser && isNew;
 
-      print(
+      appLog(
           '[MessageProvider.init] isFromOtherUser=$isFromOtherUser, isNew=$isNew, shouldNotify=$shouldNotify');
 
       _lastMessage = message;
@@ -75,7 +76,7 @@ class MessageProvider extends ChangeNotifier {
     _residenceId = residenceId;
     _userFrom = currentUserId;
 
-    print(
+    appLog(
         '[MessageProvider.listenForMessages] residenceId=$residenceId, currentUserId=$currentUserId');
 
     // Annule l'ancienne subscription si elle existe
@@ -91,7 +92,7 @@ class MessageProvider extends ChangeNotifier {
         ))
         .snapshots()
         .listen((chatSnapshot) {
-      print(
+      appLog(
           '[MessageProvider.listenForMessages] Snapshot reçu avec ${chatSnapshot.docs.length} docs');
 
       bool foundNewMessage = false;
@@ -103,26 +104,26 @@ class MessageProvider extends ChangeNotifier {
         final fromMsgNum = chatData["from_msg_num"] ?? 0;
         final toMsgNum = chatData["to_msg_num"] ?? 0;
 
-        print(
+        appLog(
             ' - chatDoc fromId=$fromId, toId=$toId, fromMsgNum=$fromMsgNum, toMsgNum=$toMsgNum');
 
         if (currentUserId == fromId && toMsgNum > 0) {
           foundNewMessage = false;
-          print(' → Nouveau message détecté pour TESTET currentUserId $fromId');
+          appLog(' → Nouveau message détecté pour TESTET currentUserId $fromId');
           break;
         } else if (currentUserId == toId && toMsgNum > 0) {
           foundNewMessage = true;
-          print(
+          appLog(
               ' → je test la condition currentUserId == toId && toMsgNum > 0');
           break;
         } else if (currentUserId == toId && fromMsgNum > 0) {
           foundNewMessage = false;
-          print(
+          appLog(
               ' → je test la condition currentUserId == toId && fromMsgNum > 0');
           break;
         } else if (currentUserId == fromId && fromMsgNum > 0) {
           foundNewMessage = true;
-          print(
+          appLog(
               ' → je test la condition currentUserId == fromId && fromMsgNum > 0');
           break;
         }
@@ -132,14 +133,14 @@ class MessageProvider extends ChangeNotifier {
       _hasNewMessageController.add(foundNewMessage);
       notifyListeners();
 
-      print(
+      appLog(
           '[MessageProvider.listenForMessages] hasNewMessage = $foundNewMessage');
     });
   }
 
   /// Pour reset le flag (ex: quand on ouvre la page messages)
   void clearNewMessageFlag() {
-    print('[MessageProvider.clearNewMessageFlag] Reset du flag');
+    appLog('[MessageProvider.clearNewMessageFlag] Reset du flag');
     _hasNewMessage = false;
     _hasNewMessageController.add(false);
     notifyListeners();
@@ -150,7 +151,7 @@ class MessageProvider extends ChangeNotifier {
   /// l'utilisateur précédent après logout (permission-denied en boucle une
   /// fois les règles Firestore actives, puisque request.auth devient null).
   void reset() {
-    print('[MessageProvider.reset] Annulation des écoutes en cours');
+    appLog('[MessageProvider.reset] Annulation des écoutes en cours');
     _chatSubscription?.cancel();
     _chatSubscription = null;
     _messageSubscription?.cancel();
@@ -163,7 +164,7 @@ class MessageProvider extends ChangeNotifier {
 
   @override
   void dispose() {
-    print('[MessageProvider.dispose] Dispose appelé');
+    appLog('[MessageProvider.dispose] Dispose appelé');
     _chatSubscription?.cancel();
     _hasNewMessageController.close();
     super.dispose();

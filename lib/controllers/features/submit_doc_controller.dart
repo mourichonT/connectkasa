@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class SubmitDocController {
   static Future<void> submitFormCopro({
@@ -25,9 +26,9 @@ class SubmitDocController {
           .collection("documents_copro")
           .add(data);
 
-      print("✅ Document ajouté avec succès !");
+      appLog("✅ Document ajouté avec succès !");
     } catch (e) {
-      print("❌ Erreur lors de l'ajout du document : $e");
+      appLog("❌ Erreur lors de l'ajout du document : $e");
       rethrow;
     }
   }
@@ -81,9 +82,9 @@ class SubmitDocController {
             .set(data);
       }
 
-      print("✅ Document ajouté avec succès pour tous les destinataires !");
+      appLog("✅ Document ajouté avec succès pour tous les destinataires !");
     } catch (e) {
-      print("❌ Erreur lors de l'ajout du document : $e");
+      appLog("❌ Erreur lors de l'ajout du document : $e");
       rethrow;
     }
   }

@@ -15,6 +15,7 @@ import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class ManagementResInfoG extends ConsumerStatefulWidget {
   final Residence residence;
@@ -184,7 +185,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
         _controllers["zipCodeVille"]!.text = "${a.zipCode} ${a.city}".trim();
       }
     } catch (e) {
-      debugPrint("Erreur _loadResidenceData: $e");
+      appLog("Erreur _loadResidenceData: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

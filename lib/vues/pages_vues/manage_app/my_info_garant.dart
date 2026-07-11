@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class MyGarantInfos extends ConsumerStatefulWidget {
   final String uid; // UID de l'utilisateur (locataire)
@@ -120,8 +121,8 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
       mail.text = user.email;
       phone.text = user.phone;
 
-      print("Incomes length: ${incomeEntries.length}");
-      print("Job incomes length: ${jobEntries.length}");
+      appLog("Incomes length: ${incomeEntries.length}");
+      appLog("Job incomes length: ${jobEntries.length}");
     } else {
       // Nouveau garant → on initialise un UserInfo vide
       user = GuarantorInfo(
@@ -838,8 +839,8 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
     setState(() {
       docUrl = downloadUrl;
       fileExtension = extension;
-      print("FileEXTESION / $fileExtension");
-      print("docURL / $docUrl");
+      appLog("FileEXTESION / $fileExtension");
+      appLog("docURL / $docUrl");
     });
   }
 }

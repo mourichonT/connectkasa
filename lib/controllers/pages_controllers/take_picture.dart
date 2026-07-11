@@ -6,6 +6,7 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class TakePictureScreen extends StatefulWidget {
   final String idType;
@@ -119,13 +120,13 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                   height: overlayHeight * 2,
                 );
 
-                print(
+                appLog(
                     'Dimensions de l\'image capturée : ${image.width} x ${image.height}');
-                print(
+                appLog(
                     'Position de l\'image capturée : $overlayY x $overlayX');
-                print(
+                appLog(
                     'Position de l\'image recadrée : $overlayWidth x $overlayHeight');
-                print(
+                appLog(
                     'Dimensions de l\'image recadrée : ${croppedImage.width} x ${croppedImage.height}');
 
                 // Enregistrer l'image recadrée dans un fichier
@@ -142,7 +143,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                   ),
                 );
               } catch (e) {
-                print(e);
+                appLog(e);
               }
             },
             child: Stack(

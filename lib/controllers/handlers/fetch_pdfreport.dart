@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class FetchPdfreport {
   Future<void> fetchPdf(String docRes) async {
@@ -13,9 +14,9 @@ class FetchPdfreport {
 
     if (response.statusCode == 200) {
       // Sauvegarder le PDF localement ou l'ouvrir
-      print("PDF téléchargé !");
+      appLog("PDF téléchargé !");
     } else {
-      print("Erreur: ${response.body}");
+      appLog("Erreur: ${response.body}");
     }
   }
 }

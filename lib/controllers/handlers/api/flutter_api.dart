@@ -5,6 +5,7 @@ import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class FirebaseApi {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -64,7 +65,7 @@ class FirebaseApi {
           }
         }
       } catch (e) {
-        print('Erreur lors du traitement de la notification : $e');
+        appLog('Erreur lors du traitement de la notification : $e');
       }
     });
   }

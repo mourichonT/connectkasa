@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class CameraOrFiles extends StatefulWidget {
   final String racineFolder;
@@ -150,7 +151,7 @@ class CameraOrFilesState extends State<CameraOrFiles> {
         widget.onImageUploaded(downloadUrl);
       }
     } catch (e) {
-      print("Erreur lors de l'upload de l'image: $e");
+      appLog("Erreur lors de l'upload de l'image: $e");
       widget.onUploadError?.call();
     }
   }
@@ -218,7 +219,7 @@ class CameraOrFilesState extends State<CameraOrFiles> {
         );
       }
     } catch (e) {
-      print("Erreur lors de la suppression de l'image: $e");
+      appLog("Erreur lors de la suppression de l'image: $e");
     }
   }
 

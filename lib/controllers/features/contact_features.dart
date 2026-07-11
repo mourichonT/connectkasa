@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class ContactFeatures {
   static void launchPhoneCall(String phoneNumber) async {
@@ -32,10 +33,10 @@ class ContactFeatures {
           'subject': subject,
         },
       );
-      print("queryParameters: ${email.queryParameters}");
+      appLog("queryParameters: ${email.queryParameters}");
       await launchUrl(email);
     } catch (e) {
-      debugPrint(e.toString());
+      appLog(e.toString());
     }
   }
 

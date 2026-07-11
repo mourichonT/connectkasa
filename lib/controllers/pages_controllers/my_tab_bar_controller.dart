@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/enum/tab_bar_icon.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class MyTabBarController {
   final IconTabBar iconTabBar = IconTabBar();
@@ -16,7 +17,7 @@ class MyTabBarController {
       dividerColor: Colors.transparent,
       tabs: tabs,
       onTap: (index) {
-        print(index);
+        appLog(index);
       },
     );
   }

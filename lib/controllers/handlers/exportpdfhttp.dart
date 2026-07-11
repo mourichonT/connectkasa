@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class Exportpdfhttp {
   static Future<void> ExportLocaScore(
@@ -13,7 +14,7 @@ class Exportpdfhttp {
     try {
       // Convertir l'objet UserInfo en JSON
       final Map<String, dynamic> tenantMap = tenant.toMapForExport();
-      print(tenantMap);
+      appLog(tenantMap);
 
       // Envoyer la requête HTTP POST
       final response = await http.post(
@@ -36,27 +37,27 @@ class Exportpdfhttp {
         final file = File(filePath);
         await file.writeAsBytes(pdfBytes);
 
-        print("Fichier PDF enregistré à : $filePath");
+        appLog("Fichier PDF enregistré à : $filePath");
 
         if (await file.exists()) {
-          print("Le fichier existe à l'emplacement : ${file.path}");
-          print("Taille du fichier : ${pdfBytes.length} octets");
+          appLog("Le fichier existe à l'emplacement : ${file.path}");
+          appLog("Taille du fichier : ${pdfBytes.length} octets");
 
           final result = await OpenFilex.open(file.path);
           if (result.type == ResultType.done) {
-            print("Fichier ouvert avec succès.");
+            appLog("Fichier ouvert avec succès.");
           } else {
-            print("Erreur lors de l'ouverture du fichier : ${result.message}");
+            appLog("Erreur lors de l'ouverture du fichier : ${result.message}");
           }
         } else {
-          print("Le fichier n'existe pas, impossible de l'ouvrir.");
+          appLog("Le fichier n'existe pas, impossible de l'ouvrir.");
         }
       } else {
-        print(
+        appLog(
             "Erreur lors de la génération du fichier PDF : ${response.statusCode}");
       }
     } catch (e) {
-      print("Erreur lors de l'envoi de la requête : $e");
+      appLog("Erreur lors de l'envoi de la requête : $e");
     }
   }
 
@@ -90,15 +91,15 @@ class Exportpdfhttp {
 
         final result = await OpenFilex.open(file.path);
         if (result.type == ResultType.done) {
-          print("PDF ouvert avec succès.");
+          appLog("PDF ouvert avec succès.");
         } else {
-          print("Erreur à l'ouverture : ${result.message}");
+          appLog("Erreur à l'ouverture : ${result.message}");
         }
       } else {
-        print("Erreur HTTP : ${response.statusCode} - ${response.body}");
+        appLog("Erreur HTTP : ${response.statusCode} - ${response.body}");
       }
     } catch (e) {
-      print("Erreur lors de l'appel à la Cloud Function : $e");
+      appLog("Erreur lors de l'appel à la Cloud Function : $e");
     }
   }
 }

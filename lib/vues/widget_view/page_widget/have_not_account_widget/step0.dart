@@ -8,6 +8,7 @@ import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:connect_kasa/vues/widget_view/components/photo_for_id.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class Step0 extends StatefulWidget {
   final String userId;
@@ -55,7 +56,7 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
   void _updateIdData(Map<String, String> extractedData) {
     setState(() {
       idData = extractedData;
-      print("VOICI LE TEXT OCR : $idData");
+      appLog("VOICI LE TEXT OCR : $idData");
       _name = extractedData['Nom'] ?? '';
       _surname = extractedData['Prénom'] ?? '';
       _birthday = extractedData['Date de naissance'] ?? '';
@@ -63,12 +64,12 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
       _nationality = extractedData['Nationalité'] ?? '';
       _placeOfBorn = extractedData['Lieu de naissance'] ?? '';
 
-      print("Nom mis à jour: $_name");
-      print("Prénom mis à jour: $_surname");
-      print("Date de naissance mise à jour: $_birthday");
-      print("sexe mise à jour: $_sex");
-      print("Nationalite mise à jour: $_nationality");
-      print("Lieu de naissance mise à jour: $_placeOfBorn");
+      appLog("Nom mis à jour: $_name");
+      appLog("Prénom mis à jour: $_surname");
+      appLog("Date de naissance mise à jour: $_birthday");
+      appLog("sexe mise à jour: $_sex");
+      appLog("Nationalite mise à jour: $_nationality");
+      appLog("Lieu de naissance mise à jour: $_placeOfBorn");
     });
   }
 

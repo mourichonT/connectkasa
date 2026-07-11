@@ -8,6 +8,7 @@ import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/look_up_user.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class ShareRentFolder {
   static Future<List<GuarantorInfo>> showGuarantorSelectionDialog(
@@ -18,9 +19,9 @@ class ShareRentFolder {
         .then((result) => result.when(success: (v) => v, failure: (_) => []));
     List<String> selected = [];
 
-    print('Garants disponibles:');
+    appLog('Garants disponibles:');
     allGarants.forEach((g) {
-      print('Garant: ${g.name} ${g.surname} - ${g.email}');
+      appLog('Garant: ${g.name} ${g.surname} - ${g.email}');
     });
 
     return await showDialog<List<GuarantorInfo>>(

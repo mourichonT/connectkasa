@@ -6,6 +6,7 @@ import 'package:connect_kasa/controllers/widgets_controllers/authentification_pr
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_text_fied.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class CreateAccountPage extends StatefulWidget {
   const CreateAccountPage({super.key});
@@ -177,7 +178,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           try {
             await authProcess.fluttLogInWithGoogle();
           } catch (e) {
-            print("Erreur lors de l'authentification Google: $e");
+            appLog("Erreur lors de l'authentification Google: $e");
           }
         },
         child: Row(

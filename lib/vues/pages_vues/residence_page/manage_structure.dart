@@ -16,6 +16,7 @@ import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class ManageStructure extends ConsumerStatefulWidget {
   final Residence residence;
@@ -217,7 +218,7 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
     }
     try {
       for (var building in buildings) {
-        print(building.toJson());
+        appLog(building.toJson());
         await _residenceServices.saveStructure(widget.residence.id!, building);
         _expandedBuildings.remove(building);
       }

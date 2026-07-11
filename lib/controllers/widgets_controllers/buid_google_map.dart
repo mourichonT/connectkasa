@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class AgencyMapWidget extends StatelessWidget {
   final String address;
@@ -24,7 +25,7 @@ class AgencyMapWidget extends StatelessWidget {
         } else {
           final location = snapshot.data!.first;
           final center = LatLng(location.latitude, location.longitude);
-          print(center);
+          appLog(center);
 
           return GoogleMap(
             zoomControlsEnabled: false,

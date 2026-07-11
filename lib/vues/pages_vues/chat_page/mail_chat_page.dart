@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:connect_kasa/models/pages_models/mail.dart';
 import 'package:connect_kasa/vues/widget_view/components/chat_bubble.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class MailChatPage extends StatefulWidget {
   final String agencyName;
@@ -44,7 +45,7 @@ class MailChatPageState extends State<MailChatPage> {
       );
       result.when(
         success: (_) {},
-        failure: (error) => print('Erreur lors de l\'envoi du mail: $error'),
+        failure: (error) => appLog('Erreur lors de l\'envoi du mail: $error'),
       );
       // Fermez le clavier
       setState(() {
@@ -128,7 +129,7 @@ class MailChatPageState extends State<MailChatPage> {
 
   Widget _buildMessageItem(DocumentSnapshot document) {
     Map<String, dynamic> mail = document.data() as Map<String, dynamic>;
-    print(mail);
+    appLog(mail);
     var alignement =
         (mail["from"] != null) ? Alignment.centerLeft : Alignment.centerRight;
 

@@ -14,6 +14,7 @@ import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/models/pages_models/post_style.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class AskingNeighbordsForm extends StatefulWidget {
   final Lot? preferedLot;
@@ -131,7 +132,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
 
       return byteData!.buffer.asUint8List();
     } catch (e) {
-      print(e);
+      appLog(e);
       rethrow;
     }
   }
@@ -482,7 +483,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                 if (!context.mounted) return;
                 Navigator.pop(context);
               } catch (e) {
-                print("Erreur lors de la soumission du post: $e");
+                appLog("Erreur lors de la soumission du post: $e");
                 if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../models/pages_models/lot.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 // LotBottomSheet (modifié)
 class LotBottomSheet extends StatefulWidget {
@@ -89,7 +90,7 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
             'lotDetails_${widget.uid}', jsonEncode(details));
       }
     } catch (e) {
-      debugPrint("Erreur lors du chargement des détails du lot: $e");
+      appLog("Erreur lors du chargement des détails du lot: $e");
     }
 
     // ⚠️ NE PAS mettre à jour ColorProvider ici.
@@ -233,7 +234,7 @@ class _LotBottomSheetState extends State<LotBottomSheet> {
 //         }
 //       }
 //     } catch (e) {
-//       debugPrint("Erreur lors du chargement des détails du lot: $e");
+//       appLog("Erreur lors du chargement des détails du lot: $e");
 //     }
 
 //     setState(() {

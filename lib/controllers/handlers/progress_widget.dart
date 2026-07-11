@@ -13,6 +13,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/intl.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class ProgressWidget extends StatefulWidget {
   final String userId;
@@ -88,7 +89,7 @@ class ProgressWidgetState extends State<ProgressWidget>
       // déconnecté (firestore.rules exige request.auth).
       _deleteUser();
       _deleteStorage();
-      print("Utilisateur supprimé dans la fonction dispose : ${widget.userId}");
+      appLog("Utilisateur supprimé dans la fonction dispose : ${widget.userId}");
     }
     super.dispose();
   }
@@ -108,9 +109,9 @@ class ProgressWidgetState extends State<ProgressWidget>
       try {
         await user.reauthenticateWithCredential(cred);
         await user.delete(); // Suppression de l'utilisateur
-        print("Utilisateur supprimé après re-auth avec mot de passe");
+        appLog("Utilisateur supprimé après re-auth avec mot de passe");
       } catch (e) {
-        print("Erreur lors de la suppression avec mot de passe: $e");
+        appLog("Erreur lors de la suppression avec mot de passe: $e");
       }
     } else if (widget.providerId == "google.com") {
       // Si l'utilisateur s'est authentifié via Google
@@ -118,7 +119,7 @@ class ProgressWidgetState extends State<ProgressWidget>
       final googleUser = await googleSignIn.signInSilently();
 
       if (googleUser == null) {
-        print("⚠️ Reconnexion silencieuse échouée.");
+        appLog("⚠️ Reconnexion silencieuse échouée.");
         return;
       }
 
@@ -131,9 +132,9 @@ class ProgressWidgetState extends State<ProgressWidget>
       try {
         await user!.reauthenticateWithCredential(credential);
         await user.delete(); // Suppression de l'utilisateur
-        print("Utilisateur supprimé après re-auth avec Google");
+        appLog("Utilisateur supprimé après re-auth avec Google");
       } catch (e) {
-        print("Erreur lors de la suppression avec Google: $e");
+        appLog("Erreur lors de la suppression avec Google: $e");
       }
     }
   }
@@ -155,13 +156,13 @@ class ProgressWidgetState extends State<ProgressWidget>
   //         // Supprimer également l'utilisateur de Firebase Authentication
   //         DataBasesUserServices.removeUserById(widget.userId);
 
-  //         print("Utilisateur supprimé automatiquement après 10 minutes.");
+  //         appLog("Utilisateur supprimé automatiquement après 10 minutes.");
   //         // Vous pouvez aussi rediriger l'utilisateur à l'écran d'accueil
   //         Navigator.popUntil(context, ModalRoute.withName('/'));
   //       });
   //     }
   //   } catch (e) {
-  //     print(
+  //     appLog(
   //         "Erreur lors de l'initialisation du timer de suppression automatique: $e");
   //   }
   // }
@@ -170,7 +171,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     if (_deleteTimer != null && _deleteTimer!.isActive) {
       _deleteTimer!.cancel();
       _deleteTimer = null;
-      print("Timer de suppression annulé");
+      appLog("Timer de suppression annulé");
     }
   }
 
@@ -181,17 +182,17 @@ class ProgressWidgetState extends State<ProgressWidget>
     if ((state == AppLifecycleState.paused ||
             state == AppLifecycleState.detached) &&
         !isCameraOpen) {
-      print("Supprimer l'utilisateur si l'application est fermée ou inactive");
+      appLog("Supprimer l'utilisateur si l'application est fermée ou inactive");
       try {
         if (currentUser != null && currentUser!.uid == widget.userId) {
           await currentUser!.delete();
           _deleteStorage();
           Navigator.popUntil(context, ModalRoute.withName('/'));
-          print(
+          appLog(
               "Utilisateur supprimé après fermeture de l'application : ${widget.userId}");
         }
       } catch (e) {
-        print(
+        appLog(
             "Erreur lors de la suppression de l'utilisateur après fermeture : $e");
       }
     }
@@ -200,7 +201,7 @@ class ProgressWidgetState extends State<ProgressWidget>
   Future<bool> silentReauthAndDelete() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      print("⚠️ Aucune session active.");
+      appLog("⚠️ Aucune session active.");
       return false;
     }
 
@@ -208,7 +209,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     final googleUser = await googleSignIn.signInSilently();
 
     if (googleUser == null) {
-      print("⚠️ Reconnexion silencieuse échouée.");
+      appLog("⚠️ Reconnexion silencieuse échouée.");
       return false;
     }
 
@@ -221,10 +222,10 @@ class ProgressWidgetState extends State<ProgressWidget>
     try {
       await user.reauthenticateWithCredential(credential);
       await user.delete(); // ✅ Suppression après re-auth
-      print("✅ Compte supprimé !");
+      appLog("✅ Compte supprimé !");
       return true;
     } catch (e) {
-      print("❌ Erreur lors de la re-auth: $e");
+      appLog("❌ Erreur lors de la re-auth: $e");
       return false;
     }
   }
@@ -250,7 +251,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     bool? newInformationsCorrectes,
   ) {
     // Faites ce que vous voulez avec les valeurs récupérées
-    print(
+    appLog(
         'Nom: $newName, Prénom: $newSurname, Pseudo: $newPseudo, imagepath: $newimagePathIDverso');
     email = emailUser;
     name = newName;
@@ -310,7 +311,7 @@ class ProgressWidgetState extends State<ProgressWidget>
 
   void getInformationsStep1(Residence newResidence) {
     // Faites ce que vous voulez avec les valeurs récupérées
-    print('residence : $newResidence');
+    appLog('residence : $newResidence');
     setState(() {
       residence = newResidence;
     });
@@ -319,7 +320,7 @@ class ProgressWidgetState extends State<ProgressWidget>
   void getInformationsStep2(String newResidentType, bool newCompagnyBuy,
       String newIntendedFor, String newKbisPath) {
     // Faites ce que vous voulez avec les valeurs récupérées
-    print(
+    appLog(
         'Type resident: $newResidentType, achat par société: $newCompagnyBuy, destiné a : $newIntendedFor');
 
     residentType = newResidentType;
@@ -331,7 +332,7 @@ class ProgressWidgetState extends State<ProgressWidget>
   void getInformationsStep3(String newTypeLot, String newBatType,
       String newLotChoice, String newrefLot) {
     // Faites ce que vous voulez avec les valeurs récupérées
-    print(
+    appLog(
         'Type resident: $newTypeLot, achat par société: $newBatType, destiné a : $newLotChoice, refLOT $newrefLot');
 
     typeLot = newTypeLot;
@@ -342,12 +343,12 @@ class ProgressWidgetState extends State<ProgressWidget>
 
   void getInformationsStep4(bool newIsUserCompleted) {
     isUserCompleted = newIsUserCompleted;
-    print("isUserCompleted : $isUserCompleted");
+    appLog("isUserCompleted : $isUserCompleted");
   }
 
   @override
   Widget build(BuildContext context) {
-    print(
+    appLog(
         "Utilisateur après push dans progress widget: ${FirebaseAuth.instance.currentUser?.uid}");
     return SafeArea(
       child: Scaffold(
@@ -356,7 +357,7 @@ class ProgressWidgetState extends State<ProgressWidget>
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
               if (currentPage > 0) {
-                print("PASSWORD; ${widget.password}");
+                appLog("PASSWORD; ${widget.password}");
                 _progressController.previousPage(
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOut,
@@ -367,10 +368,10 @@ class ProgressWidgetState extends State<ProgressWidget>
                   if (currentUser != null &&
                       currentUser!.uid == widget.userId) {
                     _deleteUser();
-                    print("Utilisateur supprimé : ${widget.userId}");
+                    appLog("Utilisateur supprimé : ${widget.userId}");
                   }
                 } catch (e) {
-                  print("Erreur lors de la suppression de l'utilisateur : $e");
+                  appLog("Erreur lors de la suppression de l'utilisateur : $e");
                 }
                 // Ferme la page
                 Navigator.of(context).pop();

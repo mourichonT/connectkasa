@@ -7,6 +7,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/pages_vues/post_page/sinistre_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class SinitresTileController extends StatefulWidget {
   final Post post;
@@ -46,7 +47,7 @@ class SinitresTileControllerState extends State<SinitresTileController> {
       });
     }).catchError((error) {
       // Gérer les erreurs si nécessaire
-      print("Erreur lors du chargement des signalements: $error");
+      appLog("Erreur lors du chargement des signalements: $error");
     });
   }
 
@@ -117,7 +118,7 @@ class SinitresTileControllerState extends State<SinitresTileController> {
                         setState(() {
                           showSignalement = !showSignalement;
                         });
-                        print(showSignalement);
+                        appLog(showSignalement);
                       },
                       child: !showSignalement
                           ? Row(

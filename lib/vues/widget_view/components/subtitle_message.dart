@@ -13,6 +13,7 @@ import 'package:connect_kasa/vues/widget_view/page_widget/chat_page_widget/messa
 import 'package:connect_kasa/vues/widget_view/page_widget/chat_page_widget/message_user_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class SubtitleMessage extends ConsumerStatefulWidget {
   final String residence;
@@ -112,7 +113,7 @@ class _SubtitleMessageState extends ConsumerState<SubtitleMessage>
         _allUsersInResidence = Future.value(users);
       });
     } catch (error) {
-      print("Error fetching users: $error");
+      appLog("Error fetching users: $error");
     }
   }
 

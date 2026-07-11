@@ -6,6 +6,7 @@ import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class Step3 extends ConsumerStatefulWidget {
   final Residence residence;
@@ -103,7 +104,7 @@ class _Step3State extends ConsumerState<Step3> {
                     items: snapshot.data ?? [],
                     onValueChanged: (value) {
                       setState(() {
-                        print(value);
+                        appLog(value);
                         typeChoice = value;
                       });
                     },
@@ -292,10 +293,10 @@ class _Step3State extends ConsumerState<Step3> {
       if (specificLot != null) {
         return specificLot.refLot;
       } else {
-        print("No lot found for the given parameters.");
+        appLog("No lot found for the given parameters.");
       }
     } catch (e) {
-      print("Error occurred while fetching lot: $e");
+      appLog("Error occurred while fetching lot: $e");
     }
     return null;
   }

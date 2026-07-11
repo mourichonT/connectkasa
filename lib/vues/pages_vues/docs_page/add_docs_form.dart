@@ -15,6 +15,7 @@ import 'package:connect_kasa/vues/widget_view/components/import_docs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class AddDocsForm extends ConsumerStatefulWidget {
   final Lot lotSelected;
@@ -81,7 +82,7 @@ class AddDocsFormState extends ConsumerState<AddDocsForm> {
           "documentsLot", // Le dossier dans lequel le fichier a été téléchargé
           idPost: "$idPost.$fileExtension", // Le nom du fichier avec extension
         );
-        print("Fichier supprimé avec succès : $downloadUrl");
+        appLog("Fichier supprimé avec succès : $downloadUrl");
       } else {
         // Supposons que tu utilises le service de stockage Firebase pour supprimer le fichier
         await _storageRepository.removeFile(
@@ -90,10 +91,10 @@ class AddDocsFormState extends ConsumerState<AddDocsForm> {
           "documents_copro",
           idPost: "$idPost.$fileExtension", // Le nom du fichier avec extension
         );
-        print("Fichier supprimé avec succès : $downloadUrl");
+        appLog("Fichier supprimé avec succès : $downloadUrl");
       }
     } catch (e) {
-      print("Erreur lors de la suppression du fichier : $e");
+      appLog("Erreur lors de la suppression du fichier : $e");
     }
   }
 
@@ -104,7 +105,7 @@ class AddDocsFormState extends ConsumerState<AddDocsForm> {
         destinatairesReal.isNotEmpty;
 
     if (widget.isDocCopro) {
-      print(
+      appLog(
           "VALID ? $valid - docName: ${docName.text}, type: $type, imagePath: $imagePath, dests: $destinatairesReal");
       // Pour les documents de copro : pas de destinataires
       return docName.text.isNotEmpty && type.isNotEmpty && imagePath.isNotEmpty;
@@ -137,7 +138,7 @@ class AddDocsFormState extends ConsumerState<AddDocsForm> {
             destinatairesReal.add(locataireId);
           }
         } catch (e) {
-          print(
+          appLog(
               "Erreur lors de la récupération du locataire $locataireId : $e");
         }
       }

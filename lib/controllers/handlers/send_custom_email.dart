@@ -5,6 +5,7 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 Future<void> sendCustomEmail({
   required Lot lot,
@@ -46,9 +47,9 @@ Future<void> sendCustomEmail({
   );
 
   if (response.statusCode == 200) {
-    print('Email envoyé avec succès');
+    appLog('Email envoyé avec succès');
   } else {
-    print('Erreur lors de l\'envoi de l\'email: ${response.statusCode}');
-    print('Réponse: ${response.body}');
+    appLog('Erreur lors de l\'envoi de l\'email: ${response.statusCode}');
+    appLog('Réponse: ${response.body}');
   }
 }

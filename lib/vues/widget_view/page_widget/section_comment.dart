@@ -6,6 +6,7 @@ import 'package:connect_kasa/models/pages_models/comment.dart';
 import 'package:connect_kasa/vues/widget_view/components/comment_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class SectionComment extends StatefulWidget {
   String residenceSelected;
@@ -252,7 +253,7 @@ class _SectionCommentState extends State<SectionComment>
           _allComments = _fetchComments();
         });
       } else {
-        print("Error adding comment: ${result.errorOrNull}");
+        appLog("Error adding comment: ${result.errorOrNull}");
       }
     }
     widget.onCommentAdded();

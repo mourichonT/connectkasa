@@ -7,6 +7,7 @@ import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
 import 'package:connect_kasa/controllers/widgets_controllers/my_multiselected_dropdown.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 typedef FilterCallback = void Function(
     {required List<String?> categorie,
@@ -74,7 +75,7 @@ class FilterAllAnnouncedControllerState
     setState(() {
       _lowerValue = prices['priceMin']!;
       _upperValue = prices['priceMax']!;
-      print(_upperValue);
+      appLog(_upperValue);
     });
   }
 

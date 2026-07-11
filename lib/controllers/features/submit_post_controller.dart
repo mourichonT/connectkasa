@@ -6,6 +6,7 @@ import 'package:connect_kasa/models/pages_models/post_style.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:connect_kasa/core/utils/app_logger.dart';
 
 class SubmitPostController {
   static Post _buildPost({
@@ -155,22 +156,22 @@ class SubmitPostController {
     );
 
     if (duplicateResponse['status'] == "duplicate_found") {
-      print("Doublon trouvé. ID du doublon : ${duplicateResponse['post_id']}");
+      appLog("Doublon trouvé. ID du doublon : ${duplicateResponse['post_id']}");
       await dataBasesPostServices
           .addSignalement(post, docRes, duplicateResponse['post_id'])
           .then((result) => result.when(
               success: (_) {}, failure: (error) => throw error));
-      print("Post est un doublon, signalement ajouté.");
+      appLog("Post est un doublon, signalement ajouté.");
     } else if (duplicateResponse['status'] == "post_not_found") {
-      print("Post non trouvé. ID du post : ${duplicateResponse['post_id']}");
+      appLog("Post non trouvé. ID du post : ${duplicateResponse['post_id']}");
       // Aucun ajout si post introuvable
     } else {
-      print("Aucun doublon trouvé, création du nouveau post...");
+      appLog("Aucun doublon trouvé, création du nouveau post...");
       await dataBasesPostServices
           .addPost(post, docRes)
           .then((result) => result.when(
               success: (_) {}, failure: (error) => throw error));
-      print("Post ajouté avec succès.");
+      appLog("Post ajouté avec succès.");
     }
   }
 
@@ -186,7 +187,7 @@ class SubmitPostController {
       "https://europe-west1-connectkasa-84f23.cloudfunctions.net/check_similar_post_OpenAI",
     );
 
-    print("Envoi de la requête à la Cloud Function...");
+    appLog("Envoi de la requête à la Cloud Function...");
 
     try {
       final response = await http.post(
@@ -208,24 +209,24 @@ class SubmitPostController {
       );
 
       if (response.statusCode == 200) {
-        print("Réponse de la Cloud Function reçue avec succès.");
+        appLog("Réponse de la Cloud Function reçue avec succès.");
         final data = json.decode(response.body);
-        print("Contenu de la réponse : $data");
+        appLog("Contenu de la réponse : $data");
 
         return {
           'status': data['status'] ?? "new_post_created",
           'post_id': data['post_id'] ?? "",
         };
       } else {
-        print("Erreur avec la Cloud Function. Code: ${response.statusCode}");
-        print("Message d'erreur : ${response.body}");
+        appLog("Erreur avec la Cloud Function. Code: ${response.statusCode}");
+        appLog("Message d'erreur : ${response.body}");
         return {
           'status': "new_post_created",
           'post_id': "",
         };
       }
     } catch (e) {
-      print("Erreur lors de l'envoi de la requête : $e");
+      appLog("Erreur lors de l'envoi de la requête : $e");
       return {
         'status': "new_post_created",
         'post_id': "",
@@ -241,7 +242,7 @@ class SubmitPostController {
   //   final url = Uri.parse(
   //       "https://check-similar-post-325705345982.us-central1.run.app"); // Remplacer par l'URL de ta Cloud Function
   //   // Envoi de la requête à la Cloud Function
-  //   print("Envoi de la requête à la Cloud Function...");
+  //   appLog("Envoi de la requête à la Cloud Function...");
 
   //   try {
   //     final response = await http.post(
@@ -262,10 +263,10 @@ class SubmitPostController {
 
   //     // Vérification du code de réponse HTTP
   //     if (response.statusCode == 200) {
-  //       print("Réponse de la Cloud Function reçue avec succès.");
+  //       appLog("Réponse de la Cloud Function reçue avec succès.");
 
   //       final data = json.decode(response.body);
-  //       print("Contenu de la réponse de la Cloud Function : $data");
+  //       appLog("Contenu de la réponse de la Cloud Function : $data");
 
   //       // Vérification de la présence des données nécessaires dans la réponse
   //       if (data.containsKey('status')) {
@@ -274,7 +275,7 @@ class SubmitPostController {
   //           'post_id': data['post_id'] ?? "",
   //         };
   //       } else {
-  //         print("La réponse ne contient pas le statut attendu.");
+  //         appLog("La réponse ne contient pas le statut attendu.");
   //         return {
   //           'status':
   //               "new_post_created", // Valeur par défaut si statut non trouvé
@@ -283,8 +284,8 @@ class SubmitPostController {
   //       }
   //     } else {
   //       // Si la réponse n'est pas un code 200, gérer l'erreur
-  //       print("Erreur avec la Cloud Function. Code: ${response.statusCode}");
-  //       print("Message d'erreur : ${response.body}");
+  //       appLog("Erreur avec la Cloud Function. Code: ${response.statusCode}");
+  //       appLog("Message d'erreur : ${response.body}");
   //       return {
   //         'status': "new_post_created", // Valeur par défaut si erreur
   //         'post_id': ""
@@ -292,7 +293,7 @@ class SubmitPostController {
   //     }
   //   } catch (e) {
   //     // Gestion des erreurs liées à la requête (ex : pas de connexion réseau, timeout, etc.)
-  //     print("Erreur lors de l'envoi de la requête : $e");
+  //     appLog("Erreur lors de l'envoi de la requête : $e");
   //     return {
   //       'status': "new_post_created", // Valeur par défaut en cas d'erreur
   //       'post_id': ""
