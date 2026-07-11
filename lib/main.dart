@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
 import 'package:connect_kasa/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:connect_kasa/controllers/providers/color_provider.dart';
-import 'package:connect_kasa/controllers/providers/lot_provider.dart';
 import 'package:connect_kasa/controllers/providers/message_provider.dart';
 import 'package:connect_kasa/controllers/providers/name_lot_provider.dart';
 import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
@@ -49,7 +48,6 @@ void main() async {
       providers: [
         ChangeNotifierProvider(create: (context) => ColorProvider()),
         ChangeNotifierProvider(create: (context) => NameLotProvider()),
-        ChangeNotifierProvider(create: (_) => LotProvider()),
         ChangeNotifierProvider(create: (_) => MessageProvider()),
       ],
       child: MyApp(),
