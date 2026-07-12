@@ -40,7 +40,7 @@ class ColorControllerState extends State<ColorController> {
     Color color = Color(int.parse(hexColor, radix: 16));
 
     return MaterialColor(
-      color.value,
+      color.toARGB32(),
       <int, Color>{
         50: color,
         100: color,

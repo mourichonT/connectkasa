@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class ContactFeatures {
   static void launchPhoneCall(String phoneNumber) async {
@@ -23,7 +23,7 @@ class ContactFeatures {
 
   static dynamic launchEmail(String mail, String userContact) async {
     String subject =
-        ("$userContact vous contact depuis son espace ConnectKasa");
+        ("$userContact vous contact depuis son espace KONODAL");
 
     try {
       Uri email = Uri(

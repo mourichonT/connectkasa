@@ -44,38 +44,36 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyCaVGy_J11xaFxN-ssOuIE0w7YFdVTqlbk',
-    appId: '1:325705345982:web:2eed8dadfcc13ffbd7e7ef',
-    messagingSenderId: '325705345982',
-    projectId: 'connectkasa-84f23',
-    authDomain: 'connectkasa-84f23.firebaseapp.com',
-    storageBucket: 'connectkasa-84f23.appspot.com',
-    measurementId: 'G-ZW0HG41FVG',
+    apiKey: 'AIzaSyDOc2vgxw1BnxjdAUy4WTrNbpLfCd-v0_k',
+    appId: '1:814247048228:web:796f0924df9c5ffccd94b1',
+    messagingSenderId: '814247048228',
+    projectId: 'konodal-dev',
+    authDomain: 'konodal-dev.firebaseapp.com',
+    storageBucket: 'konodal-dev.firebasestorage.app',
+    measurementId: 'G-VRLLE300R2',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCUm-fFBYmMzKBYub-50EMBXPdKW0G-fLc',
-    appId: '1:325705345982:android:731cd0e4e917d361d7e7ef',
-    messagingSenderId: '325705345982',
-    projectId: 'connectkasa-84f23',
-    storageBucket: 'connectkasa-84f23.appspot.com',
+    apiKey: 'AIzaSyAdWUq_o685acDxUbppMVVPZr2wQJwT4q8',
+    appId: '1:814247048228:android:be239b9015268993cd94b1',
+    messagingSenderId: '814247048228',
+    projectId: 'konodal-dev',
+    storageBucket: 'konodal-dev.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDGodmYAmRU5y5_d0erkvmjNATA-Yg1JY8',
-    appId: '1:325705345982:ios:8bc16879122f9076d7e7ef',
-    messagingSenderId: '325705345982',
-    projectId: 'connectkasa-84f23',
-    storageBucket: 'connectkasa-84f23.appspot.com',
-    iosBundleId: 'fr.connectkasa.connectKasa',
+    apiKey: 'AIzaSyCoPcPqDlkgqOXxTQqFyfyuj8zlEDszOCE',
+    appId: '1:814247048228:ios:55cf43dc725f3f77cd94b1',
+    messagingSenderId: '814247048228',
+    projectId: 'konodal-dev',
+    storageBucket: 'konodal-dev.firebasestorage.app',
+    iosBundleId: 'com.konodal.app',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDGodmYAmRU5y5_d0erkvmjNATA-Yg1JY8',
-    appId: '1:325705345982:ios:7c722a7eaf3543e6d7e7ef',
-    messagingSenderId: '325705345982',
-    projectId: 'connectkasa-84f23',
-    storageBucket: 'connectkasa-84f23.appspot.com',
-    iosBundleId: 'fr.connectkasa.connectKasa.RunnerTests',
+    apiKey: 'AIzaSyCoPcPqDlkgqOXxTQqFyfyuj8zlEDszOCE',
+    appId: '1:814247048228:ios:55cf43dc725f3f77cd94b1',
+    messagingSenderId: '814247048228',
+    projectId: 'konodal-dev',
+    storageBucket: 'konodal-dev.firebasestorage.app',
+    iosBundleId: 'com.konodal.app',
   );
 }

@@ -1,17 +1,17 @@
 import 'dart:io';
 import 'dart:convert';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/storage_repository.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class PhotoForId extends ConsumerStatefulWidget {
   final String racineFolder;
@@ -22,6 +22,9 @@ class PhotoForId extends ConsumerStatefulWidget {
   final Function(Map<String, String>) onIdDataExtracted;
   final Function(bool)? onCameraStateChanged;
   final bool cardOverlay;
+  // Optionnel : les documents (pièce d'identité ici) ont besoin de connaître
+  // l'extension du fichier pour DocumentModel.extension.
+  final Function(String)? onExtensionResolved;
 
   const PhotoForId({
     super.key,
@@ -33,6 +36,7 @@ class PhotoForId extends ConsumerStatefulWidget {
     required this.onIdDataExtracted,
     this.onCameraStateChanged,
     required this.cardOverlay,
+    this.onExtensionResolved,
   });
 
   @override
@@ -93,8 +97,8 @@ class PhotoForIdState extends ConsumerState<PhotoForId>
 
   Future<bool> _isValidImage(File file) async {
     try {
-      final decoded = await decodeImageFromList(await file.readAsBytes());
-      return decoded != null;
+      await decodeImageFromList(await file.readAsBytes());
+      return true;
     } catch (e) {
       appLog("📛 Image invalide ou non décodable : $e");
       return false;
@@ -126,6 +130,7 @@ class PhotoForIdState extends ConsumerState<PhotoForId>
       final isImageValid = await _isValidImage(imageFile);
       if (!isImageValid) {
         await _deleteInvalidFile(imageFile);
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -143,6 +148,7 @@ class PhotoForIdState extends ConsumerState<PhotoForId>
           cleanedData.values.every((v) => v.trim().isNotEmpty);
 
       if (!isValid) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
@@ -164,14 +170,17 @@ class PhotoForIdState extends ConsumerState<PhotoForId>
             widget.folderName,
             fileName,
           )
-          .then((result) =>
-              result.when(success: (v) => v, failure: (_) => null));
+          .then((result) => result.when(
+              success: (v) => v, failure: (error) => throw error));
 
-      if (mounted && downloadUrl != null) {
+      if (mounted) {
+        widget.onExtensionResolved
+            ?.call(imageFile.path.split('.').last.toLowerCase());
         widget.onImageUploaded(downloadUrl);
       }
     } catch (e) {
       appLog("❌ Erreur globale : $e");
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors du traitement de l\'image: $e')),
       );

@@ -1,4 +1,4 @@
-import 'package:connect_kasa/models/pages_models/agency_dept.dart';
+import 'package:konodal/models/pages_models/agency_dept.dart';
 
 class Agency {
   String city;

@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/models/pages_models/former_tenant.dart';
-import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/models/pages_models/former_tenant.dart';
+import 'package:konodal/models/pages_models/gerance_ref.dart';
 
 class Lot {
-  String? id; // ID du document Firestore Residence/{id}/lot/{id}, reporté dans ce champ en base à la création
+  String? id; // ID du document Firestore residences/{id}/lot/{id}, reporté dans ce champ en base à la création
   String refLot;
   String? batiment;
   String? lot;
@@ -22,13 +22,13 @@ class Lot {
   // syndicAgency (en réalité une gérance locative pour un lot, cf.
   // modify_prop_info_loc.dart : recherche sur le département
   // "geranceLocative") : cache d'affichage, résolu depuis geranceRef ou
-  // saisie custom si non référencée dans Gerance. Jamais les deux non-null
+  // saisie custom si non référencée dans gerances. Jamais les deux non-null
   // en base.
   Agency? syndicAgency;
   GeranceRef? geranceRef;
 
   /// Vrai si une gérance locative est affectée à ce lot, qu'elle soit
-  /// référencée dans Gerance (pas encore résolue localement) ou custom.
+  /// référencée dans gerances (pas encore résolue localement) ou custom.
   bool get hasAgency => syndicAgency != null || geranceRef != null;
 
   Lot({

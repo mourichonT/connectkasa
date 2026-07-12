@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/income_entry.dart';
-import 'package:connect_kasa/controllers/features/job_entry.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:konodal/controllers/features/income_entry.dart';
+import 'package:konodal/controllers/features/job_entry.dart';
+import 'package:konodal/models/pages_models/user.dart';
 import 'package:intl/intl.dart';
 
 // Assure-toi que JobEntry est bien défini quelque part
@@ -97,9 +97,7 @@ class UserInfo extends User {
           : null,
       'bio': bio,
       'private': private,
-      'birthday': birthday != null
-          ? DateFormat('dd/MM/yyyy').format(birthday.toDate())
-          : null,
+      'birthday': DateFormat('dd/MM/yyyy').format(birthday.toDate()),
       'dependent': dependent,
       'familySituation': familySituation,
       'nationality': nationality,
@@ -151,7 +149,7 @@ class UserInfo extends User {
       pseudo: pseudo ?? this.pseudo,
       private: private ?? this.private,
       approved: approved ?? this.approved,
-      createdDate: createdDate ?? this.createdDate,
+      createdDate: createdDate ?? createdDate,
       bio: bio ?? this.bio,
       profilPic: profilPic ?? this.profilPic ?? '',
     );

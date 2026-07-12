@@ -1,5 +1,5 @@
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/models/pages_models/gerance_ref.dart';
 
 class StructureResidence {
   String? id; // Cet ID sera l'ID du document Firestore
@@ -11,7 +11,7 @@ class StructureResidence {
   bool hasUnderground;
   bool hasDifferentSyndic;
   // syndicAgency : cache d'affichage (résolu depuis geranceRef, ou saisie
-  // custom si non référencée dans Gerance). Jamais les deux non-null en base.
+  // custom si non référencée dans gerances). Jamais les deux non-null en base.
   Agency? syndicAgency;
   GeranceRef? geranceRef;
 

@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
+import 'package:konodal/models/pages_models/user_info.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class Exportpdfhttp {
-  static Future<void> ExportLocaScore(
+  static Future<void> exportLocaScore(
       BuildContext context, UserInfo tenant) async {
     Uri url = Uri.parse("https://export-locascore-pdf-z5w73fjiva-uc.a.run.app");
     try {
@@ -67,7 +67,7 @@ class Exportpdfhttp {
     required String postId,
   }) async {
     final Uri url = Uri.parse(
-      "https://europe-west1-connectkasa-84f23.cloudfunctions.net/generate_report",
+      "https://us-central1-konodal-dev.cloudfunctions.net/generate_report",
     );
 
     try {

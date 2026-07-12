@@ -1,9 +1,10 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_post_controller.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
 
 class InciviliteForm extends StatefulWidget {
@@ -30,6 +31,7 @@ class InciviliteForm extends StatefulWidget {
 class InciviliteFormState extends State<InciviliteForm> {
   late List<String> itemsType;
   late TextEditingController textEditingController;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -37,8 +39,6 @@ class InciviliteFormState extends State<InciviliteForm> {
     textEditingController = TextEditingController();
   }
 
-  final ButtonStyle style =
-      ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20));
   final WidgetStateProperty<Icon?> thumbIcon =
       WidgetStateProperty.resolveWith<Icon?>(
     (Set<WidgetState> states) {
@@ -55,10 +55,7 @@ class InciviliteFormState extends State<InciviliteForm> {
   bool anonymPost = true;
 
   void updateItem(String updatedElement) {
-    String item = "";
-    setState(() {
-      item = updatedElement;
-    });
+    setState(() {});
   }
 
   void updateBool(bool updatedBool) {
@@ -141,35 +138,41 @@ class InciviliteFormState extends State<InciviliteForm> {
               height: 40,
             ),
             Center(
-              child: ElevatedButton(
-                style: style,
-                onPressed: () async {
-                  try {
-                    await SubmitPostController.submitForm(
-                      uid: widget.uid,
-                      idPost: widget.idPost,
-                      selectedLabel: widget.folderName,
-                      imagePath: imagePath,
-                      title: title,
-                      desc: desc,
-                      anonymPost: anonymPost,
-                      docRes: widget.preferedLot.residenceId,
-                    );
-                  } catch (e) {
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: Colors.red,
-                        content: Text("Erreur lors de l'envoi : $e"),
-                      ),
-                    );
-                    return;
-                  }
-                  if (!context.mounted) return;
-                  Navigator.pop(context);
-                },
-                child: MyTextStyle.lotName("Soumettre",
-                    Theme.of(context).primaryColor, SizeFont.h2.size),
+              child: ButtonAdd(
+                color: Theme.of(context).primaryColor,
+                text: "Soumettre",
+                horizontal: 20,
+                vertical: 5,
+                size: SizeFont.h2.size,
+                function: _isSubmitting
+                    ? null
+                    : () async {
+                        setState(() => _isSubmitting = true);
+                        try {
+                          await SubmitPostController.submitForm(
+                            uid: widget.uid,
+                            idPost: widget.idPost,
+                            selectedLabel: widget.folderName,
+                            imagePath: imagePath,
+                            title: title,
+                            desc: desc,
+                            anonymPost: anonymPost,
+                            docRes: widget.preferedLot.residenceId,
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          setState(() => _isSubmitting = false);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Colors.red,
+                              content: Text("Erreur lors de l'envoi : $e"),
+                            ),
+                          );
+                          return;
+                        }
+                        if (!context.mounted) return;
+                        Navigator.pop(context);
+                      },
               ),
             ),
             const SizedBox(

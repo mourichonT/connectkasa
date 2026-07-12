@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/repositories/firestore_chat_repository.dart';
-import 'package:connect_kasa/models/pages_models/message.dart';
+import 'package:konodal/core/repositories/firestore_chat_repository.dart';
+import 'package:konodal/models/pages_models/message.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class MessageProvider extends ChangeNotifier {
   final FirestoreChatRepository _chatRepository = FirestoreChatRepository();
@@ -13,7 +13,6 @@ class MessageProvider extends ChangeNotifier {
   bool _hasNewMessage = false;
 
   String? _userFrom;
-  String? _residenceId;
 
   final StreamController<bool> _hasNewMessageController =
       StreamController<bool>.broadcast();
@@ -73,7 +72,6 @@ class MessageProvider extends ChangeNotifier {
     required String residenceId,
     required String currentUserId,
   }) {
-    _residenceId = residenceId;
     _userFrom = currentUserId;
 
     appLog(
@@ -83,9 +81,9 @@ class MessageProvider extends ChangeNotifier {
     _chatSubscription?.cancel();
 
     _chatSubscription = FirebaseFirestore.instance
-        .collection("Residence")
+        .collection("residences")
         .doc(residenceId)
-        .collection("chat")
+        .collection("chats")
         .where(Filter.or(
           Filter('from_id', isEqualTo: currentUserId),
           Filter('to_id', isEqualTo: currentUserId),
@@ -159,7 +157,6 @@ class MessageProvider extends ChangeNotifier {
     _lastMessage = null;
     _hasNewMessage = false;
     _userFrom = null;
-    _residenceId = null;
   }
 
   @override

@@ -1,10 +1,10 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/bottom_sheet/multi_select_bottom_sheet_field.dart';
 import 'package:multi_select_flutter/chip_display/multi_select_chip_display.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
 
-Widget MyMultiSelectedDropDown(
+Widget myMultiSelectedDropDown(
     {required GlobalKey<FormFieldState<dynamic>>? myKey,
     required double fontSize,
     required double width,

@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/repositories/auth_repository.dart';
-import 'package:connect_kasa/core/repositories/firebase_auth_repository.dart';
+import 'package:konodal/core/repositories/auth_repository.dart';
+import 'package:konodal/core/repositories/firebase_auth_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class LoadUserController {
   final IAuthRepository _authRepository = FirebaseAuthRepository();
   firebase_auth.UserCredential? user;
 
   Future<void> registerUserInFirestore(firebase_auth.User user) async {
-    FirebaseFirestore.instance.collection("User").doc(user.uid).set({
+    FirebaseFirestore.instance.collection("users").doc(user.uid).set({
       'uid': user.uid,
       'name': user.displayName ?? "N/A",
       'email': user.email ?? "N/A",

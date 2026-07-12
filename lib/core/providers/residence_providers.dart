@@ -1,5 +1,5 @@
-import 'package:connect_kasa/core/providers/residence_repository_provider.dart';
-import 'package:connect_kasa/models/pages_models/contact.dart';
+import 'package:konodal/core/providers/residence_repository_provider.dart';
+import 'package:konodal/models/pages_models/contact.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Contacts ("Numéros utiles") d'une résidence (ContactView). Mis en

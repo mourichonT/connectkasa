@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/providers/post_repository_provider.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:konodal/core/providers/post_repository_provider.dart';
+import 'package:konodal/models/pages_models/post.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 const postsPageSize = 15;

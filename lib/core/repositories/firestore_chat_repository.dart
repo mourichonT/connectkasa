@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/chat_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/message.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/chat_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/message.dart';
 
 class FirestoreChatRepository implements IChatRepository {
   final FirebaseFirestore _firestore;
@@ -33,9 +33,9 @@ class FirestoreChatRepository implements IChatRepository {
       String chatId = ids.join("_");
 
       final chatDocRef = _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residence)
-          .collection("chat")
+          .collection("chats")
           .doc(chatId);
 
       // Ajoute le message dans la sous-collection
@@ -93,9 +93,9 @@ class FirestoreChatRepository implements IChatRepository {
     String chatId = ids.join("_");
 
     return _firestore
-        .collection('Residence')
+        .collection('residences')
         .doc(residenceId)
-        .collection('chat')
+        .collection('chats')
         .doc(chatId)
         .collection('messages')
         .orderBy('timestamp', descending: true)
@@ -119,9 +119,9 @@ class FirestoreChatRepository implements IChatRepository {
     String chatRoomId = ids.join("_");
 
     return _firestore
-        .collection("Residence")
+        .collection("residences")
         .doc(residence)
-        .collection("chat")
+        .collection("chats")
         .doc(chatRoomId)
         .collection("messages")
         .orderBy("timestamp", descending: false)

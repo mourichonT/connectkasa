@@ -1,10 +1,9 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/residence_page.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/pages_vues/profil_page/residence_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class ResidencePageRoute extends StatelessWidget {
   final String uid;

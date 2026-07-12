@@ -1,18 +1,18 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/pages_controllers/filter_allannounced_controller..dart';
-import 'package:connect_kasa/core/providers/post_providers.dart';
-import 'package:connect_kasa/core/repositories/post_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/annonces_page/add_annonceform.dart';
-import 'package:connect_kasa/vues/widget_view/components/annonce_tile.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/sinistre_tile.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/pages_controllers/filter_allannounced_controller.dart';
+import 'package:konodal/core/providers/post_providers.dart';
+import 'package:konodal/core/repositories/post_repository.dart';
+import 'package:konodal/core/repositories/firestore_post_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/pages_vues/annonces_page/add_annonceform.dart';
+import 'package:konodal/vues/widget_view/components/annonce_tile.dart';
+import 'package:konodal/vues/pages_vues/post_page/sinistre_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class AnnoncesPageView extends ConsumerStatefulWidget {
   final String residenceSelected;

@@ -1,5 +1,5 @@
-import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
-import 'package:connect_kasa/core/providers/agency_repository_provider.dart';
+import 'package:konodal/controllers/features/agency_search_flow.dart';
+import 'package:konodal/core/providers/agency_repository_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// AgencySearchFlow pour un serviceType donné ("serviceSyndic" ou

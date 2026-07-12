@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 
 class FirestoreLotRepository implements ILotRepository {
@@ -16,12 +16,12 @@ class FirestoreLotRepository implements ILotRepository {
 
   Future<List<Lot>> _fetchLotsByUser(String userID) async {
     List<Lot> lots = [];
-    // Une seule lecture de User/{uid}/lots, puis un accès direct par ID à
+    // Une seule lecture de users/{uid}/lots, puis un accès direct par ID à
     // chaque résidence/lot concerné — plus de parcours de toutes les
     // résidences et tous leurs lots (O(nombre de lots de l'utilisateur)
     // au lieu de O(résidences × lots)).
     final userLotsSnapshot =
-        await _firestore.collection("User").doc(userID).collection("lots").get();
+        await _firestore.collection("users").doc(userID).collection("lots").get();
 
     for (final userLotDoc in userLotsSnapshot.docs) {
       final userLotData = userLotDoc.data();
@@ -31,11 +31,11 @@ class FirestoreLotRepository implements ILotRepository {
       if (residenceId == null) continue;
 
       final residenceSnapshot =
-          await _firestore.collection("Residence").doc(residenceId).get();
+          await _firestore.collection("residences").doc(residenceId).get();
       final lotSnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("lot")
+          .collection("lots")
           .doc(lotId)
           .get();
 
@@ -85,14 +85,14 @@ class FirestoreLotRepository implements ILotRepository {
     List<Lot> lots = [];
     try {
       final querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .where("id", isEqualTo: residenceId)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         final residenceDoc = querySnapshot.docs.first;
         final lotQuerySnapshot =
-            await residenceDoc.reference.collection("lot").get();
+            await residenceDoc.reference.collection("lots").get();
 
         for (var lotDoc in lotQuerySnapshot.docs) {
           lots.add(Lot.fromMap(lotDoc.data()));
@@ -109,7 +109,7 @@ class FirestoreLotRepository implements ILotRepository {
       String residenceId, String bat, String numlot) async {
     try {
       final querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .where("id", isEqualTo: residenceId)
           .get();
 
@@ -117,7 +117,7 @@ class FirestoreLotRepository implements ILotRepository {
         final residenceDoc = querySnapshot.docs.first;
 
         final lotQuerySnapshot = await residenceDoc.reference
-            .collection("lot")
+            .collection("lots")
             .where("batiment", isEqualTo: bat)
             .where("lot", isEqualTo: numlot)
             .get();
@@ -158,9 +158,10 @@ class FirestoreLotRepository implements ILotRepository {
       String userUid, String id, Color newColor) async {
     try {
       final lotRef =
-          _firestore.collection("User").doc(userUid).collection("lots").doc(id);
+          _firestore.collection("users").doc(userUid).collection("lots").doc(id);
 
-      final hexColor = newColor.value.toRadixString(16).padLeft(8, '0');
+      final hexColor =
+          newColor.toARGB32().toRadixString(16).padLeft(8, '0');
 
       await lotRef.update({'colorSelected': hexColor});
       return const Result.success(null);
@@ -174,7 +175,7 @@ class FirestoreLotRepository implements ILotRepository {
       String userUid, String id, String newName) async {
     try {
       final lotRef =
-          _firestore.collection("User").doc(userUid).collection("lots").doc(id);
+          _firestore.collection("users").doc(userUid).collection("lots").doc(id);
 
       await lotRef.update({'nameLot': newName});
       return const Result.success(null);
@@ -188,9 +189,9 @@ class FirestoreLotRepository implements ILotRepository {
       String residenceId, String idLot, String field, dynamic upDate) async {
     try {
       final lotRef = _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("lot")
+          .collection("lots")
           .doc(idLot);
 
       final snapshot = await lotRef.get();
@@ -233,7 +234,7 @@ class FirestoreLotRepository implements ILotRepository {
     await _recomputeSharedWithLandlords(tenantId);
   }
 
-  // Reconstruit entièrement User/{tenantId}.sharedWithLandlords à partir des
+  // Reconstruit entièrement users/{tenantId}.sharedWithLandlords à partir des
   // lots où tenantId est effectivement dans idLocataire, plutôt qu'un
   // arrayUnion/Remove incrémental : évite les incohérences si un même
   // propriétaire partage plusieurs lots avec ce locataire.
@@ -248,25 +249,25 @@ class FirestoreLotRepository implements ILotRepository {
       }
     }
 
-    await _firestore.collection("User").doc(tenantId).set({
+    await _firestore.collection("users").doc(tenantId).set({
       "sharedWithLandlords": landlordUids.toList(),
     }, SetOptions(merge: true));
   }
 
-  // Reconstruit entièrement User/{userId}.residencesIds à partir de
-  // User/{userId}/lots, pour rester cohérent avec firestore.rules après un
+  // Reconstruit entièrement users/{userId}.residencesIds à partir de
+  // users/{userId}/lots, pour rester cohérent avec firestore.rules après un
   // retrait de lot (voir removeIdLocataire / removeIdProprietaire /
   // removeUserFromAllLots).
   Future<void> _recomputeResidencesIds(String userId) async {
     final userLotsSnapshot =
-        await _firestore.collection("User").doc(userId).collection("lots").get();
+        await _firestore.collection("users").doc(userId).collection("lots").get();
 
     final residenceIds = userLotsSnapshot.docs
         .map((doc) => doc.data()['residenceId'] as String?)
         .whereType<String>()
         .toSet();
 
-    await _firestore.collection("User").doc(userId).set({
+    await _firestore.collection("users").doc(userId).set({
       "residencesIds": residenceIds.toList(),
     }, SetOptions(merge: true));
   }
@@ -276,9 +277,9 @@ class FirestoreLotRepository implements ILotRepository {
       String idLot, String tenantId) async {
     try {
       final lotRef = _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("lot")
+          .collection("lots")
           .doc(idLot);
 
       final lotDoc = await lotRef.get();
@@ -347,19 +348,14 @@ class FirestoreLotRepository implements ILotRepository {
       final lots = await _fetchLotsByUser(userID);
 
       for (Lot lot in lots) {
-        if (lot.idLocataire != null &&
-            ((lot.idLocataire is List && lot.idLocataire!.contains(userID)) ||
-                (lot.idLocataire is String && lot.idLocataire == userID))) {
-          await _removeIdLocataireInternal(lot.residenceId!, lot.id!, userID);
+        if (lot.idLocataire != null && lot.idLocataire!.contains(userID)) {
+          await _removeIdLocataireInternal(lot.residenceId, lot.id!, userID);
         }
 
         if (lot.idProprietaire != null &&
-            ((lot.idProprietaire is List &&
-                    lot.idProprietaire!.contains(userID)) ||
-                (lot.idProprietaire is String &&
-                    lot.idProprietaire == userID))) {
+            lot.idProprietaire!.contains(userID)) {
           await _removeIdProprietaireInternal(
-              lot.residenceId!, lot.id!, userID);
+              lot.residenceId, lot.id!, userID);
         }
       }
 
@@ -376,9 +372,9 @@ class FirestoreLotRepository implements ILotRepository {
   Future<void> _removeIdLocataireInternal(
       String residenceId, String idLot, String idLocataireToRemove) async {
     final lotRef = _firestore
-        .collection("Residence")
+        .collection("residences")
         .doc(residenceId)
-        .collection("lot")
+        .collection("lots")
         .doc(idLot);
 
     final lotSnapshot = await lotRef.get();
@@ -391,7 +387,7 @@ class FirestoreLotRepository implements ILotRepository {
         // Seuls idLocataire/idLocataireOld sont modifiables ici par un
         // simple propriétaire (non CS member) - cf. firestore.rules. Le
         // nettoyage côté locataire (sa référence à ce lot dans
-        // User/{uid}/lots, residencesIds, sharedWithLandlords) est fait
+        // users/{uid}/lots, residencesIds, sharedWithLandlords) est fait
         // côté serveur par la Cloud Function sync_lot_tenant_removal
         // (functions_python/main.py), déclenchée par cette écriture : un
         // propriétaire n'a pas le droit d'écrire directement sur le
@@ -422,9 +418,9 @@ class FirestoreLotRepository implements ILotRepository {
   Future<void> _removeIdProprietaireInternal(
       String residenceId, String idLot, String idProprietaireToRemove) async {
     final lotRef = _firestore
-        .collection("Residence")
+        .collection("residences")
         .doc(residenceId)
-        .collection("lot")
+        .collection("lots")
         .doc(idLot);
 
     final lotSnapshot = await lotRef.get();
@@ -460,7 +456,7 @@ class FirestoreLotRepository implements ILotRepository {
   Future<Result<void>> createOrUpdateLot(String residenceId, Lot lot) async {
     try {
       final lotRef =
-          _firestore.collection("Residence").doc(residenceId).collection("lot");
+          _firestore.collection("residences").doc(residenceId).collection("lots");
 
       // Défense contre un ID corrompu par des espaces parasites (déjà vu en
       // production : un ID Firestore avec un espace en préfixe crée un
@@ -501,7 +497,7 @@ class FirestoreLotRepository implements ILotRepository {
   Future<Result<void>> deleteLot(String residenceId, String idLot) async {
     try {
       final lotRef =
-          _firestore.collection("Residence").doc(residenceId).collection("lot");
+          _firestore.collection("residences").doc(residenceId).collection("lots");
 
       final query = await lotRef.where("id", isEqualTo: idLot).limit(1).get();
 

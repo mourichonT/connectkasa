@@ -1,5 +1,5 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextFieldWidget extends StatelessWidget {
@@ -19,7 +19,7 @@ class CustomTextFieldWidget extends StatelessWidget {
   final TextInputType? keyboardType;
 
   const CustomTextFieldWidget({
-    Key? key,
+    super.key,
     this.text,
     this.label,
     this.value,
@@ -34,7 +34,7 @@ class CustomTextFieldWidget extends StatelessWidget {
     this.pickDate,
     this.onChanged,
     this.keyboardType,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -106,8 +106,7 @@ class CustomTextFieldWidget extends StatelessWidget {
             if (!isReadOnlyTapField && (focusNode?.hasFocus ?? false))
               IconButton(
                 onPressed: () {
-                  if (label! != null &&
-                      field != null &&
+                  if (field != null &&
                       onSubmit != null &&
                       controller != null) {
                     onSubmit!(field!, label!, controller!.text);

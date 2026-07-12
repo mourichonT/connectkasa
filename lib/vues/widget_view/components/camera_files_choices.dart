@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/storage_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class CameraOrFiles extends ConsumerStatefulWidget {
   final String racineFolder;
@@ -27,6 +27,11 @@ class CameraOrFiles extends ConsumerStatefulWidget {
   // asynchrone et un bouton "Ajouter"/"Enregistrer" trop rapide).
   final VoidCallback? onUploadStart;
   final VoidCallback? onUploadError;
+  // Optionnel, comme onUploadStart/onUploadError ci-dessus : les documents
+  // (identité, justificatif, Kbis...) ont besoin de connaître l'extension du
+  // fichier pour DocumentModel.extension ; les usages "image de post"
+  // (sinistre/annonce/événement) n'en ont pas besoin et n'y touchent pas.
+  final Function(String)? onExtensionResolved;
 
   const CameraOrFiles({
     super.key,
@@ -40,6 +45,7 @@ class CameraOrFiles extends ConsumerStatefulWidget {
     this.onCameraStateChanged,
     this.onUploadStart,
     this.onUploadError,
+    this.onExtensionResolved,
   });
 
   @override
@@ -157,11 +163,24 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
               success: (v) => v, failure: (error) => throw error));
 
       if (mounted) {
+        widget.onExtensionResolved?.call(_getFileExtension(file));
         widget.onImageUploaded(downloadUrl);
       }
     } catch (e) {
       appLog("Erreur lors de l'upload de l'image: $e");
       widget.onUploadError?.call();
+      // Sans ce retour visuel, un échec d'upload laisse le formulaire
+      // appelant silencieusement bloqué en attente d'une image qui n'arrive
+      // jamais (ex: bouton "Suivant" de step0.dart, qui ne s'affiche que
+      // lorsque le chemin de l'image est renseigné).
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red,
+            content: Text("Erreur lors de l'envoi de l'image : $e"),
+          ),
+        );
+      }
     }
   }
 
@@ -322,7 +341,7 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                   ),
                   child: const Icon(
                     Icons.close,

@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/contact.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/models/pages_models/structure_residence.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/contact.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/models/pages_models/structure_residence.dart';
 
 class FirestoreResidenceRepository implements IResidenceRepository {
   final FirebaseFirestore _firestore;
@@ -30,7 +30,7 @@ class FirestoreResidenceRepository implements IResidenceRepository {
   Future<Result<List<Contact>>> getContactByResidence(String residence) async {
     try {
       final querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residence)
           .collection("contacts")
           .get();
@@ -46,12 +46,12 @@ class FirestoreResidenceRepository implements IResidenceRepository {
   @override
   Future<Result<List<Residence>>> rechercheFirestore(String saisie) async {
     try {
-      final querySnapshot = await _firestore.collection("Residence").get();
+      final querySnapshot = await _firestore.collection("residences").get();
       final residencesTrouvees = <Residence>[];
 
       for (var doc in querySnapshot.docs) {
         final residence =
-            Residence.fromJson(doc.data() as Map<String, dynamic>);
+            Residence.fromJson(doc.data());
 
         if ((residence.name.toLowerCase().contains(saisie.toLowerCase())) ||
             (residence.street.toLowerCase().contains(saisie.toLowerCase())) ||
@@ -74,7 +74,7 @@ class FirestoreResidenceRepository implements IResidenceRepository {
   Future<Result<Residence>> getResidenceByRef(String residenceId) async {
     try {
       final docSnapshot =
-          await _firestore.collection("Residence").doc(residenceId).get();
+          await _firestore.collection("residences").doc(residenceId).get();
 
       if (!docSnapshot.exists) {
         return Result.failure(
@@ -93,7 +93,7 @@ class FirestoreResidenceRepository implements IResidenceRepository {
   Future<Result<bool>> updateResidence(
       String refResidence, Map<String, dynamic> updatedData) async {
     try {
-      final docRef = _firestore.collection("Residence").doc(refResidence);
+      final docRef = _firestore.collection("residences").doc(refResidence);
       final snapshot = await docRef.get();
 
       if (snapshot.exists) {
@@ -118,15 +118,15 @@ class FirestoreResidenceRepository implements IResidenceRepository {
       String residenceId) async {
     try {
       final structureRef = _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("structure");
+          .collection("structures");
 
       final querySnapshot = await structureRef.get();
 
       var allLocalisation = <Map<String, String>>[];
       for (var doc in querySnapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data();
         final structure = StructureResidence.fromJson(data, doc.id);
 
         if (structure.name.isNotEmpty && structure.type.isNotEmpty) {
@@ -162,9 +162,9 @@ class FirestoreResidenceRepository implements IResidenceRepository {
       String residenceId, String locId) async {
     try {
       final doc = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("structure")
+          .collection("structures")
           .doc(locId)
           .get();
 
@@ -184,9 +184,9 @@ class FirestoreResidenceRepository implements IResidenceRepository {
       String residenceId) async {
     try {
       final querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("structure")
+          .collection("structures")
           .get();
 
       final structures = querySnapshot.docs
@@ -212,7 +212,7 @@ class FirestoreResidenceRepository implements IResidenceRepository {
   Future<Result<void>> removeCsMember(
       String residenceId, String uidToRemove) async {
     try {
-      await _firestore.collection('Residence').doc(residenceId).update({
+      await _firestore.collection('residences').doc(residenceId).update({
         'csmembers': FieldValue.arrayRemove([uidToRemove])
       });
       return const Result.success(null);
@@ -224,7 +224,7 @@ class FirestoreResidenceRepository implements IResidenceRepository {
   @override
   Future<Result<void>> addCsMember(String residenceId, String uidToAdd) async {
     try {
-      await _firestore.collection('Residence').doc(residenceId).update({
+      await _firestore.collection('residences').doc(residenceId).update({
         'csmembers': FieldValue.arrayUnion([uidToAdd])
       });
       return const Result.success(null);
@@ -237,7 +237,7 @@ class FirestoreResidenceRepository implements IResidenceRepository {
   Future<Result<void>> addContact(String residenceId, Contact contact) async {
     try {
       final docRef = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
           .collection("contacts")
           .add(contact.toJson());
@@ -261,7 +261,7 @@ class FirestoreResidenceRepository implements IResidenceRepository {
       }
 
       await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
           .collection("contacts")
           .doc(contact.id)
@@ -278,7 +278,7 @@ class FirestoreResidenceRepository implements IResidenceRepository {
       String residenceId, String contactDocId) async {
     try {
       await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
           .collection("contacts")
           .doc(contactDocId)
@@ -294,9 +294,9 @@ class FirestoreResidenceRepository implements IResidenceRepository {
       String residenceId, StructureResidence structure) async {
     try {
       final collectionRef = _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("structure");
+          .collection("structures");
 
       if (structure.id == null || structure.id!.isEmpty) {
         final docRef = await collectionRef.add(structure.toJson());
@@ -316,9 +316,9 @@ class FirestoreResidenceRepository implements IResidenceRepository {
       String residenceId, String structureId) async {
     try {
       await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("structure")
+          .collection("structures")
           .doc(structureId)
           .delete();
       return const Result.success(null);

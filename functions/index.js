@@ -21,7 +21,7 @@ async function deleteStorageFolder(prefix) {
 
 /**
  * Renvoie le token FCM d'un utilisateur, sauf s'il a désactivé le type de
- * notification demandé (User/{uid}.notificationPrefs.<type>, opt-out : une
+ * notification demandé (users/{uid}.notificationPrefs.<type>, opt-out : une
  * clé absente ou à `true` autorise l'envoi, seule une valeur explicite
  * `false` le bloque). Voir NotificationType
  * (lib/models/enum/notification_type.dart) côté Flutter pour la liste
@@ -34,8 +34,8 @@ async function deleteStorageFolder(prefix) {
 async function getTokenIfNotificationAllowed(db, uid, type) {
   try {
     const [tokenDoc, userDoc] = await Promise.all([
-      db.collection("User").doc(uid).collection("private").doc("fcm").get(),
-      db.collection("User").doc(uid).get(),
+      db.collection("users").doc(uid).collection("private").doc("fcm").get(),
+      db.collection("users").doc(uid).get(),
     ]);
 
     if (!tokenDoc.exists || !tokenDoc.data().token) return null;
@@ -76,7 +76,7 @@ exports.cleanupUserData = functionsV1.auth.user().onDelete(async (user) => {
   // siège.
   try {
     const residencesSnapshot = await db
-        .collection("Residence")
+        .collection("residences")
         .where("csmembers", "array-contains", uid)
         .get();
 
@@ -90,13 +90,13 @@ exports.cleanupUserData = functionsV1.auth.user().onDelete(async (user) => {
     console.error("Erreur retrait csmembers :", error);
   }
 
-  // Lit User/{uid}/lots une seule fois : sert à la fois à retirer
+  // Lit users/{uid}/lots une seule fois : sert à la fois à retirer
   // l'utilisateur de idProprietaire/idLocataire sur chaque lot, et à savoir
   // dans quelles résidences chercher ses annonces à supprimer.
   let userLotsDocs = [];
   try {
     const userLotsSnapshot = await db
-        .collection("User")
+        .collection("users")
         .doc(uid)
         .collection("lots")
         .get();
@@ -118,9 +118,9 @@ exports.cleanupUserData = functionsV1.auth.user().onDelete(async (user) => {
 
     try {
       const lotRef = db
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("lot")
+          .collection("lots")
           .doc(lotId);
       const lotSnapshot = await lotRef.get();
       if (!lotSnapshot.exists) continue;
@@ -155,9 +155,9 @@ exports.cleanupUserData = functionsV1.auth.user().onDelete(async (user) => {
   for (const residenceId of residenceIds) {
     try {
       const postsSnapshot = await db
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("post")
+          .collection("posts")
           .where("user", "==", uid)
           .where("type", "==", "annonces")
           .get();
@@ -178,11 +178,11 @@ exports.cleanupUserData = functionsV1.auth.user().onDelete(async (user) => {
     }
   }
 
-  // Supprime le document User/{uid} et TOUTES ses sous-collections en une
+  // Supprime le document users/{uid} et TOUTES ses sous-collections en une
   // fois (documents, demandes_loc, lots + leurs documents, profil_locataire
   // + garants + leurs documents).
   try {
-    await db.recursiveDelete(db.collection("User").doc(uid));
+    await db.recursiveDelete(db.collection("users").doc(uid));
     console.log(`User/${uid} et ses sous-collections supprimés`);
   } catch (error) {
     console.error(`Erreur suppression User/${uid} :`, error);
@@ -196,7 +196,10 @@ exports.notifyNewPost = onDocumentCreated(
     // sans ça, le trigger Eventarc (créé dans la région de la base) doit
     // relayer chaque événement vers us-central1 (région par défaut),
     // un saut réseau inter-région inutile à chaque nouveau post.
-    {document: "Residence/{residenceId}/post/{postId}", region: "europe-west1"},
+    {
+      document: "residences/{residenceId}/posts/{postId}",
+      region: "europe-west1",
+    },
     async (event) => {
       const snapshot = event.data;
       const db = admin.firestore();
@@ -211,9 +214,9 @@ exports.notifyNewPost = onDocumentCreated(
         console.log("DEBUT DE LA FONCTION NOTIFICATION");
         console.log("__________________________________");
         const lotsSnapshot = await db
-            .collection("Residence")
+            .collection("residences")
             .doc(residenceId)
-            .collection("lot")
+            .collection("lots")
             .get();
 
         lotsSnapshot.forEach((lotDoc) => {
@@ -247,7 +250,7 @@ exports.notifyNewPost = onDocumentCreated(
 
       // Étape 2 : récupérer les tokens FCM des utilisateurs individuellement,
       // en excluant ceux qui ont désactivé les notifications pour ce type de
-      // publication (notificationPrefs sur User/{uid}). Lectures
+      // publication (notificationPrefs sur users/{uid}). Lectures
       // parallélisées (Promise.all) plutôt qu'une boucle séquentielle : pour
       // une résidence de N résidents, N lectures en parallèle au lieu de N
       // lectures l'une après l'autre. Chaque promesse gère sa propre erreur
@@ -315,7 +318,7 @@ exports.notifyNewMessage = onDocumentCreated(
     // region alignée avec la localisation de la base Firestore (eur3),
     // voir commentaire sur notifyNewPost.
     {
-      document: "Residence/{residenceId}/chat/{chatId}/messages/{messageId}",
+      document: "residences/{residenceId}/chats/{chatId}/messages/{messageId}",
       region: "europe-west1",
     },
     async (event) => {
@@ -335,7 +338,7 @@ exports.notifyNewMessage = onDocumentCreated(
       }
 
       try {
-        const senderDoc = await db.collection("User")
+        const senderDoc = await db.collection("users")
             .doc(message.userIdFrom).get();
         const receiverToken = await getTokenIfNotificationAllowed(
             db, message.userIdTo, "message");
@@ -394,7 +397,7 @@ exports.notifyDemandeLoc = onDocumentCreated(
     // region alignée avec la localisation de la base Firestore (eur3),
     // voir commentaire sur notifyNewPost.
     {
-      document: "User/{proprietaireUid}/demandes_loc/{demandeId}",
+      document: "users/{proprietaireUid}/demandes_loc/{demandeId}",
       region: "europe-west1",
     },
     async (event) => {

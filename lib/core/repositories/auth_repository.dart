@@ -1,4 +1,4 @@
-import 'package:connect_kasa/core/result/result.dart';
+import 'package:konodal/core/result/result.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 /// Remplace AuthentificationService (Phase 2 du chantier architecture) :

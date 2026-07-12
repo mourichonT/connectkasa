@@ -1,13 +1,13 @@
-import 'package:connect_kasa/controllers/features/line_interaction.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
-import 'package:connect_kasa/vues/widget_view/components/header_row.dart';
+import 'package:konodal/controllers/features/line_interaction.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
+import 'package:konodal/vues/widget_view/components/header_row.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -101,18 +101,18 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                                 colors: [
+                                  Colors.black12.withValues(
+                                      alpha: 0.5), // Transparent en haut
+                                  Colors.black12.withValues(
+                                      alpha: 0.2), // Semi-transparent au milieu
                                   Colors.black12
-                                      .withOpacity(0.5), // Transparent en haut
-                                  Colors.black12.withOpacity(
-                                      0.2), // Semi-transparent au milieu
-                                  Colors.black12
-                                      .withOpacity(0.0), // Opaque en bas
+                                      .withValues(alpha: 0.0), // Opaque en bas
                                 ],
                               ),
                             ),
                             child: Padding(
                               padding: const EdgeInsets.only(left: 10),
-                              child: ProfilTile(widget.post.user, 22, 19, 22,
+                              child: profilTile(widget.post.user, 22, 19, 22,
                                   true, Colors.white),
                             ),
                           ),
@@ -152,7 +152,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                                       Colors.black87, SizeFont.h2.size),
                                 ],
                               )
-                            : ProfilTile(widget.post.user, 22, 19, 22, true,
+                            : profilTile(widget.post.user, 22, 19, 22, true,
                                 Colors.black87, SizeFont.h2.size),
                         MyTextStyle.commentDate(widget.post.timeStamp),
                       ],
@@ -171,7 +171,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                   ],
                 ),
               ),
-            IteractionLine(widget.post, widget.residenceSelected, widget.uid,
+            iteractionLine(widget.post, widget.residenceSelected, widget.uid,
                 widget.colorStatut)
           ],
         ),

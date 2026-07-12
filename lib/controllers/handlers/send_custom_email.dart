@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/post.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 Future<void> sendCustomEmail({
   required Lot lot,
@@ -18,7 +16,7 @@ Future<void> sendCustomEmail({
     post.timeStamp.toDate(),
   );
   final url = Uri.parse(
-      'https://europe-west1-connectkasa-84f23.cloudfunctions.net/send_custom_email');
+      'https://us-central1-konodal-dev.cloudfunctions.net/send_custom_email');
 
   final body = jsonEncode({
     'residenceId': post.refResidence,
@@ -34,7 +32,7 @@ Future<void> sendCustomEmail({
     "postTitle": post.title,
     "postImg": post.pathImage,
     "postLocalisation":
-        " ${post.location_element} • Etage : ${post.location_floor} • Précision : ${post.location_details?.join(', ')}",
+        " ${post.locationElement} • Etage : ${post.locationFloor} • Précision : ${post.locationDetails?.join(', ')}",
     "postDate": formattedDate,
     "postDescription": post.description,
     "declarantStatus": declarantStatus ?? '',

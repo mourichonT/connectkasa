@@ -1,6 +1,6 @@
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/auth_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/auth_repository.dart';
+import 'package:konodal/core/result/result.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 

@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/storage_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,12 +11,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
-import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/post_style.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/controllers/features/submit_post_controller.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/post_style.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class AskingNeighbordsForm extends ConsumerStatefulWidget {
   final Lot? preferedLot;
@@ -43,8 +43,6 @@ class AskingNeighbordsForm extends ConsumerStatefulWidget {
 
 class AskingNeighbordsFormState extends ConsumerState<AskingNeighbordsForm> {
   late final IStorageRepository _storageRepository;
-  final ButtonStyle style =
-      ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20));
   final List<Color> _colors = [
     Colors.white,
     Colors.red,
@@ -95,13 +93,13 @@ class AskingNeighbordsFormState extends ConsumerState<AskingNeighbordsForm> {
   Color? _selectedColor;
   String? _selectedImagePath;
   String _selectedText = '';
+  bool _isSubmitting = false;
   double _selectedFontSize = 20.0;
   FontWeight _selectedFontWeight = FontWeight.normal;
   FontStyle _selectedFontStyle = FontStyle.normal;
   Color _selectedFontColor = Colors.black87;
   final TextEditingController _textEditingController = TextEditingController();
   bool _fontSize = false;
-  final bool _fontColor = false;
   bool _fontItalic = false;
   bool _fontBold = false;
   String imagePath = "";
@@ -185,8 +183,7 @@ class AskingNeighbordsFormState extends ConsumerState<AskingNeighbordsForm> {
         Visibility(
           visible: _selectedColor != null && _selectedColor != Colors.white ||
               _selectedImagePath != null,
-          child: Container(
-            child: Row(
+          child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.max,
               children: [
@@ -298,7 +295,6 @@ class AskingNeighbordsFormState extends ConsumerState<AskingNeighbordsForm> {
                 ),
               ],
             ),
-          ),
         ),
         RepaintBoundary(
           key: _globalKey,
@@ -433,9 +429,15 @@ class AskingNeighbordsFormState extends ConsumerState<AskingNeighbordsForm> {
         ),
         Padding(
           padding: const EdgeInsets.only(top: 30, bottom: 30),
-          child: ElevatedButton(
-            style: style,
-            onPressed: () async {
+          child: ButtonAdd(
+            color: Theme.of(context).primaryColor,
+            text: "Soumettre",
+            horizontal: 20,
+            vertical: 5,
+            size: SizeFont.h2.size,
+            function: _isSubmitting
+                ? null
+                : () async {
               String? imageUrl = "";
 
               if (_selectedText.isEmpty) {
@@ -451,6 +453,7 @@ class AskingNeighbordsFormState extends ConsumerState<AskingNeighbordsForm> {
                 return;
               }
 
+              setState(() => _isSubmitting = true);
               try {
                 if (_selectedColor != null && _selectedColor != Colors.white ||
                     _selectedImagePath != null) {
@@ -470,7 +473,7 @@ class AskingNeighbordsFormState extends ConsumerState<AskingNeighbordsForm> {
                           success: (v) => v,
                           failure: (error) => throw error));
 
-                  widget.updateUrl(imageUrl!);
+                  widget.updateUrl(imageUrl);
                 }
 
                 await SubmitPostController.submitForm(
@@ -495,6 +498,7 @@ class AskingNeighbordsFormState extends ConsumerState<AskingNeighbordsForm> {
               } catch (e) {
                 appLog("Erreur lors de la soumission du post: $e");
                 if (!context.mounted) return;
+                setState(() => _isSubmitting = false);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     backgroundColor: Colors.red,
@@ -503,8 +507,6 @@ class AskingNeighbordsFormState extends ConsumerState<AskingNeighbordsForm> {
                 );
               }
             },
-            child: MyTextStyle.lotName(
-                "Soumettre", Theme.of(context).primaryColor, SizeFont.h2.size),
           ),
         ),
       ],

@@ -1,12 +1,12 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/models/enum/statut_list.dart';
+import 'package:konodal/models/enum/statut_list.dart';
 
 class Step2 extends StatefulWidget {
-  final Function(String, bool, String, String) recupererInformationsStep2;
+  final Function(String, bool, String, String, String) recupererInformationsStep2;
   final int currentPage;
   final PageController progressController;
   final Function(bool) onCameraStateChanged;
@@ -20,7 +20,7 @@ class Step2 extends StatefulWidget {
   });
 
   @override
-  _Step2State createState() => _Step2State();
+  State<Step2> createState() => _Step2State();
 }
 
 class _Step2State extends State<Step2> {
@@ -29,6 +29,7 @@ class _Step2State extends State<Step2> {
   String typeResident = "";
   String? intendedFor = "";
   String? pathKbis = "";
+  String kbisExtension = "";
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +119,8 @@ class _Step2State extends State<Step2> {
                             pathKbis = downloadUrl;
                           });
                         },
+                        onExtensionResolved: (ext) =>
+                            setState(() => kbisExtension = ext),
                         cardOverlay: true,
                         onCameraStateChanged: (bool isOpen) {
                           widget.onCameraStateChanged(isOpen);
@@ -167,6 +170,7 @@ class _Step2State extends State<Step2> {
                     compagnyBuy,
                     intendedFor ?? "",
                     pathKbis ?? "",
+                    kbisExtension,
                   );
                   if (widget.currentPage < 5) {
                     widget.progressController.nextPage(

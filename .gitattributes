@@ -1,0 +1,5 @@
+# Le lint des Cloud Functions Node (functions/) exige des fins de ligne LF
+# (linebreak-style: unix). Sans ceci, un checkout Windows (core.autocrlf=true)
+# convertit ces fichiers en CRLF et fait échouer le predeploy lint.
+functions/**/*.js text eol=lf
+functions/**/*.json text eol=lf

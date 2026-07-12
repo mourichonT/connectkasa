@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/message.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/message.dart';
 
 /// Remplace ChatServices (Phase 2 du chantier architecture).
 abstract interface class IChatRepository {

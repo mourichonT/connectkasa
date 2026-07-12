@@ -1,4 +1,4 @@
-package fr.connectkasa.connect_kasa
+package com.konodal.app
 
 import io.flutter.embedding.android.FlutterActivity
 

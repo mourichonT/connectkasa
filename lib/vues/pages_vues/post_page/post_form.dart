@@ -1,9 +1,9 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/asking_neighbords_form.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/post_page_widget/incivilite_form.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/post_page_widget/sinistre_form.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/vues/pages_vues/post_page/asking_neighbords_form.dart';
+import 'package:konodal/vues/widget_view/page_widget/post_page_widget/incivilite_form.dart';
+import 'package:konodal/vues/widget_view/page_widget/post_page_widget/sinistre_form.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../../../models/pages_models/lot.dart';
@@ -52,8 +52,6 @@ class PostFormState extends State<PostForm> {
         })
         .take(3)
         .toList();
-
-    final double width = MediaQuery.of(context).size.width;
 
     return SingleChildScrollView(
         child: Container(

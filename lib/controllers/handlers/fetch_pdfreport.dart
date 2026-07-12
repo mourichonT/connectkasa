@@ -1,13 +1,13 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class FetchPdfreport {
   Future<void> fetchPdf(String docRes) async {
     final response = await http.post(
       Uri.parse(
-          "https://europe-west1-connectkasa-84f23.cloudfunctions.net/generate_report"),
+          "https://us-central1-konodal-dev.cloudfunctions.net/generate_report"),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({"docRes": docRes}),
     );

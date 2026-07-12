@@ -1,10 +1,10 @@
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/comment_button.dart';
-import 'package:connect_kasa/vues/widget_view/components/like_button_post.dart';
-import 'package:connect_kasa/vues/widget_view/components/share_button.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/comment_button.dart';
+import 'package:konodal/vues/widget_view/components/like_button_post.dart';
+import 'package:konodal/vues/widget_view/components/share_button.dart';
 import 'package:flutter/material.dart';
 
-Widget IteractionLine(
+Widget iteractionLine(
     Post post, String residence, String uid, Color colorStatut) {
   return Column(
     children: [

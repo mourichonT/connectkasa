@@ -1,14 +1,14 @@
 import 'dart:async';
 
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/post_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/sinistre_tile.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/post_repository.dart';
+import 'package:konodal/core/repositories/firestore_post_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/pages_vues/post_page/sinistre_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class SinitresTileController extends StatefulWidget {
   final Post post;
@@ -62,9 +62,8 @@ class SinitresTileControllerState extends State<SinitresTileController> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Column(
-        children: [
+    return Column(
+      children: [
           SinistreTile(widget.post, widget.residenceId, widget.uid,
               widget.canModify, widget.colorStatut, widget.updatePostsList),
           if (showSignalement && postCount != 0)
@@ -158,8 +157,7 @@ class SinitresTileControllerState extends State<SinitresTileController> {
                 ],
               ),
             ),
-        ],
-      ),
+      ],
     );
   }
 }

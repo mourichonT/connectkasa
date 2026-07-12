@@ -1,12 +1,12 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class CameraPicker extends StatefulWidget {
   const CameraPicker({super.key});
 
   @override
-  _CameraPickerState createState() => _CameraPickerState();
+  State<CameraPicker> createState() => _CameraPickerState();
 }
 
 class _CameraPickerState extends State<CameraPicker> {

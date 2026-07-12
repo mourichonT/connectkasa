@@ -1,0 +1,17 @@
+rules_version = '2';
+
+// Utilisateurs connectés uniquement (contrairement à l'ancien projet qui
+// acceptait littéralement tout le monde, y compris anonyme/public, via
+// "if true"). Pas de scoping par résidence ici : les documents et images
+// (photos de profil, pièces d'identité, justificatifs, images de posts...)
+// sont déjà organisés par uid/résidence dans les chemins de Storage, et
+// l'app ne construit ces chemins qu'à partir de données Firestore déjà
+// protégées par firestore.rules. À resserrer plus tard si besoin (ex:
+// vérifier l'appartenance à la résidence via firestore.get()).
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

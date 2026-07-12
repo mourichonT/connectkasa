@@ -12,43 +12,43 @@ service cloud.firestore {
     }
 
     // "Cet utilisateur appartient-il à cette résidence ?" — dénormalisé sur
-    // User/{uid}.residencesIds (maintenu par databases_user_services.dart /
+    // users/{uid}.residencesIds (maintenu par databases_user_services.dart /
     // databases_lot_services.dart), car les règles Firestore ne peuvent pas
-    // parcourir Residence/{id}/lot pour vérifier idProprietaire/idLocataire
+    // parcourir residences/{id}/lots pour vérifier idProprietaire/idLocataire
     // sans connaître un lotId précis.
     function isResidenceMember(residenceId) {
       return isSignedIn() &&
-        residenceId in get(/databases/$(database)/documents/User/$(request.auth.uid)).data.residencesIds;
+        residenceId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.residencesIds;
     }
 
     // csmembers est déjà le bon endroit pour ce check : c'est un champ direct
-    // sur Residence/{id}, accessible sans dénormalisation supplémentaire.
+    // sur residences/{id}, accessible sans dénormalisation supplémentaire.
     function isCsMember(residenceId) {
       return isSignedIn() &&
-        request.auth.uid in get(/databases/$(database)/documents/Residence/$(residenceId)).data.csmembers;
+        request.auth.uid in get(/databases/$(database)/documents/residences/$(residenceId)).data.csmembers;
     }
 
     // Un bailleur consulte le dossier (identité, profil, garants) d'un
     // locataire qui lui est rattaché — dénormalisé sur
-    // User/{tenantUid}.sharedWithLandlords (maintenu par addTenant /
+    // users/{tenantUid}.sharedWithLandlords (maintenu par addTenant /
     // removeIdLocataire dans databases_lot_services.dart).
     function isSharedTenantDoc(tenantUid) {
       return isSignedIn() &&
-        request.auth.uid in get(/databases/$(database)/documents/User/$(tenantUid)).data.sharedWithLandlords;
+        request.auth.uid in get(/databases/$(database)/documents/users/$(tenantUid)).data.sharedWithLandlords;
     }
 
-    // Un document individuel (User/{uid}/lots/{lotId}/documents) est déposé
+    // Un document individuel (users/{uid}/lots/{lotId}/documents) est déposé
     // en copie chez chaque destinataire du lot (locataires + propriétaires,
     // cf my_docs.dart deleteDocument). Le propriétaire du lot doit donc
     // pouvoir le supprimer chez tous les destinataires, pas seulement sa
     // propre copie.
     function isLotOwner(residenceId, lotId) {
       return isSignedIn() &&
-        request.auth.uid in get(/databases/$(database)/documents/Residence/$(residenceId)/lot/$(lotId)).data.idProprietaire;
+        request.auth.uid in get(/databases/$(database)/documents/residences/$(residenceId)/lots/$(lotId)).data.idProprietaire;
     }
 
-    // ---------- User ----------
-    match /User/{uid} {
+    // ---------- users ----------
+    match /users/{uid} {
       // Recherche par email/refApp (ajout locataire/garant), affichage
       // profil (ProfilTile) dans posts/chat/commentaires partout dans l'app.
       allow read: if isSignedIn();
@@ -88,18 +88,18 @@ service cloud.firestore {
 
         match /documents/{docId} {
           allow read: if isOwner(uid) || isSharedTenantDoc(uid) ||
-            isCsMember(get(/databases/$(database)/documents/User/$(uid)/lots/$(lotId)).data.residenceId);
+            isCsMember(get(/databases/$(database)/documents/users/$(uid)/lots/$(lotId)).data.residenceId);
           // isLotOwner résout residenceId depuis le lot du PROPRIÉTAIRE
           // AGISSANT (request.auth.uid), pas celui du destinataire {uid} :
           // un propriétaire doit pouvoir nettoyer la copie d'un locataire
-          // depuis révoqué (User/{uid}/lots/{lotId} déjà supprimé par la
+          // depuis révoqué (users/{uid}/lots/{lotId} déjà supprimé par la
           // révocation - cf _removeIdLocataireInternal), donc on ne peut
           // pas dépendre d'un document qui n'existe plus forcément côté
           // destinataire. Le propriétaire, lui, a toujours son propre
-          // User/{request.auth.uid}/lots/{lotId} tant qu'il possède ce lot.
+          // users/{request.auth.uid}/lots/{lotId} tant qu'il possède ce lot.
           allow write: if isOwner(uid) ||
-            isLotOwner(get(/databases/$(database)/documents/User/$(request.auth.uid)/lots/$(lotId)).data.residenceId, lotId) ||
-            isCsMember(get(/databases/$(database)/documents/User/$(uid)/lots/$(lotId)).data.residenceId);
+            isLotOwner(get(/databases/$(database)/documents/users/$(request.auth.uid)/lots/$(lotId)).data.residenceId, lotId) ||
+            isCsMember(get(/databases/$(database)/documents/users/$(uid)/lots/$(lotId)).data.residenceId);
         }
       }
 
@@ -130,19 +130,19 @@ service cloud.firestore {
       }
     }
 
-    // ---------- Residence ----------
-    match /Residence/{residenceId} {
+    // ---------- residences ----------
+    match /residences/{residenceId} {
       // Recherche de résidence à l'inscription (step1.dart) : un nouvel
-      // utilisateur n'a encore aucun User/{uid} ni aucune appartenance —
-      // il doit pouvoir lister/lire Residence pour choisir la sienne.
+      // utilisateur n'a encore aucun users/{uid} ni aucune appartenance —
+      // il doit pouvoir lister/lire residences pour choisir la sienne.
       allow read: if isSignedIn();
       allow update: if isCsMember(residenceId);
       // Création/suppression d'une résidence hors périmètre de l'app
       // (fait manuellement, accès privilégié via Console).
       allow create, delete: if false;
 
-      match /lot/{lotId} {
-        // Comme pour Residence/{id} : un nouvel utilisateur doit pouvoir
+      match /lots/{lotId} {
+        // Comme pour residences/{id} : un nouvel utilisateur doit pouvoir
         // parcourir la liste des lots pour choisir le sien à l'inscription
         // (step3.dart, getLotByResidence), avant d'être membre de la
         // résidence (isResidenceMember serait toujours faux à ce stade).
@@ -158,7 +158,7 @@ service cloud.firestore {
              .hasOnly(['idLocataire', 'idLocataireOld']));
       }
 
-      match /post/{postId} {
+      match /posts/{postId} {
         allow read: if isResidenceMember(residenceId);
         allow create: if isResidenceMember(residenceId) &&
           request.resource.data.user == request.auth.uid;
@@ -204,7 +204,7 @@ service cloud.firestore {
         }
       }
 
-      match /chat/{chatId} {
+      match /chats/{chatId} {
         // Doc ID = deux uids triés joints par "_" — suffisant pour un get()
         // direct (chatInfoStream), mais une requête de LISTE non filtrée
         // (MessageProvider.listenForMessages, qui parcourt tous les chats
@@ -228,7 +228,7 @@ service cloud.firestore {
         allow write: if isCsMember(residenceId);
       }
 
-      match /structure/{id} {
+      match /structures/{id} {
         allow read: if isResidenceMember(residenceId);
         allow write: if isCsMember(residenceId);
       }
@@ -253,8 +253,8 @@ service cloud.firestore {
     }
 
     // ---------- Root "mail" (Firebase Trigger Email extension) ----------
-    // Différente de Residence/{id}/mail. Jamais écrite par le client Flutter
-    // (l'écriture applicative passe par Residence/{id}/mail). Le schéma réel
+    // Différente de residences/{id}/mail. Jamais écrite par le client Flutter
+    // (l'écriture applicative passe par residences/{id}/mail). Le schéma réel
     // (to/from = adresse email de l'agence/syndic, pas celle du résident
     // connecté) rend un scoping par request.auth.token.email inapplicable
     // sans casser les requêtes existantes : fermée pour l'instant.
@@ -262,10 +262,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ---------- Root "transaction" ----------
+    // ---------- Root "transactions" ----------
     // Aucune référence trouvée dans lib/ ni functions/ : collection non
     // utilisée par l'app actuellement.
-    match /transaction/{id} {
+    match /transactions/{id} {
       allow read, write: if false;
     }
 
@@ -279,18 +279,18 @@ service cloud.firestore {
     // Règle dédiée aux requêtes collectionGroup('contacts')
     // (FirestoreAgencyRepository.searchByEmail, recherche de syndic/agence
     // par email) : une requête collectionGroup interroge "contacts" à
-    // travers tous les Gerance/{id} d'un coup, ce qui nécessite une règle
-    // {path=**} distincte de la règle imbriquée Gerance/{id}/{document=**}
+    // travers tous les gerances/{id} d'un coup, ce qui nécessite une règle
+    // {path=**} distincte de la règle imbriquée gerances/{id}/{document=**}
     // ci-dessous (qui ne couvre que les lectures directes sous un
-    // Gerance/{id} déjà connu, pas une requête cross-documents).
+    // gerances/{id} déjà connu, pas une requête cross-documents).
     // ATTENTION dette technique : "contacts" est aussi le nom de la
-    // sous-collection Residence/{id}/contacts (annuaire de la résidence,
+    // sous-collection residences/{id}/contacts (annuaire de la résidence,
     // déjà régi par sa propre règle isResidenceMember plus haut) - cette
     // règle collectionGroup, volontairement large (isSignedIn() seul),
     // les exposerait aussi à tout utilisateur connecté si un jour du code
     // fait une requête collectionGroup('contacts') côté résidence (aucun
     // cas actuel dans le code). Tentative de restriction avec
-    // path[0] == 'Gerance' testée et abandonnée : provoque un
+    // path[0] == 'gerances' testée et abandonnée : provoque un
     // PERMISSION_DENIED alors que la règle compile sans erreur (comporte-
     // ment de path[] non élucidé) - à reprendre plus tard si besoin de
     // resserrer, par ex. en vérifiant un champ du document plutôt que le
@@ -300,10 +300,10 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // ---------- Gerance (annuaire syndic/agence) ----------
+    // ---------- gerances (annuaire syndic/agence) ----------
     // Sous-collections récursives à profondeur/nom dynamique, lecture seule
     // côté app, non sensible.
-    match /Gerance/{id} {
+    match /gerances/{id} {
       allow read: if isSignedIn();
       allow write: if false;
 

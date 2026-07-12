@@ -1,24 +1,24 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:connect_kasa/controllers/features/load_user_controller.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/providers/message_provider.dart';
-import 'package:connect_kasa/core/providers/current_user_provider.dart';
-import 'package:connect_kasa/core/providers/docs_repository_provider.dart';
-import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step1.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step2.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step3.dart';
+import 'package:konodal/controllers/features/load_user_controller.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/providers/message_provider.dart';
+import 'package:konodal/core/providers/current_user_provider.dart';
+import 'package:konodal/core/providers/docs_repository_provider.dart';
+import 'package:konodal/core/providers/lot_repository_provider.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/document_model.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step1.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step2.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step3.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 /// Rattache un utilisateur déjà existant (connecté) à une résidence/un lot
 /// déjà créés en base, via recherche. Réutilise Step1/Step2/Step3 du
@@ -65,6 +65,7 @@ class _AttachExistingLotPageState
   bool _compagnyBuy = false;
   String _intendedFor = "";
   String _kbisPath = "";
+  String _kbisExtension = "";
   String _batiment = "";
   String _numLot = "";
   bool _isSaving = false;
@@ -79,13 +80,14 @@ class _AttachExistingLotPageState
     setState(() => _residence = residence);
   }
 
-  void _onRoleDefined(
-      String typeResident, bool compagnyBuy, String intendedFor, String kbisPath) {
+  void _onRoleDefined(String typeResident, bool compagnyBuy,
+      String intendedFor, String kbisPath, String kbisExtension) {
     setState(() {
       _typeResident = typeResident;
       _compagnyBuy = compagnyBuy;
       _intendedFor = intendedFor;
       _kbisPath = kbisPath;
+      _kbisExtension = kbisExtension;
     });
   }
 
@@ -97,7 +99,8 @@ class _AttachExistingLotPageState
     });
   }
 
-  Future<void> _submit(String docTypeJustif, String justifPath) async {
+  Future<void> _submit(
+      String docTypeJustif, String justifPath, String justifExtension) async {
     if (_residence == null || _isSaving) return;
     setState(() => _isSaving = true);
 
@@ -131,15 +134,15 @@ class _AttachExistingLotPageState
         .then((result) => result.when(
             success: (_) {}, failure: (error) => throw error));
 
-    // addLotToUser ne dénormalise que côté User/{uid}/lots : le lot
-    // Residence/{id}/lot/{id} lui-même (idLocataire/idProprietaire, lu par
+    // addLotToUser ne dénormalise que côté users/{uid}/lots : le lot
+    // residences/{id}/lot/{id} lui-même (idLocataire/idProprietaire, lu par
     // ex. par getNumUsersByResidence pour "Mes voisins") doit être mis à
     // jour séparément, comme le fait _applyTenantChange pour le flux
     // "propriétaire ajoute un locataire".
     final lotRef = FirebaseFirestore.instance
-        .collection("Residence")
+        .collection("residences")
         .doc(_residence!.id)
-        .collection("lot")
+        .collection("lots")
         .doc(lot.id);
     final field =
         _typeResident == "Propriétaire" ? "idProprietaire" : "idLocataire";
@@ -153,6 +156,7 @@ class _AttachExistingLotPageState
       await docsRepository.setDocument(
         DocumentModel(
           type: docTypeJustif,
+          extension: justifExtension,
           residenceId: _residence!.id,
           timeStamp: Timestamp.now(),
           documentPathRecto: justifPath,
@@ -167,6 +171,7 @@ class _AttachExistingLotPageState
       await docsRepository.setDocument(
         DocumentModel(
           type: "Kbis",
+          extension: _kbisExtension,
           residenceId: _residence!.id,
           timeStamp: Timestamp.now(),
           documentPathRecto: _kbisPath,
@@ -263,6 +268,8 @@ class _AttachExistingLotPageState
                   currentPage: 0,
                   progressController: _pageController,
                   recupererInformationsStep1: _onResidenceFound,
+                  onNoResidence: () {},
+                  showNoResidenceOption: false,
                 ),
                 if (_residence != null)
                   Step2(
@@ -304,7 +311,8 @@ class _AttachExistingLotPageState
 class _JustificatifStep extends StatefulWidget {
   final String typeResident;
   final String userId;
-  final Future<void> Function(String docTypeJustif, String justifPath) onSubmit;
+  final Future<void> Function(
+      String docTypeJustif, String justifPath, String justifExtension) onSubmit;
 
   const _JustificatifStep({
     required this.typeResident,
@@ -319,6 +327,7 @@ class _JustificatifStep extends StatefulWidget {
 class _JustificatifStepState extends State<_JustificatifStep> {
   String justifChoice = "";
   String imagePathJustif = "";
+  String justifExtension = "";
   bool visibleJustif = false;
 
   @override
@@ -365,6 +374,8 @@ class _JustificatifStepState extends State<_JustificatifStep> {
                   onImageUploaded: (downloadUrl) {
                     setState(() => imagePathJustif = downloadUrl);
                   },
+                  onExtensionResolved: (ext) =>
+                      setState(() => justifExtension = ext),
                 ),
               ),
             ],
@@ -380,7 +391,8 @@ class _JustificatifStepState extends State<_JustificatifStep> {
           children: [
             ElevatedButton(
               onPressed: (visibleJustif && imagePathJustif.isNotEmpty)
-                  ? () => widget.onSubmit(justifChoice, imagePathJustif)
+                  ? () => widget.onSubmit(
+                      justifChoice, imagePathJustif, justifExtension)
                   : null,
               child: const Text("Soumettre"),
             ),

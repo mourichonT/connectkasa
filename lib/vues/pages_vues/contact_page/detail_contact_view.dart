@@ -1,11 +1,11 @@
-import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/controllers/features/contact_features.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
-import 'package:connect_kasa/models/pages_models/contact.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/controllers/features/contact_features.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/user_by_id_provider.dart';
+import 'package:konodal/models/pages_models/contact.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class DetailContactView extends ConsumerWidget {
   final Contact contact;

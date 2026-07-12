@@ -1,13 +1,10 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
-import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/statut_list.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/lot_repository_provider.dart';
+import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ModifyPropDetails extends ConsumerStatefulWidget {
@@ -32,8 +29,6 @@ class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
   TextEditingController name = TextEditingController();
   String? selectedStatut;
   bool isProprietaire = false;
-
-  late Color _backgroundColor;
 
   FocusNode nameFocusNode = FocusNode();
 
@@ -65,7 +60,6 @@ class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
         title: MyTextStyle.lotName(
@@ -116,63 +110,6 @@ class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
     );
   }
 
-  Widget _buildDropDownMenu(double width, String label) {
-    List<String> statuts = ImmoList.statutList();
-    bool isEnabled = !widget.lot.idLocataire!.contains(widget.uid);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: DropdownButtonFormField(
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(
-              color: Colors.black54,
-              fontWeight: FontWeight.w400,
-              fontSize: SizeFont.h3.size),
-          border: const UnderlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.grey,
-              width: 1.0,
-            ),
-          ),
-        ),
-        value: selectedStatut,
-        items: statuts.map((statut) {
-          return DropdownMenuItem(
-            value: statut, // Assurez-vous que chaque valeur est unique
-            child: Text(
-              statut,
-              style: TextStyle(
-                  color: isEnabled ? Colors.black87 : Colors.black54,
-                  fontWeight: FontWeight.w400,
-                  fontSize: SizeFont.h3.size),
-            ),
-          );
-        }).toList(),
-        onChanged: isEnabled
-            ? (newValue) {
-                setState(() {
-                  selectedStatut = newValue as String?;
-                  widget.lot.type = selectedStatut!;
-                });
-              }
-            : null,
-        isExpanded: true,
-        style: TextStyle(
-            color: isEnabled ? Colors.black54 : Colors.black87,
-            fontWeight: FontWeight.w400,
-            fontSize: SizeFont.h3.size),
-        disabledHint: Text(
-          selectedStatut ?? '',
-          style: TextStyle(
-              color: isEnabled ? Colors.black54 : Colors.black87,
-              fontWeight: FontWeight.w400,
-              fontSize: SizeFont.h3.size),
-        ),
-      ),
-    );
-  }
-
   Widget _buildReadOnlyTextField(String label, String? value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
@@ -200,76 +137,9 @@ class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
     );
   }
 
-  Widget _buildModifyTextField(String hintText, String label,
-      TextEditingController controller, FocusNode focusNode, String field,
-      {int maxLines = 1, int minLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Expanded(
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              maxLines: maxLines,
-              minLines: minLines,
-              inputFormatters: [
-                LengthLimitingTextInputFormatter(30),
-              ],
-              decoration: InputDecoration(
-                hintText: hintText,
-                labelText: label,
-                labelStyle: const TextStyle(
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w400,
-                ),
-                border: const UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.grey,
-                    width: 1.0,
-                  ),
-                ),
-              ),
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: SizeFont.h3.size,
-              ),
-            ),
-          ),
-          if (focusNode.hasFocus)
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  controller.clear();
-                });
-              },
-              icon: const Icon(Icons.clear),
-            ),
-          if (focusNode.hasFocus)
-            IconButton(
-              onPressed: () {
-                lotServices.updateLot(
-                  widget.lot.residenceId,
-                  widget.lot.id!,
-                  field,
-                  controller.text,
-                );
-                setState(() {});
-                focusNode.unfocus();
-              },
-              icon: const Icon(Icons.check),
-            )
-        ],
-      ),
-    );
-  }
-
   _loadProperty() {
     name.text = widget.lot.userLotDetails['nameLot'];
     selectedStatut = widget.lot.type;
-    _backgroundColor =
-        ColorUtils.fromHex(widget.lot.userLotDetails['colorSelected']);
     setState(() {});
   }
 }

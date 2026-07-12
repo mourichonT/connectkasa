@@ -8,28 +8,28 @@ import 'select_lot_component_controller.dart';
 import '../../models/pages_models/lot.dart';
 import '../../models/enum/set_logo_color.dart';
 
-import 'package:connect_kasa/controllers/providers/color_provider.dart';
-import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
-import 'package:connect_kasa/controllers/features/load_user_controller.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/controllers/features/route_controller.dart';
-import 'package:connect_kasa/controllers/pages_controllers/post_form_controller.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:konodal/controllers/providers/color_provider.dart';
+import 'package:konodal/controllers/features/load_prefered_data.dart';
+import 'package:konodal/controllers/features/load_user_controller.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/core/repositories/firestore_lot_repository.dart';
+import 'package:konodal/controllers/features/route_controller.dart';
+import 'package:konodal/controllers/pages_controllers/post_form_controller.dart';
+import 'package:konodal/models/enum/font_setting.dart';
 
-import 'package:connect_kasa/vues/pages_vues/no_lot/attach_existing_lot_page.dart';
-import 'package:connect_kasa/vues/pages_vues/pages_tabs/home_view.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/pages_tabs/sinistres_page_view.dart';
-import 'package:connect_kasa/vues/pages_vues/pages_tabs/event_page_view.dart';
-import 'package:connect_kasa/vues/pages_vues/pages_tabs/annonces_page_view.dart';
-import 'package:connect_kasa/vues/pages_vues/pages_tabs/my_docs.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/profile_page_view.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/my_bottomnavbar_view.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/lot_bottom_sheet.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/pages_vues/no_lot/attach_existing_lot_page.dart';
+import 'package:konodal/vues/pages_vues/pages_tabs/home_view.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/pages_vues/pages_tabs/sinistres_page_view.dart';
+import 'package:konodal/vues/pages_vues/pages_tabs/event_page_view.dart';
+import 'package:konodal/vues/pages_vues/pages_tabs/annonces_page_view.dart';
+import 'package:konodal/vues/pages_vues/pages_tabs/my_docs.dart';
+import 'package:konodal/vues/pages_vues/profil_page/profile_page_view.dart';
+import 'package:konodal/vues/widget_view/page_widget/my_bottomnavbar_view.dart';
+import 'package:konodal/vues/widget_view/page_widget/lot_bottom_sheet.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class MyNavBar extends StatefulWidget {
   final String uid;
@@ -125,7 +125,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
 
     // Lance l'écoute des messages ici, une fois résidence connue
     final residenceId = (_preferedLot ?? _defaultLot).residenceId;
-    if (residenceId.isNotEmpty) {
+    if (residenceId.isNotEmpty && mounted) {
       final messageProvider =
           Provider.of<MessageProvider>(context, listen: false);
       messageProvider.listenForMessages(
@@ -170,7 +170,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
             result.when(success: (v) => v, failure: (_) => <Lot>[]));
 
           final residenceId = newLot.residenceId;
-          if (residenceId.isNotEmpty) {
+          if (residenceId.isNotEmpty && mounted) {
             final messageProvider =
                 Provider.of<MessageProvider>(context, listen: false);
             messageProvider.listenForMessages(
@@ -196,7 +196,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
             children: [
               Center(
                 child: Image.asset(
-                  "images/assets/logoCKvertconnectKasa.png",
+                  "images/assets/logo_by_colors/logoVert72.119.91.png",
                   width: width / 1.5,
                 ),
               ),
@@ -401,7 +401,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                                 onTap: () => Scaffold.of(scaffoldContext)
                                     .openEndDrawer(),
                                 child:
-                                    ProfilTile(widget.uid, 22, 19, 22, false),
+                                    profilTile(widget.uid, 22, 19, 22, false),
                               ),
                             ),
                           ],

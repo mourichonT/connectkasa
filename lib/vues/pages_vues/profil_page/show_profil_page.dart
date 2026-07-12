@@ -1,18 +1,18 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/post_providers.dart';
-import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/pages_vues/annonces_page/annonce_page_details.dart';
-import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
-import 'package:connect_kasa/vues/pages_vues/event_page/event_page_details.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/communication_detail.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/post_providers.dart';
+import 'package:konodal/core/providers/user_by_id_provider.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/pages_vues/annonces_page/annonce_page_details.dart';
+import 'package:konodal/vues/pages_vues/chat_page/chat_page.dart';
+import 'package:konodal/vues/pages_vues/event_page/event_page_details.dart';
+import 'package:konodal/vues/pages_vues/post_page/communication_detail.dart';
+import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/image_annonce.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class ShowProfilPage extends ConsumerWidget {
   final String uid;
@@ -72,7 +72,7 @@ class ShowProfilPage extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ProfilTile(uid, 70, 65, 70, false),
+                    profilTile(uid, 70, 65, 70, false),
                   ],
                 ),
                 Padding(
@@ -298,7 +298,7 @@ class ShowProfilPage extends ConsumerWidget {
                             padding: const EdgeInsets.all(8),
                             width: 90,
                             height: 70,
-                            child: ImageAnnounced(context, 90, 70),
+                            child: imageAnnounced(context, 90, 70),
                           ),
                         ),
                   onTap: () async {

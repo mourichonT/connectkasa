@@ -1,16 +1,16 @@
 // ignore_for_file: must_be_immutable
 
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
-import 'package:connect_kasa/vues/widget_view/components/like_button_comment.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/user_by_id_provider.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
+import 'package:konodal/vues/widget_view/components/like_button_comment.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
-import 'package:connect_kasa/models/pages_models/comment.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
+import 'package:konodal/models/pages_models/comment.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class CommentTile extends ConsumerStatefulWidget {
   final Function(bool) onReply;
@@ -132,7 +132,7 @@ class CommentTileState extends ConsumerState<CommentTile> {
                               refLot: widget.residence)),
                     );
                   },
-                  child: ProfilTile(
+                  child: profilTile(
                     comment.user,
                     22,
                     19,
@@ -203,6 +203,7 @@ class CommentTileState extends ConsumerState<CommentTile> {
     final user =
         await ref.read(userByIdProvider(currentComment.user).future);
     if (user != null) {
+      if (!mounted) return;
       FocusScope.of(context).requestFocus(widget.focusNode);
       widget.getUsertoreply(_textEditingController);
       widget.onReply(isReply);

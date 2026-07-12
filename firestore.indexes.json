@@ -43,7 +43,7 @@
       ]
     },
     {
-      "collectionGroup": "post",
+      "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "location_element", "order": "ASCENDING" },
@@ -53,7 +53,7 @@
       ]
     },
     {
-      "collectionGroup": "post",
+      "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "location_element", "order": "ASCENDING" },
@@ -62,7 +62,7 @@
       ]
     },
     {
-      "collectionGroup": "post",
+      "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "location_element", "order": "ASCENDING" },
@@ -72,7 +72,7 @@
       ]
     },
     {
-      "collectionGroup": "post",
+      "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "subtype", "order": "ASCENDING" },
@@ -80,7 +80,7 @@
       ]
     },
     {
-      "collectionGroup": "post",
+      "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "type", "order": "ASCENDING" },
@@ -88,7 +88,7 @@
       ]
     },
     {
-      "collectionGroup": "post",
+      "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "type", "order": "ASCENDING" },

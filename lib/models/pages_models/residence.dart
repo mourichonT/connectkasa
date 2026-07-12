@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
-import 'package:connect_kasa/models/pages_models/structure_residence.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/models/pages_models/gerance_ref.dart';
+import 'package:konodal/models/pages_models/structure_residence.dart';
 
 class Residence {
   String name;
@@ -10,12 +10,12 @@ class Residence {
   String street;
   String zipCode;
   String city;
-  String? mail_contact;
+  String? mailContact;
   String id;
   int nombreLot;
   List<String>? csmembers;
   // syndicAgency : cache d'affichage (résolu depuis geranceRef, ou saisie
-  // custom si non référencée dans Gerance). geranceRef et syndicAgency ne
+  // custom si non référencée dans gerances). geranceRef et syndicAgency ne
   // sont jamais tous les deux non-null en base : voir saveResidence() dans
   // management_res_info_g.dart.
   Agency? syndicAgency;
@@ -32,7 +32,7 @@ class Residence {
     required this.zipCode,
     required this.city,
     required this.id,
-    this.mail_contact,
+    this.mailContact,
     this.csmembers,
     this.nombreLot = 0,
     this.syndicAgency,
@@ -52,7 +52,7 @@ class Residence {
       zipCode: json['zipCode'] ?? '',
       city: json['city'] ?? '',
       id: json['id'] ?? '',
-      mail_contact: json['mail_contact'] ?? null,
+      mailContact: json['mail_contact'],
       csmembers: (json['csmembers'] as List?)?.cast<String>(),
       nombreLot: json['nombreLot'] ?? 0,
       syndicAgency: json['syndicAgency'] != null
@@ -82,7 +82,7 @@ class Residence {
       zipCode: data?['zipCode'] ?? '',
       city: data?['city'] ?? '',
       id: snapshot.id,
-      mail_contact: data?['mail_contact'] ?? null,
+      mailContact: data?['mail_contact'],
       csmembers: (data?['csmembers'] as List?)?.cast<String>(),
       nombreLot: data?['nombreLot'] ?? 0,
       syndicAgency: data?['syndicAgency'] != null
@@ -97,9 +97,9 @@ class Residence {
   /// Charge la sous-collection "structure" et la place dans la map `structures`
   Future<void> loadStructures() async {
     final querySnapshot = await FirebaseFirestore.instance
-        .collection("Residence")
+        .collection("residences")
         .doc(id)
-        .collection("structure")
+        .collection("structures")
         .get();
 
     final Map<String, StructureResidence> loadedStructures = {};
@@ -129,7 +129,7 @@ class Residence {
       'street': street,
       'zipCode': zipCode,
       'city': city,
-      'mail_contact': mail_contact,
+      'mail_contact': mailContact,
       'id': id,
       'csmembers': csmembers,
       'nombreLot': nombreLot,

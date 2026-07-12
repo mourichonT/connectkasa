@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/subtitle_message.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/subtitle_message.dart';
 import 'package:flutter/material.dart';
 
 class PageChatFriendsList extends StatefulWidget {

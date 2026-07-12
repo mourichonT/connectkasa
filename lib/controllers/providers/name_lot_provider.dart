@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class NameLotProvider with ChangeNotifier {
   String _name = '';

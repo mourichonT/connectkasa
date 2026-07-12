@@ -1,9 +1,9 @@
-import 'package:connect_kasa/vues/pages_vues/login_page_view.dart';
+import 'package:konodal/vues/pages_vues/login_page_view.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 /// Levée quand l'utilisateur annule la procédure (dialogue de mot de passe
 /// fermé, ou Google Sign-In annulé) pendant la ré-authentification.
@@ -73,6 +73,7 @@ class DeleteAccount {
       await currentUser.delete();
     } on firebase_auth.FirebaseAuthException catch (e) {
       if (e.code != 'requires-recent-login') rethrow;
+      if (!context.mounted) throw _DeletionCancelled();
 
       final reauthenticated =
           await _reauthenticate(context: context, email: email);

@@ -1,20 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/current_user_provider.dart';
-import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/card_contact_controller.dart';
-import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/chat_page_widget/message_gerance_tile.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/chat_page_widget/message_user_tile.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/current_user_provider.dart';
+import 'package:konodal/core/providers/user_by_id_provider.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/models/pages_models/gerance_ref.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/user.dart';
+import 'package:konodal/controllers/widgets_controllers/card_contact_controller.dart';
+import 'package:konodal/vues/pages_vues/chat_page/chat_page.dart';
+import 'package:konodal/vues/widget_view/page_widget/chat_page_widget/message_gerance_tile.dart';
+import 'package:konodal/vues/widget_view/page_widget/chat_page_widget/message_user_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class SubtitleMessage extends ConsumerStatefulWidget {
   final String residence;
@@ -91,7 +91,7 @@ class _SubtitleMessageState extends ConsumerState<SubtitleMessage>
 
       // Créer une liste de futures pour récupérer les utilisateurs. Passe
       // par userByIdProvider (cache partagé) plutôt qu'un appel direct au
-      // repository : les tuiles MessageUserTile/ProfilTile affichées plus
+      // repository : les tuiles MessageUserTile/profilTile affichées plus
       // bas pour ces mêmes uids réutilisent le même résultat au lieu de
       // le refetcher individuellement.
       List<Future<User?>> userFutures = uniqueUserIds
@@ -126,9 +126,9 @@ class _SubtitleMessageState extends ConsumerState<SubtitleMessage>
       final ids = [widget.uid, otherId]..sort();
       final chatId = ids.join('_');
       final doc = await FirebaseFirestore.instance
-          .collection('Residence')
+          .collection('residences')
           .doc(widget.residence)
-          .collection('chat')
+          .collection('chats')
           .doc(chatId)
           .get();
       if (!doc.exists) continue;

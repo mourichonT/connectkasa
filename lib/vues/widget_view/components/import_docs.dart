@@ -3,11 +3,11 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/storage_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class ImportDocs extends ConsumerStatefulWidget {
   final String racineFolder;
@@ -57,6 +57,7 @@ class _ImportDocsState extends ConsumerState<ImportDocs> {
       // Vérifie si l'extension est valide
       final List<String> allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
       if (extension == null || !allowedExtensions.contains(extension)) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(

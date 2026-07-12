@@ -1,13 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_user.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/legal_texts/info_centre.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/profile_page_view.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_user.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/legal_texts/info_centre.dart';
+import 'package:konodal/models/pages_models/user.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -30,7 +26,7 @@ class InfoPersoPageModify extends StatefulWidget {
   });
 
   @override
-  _InfoPersoPageModifyState createState() => _InfoPersoPageModifyState();
+  State<InfoPersoPageModify> createState() => _InfoPersoPageModifyState();
 }
 
 class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
@@ -59,12 +55,10 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
     name.text = widget.user.name;
     surname.text = widget.user.surname;
     pseudo.text = widget.user.pseudo!;
-    if (widget.user.birthday != null) {
-      DateTime birthDate =
-          (widget.user.birthday as Timestamp).toDate().toLocal();
-      birthday.text = DateFormat('dd/MM/yyyy').format(birthDate);
-    }
-    bio.text = widget.user.bio!;
+    DateTime birthDate =
+        (widget.user.birthday).toDate().toLocal();
+    birthday.text = DateFormat('dd/MM/yyyy').format(birthDate);
+      bio.text = widget.user.bio!;
     profilPic = widget.user.profilPic;
     privateAccount = widget.user.private; // Met à jour l'état du compte privé
 
@@ -140,7 +134,7 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
                 focusNode: pseudoFocusNode,
                 isEditable: true,
                 onSubmit: (field, label, value) {
-                  SubmitUser.UpdateUser(
+                  SubmitUser.updateUser(
                     context: context,
                     uid: widget.uid,
                     field: field,
@@ -158,7 +152,7 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
                 focusNode: bioFocusNode,
                 isEditable: true,
                 onSubmit: (field, label, value) {
-                  SubmitUser.UpdateUser(
+                  SubmitUser.updateUser(
                     context: context,
                     uid: widget.uid,
                     field: field,

@@ -1,7 +1,7 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/widget_view/components/component_ls_header.dart';
-import 'package:connect_kasa/vues/widget_view/components/rating_bar.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/widget_view/components/component_ls_header.dart';
+import 'package:konodal/vues/widget_view/components/rating_bar.dart';
 import 'package:flutter/material.dart';
 
 class LocascoreHeader extends StatelessWidget {

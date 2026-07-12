@@ -1,15 +1,15 @@
-import 'package:connect_kasa/controllers/features/line_interaction.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/participed_button.dart';
-import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
-import 'package:connect_kasa/models/enum/event_type.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/controllers/pages_controllers/my_nav_bar.dart';
+import 'package:konodal/controllers/features/line_interaction.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/participed_button.dart';
+import 'package:konodal/core/providers/user_by_id_provider.dart';
+import 'package:konodal/models/enum/event_type.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/models/pages_models/user.dart';
+import 'package:konodal/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class EventPageDetails extends ConsumerStatefulWidget {
   final Post post;
@@ -63,8 +63,7 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
     final double width = MediaQuery.of(context).size.width;
     final double height = MediaQuery.of(context).size.height;
     return Scaffold(
-      body: Container(
-        child: Stack(
+      body: Stack(
           children: [
             Positioned(
               top: 0,
@@ -192,7 +191,7 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
                                   SizeFont.h2.size)),
                           Container(
                               child: MyTextStyle.lotName(
-                                  widget.post.location_element,
+                                  widget.post.locationElement,
                                   Colors.black54,
                                   SizeFont.h2.size)),
                         ],
@@ -265,11 +264,10 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
                 bottom: 0,
                 left: 0,
                 right: 0,
-                child: IteractionLine(widget.post, widget.residence, widget.uid,
+                child: iteractionLine(widget.post, widget.residence, widget.uid,
                     widget.colorStatut))
           ],
         ),
-      ),
     );
   }
 }

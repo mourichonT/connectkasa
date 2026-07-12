@@ -1,5 +1,5 @@
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/document_model.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/document_model.dart';
 
 /// Remplace DataBasesDocsServices (Phase 2 du chantier architecture).
 abstract interface class IDocsRepository {

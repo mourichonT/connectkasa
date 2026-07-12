@@ -1,13 +1,11 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/look_up_user.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/firestore_residence_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/look_up_user.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 
 class ManageCsMembers extends StatefulWidget {
   final Color color;
@@ -92,7 +90,7 @@ Les personnes que vous ajoutez auront les droits de modifications et de suppress
                             onPressed: () => removeMember(index),
                             icon: const Icon(Icons.delete),
                           ),
-                          title: ProfilTile(
+                          title: profilTile(
                             member,
                             22,
                             19,

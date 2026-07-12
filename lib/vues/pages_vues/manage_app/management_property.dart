@@ -1,16 +1,16 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
-import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/modify_propoerty.dart';
-import 'package:connect_kasa/vues/pages_vues/no_lot/attach_existing_lot_page.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/handlers/colors_utils.dart';
+import 'package:konodal/core/providers/lot_repository_provider.dart';
+import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/pages_vues/manage_app/modify_propoerty.dart';
+import 'package:konodal/vues/pages_vues/no_lot/attach_existing_lot_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class ManagementProperty extends ConsumerStatefulWidget {
   final String uid;
@@ -31,8 +31,6 @@ class ManagementPropertyState extends ConsumerState<ManagementProperty> {
   late Color _backgroundColor;
   late Future<List<Lot?>> _lotByUser;
   late final ILotRepository _databasesLotServices;
-
-  Map<String, Color> _lotColors = {};
 
   @override
   void initState() {

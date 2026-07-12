@@ -1,21 +1,19 @@
 // ignore_for_file: must_be_immutable
 
-import 'package:connect_kasa/controllers/features/line_interaction.dart';
-import 'package:connect_kasa/core/repositories/post_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/signalement_count_controller.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/header_row.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/post_page_widget/signalement_tile.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
+import 'package:konodal/controllers/features/line_interaction.dart';
+import 'package:konodal/core/repositories/post_repository.dart';
+import 'package:konodal/core/repositories/firestore_post_repository.dart';
+import 'package:konodal/controllers/widgets_controllers/signalement_count_controller.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/header_row.dart';
+import 'package:konodal/vues/widget_view/page_widget/post_page_widget/signalement_tile.dart';
+import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 
 import '../../../../../models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class PostWidget extends StatefulWidget {
   final Lot lot;
@@ -140,7 +138,8 @@ class PostWidgetState extends State<PostWidget> {
                                         final postUpdated = snapshot.data;
                                         if (postUpdated != null) {
                                           return PopScope(
-                                            onPopInvoked: (didPop) async {
+                                            onPopInvokedWithResult:
+                                                (didPop, result) async {
                                               Post? postChanges = await dbService
                                                   .getUpdatePost(
                                                       widget.residence,
@@ -196,7 +195,7 @@ class PostWidgetState extends State<PostWidget> {
                 }
               },
             ),
-            IteractionLine(
+            iteractionLine(
                 widget.post, widget.residence, widget.uid, colorStatut)
           ],
         ),

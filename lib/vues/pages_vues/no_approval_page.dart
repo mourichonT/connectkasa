@@ -1,11 +1,11 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/legal_texts/info_centre.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/legal_texts/info_centre.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:flutter/material.dart';
 
 class NoApprovalPage extends StatelessWidget {
-  NoApprovalPage({super.key});
+  const NoApprovalPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class NoApprovalPage extends StatelessWidget {
           Center(
             // Centrer horizontalement
             child: Image.asset(
-              "images/assets/logoCKvertconnectKasa.png",
+              "images/assets/logo_by_colors/logoVert72.119.91.png",
               width: width / 1.5,
             ),
           ),
@@ -31,7 +31,7 @@ class NoApprovalPage extends StatelessWidget {
               horizontal: 20,
             ),
             child: MyTextStyle.lotDesc(
-                InfoCentre.NoApprovalAccount, SizeFont.h2.size),
+                InfoCentre.noApprovalAccount, SizeFont.h2.size),
           ),
           Spacer(),
           ButtonAdd(

@@ -21,12 +21,14 @@ class AuthController {
 
     try {
       await _auth.sendPasswordResetEmail(email: email.trim());
+      if (!context.mounted) return;
       _showSnackBar(
         context,
         "Un e-mail de réinitialisation a été envoyé à $email.",
         Colors.green,
       );
     } on FirebaseAuthException catch (e) {
+      if (!context.mounted) return;
       String errorMessage = "Une erreur s'est produite.";
       if (e.code == 'user-not-found') {
         errorMessage = "Aucun utilisateur trouvé avec cet e-mail.";
@@ -35,6 +37,7 @@ class AuthController {
       }
       _showSnackBar(context, errorMessage, Colors.red);
     } catch (e) {
+      if (!context.mounted) return;
       // Gère d'autres types d'erreurs
       _showSnackBar(context, "Erreur : ${e.toString()}", Colors.red);
     }

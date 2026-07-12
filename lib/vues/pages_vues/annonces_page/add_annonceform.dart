@@ -1,10 +1,10 @@
-import 'dart:io';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_post_controller.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:uuid/uuid.dart';
@@ -21,8 +21,7 @@ class AddAnnonceForm extends StatefulWidget {
 
 class AddAnnonceFormState extends State<AddAnnonceForm> {
   double fontSize = 12;
-  File? _selectedImage;
-  final TypeList _CatList = TypeList();
+  final TypeList _catList = TypeList();
 
   late TextEditingController textEditingController;
   TextEditingController title = TextEditingController();
@@ -34,13 +33,14 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
   bool showAllFilters = false;
   bool removeImage = false;
   bool _isUploadingImage = false;
+  bool _isSubmitting = false;
   late List<String> labelsCat;
   String idPost = const Uuid().v1();
 
   @override
   void initState() {
     super.initState();
-    List<String> declarationType = _CatList.categoryAnnonce();
+    List<String> declarationType = _catList.categoryAnnonce();
     labelsCat = declarationType.asMap().entries.map((entry) {
       return entry.value;
     }).toList();
@@ -89,7 +89,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ProfilTile(widget.uid, 22, 19, 22, true, Colors.black87,
+                      profilTile(widget.uid, 22, 19, 22, true, Colors.black87,
                           SizeFont.h2.size),
                     ],
                   ),
@@ -98,8 +98,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Container(
-                          child: DropdownButtonFormField<String>(
+                        DropdownButtonFormField<String>(
                             padding: const EdgeInsets.symmetric(horizontal: 5),
                             decoration: InputDecoration(
                               isDense: true,
@@ -128,7 +127,6 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                               );
                             }).toList(),
                           ),
-                        ),
                         Padding(
                           padding: const EdgeInsets.only(top: 50),
                           child: Row(
@@ -183,8 +181,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                               MyTextStyle.lotName(
                                   "Prix : ", Colors.black87, SizeFont.h3.size),
                               const SizedBox(width: 15),
-                              Container(
-                                child: Row(
+                              Row(
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.symmetric(
@@ -229,7 +226,6 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                                     ),
                                   ],
                                 ),
-                              ),
                             ],
                           ),
                         ),
@@ -261,10 +257,16 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                   const SizedBox(height: 30),
                   const Divider(),
                   const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: _isUploadingImage
+                  ButtonAdd(
+                    color: Theme.of(context).primaryColor,
+                    text: "Ajouter",
+                    horizontal: 20,
+                    vertical: 5,
+                    size: SizeFont.h3.size,
+                    function: (_isUploadingImage || _isSubmitting)
                         ? null
                         : () async {
+                      setState(() => _isSubmitting = true);
                       try {
                         await SubmitPostController.submitForm(
                             uid: widget.uid,
@@ -279,6 +281,7 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                             docRes: widget.residence);
                       } catch (e) {
                         if (!context.mounted) return;
+                        setState(() => _isSubmitting = false);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             backgroundColor: Colors.red,
@@ -291,8 +294,6 @@ class AddAnnonceFormState extends State<AddAnnonceForm> {
                       if (!context.mounted) return;
                       Navigator.pop(context);
                     },
-                    child: MyTextStyle.lotName("Ajouter",
-                        Theme.of(context).primaryColor, SizeFont.h3.size),
                   ),
                   const SizedBox(height: 15),
                 ],

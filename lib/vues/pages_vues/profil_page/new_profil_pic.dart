@@ -1,10 +1,10 @@
 import 'dart:io';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/core/repositories/firestore_storage_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -17,16 +17,16 @@ class ProfilePic extends StatefulWidget {
   final VoidCallback refresh;
 
   const ProfilePic({
-    Key? key,
+    super.key,
     required this.uid,
     required this.color,
     required this.idLot,
     required this.refresh,
     required this.imagePath,
-  }) : super(key: key);
+  });
 
   @override
-  _ProfilePicState createState() => _ProfilePicState();
+  State<ProfilePic> createState() => _ProfilePicState();
 }
 
 class _ProfilePicState extends State<ProfilePic> {
@@ -61,10 +61,12 @@ class _ProfilePicState extends State<ProfilePic> {
           .then((result) => result.when(
               success: (_) {}, failure: (error) => throw error));
       widget.refresh();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Photo de profil mise à jour avec succès!')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur lors de la mise à jour: $e')),
       );
@@ -146,7 +148,7 @@ class _ProfilePicState extends State<ProfilePic> {
                     fit: BoxFit.cover,
                   ),
                 )
-              : ProfilTile(widget.uid, 70, 65, 70, false),
+              : profilTile(widget.uid, 70, 65, 70, false),
           Positioned(
             right: 0,
             bottom: -10,

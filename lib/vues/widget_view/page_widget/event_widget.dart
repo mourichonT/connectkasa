@@ -1,16 +1,16 @@
-import 'package:connect_kasa/controllers/features/line_interaction.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/participed_button.dart';
-import 'package:connect_kasa/core/repositories/post_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/models/enum/event_type.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/pages_vues/event_page/event_page_details.dart';
-import 'package:connect_kasa/vues/widget_view/components/header_row.dart';
+import 'package:konodal/controllers/features/line_interaction.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/participed_button.dart';
+import 'package:konodal/core/repositories/post_repository.dart';
+import 'package:konodal/core/repositories/firestore_post_repository.dart';
+import 'package:konodal/models/enum/event_type.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/models/pages_models/user.dart';
+import 'package:konodal/vues/pages_vues/event_page/event_page_details.dart';
+import 'package:konodal/vues/widget_view/components/header_row.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -36,7 +36,7 @@ class EventWidget extends StatefulWidget {
       required this.updatePostsList});
 
   @override
-  _EventWidgetState createState() => _EventWidgetState();
+  State<EventWidget> createState() => _EventWidgetState();
 }
 
 class _EventWidgetState extends State<EventWidget> {
@@ -87,6 +87,7 @@ class _EventWidgetState extends State<EventWidget> {
                     .then((result) => result.when(
                         success: (v) => v, failure: (_) => null));
 
+                if (!context.mounted) return;
                 Navigator.of(context).push(CupertinoPageRoute(
                   builder: (context) => EventPageDetails(
                     returnHomePage: true,
@@ -114,7 +115,7 @@ class _EventWidgetState extends State<EventWidget> {
                 ],
               ),
             ),
-            IteractionLine(widget.post, widget.residenceSelected, widget.uid,
+            iteractionLine(widget.post, widget.residenceSelected, widget.uid,
                 widget.colorStatut)
           ],
         ),
@@ -151,9 +152,9 @@ class _EventWidgetState extends State<EventWidget> {
                     mainAxisSize: MainAxisSize.max,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      MyTextStyle.EventDateDay(
+                      MyTextStyle.eventDateDay(
                           widget.post.eventDate!, SizeFont.h1.size),
-                      MyTextStyle.EventDateMonth(
+                      MyTextStyle.eventDateMonth(
                           widget.post.eventDate!, SizeFont.h3.size),
                     ]),
               ),
@@ -161,7 +162,7 @@ class _EventWidgetState extends State<EventWidget> {
                 height: 20,
               ),
               MyTextStyle.lotDesc(
-                  MyTextStyle.EventHours(widget.post.eventDate!),
+                  MyTextStyle.eventHours(widget.post.eventDate!),
                   SizeFont.h3.size,
                   FontStyle.normal),
               const SizedBox(

@@ -1,19 +1,20 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step0.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step1.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step2.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step3.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/step4.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/firestore_storage_repository.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step0.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step1.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step2.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step3.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step4.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step4_bis.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:intl/intl.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class ProgressWidget extends StatefulWidget {
   final String userId;
@@ -45,13 +46,19 @@ class ProgressWidgetState extends State<ProgressWidget>
   String sex = "";
   String imagePathIDrecto = "";
   String imagePathIDverso = "";
+  String idExtension = "";
   String nationality = "";
   String placeOfBorn = "";
   String pseudo = "";
   Residence? residence;
+  // Positionné par Step1 ("Je n'ai pas encore de résidence") : saute Step2 et
+  // Step3 (type de résident/lot, sans objet sans résidence) et affiche
+  // Step4Bis (page 5 du PageView) à la place de Step4.
+  bool noResidence = false;
   String residentType = "";
   bool compagnyBuy = false;
   String kbisPath = "";
+  String kbisExtension = "";
   String intendedFor = "";
   String typeLot = "";
   String batType = "";
@@ -82,7 +89,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     if (!isUserCompleted &&
         currentUser != null &&
         currentUser!.uid == widget.userId) {
-      // Le nettoyage Firestore (User/{uid} et sous-collections) est
+      // Le nettoyage Firestore (users/{uid} et sous-collections) est
       // désormais fait automatiquement côté serveur (Cloud Function
       // cleanupUserData, functions/index.js) dès que le compte Auth est
       // supprimé — impossible à faire depuis le client une fois
@@ -187,6 +194,7 @@ class ProgressWidgetState extends State<ProgressWidget>
         if (currentUser != null && currentUser!.uid == widget.userId) {
           await currentUser!.delete();
           _deleteStorage();
+          if (!mounted) return;
           Navigator.popUntil(context, ModalRoute.withName('/'));
           appLog(
               "Utilisateur supprimé après fermeture de l'application : ${widget.userId}");
@@ -248,6 +256,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     String newImagePathIDrecto,
     String newimagePathIDverso,
     String docTypeId,
+    String newIdExtension,
     bool? newInformationsCorrectes,
   ) {
     // Faites ce que vous voulez avec les valeurs récupérées
@@ -264,6 +273,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     surname = newSurname;
     pseudo = newPseudo ?? "";
     idType = docTypeId;
+    idExtension = newIdExtension;
     informationsCorrectes = newInformationsCorrectes ?? false;
   }
 
@@ -317,8 +327,19 @@ class ProgressWidgetState extends State<ProgressWidget>
     });
   }
 
+  // Step1 "Je n'ai pas encore de résidence" : saute Step2/Step3 (résidence,
+  // type de résident, lot - tous sans objet ici) et va directement sur
+  // Step4Bis (page 5), plutôt que Step4 (page 4) atteinte par nextPage().
+  void _skipToNoResidence() {
+    setState(() {
+      noResidence = true;
+      residence = null;
+    });
+    _progressController.jumpToPage(5);
+  }
+
   void getInformationsStep2(String newResidentType, bool newCompagnyBuy,
-      String newIntendedFor, String newKbisPath) {
+      String newIntendedFor, String newKbisPath, String newKbisExtension) {
     // Faites ce que vous voulez avec les valeurs récupérées
     appLog(
         'Type resident: $newResidentType, achat par société: $newCompagnyBuy, destiné a : $newIntendedFor');
@@ -327,6 +348,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     compagnyBuy = newCompagnyBuy;
     intendedFor = newIntendedFor;
     kbisPath = newKbisPath;
+    kbisExtension = newKbisExtension;
   }
 
   void getInformationsStep3(String newTypeLot, String newBatType,
@@ -356,7 +378,14 @@ class ProgressWidgetState extends State<ProgressWidget>
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
-              if (currentPage > 0) {
+              if (noResidence && currentPage == 5) {
+                // Step4Bis (page 5) n'a pas été atteinte par nextPage() mais
+                // par jumpToPage() depuis Step1 (page 1) : previousPage()
+                // renverrait vers Step4 (page 4), qui n'a pas de sens dans ce
+                // parcours - retour direct à Step1.
+                setState(() => noResidence = false);
+                _progressController.jumpToPage(1);
+              } else if (currentPage > 0) {
                 appLog("PASSWORD; ${widget.password}");
                 _progressController.previousPage(
                   duration: const Duration(milliseconds: 300),
@@ -379,7 +408,8 @@ class ProgressWidgetState extends State<ProgressWidget>
             },
           ),
           title: MyTextStyle.lotName(
-              "Vous êtes à l'étape ${currentPage + 1} / 5", Colors.black54),
+              "Vous êtes à l'étape ${noResidence ? 5 : currentPage + 1} / 5",
+              Colors.black54),
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(5),
             child: LinearProgressIndicator(
@@ -396,8 +426,9 @@ class ProgressWidgetState extends State<ProgressWidget>
           onPageChanged: (int page) {
             setState(() {
               currentPage = page;
-              _progress = (currentPage + 1) /
-                  5; // Update the progress based on the current page
+              // page 5 = Step4Bis, atteinte via jumpToPage (pas nextPage) :
+              // (page+1)/5 dépasserait 1.0, invalide pour LinearProgressIndicator.
+              _progress = page == 5 ? 1.0 : (page + 1) / 5;
             });
           },
           children: [
@@ -411,6 +442,7 @@ class ProgressWidgetState extends State<ProgressWidget>
             ),
             Step1(
               recupererInformationsStep1: getInformationsStep1,
+              onNoResidence: _skipToNoResidence,
               currentPage: currentPage,
               progressController: _progressController,
             ),
@@ -447,10 +479,12 @@ class ProgressWidgetState extends State<ProgressWidget>
               nationality: nationality,
               imagepathIDrecto: imagePathIDrecto,
               imagepathIDverso: imagePathIDverso,
+              idExtension: idExtension,
               placeOfBorn: placeOfBorn,
               pseudo: pseudo,
               compagnyBuy: compagnyBuy,
               kbisPath: kbisPath,
+              kbisExtension: kbisExtension,
               typeLot: typeLot,
               intendedFor: intendedFor,
               residentType: residentType,
@@ -471,6 +505,24 @@ class ProgressWidgetState extends State<ProgressWidget>
               onCameraStateChanged: _handleCameraState,
               birthday: birthday,
               cancelDeletionTimer: _cancelDeletionTimer,
+            ),
+            Step4Bis(
+              userId: widget.userId,
+              emailUser: widget.emailUser ?? "",
+              docTypeId: idType,
+              name: name,
+              surname: surname,
+              pseudo: pseudo,
+              birthday: birthday,
+              imagepathIDrecto: imagePathIDrecto,
+              imagepathIDverso: imagePathIDverso,
+              idExtension: idExtension,
+              sex: sex,
+              nationality: nationality,
+              placeOfBorn: placeOfBorn,
+              informationsCorrectes: informationsCorrectes,
+              cancelDeletionTimer: _cancelDeletionTimer,
+              recupererInformationsStep4: getInformationsStep4,
             ),
           ],
         ),

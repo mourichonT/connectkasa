@@ -1,7 +1,7 @@
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/user.dart' as app_user;
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/user.dart' as app_user;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,7 +13,7 @@ final firebaseAuthStateProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
 });
 
-/// Utilisateur connecté (document User/{uid}), mis à jour en temps réel.
+/// Utilisateur connecté (document users/{uid}), mis à jour en temps réel.
 /// `null` tant qu'aucun utilisateur n'est authentifié.
 ///
 /// Fondation posée ici (Phase 1) mais pas encore câblée dans les écrans

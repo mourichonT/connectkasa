@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/repositories/firestore_mail_repository.dart';
-import 'package:connect_kasa/core/repositories/mail_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:konodal/core/repositories/firestore_mail_repository.dart';
+import 'package:konodal/core/repositories/mail_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:connect_kasa/models/pages_models/mail.dart';
-import 'package:connect_kasa/vues/widget_view/components/chat_bubble.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/models/pages_models/mail.dart';
+import 'package:konodal/vues/widget_view/components/chat_bubble.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class MailChatPage extends StatefulWidget {
   final String agencyName;
@@ -84,8 +84,7 @@ class MailChatPageState extends State<MailChatPage> {
           ),
         ),
       ),
-      body: Container(
-        child: Padding(
+      body: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
@@ -98,7 +97,6 @@ class MailChatPageState extends State<MailChatPage> {
             ],
           ),
         ),
-      ),
     );
   }
 

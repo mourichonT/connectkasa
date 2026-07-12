@@ -1,8 +1,8 @@
 // ignore_for_file: must_be_immutable
 
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 
 import '../../vues/pages_vues/post_page/post_form.dart';

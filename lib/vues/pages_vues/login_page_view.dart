@@ -1,20 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/auth_controller.dart';
-import 'package:connect_kasa/controllers/features/load_user_controller.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/authentification_process.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_text_fied.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widget/create_account_page.dart';
+import 'package:konodal/controllers/features/auth_controller.dart';
+import 'package:konodal/controllers/features/load_user_controller.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/widgets_controllers/authentification_process.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/widget_view/components/my_text_fied.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/create_account_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class LoginPageView extends StatelessWidget {
   final FirebaseFirestore firestore;
   final LoadUserController _loadUserController = LoadUserController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _MdPController = TextEditingController();
+  final TextEditingController _mdpController = TextEditingController();
 
   LoginPageView({super.key, required this.firestore});
 
@@ -34,7 +34,7 @@ class LoginPageView extends StatelessWidget {
                   height: 80,
                 ),
                 Image.asset(
-                  "images/assets/logoCKvertconnectKasa.png",
+                  "images/assets/logo_by_colors/logoVert72.119.91.png",
                   width: width / 1.5,
                 ),
                 const SizedBox(
@@ -133,7 +133,7 @@ class LoginPageView extends StatelessWidget {
                   autofocus: false,
                   hintText: "Mot de passe",
                   osbcureText: true,
-                  controller: _MdPController,
+                  controller: _mdpController,
                   padding: 0,
                 ),
                 const SizedBox(
@@ -171,8 +171,8 @@ class LoginPageView extends StatelessWidget {
                         ),
                         backgroundColor: Color.fromRGBO(72, 119, 91, 1.0)),
                     onPressed: () {
-                      SignIn(
-                          context, _emailController.text, _MdPController.text);
+                      signIn(
+                          context, _emailController.text, _mdpController.text);
                     },
                     child: MyTextStyle.lotName(
                       "Connexion",
@@ -222,18 +222,20 @@ class LoginPageView extends StatelessWidget {
     );
   }
 
-  Future SignIn(BuildContext context, String email, String password) async {
+  Future signIn(BuildContext context, String email, String password) async {
     try {
       UserCredential? userCredentials;
       userCredentials = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
 
+      if (!context.mounted) return;
       AuthentificationProcess(
         context: context,
         firestore: firestore,
         loadUserController: _loadUserController,
-      ).SignInWithMail(userCredentials);
+      ).signInWithMail(userCredentials);
     } on FirebaseAuthException catch (ex) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("L'email et/ou le mot de passe sont incorrect"),

@@ -1,13 +1,13 @@
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/pages_vues/residence_page/management_res_info_g.dart';
-import 'package:connect_kasa/vues/pages_vues/residence_page/manage_contact.dart';
-import 'package:connect_kasa/vues/pages_vues/residence_page/manage_cs_members.dart';
-import 'package:connect_kasa/vues/pages_vues/residence_page/manage_list_lot.dart';
-import 'package:connect_kasa/vues/pages_vues/residence_page/manage_structure.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/pages_vues/residence_page/management_res_info_g.dart';
+import 'package:konodal/vues/pages_vues/residence_page/manage_contact.dart';
+import 'package:konodal/vues/pages_vues/residence_page/manage_cs_members.dart';
+import 'package:konodal/vues/pages_vues/residence_page/manage_list_lot.dart';
+import 'package:konodal/vues/pages_vues/residence_page/manage_structure.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/pages_vues/profil_page/new_page_menu.dart';
 
 class ResidencePage extends StatefulWidget {
   final String uid;

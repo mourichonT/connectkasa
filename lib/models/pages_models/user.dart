@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/enum/notification_type.dart';
+import 'package:konodal/models/enum/notification_type.dart';
 
 class User {
   String email;

@@ -1,18 +1,17 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/load_user_controller.dart';
-import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/vues/pages_vues/no_approval_page.dart';
-import 'package:connect_kasa/vues/pages_vues/login_transition_page.dart';
-import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
-import 'package:firebase_auth/firebase_auth.dart' as Firebase;
+import 'package:konodal/controllers/features/load_user_controller.dart';
+import 'package:konodal/controllers/handlers/api/flutter_api.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/vues/pages_vues/no_approval_page.dart';
+import 'package:konodal/vues/pages_vues/login_transition_page.dart';
+import 'package:konodal/controllers/handlers/progress_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class AuthentificationProcess {
   final BuildContext context;
@@ -57,6 +56,17 @@ class AuthentificationProcess {
       );
     } catch (e) {
       appLog("❌ Erreur lors de la connexion Google : $e");
+      // Sans ce retour visuel, une erreur ici (SHA-1 non enregistré, réseau,
+      // etc.) laisse l'écran de création de compte silencieusement inerte :
+      // le tap semble n'avoir rien fait ("freeze" signalé par l'utilisateur),
+      // alors qu'une exception a bien été levée et avalée par ce catch.
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text("Erreur lors de la connexion Google : $e"),
+        ),
+      );
     }
   }
 
@@ -181,7 +191,7 @@ class AuthentificationProcess {
   //   }
   // }
 
-  Future SignInWithMail(UserCredential userCredential) async {
+  Future signInWithMail(UserCredential userCredential) async {
     User checkUser = userCredential.user!;
 
     // Récupérer les données de l'utilisateur à partir de la base de données
@@ -194,6 +204,7 @@ class AuthentificationProcess {
       navigateToMyApp(userData!.uid, firestore);
       return Future.value(checkUser);
     } else if (userData?.uid == checkUser.uid && userData?.approved == false) {
+      if (!context.mounted) return null;
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -226,7 +237,7 @@ class AuthentificationProcess {
     );
   }
 
-  void navigateToStep0(Firebase.User user) {
+  void navigateToStep0(User user) {
     bool isStep0Present = false;
 
     Navigator.of(context).popUntil((route) {

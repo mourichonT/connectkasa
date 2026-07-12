@@ -1,6 +1,6 @@
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/models/pages_models/gerance_ref.dart';
 
 /// Remplace DatabasesAgencyServices (Phase 2 du chantier architecture).
 abstract interface class IAgencyRepository {
@@ -10,7 +10,7 @@ abstract interface class IAgencyRepository {
   });
 
   /// Résout une référence enregistrée (GeranceRef) vers les données à jour
-  /// du cabinet dans Gerance. Succès avec `null` si le cabinet ou le
+  /// du cabinet dans gerances. Succès avec `null` si le cabinet ou le
   /// service référencé n'existe plus (supprimé côté référentiel
   /// entretemps) : ce n'est pas une erreur, juste une donnée absente.
   Future<Result<Agency?>> resolveRef(GeranceRef ref);

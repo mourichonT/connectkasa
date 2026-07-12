@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class SubmitDocController {
   static Future<void> submitFormCopro({
@@ -21,7 +21,7 @@ class SubmitDocController {
     try {
       // Exemple avec Firebase Firestore
       await FirebaseFirestore.instance
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
           .collection("documents_copro")
           .add(data);
@@ -63,7 +63,7 @@ class SubmitDocController {
       // documentId" chez tous les destinataires d'un coup, cible bien le
       // même document partout au lieu d'IDs auto-générés indépendamment.
       final documentId = FirebaseFirestore.instance
-          .collection("User")
+          .collection("users")
           .doc(uid.first)
           .collection("lots")
           .doc(lotId)
@@ -73,7 +73,7 @@ class SubmitDocController {
 
       for (String userId in uid) {
         await FirebaseFirestore.instance
-            .collection("User")
+            .collection("users")
             .doc(userId)
             .collection("lots")
             .doc(lotId)

@@ -1,11 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/pages_controllers/tenant_controller.dart';
-import 'package:connect_kasa/main.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
+import 'package:konodal/controllers/pages_controllers/tenant_controller.dart';
+import 'package:konodal/main.dart';
+import 'package:konodal/models/pages_models/user_info.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class FirebaseApi {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -46,7 +45,7 @@ class FirebaseApi {
 
           if (tenantId != null && senderUid != null) {
             final userDoc = await FirebaseFirestore.instance
-                .collection('User')
+                .collection('users')
                 .doc(tenantId)
                 .get();
             if (!userDoc.exists) return;

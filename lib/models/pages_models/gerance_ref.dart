@@ -1,5 +1,5 @@
-/// Référence vers un contact Gerance (résidence/bâtiment/lot référencé dans
-/// l'annuaire Gerance), par opposition à un Agency embarqué localement quand
+/// Référence vers un contact gerances (résidence/bâtiment/lot référencé dans
+/// l'annuaire gerances), par opposition à un Agency embarqué localement quand
 /// aucun match n'est trouvé (agence/syndic hors référentiel).
 class GeranceRef {
   final String geranceId;

@@ -1,7 +1,7 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:flutter/material.dart';
 
 class EventTileComp extends StatelessWidget {
@@ -46,7 +46,7 @@ class EventTileComp extends StatelessWidget {
                   padding: const EdgeInsets.all(8),
                   width: 120,
                   height: 120,
-                  child: ImageAnnounced(context, 120, 120),
+                  child: imageAnnounced(context, 120, 120),
                 ),
               ),
             SizedBox(

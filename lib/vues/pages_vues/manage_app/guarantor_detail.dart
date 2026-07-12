@@ -1,16 +1,16 @@
-import 'package:connect_kasa/controllers/features/contact_features.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/docs_repository_provider.dart';
-import 'package:connect_kasa/core/providers/garant_providers.dart';
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/icons_extension.dart';
-import 'package:connect_kasa/models/pages_models/document_model.dart';
+import 'package:konodal/controllers/features/contact_features.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/docs_repository_provider.dart';
+import 'package:konodal/core/providers/garant_providers.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/icons_extension.dart';
+import 'package:konodal/models/pages_models/document_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class GuarantorDetail extends ConsumerStatefulWidget {
   final String garantid;
@@ -103,7 +103,7 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
                       income.label,
                       "${amount.toStringAsFixed(2)} €",
                     );
-                  }).toList(),
+                  }),
                   const Divider(),
                   lineToWrite(Icons.euro, "Total des revenus",
                       "${g.incomes.map((e) => double.tryParse(e.amount) ?? 0.0).fold(0.0, (a, b) => a + b).toStringAsFixed(2)} €"),
@@ -176,7 +176,7 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
               leading: fileType != null
                   ? fileType.icon
                   : Image.asset('images/icon_extension/default.png'),
-              title: Text(doc.type ?? ""),
+              title: Text(doc.type),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -187,6 +187,7 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
                       if (await canLaunchUrl(url)) {
                         await launchUrl(url);
                       } else {
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content:
@@ -221,7 +222,7 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
         .deleteGarantDocuments(uid, widget.garantid, docId);
     ref.invalidate(garantDocumentsProvider(_garantArgs));
 
-    if (!context.mounted) return;
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Document supprimé avec succès")),
     );

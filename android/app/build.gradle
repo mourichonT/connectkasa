@@ -32,7 +32,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "fr.connectkasa.connect_kasa"
+    namespace "com.konodal.app"
     compileSdk 35
     ndkVersion flutter.ndkVersion
 
@@ -52,7 +52,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "fr.connectkasa.connect_kasa"
+        applicationId "com.konodal.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion 23

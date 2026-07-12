@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/repositories/post_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/post_style.dart';
+import 'package:konodal/core/repositories/post_repository.dart';
+import 'package:konodal/core/repositories/firestore_post_repository.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/models/pages_models/post_style.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class SubmitPostController {
   static Post _buildPost({
@@ -32,9 +32,9 @@ class SubmitPostController {
     return Post(
       id: idPost,
       description: desc?.text ?? "",
-      location_element: localisation ?? "",
-      location_details: element ?? [],
-      location_floor: etage ?? "",
+      locationElement: localisation ?? "",
+      locationDetails: element ?? [],
+      locationFloor: etage ?? "",
       subtype: subtype ?? "",
       price: price ?? 0,
       pathImage: imagePath ?? "",
@@ -184,7 +184,7 @@ class SubmitPostController {
     required String locationFloor,
   }) async {
     final url = Uri.parse(
-      "https://europe-west1-connectkasa-84f23.cloudfunctions.net/check_similar_post_OpenAI",
+      "https://us-central1-konodal-dev.cloudfunctions.net/check_similar_post_OpenAI",
     );
 
     appLog("Envoi de la requête à la Cloud Function...");
@@ -301,7 +301,7 @@ class SubmitPostController {
   //   }
   // }
 
-  static Future<void> UpdatePost(
+  static Future<void> updatePost(
       {required String uid,
       required String idPost,
       required String selectedLabel,
@@ -329,9 +329,9 @@ class SubmitPostController {
     Post updatePost = Post(
         id: idPost, // Vous devez générer un ID unique pour chaque post
         description: desc ?? "",
-        location_element: localisation ?? "",
-        location_details: element ?? [],
-        location_floor: etage ?? "",
+        locationElement: localisation ?? "",
+        locationDetails: element ?? [],
+        locationFloor: etage ?? "",
         subtype: subtype ?? "",
         pathImage: imagePath ?? "",
         refResidence: docRes,

@@ -1,11 +1,10 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_user.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/account_deletion_controller.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/legal_texts/info_centre.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/profile_page_view.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_user.dart';
+import 'package:konodal/controllers/widgets_controllers/account_deletion_controller.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/legal_texts/info_centre.dart';
+import 'package:konodal/models/pages_models/user.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 
@@ -28,7 +27,8 @@ class AccountSecuPageModify extends StatefulWidget {
   });
 
   @override
-  _AccountSecuPageModifyState createState() => _AccountSecuPageModifyState();
+  State<AccountSecuPageModify> createState() =>
+      _AccountSecuPageModifyState();
 }
 
 class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
@@ -159,7 +159,7 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
                                 privateAccount = value;
                                 widget.user.private = value;
                               });
-                              SubmitUser.UpdateUser(
+                              SubmitUser.updateUser(
                                   context: context,
                                   uid: widget.uid,
                                   field: 'private',
@@ -187,62 +187,9 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
     );
   }
 
-  Widget _buildModifyTextField(String field, String label,
-      TextEditingController controller, FocusNode focusNode,
-      {int maxLines = 5, int minLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextField(
-              controller: controller,
-              focusNode: focusNode,
-              maxLines: maxLines,
-              minLines: minLines,
-              onSubmitted: (value) {},
-              decoration: InputDecoration(
-                labelText: label,
-                labelStyle: const TextStyle(
-                  color: Colors.black54,
-                  fontWeight: FontWeight.w400,
-                ),
-                border: const UnderlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.grey,
-                    width: 1.0,
-                  ),
-                ),
-              ),
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: SizeFont.h3.size,
-              ),
-            ),
-          ),
-          if (focusNode.hasFocus)
-            IconButton(
-              onPressed: () {
-                SubmitUser.UpdateUser(
-                  context: context,
-                  uid: widget.uid,
-                  field: field,
-                  label: label,
-                  value: controller.text,
-                );
-                focusNode.unfocus();
-                widget.refresh();
-              },
-              icon: const Icon(Icons.check),
-            ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildReadOnlyTextField(String label, String? value) {
     // Fonction pour masquer la partie de l'e-mail entre la première et la dernière lettre avant '@'
-    String _maskEmail(String? email) {
+    String maskEmail(String? email) {
       if (email == null || !email.contains('@')) return email ?? '';
 
       final atIndex = email.indexOf('@');
@@ -261,7 +208,7 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: TextField(
-        controller: TextEditingController(text: _maskEmail(value)),
+        controller: TextEditingController(text: maskEmail(value)),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: const TextStyle(
@@ -288,6 +235,7 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
     try {
       await firebase_auth.FirebaseAuth.instance
           .sendPasswordResetEmail(email: email);
+      if (!mounted) return;
       // Affichez un message à l'utilisateur indiquant que l'e-mail de réinitialisation a été envoyé
       showDialog(
         context: context,
@@ -308,6 +256,7 @@ class _AccountSecuPageModifyState extends State<AccountSecuPageModify> {
         },
       );
     } catch (e) {
+      if (!mounted) return;
       // Gérez les erreurs ici, par exemple, si l'e-mail n'est pas valide ou si une autre erreur survient
       showDialog(
         context: context,

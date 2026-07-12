@@ -1,6 +1,6 @@
 class PrivacyPolicy {
   static String intro =
-      """Bienvenue sur ConnectKasa, une application facilitant la communication entre les parties prenantes des résidences en copropriété (Conseil syndical, résidents, syndic, prestataires). Nous attachons une grande importance à la protection de vos données personnelles et nous nous engageons à les traiter de manière transparente et sécurisée.""";
+      """Bienvenue sur KONODAL, une application facilitant la communication entre les parties prenantes des résidences en copropriété (Conseil syndical, résidents, syndic, prestataires). Nous attachons une grande importance à la protection de vos données personnelles et nous nous engageons à les traiter de manière transparente et sécurisée.""";
 
   static String dataCollected =
       """Nous collectons les types de données suivants :

@@ -1,8 +1,8 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
-import 'package:connect_kasa/vues/pages_vues/annonces_page/annonce_page_details.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/image_annonce.dart';
+import 'package:konodal/vues/pages_vues/annonces_page/annonce_page_details.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -58,7 +58,7 @@ class AnnonceTile extends StatelessWidget {
                                   pathImage,
                                   fit: BoxFit.cover,
                                 )
-                              : ImageAnnounced(context, 140, 140),
+                              : imageAnnounced(context, 140, 140),
                         ),
                       ),
                       SizedBox(

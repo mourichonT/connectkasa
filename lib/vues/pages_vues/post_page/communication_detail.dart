@@ -1,11 +1,11 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
-import 'package:connect_kasa/vues/widget_view/components/comment_button.dart';
-import 'package:connect_kasa/vues/widget_view/components/like_button_post.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/widget_view/components/share_button.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
+import 'package:konodal/vues/widget_view/components/comment_button.dart';
+import 'package:konodal/vues/widget_view/components/like_button_post.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/vues/widget_view/components/share_button.dart';
 import 'package:flutter/material.dart';
 
 class CommunicationDetails extends StatelessWidget {
@@ -21,7 +21,6 @@ class CommunicationDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
@@ -34,7 +33,7 @@ class CommunicationDetails extends StatelessWidget {
                       uid: uid, currentUid: uid, refLot: residenceId)),
             );
           },
-          child: ProfilTile(
+          child: profilTile(
               uid, 22, 19, 22, true, Colors.black87, SizeFont.h2.size),
         ),
       ),

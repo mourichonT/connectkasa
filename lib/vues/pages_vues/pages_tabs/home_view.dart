@@ -1,16 +1,16 @@
 // ignore_for_file: must_be_immutable, library_private_types_in_public_api
 
 import 'dart:async';
-import 'package:connect_kasa/core/providers/post_providers.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/post_page_widget/asking_neighbors_widget.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/event_widget.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/annonce_page_widget/annonce_widget.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/post_page_widget/post_widget.dart';
+import 'package:konodal/core/providers/post_providers.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/page_widget/post_page_widget/asking_neighbors_widget.dart';
+import 'package:konodal/vues/widget_view/page_widget/event_widget.dart';
+import 'package:konodal/vues/widget_view/page_widget/annonce_page_widget/annonce_widget.dart';
+import 'package:konodal/vues/widget_view/page_widget/post_page_widget/post_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class Homeview extends ConsumerStatefulWidget {
   String residenceSelected;

@@ -1,22 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/search_agency_module.dart';
-import 'package:connect_kasa/core/providers/agency_search_flow_provider.dart';
-import 'package:connect_kasa/core/providers/residence_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/models/pages_models/agency_dept.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/models/pages_models/structure_residence.dart';
-import 'package:connect_kasa/vues/pages_vues/residence_page/manage_structure.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/controllers/features/agency_search_flow.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/search_agency_module.dart';
+import 'package:konodal/core/providers/agency_search_flow_provider.dart';
+import 'package:konodal/core/providers/residence_repository_provider.dart';
+import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/models/pages_models/agency_dept.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/models/pages_models/structure_residence.dart';
+import 'package:konodal/vues/pages_vues/residence_page/manage_structure.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class ManagementResInfoG extends ConsumerStatefulWidget {
   final Residence residence;
@@ -145,8 +145,12 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
 
   @override
   void dispose() {
-    _controllers.values.forEach((c) => c.dispose());
-    _focusNodes.values.forEach((f) => f.dispose());
+    for (var c in _controllers.values) {
+      c.dispose();
+    }
+    for (var f in _focusNodes.values) {
+      f.dispose();
+    }
     super.dispose();
   }
 
@@ -162,7 +166,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
       _controllers["zipCode"]!.text = r.zipCode;
       _controllers["city"]!.text = r.city;
 
-      // Si référencé dans Gerance, on résout depuis la source à jour plutôt
+      // Si référencé dans gerances, on résout depuis la source à jour plutôt
       // que de se fier à une copie potentiellement figée.
       if (r.geranceRef != null) {
         r.syndicAgency = await _flow.resolve(r.geranceRef!);
@@ -208,7 +212,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
 
     setState(() {
       if (results.isEmpty) {
-        // Aucun match dans Gerance : entrée custom, non référencée.
+        // Aucun match dans gerances : entrée custom, non référencée.
         final newAgency = _flow.buildCustomAgency(emailPart);
         searchResults = [newAgency];
         widget.residence.syndicAgency = newAgency;
@@ -241,22 +245,6 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
         ? const Icon(Icons.check)
         : const Icon(Icons.close),
   );
-
-  Future<void> _updateField(String field, String label, String value) async {
-    final success = await _residenceServices
-        .updateField(widget.residence.id, field, value)
-        .then((result) => result.when(success: (v) => v, failure: (_) => false));
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(success
-              ? "$label mis à jour"
-              : "Erreur lors de la mise à jour de $label"),
-        ),
-      );
-    }
-  }
 
   Widget buildField(String label, String field, {bool editable = true}) {
     return CustomTextFieldWidget(
@@ -418,7 +406,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
                 controller: _controllers["mail_contact"]!,
                 onSelect: (Agency agency) {
                   setState(() {
-                    // Agence choisie, référencée dans Gerance
+                    // Agence choisie, référencée dans gerances
                     widget.residence.syndicAgency = agency; // cache d'affichage
                     widget.residence.geranceRef = _flow.refFor(agency);
                     _itemSelected = true;
@@ -470,7 +458,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
               if (delegated &&
                   _controllers["mail_contact"]!.text.isNotEmpty) ...[
                 if (widget.residence.geranceRef != null)
-                  // Référencé dans Gerance → champs non éditables
+                  // Référencé dans gerances → champs non éditables
                   ...[
                   buildField("Nom de l'agence", "agencyName", editable: false),
                   buildField("Adresse", "address", editable: false),
@@ -576,7 +564,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
     }
 
     if (delegated &&
-        (widget.residence.syndicAgency?.syndic?.mail?.isEmpty ?? true)) {
+        (widget.residence.syndicAgency?.syndic?.mail.isEmpty ?? true)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text(
@@ -602,7 +590,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
 
     // Gestion de l'agence si délégué
     if (delegated && widget.residence.geranceRef != null) {
-      // Référencé dans Gerance : on ne persiste que la référence, jamais de
+      // Référencé dans gerances : on ne persiste que la référence, jamais de
       // copie (les champs affichés sont en lecture seule dans ce cas, cf.
       // build() ci-dessus).
       updatedData['geranceRef'] = widget.residence.geranceRef!.toJson();

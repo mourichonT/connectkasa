@@ -1,16 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/pages_controllers/chat_controller.dart';
-import 'package:connect_kasa/controllers/providers/message_provider.dart';
-import 'package:connect_kasa/core/repositories/firestore_chat_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
-import 'package:connect_kasa/vues/widget_view/components/chat_bubble.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/pages_controllers/chat_controller.dart';
+import 'package:konodal/controllers/providers/message_provider.dart';
+import 'package:konodal/core/repositories/firestore_chat_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
+import 'package:konodal/vues/widget_view/components/chat_bubble.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class ChatPage extends StatefulWidget {
   final String residence;
@@ -124,7 +124,7 @@ class ChatPageState extends State<ChatPage> {
             // Refresh après retour de ChatPage
             //_fetchAllUsers();
           },
-          child: ProfilTile(widget.idUserTo, 22, 19, 22, true, Colors.black87,
+          child: profilTile(widget.idUserTo, 22, 19, 22, true, Colors.black87,
               SizeFont.h2.size),
         ),
         bottom: const PreferredSize(
@@ -229,11 +229,11 @@ class MessageList extends StatelessWidget {
   final ScrollController scrollController;
 
   const MessageList({
-    Key? key,
+    super.key,
     required this.messages,
     required this.currentUserId,
     required this.scrollController,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

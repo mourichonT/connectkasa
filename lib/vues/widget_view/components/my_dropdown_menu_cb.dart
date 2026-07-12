@@ -8,13 +8,13 @@ class MyMultiSelectDropdownInline extends StatefulWidget {
   final String hintText;
 
   const MyMultiSelectDropdownInline({
-    Key? key,
+    super.key,
     required this.width,
     required this.items,
     required this.selectedItems,
     required this.onSelectionChanged,
     this.hintText = 'Sélectionner...',
-  }) : super(key: key);
+  });
 
   @override
   State<MyMultiSelectDropdownInline> createState() =>

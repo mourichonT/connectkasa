@@ -1,6 +1,6 @@
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/vues/widget_view/components/agency_search_result_list.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/vues/widget_view/components/agency_search_result_list.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
 
 Widget buildAgencySearchSection({

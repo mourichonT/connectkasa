@@ -17,7 +17,7 @@ class MyTextField extends StatefulWidget {
   });
 
   @override
-  _MyTextFieldState createState() => _MyTextFieldState();
+  State<MyTextField> createState() => _MyTextFieldState();
 }
 
 class _MyTextFieldState extends State<MyTextField> {
@@ -32,6 +32,7 @@ class _MyTextFieldState extends State<MyTextField> {
 
     if (widget.autofocus) {
       Future.delayed(const Duration(milliseconds: 100), () {
+        if (!mounted) return;
         FocusScope.of(context).requestFocus(_focusNode);
       });
     }

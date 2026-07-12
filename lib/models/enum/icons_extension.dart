@@ -29,9 +29,6 @@ extension IconsExtensionAssets on IconsExtension {
         return Image.asset('images/icon_extension/zip.png');
       case IconsExtension.mp3:
         return Image.asset('images/icon_extension/mp3.png');
-      default:
-        return Image.asset(
-            'images/icon_extension/default.png'); // Fixed default case
     }
   }
 }

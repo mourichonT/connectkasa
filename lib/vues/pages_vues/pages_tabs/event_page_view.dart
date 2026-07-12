@@ -1,21 +1,21 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/post_providers.dart';
-import 'package:connect_kasa/core/repositories/post_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/event_tile_comp.dart';
-import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
-import 'package:connect_kasa/vues/pages_vues/event_page/event_form.dart';
-import 'package:connect_kasa/vues/pages_vues/event_page/event_page_details.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/post_providers.dart';
+import 'package:konodal/core/repositories/post_repository.dart';
+import 'package:konodal/core/repositories/firestore_post_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/event_tile_comp.dart';
+import 'package:konodal/vues/widget_view/components/image_annonce.dart';
+import 'package:konodal/vues/pages_vues/event_page/event_form.dart';
+import 'package:konodal/vues/pages_vues/event_page/event_page_details.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Importez ce package
 import 'package:table_calendar/table_calendar.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class EventPageView extends ConsumerStatefulWidget {
   final Lot? preferedLot;
@@ -46,8 +46,6 @@ class EventPageViewState extends ConsumerState<EventPageView>
   // Jour sélectionné sur le calendrier : filtre "Événements futurs"/
   // "passés" sur ce seul jour. null = pas de filtre, liste complète.
   DateTime? _selectedDay;
-  bool _isPastDate =
-      false; // Variable pour suivre si la date sélectionnée est passée
 
   late TabController _tabController;
 
@@ -96,7 +94,6 @@ class EventPageViewState extends ConsumerState<EventPageView>
     setState(() {
       _today = day;
       _selectedDay = day;
-      _isPastDate = day.isBefore(now);
     });
 
     // Sélection automatique de l'onglet en fonction des événements trouvés
@@ -147,7 +144,7 @@ class EventPageViewState extends ConsumerState<EventPageView>
                           : futureEvents[index];
                       return ListTile(
                         trailing: MyTextStyle.lotDesc(
-                            MyTextStyle.EventHours(event.eventDate!),
+                            MyTextStyle.eventHours(event.eventDate!),
                             SizeFont.h3.size),
 
                         leading: (event.pathImage != "" &&
@@ -171,7 +168,7 @@ class EventPageViewState extends ConsumerState<EventPageView>
                                   padding: const EdgeInsets.all(8),
                                   width: 70,
                                   height: 70,
-                                  child: ImageAnnounced(context, 70, 70),
+                                  child: imageAnnounced(context, 70, 70),
                                 ),
                               ),
                         title: Text(event.title),
@@ -302,8 +299,7 @@ class EventPageViewState extends ConsumerState<EventPageView>
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              child: TableCalendar(
+            TableCalendar(
                 locale: 'fr_FR',
                 headerStyle: HeaderStyle(
                   formatButtonVisible: false,
@@ -338,7 +334,8 @@ class EventPageViewState extends ConsumerState<EventPageView>
                     shape: BoxShape.circle,
                   ),
                   selectedDecoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.6),
+                    color:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.6),
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -350,7 +347,6 @@ class EventPageViewState extends ConsumerState<EventPageView>
                 rowHeight: 35,
                 startingDayOfWeek: StartingDayOfWeek.monday,
               ),
-            ),
             Padding(
               padding: const EdgeInsets.only(top: 15, bottom: 15),
               child: ButtonAdd(

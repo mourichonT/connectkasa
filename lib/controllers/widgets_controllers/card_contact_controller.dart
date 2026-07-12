@@ -1,15 +1,15 @@
-import 'package:connect_kasa/core/repositories/firestore_agency_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/card_contact_view.dart';
+import 'package:konodal/core/repositories/firestore_agency_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/models/pages_models/gerance_ref.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/card_contact_view.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 /// Affiche le contact syndic (résidence/bâtiment) ou gérance locative (lot).
 /// Prend directement soit une Agency déjà résolue (cas custom, non
-/// référencée), soit une GeranceRef à résoudre depuis Gerance (cas
+/// référencée), soit une GeranceRef à résoudre depuis gerances (cas
 /// référencé) : jamais les deux en même temps, cf. le contrat
 /// geranceRef/syndicAgency posé sur Residence/StructureResidence/Lot.
 class CardContactController extends StatelessWidget {

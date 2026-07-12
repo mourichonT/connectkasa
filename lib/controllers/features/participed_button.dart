@@ -1,16 +1,16 @@
 import 'dart:math';
 
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/firestore_post_repository.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/models/pages_models/user.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class PartipedTile extends StatefulWidget {
   final String residenceSelected;
@@ -31,7 +31,7 @@ class PartipedTile extends StatefulWidget {
   });
 
   @override
-  _PartipedTileState createState() => _PartipedTileState();
+  State<PartipedTile> createState() => _PartipedTileState();
 }
 
 class _PartipedTileState extends State<PartipedTile> {
@@ -64,7 +64,7 @@ class _PartipedTileState extends State<PartipedTile> {
               FontWeight.w900,
             ),
             const SizedBox(height: 15),
-            participants != null ? buildParticipantsList(0, 5) : Container(),
+            buildParticipantsList(0, 5),
             const SizedBox(height: 15),
           ],
         ),
@@ -117,7 +117,7 @@ class _PartipedTileState extends State<PartipedTile> {
                   if (i < users.length && users[i] != null)
                     Container(
                       padding: EdgeInsets.all(widget.space),
-                      child: ProfilTile(users[i]!.uid, 12, 11, 12, false),
+                      child: profilTile(users[i]!.uid, 12, 11, 12, false),
                     ),
               ],
             );

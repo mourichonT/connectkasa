@@ -1,7 +1,7 @@
-import 'package:connect_kasa/core/providers/comment_repository_provider.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/comment.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/section_comment.dart';
+import 'package:konodal/core/providers/comment_repository_provider.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/comment.dart';
+import 'package:konodal/vues/widget_view/page_widget/section_comment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../controllers/features/my_texts_styles.dart';

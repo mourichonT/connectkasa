@@ -2,12 +2,12 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class TakePictureScreen extends StatefulWidget {
   final String idType;
@@ -18,7 +18,7 @@ class TakePictureScreen extends StatefulWidget {
   final CameraDescription camera;
 
   @override
-  _TakePictureScreenState createState() => _TakePictureScreenState();
+  State<TakePictureScreen> createState() => _TakePictureScreenState();
 }
 
 class _TakePictureScreenState extends State<TakePictureScreen> {
@@ -136,6 +136,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                 croppedFile.writeAsBytesSync(img.encodeJpg(croppedImage));
 
                 // Naviguer vers l'écran d'affichage de l'image
+                if (!context.mounted) return;
                 await Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => DisplayPictureScreen(

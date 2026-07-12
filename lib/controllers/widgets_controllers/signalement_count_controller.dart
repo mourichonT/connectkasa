@@ -1,7 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api, must_be_immutable
 
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/pages_models/post.dart';
 import 'package:flutter/material.dart';
 
 class SignalementsCountController extends StatefulWidget {

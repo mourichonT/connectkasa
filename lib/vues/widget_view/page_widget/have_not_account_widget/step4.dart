@@ -1,16 +1,14 @@
 import 'package:camera/camera.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_user.dart';
-import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
-import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/pages_vues/privacy_policy_page.dart';
-import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/Privacy_politic_widget.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_user.dart';
+import 'package:konodal/controllers/handlers/api/flutter_api.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/vues/widget_view/page_widget/privacy_politic_widget.dart';
 import 'package:flutter/material.dart';
 
 class Step4 extends StatefulWidget {
@@ -29,11 +27,13 @@ class Step4 extends StatefulWidget {
   final Timestamp birthday;
   final String imagepathIDrecto;
   final String imagepathIDverso;
+  final String idExtension;
   final bool compagnyBuy;
   final String intendedFor;
   final String refLot;
   final String typeLot;
   final String kbisPath;
+  final String kbisExtension;
   final String sex;
   final String nationality;
   final String placeOfBorn;
@@ -54,9 +54,11 @@ class Step4 extends StatefulWidget {
     required this.birthday,
     required this.imagepathIDrecto,
     required this.imagepathIDverso,
+    required this.idExtension,
     required this.pseudo,
     required this.compagnyBuy,
     required this.kbisPath,
+    required this.kbisExtension,
     required this.intendedFor,
     required this.refLot,
     required this.userId,
@@ -71,7 +73,7 @@ class Step4 extends StatefulWidget {
   });
 
   @override
-  _Step4State createState() => _Step4State();
+  State<Step4> createState() => _Step4State();
 }
 
 class _Step4State extends State<Step4> {
@@ -81,6 +83,7 @@ class _Step4State extends State<Step4> {
   bool visibleID = false;
   bool visibleJustif = false;
   String imagePathJustif = "";
+  String justifExtension = "";
   String justifChoice = "";
   String idChoice = "";
   bool _isChecked = false;
@@ -151,13 +154,14 @@ class _Step4State extends State<Step4> {
                           },
                           onImageUploaded: (downloadUrl) =>
                               downloadPath(downloadUrl, false),
+                          onExtensionResolved: (ext) =>
+                              setState(() => justifExtension = ext),
                           cardOverlay: true,
                         ),
                       ],
                     ),
                   ),
-                  Container(
-                    child: CheckboxListTile(
+                  CheckboxListTile(
                       value: _isChecked,
                       onChanged: (value) {
                         setState(() {
@@ -188,7 +192,6 @@ class _Step4State extends State<Step4> {
                       ),
                       controlAffinity: ListTileControlAffinity.leading,
                     ),
-                  ),
                 ],
               ),
             ],
@@ -206,8 +209,8 @@ class _Step4State extends State<Step4> {
           children: [
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor.withOpacity(
-                      (visibleJustif && _isChecked)
+                backgroundColor: Theme.of(context).primaryColor.withValues(
+                      alpha: (visibleJustif && _isChecked)
                           ? 1.0
                           : 0.5, // opacité réduite si désactivé
                     ),
@@ -238,7 +241,10 @@ class _Step4State extends State<Step4> {
                           docTypeJustif: justifChoice,
                           imagepathIDrecto: widget.imagepathIDrecto,
                           imagepathIDverso: widget.imagepathIDverso,
+                          idExtension: widget.idExtension,
                           imagepathJustif: imagePathJustif,
+                          justifExtension: justifExtension,
+                          kbisExtension: widget.kbisExtension,
                           birthday: widget.birthday,
                           informationsCorrectes: widget.informationsCorrectes,
                           fcmToken: fmcToken,

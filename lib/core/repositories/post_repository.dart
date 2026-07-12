@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/post.dart';
 
 /// Une page de résultats pour les listes de posts paginées (Homeview,
 /// SinistrePageView) : les posts de cette page, le curseur Firestore à

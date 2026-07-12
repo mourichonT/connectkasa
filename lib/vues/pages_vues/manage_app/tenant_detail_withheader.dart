@@ -1,19 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/contact_features.dart';
-import 'package:connect_kasa/controllers/handlers/exportpdfhttp.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/icons_extension.dart';
-import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-//import 'package:connect_kasa/vues/components/locascore_header.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
+import 'package:konodal/controllers/features/contact_features.dart';
+import 'package:konodal/controllers/handlers/exportpdfhttp.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/icons_extension.dart';
+import 'package:konodal/models/pages_models/document_model.dart';
+import 'package:konodal/models/pages_models/user_info.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+//import 'package:konodal/vues/components/locascore_header.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class TenantDetailWithHeader extends StatefulWidget {
   final UserInfo tenant;
@@ -42,7 +42,7 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
 
   Future<List<Map<String, dynamic>>> fetchDocuments() async {
     final snapshot = await FirebaseFirestore.instance
-        .collection('User')
+        .collection('users')
         .doc(widget.tenant.uid)
         .collection('documents')
         .get();
@@ -83,7 +83,7 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
                 width: 150,
                 child: ButtonAdd(
                   function: () {
-                    Exportpdfhttp.ExportLocaScore(context, widget.tenant);
+                    Exportpdfhttp.exportLocaScore(context, widget.tenant);
                   },
                   color: Theme.of(context).primaryColor,
                   icon: Icons.download,
@@ -117,7 +117,7 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
                                   top: 30.0, bottom: 00, left: 30),
                               child: Row(
                                 children: [
-                                  ProfilTile(
+                                  profilTile(
                                       widget.tenant.uid, 35, 30, 35, false),
                                   const SizedBox(width: 10),
                                   Expanded(
@@ -163,7 +163,7 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          ProfilTile(widget.tenant.uid, 55, 35,
+                                          profilTile(widget.tenant.uid, 55, 35,
                                               55, false),
                                         ],
                                       ),
@@ -314,7 +314,7 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
                         income.label,
                         "${amountDouble.toStringAsFixed(2)} €",
                       );
-                    }).toList(),
+                    }),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: const Divider(),
@@ -395,7 +395,6 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
             itemCount: documentList.length,
             itemBuilder: (context, index) {
               final docMap = documentList[index];
-              final String docId = docMap['id'];
               final DocumentModel doc = docMap['document'];
 
               final fileType = getFileType(doc.extension);
@@ -408,6 +407,7 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
                     if (await canLaunchUrl(url)) {
                       await launchUrl(url);
                     } else {
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content:
@@ -423,13 +423,13 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         fileType != null
-                            ? Container(width: 30, child: fileType.icon)
+                            ? SizedBox(width: 30, child: fileType.icon)
                             : Image.asset(
                                 'images/icon_extension/default.png',
                                 height: 30,
                               ),
                         Text(
-                          doc.type ?? "",
+                          doc.type,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,

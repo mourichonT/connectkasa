@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class AgencySearchResultList extends StatelessWidget {
   final bool isSearching;
@@ -8,11 +8,11 @@ class AgencySearchResultList extends StatelessWidget {
   final void Function(Agency) onSelect;
 
   const AgencySearchResultList({
-    Key? key,
+    super.key,
     required this.isSearching,
     required this.searchResults,
     required this.onSelect,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/comment_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/comment.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/comment_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/comment.dart';
 
 class FirestoreCommentRepository implements ICommentRepository {
   final FirebaseFirestore _firestore;
@@ -17,17 +17,17 @@ class FirestoreCommentRepository implements ICommentRepository {
 
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(docRes)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
       for (var postSnapshot in querySnapshot.docs) {
         QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await _firestore
-            .collection("Residence")
+            .collection("residences")
             .doc(docRes)
-            .collection("post")
+            .collection("posts")
             .doc(postSnapshot.id)
             .collection("comments")
             .get();
@@ -64,9 +64,9 @@ class FirestoreCommentRepository implements ICommentRepository {
   Future<DocumentReference?> _getCommentRef(
       String residenceId, String postId, String commentId) async {
     final postQuery = await _firestore
-        .collection("Residence")
+        .collection("residences")
         .doc(residenceId)
-        .collection("post")
+        .collection("posts")
         .where("id", isEqualTo: postId)
         .limit(1)
         .get();
@@ -76,9 +76,9 @@ class FirestoreCommentRepository implements ICommentRepository {
     }
 
     final commentQuery = await _firestore
-        .collection("Residence")
+        .collection("residences")
         .doc(residenceId)
-        .collection("post")
+        .collection("posts")
         .doc(postQuery.docs.first.id)
         .collection("comments")
         .where("id", isEqualTo: commentId)
@@ -123,9 +123,9 @@ class FirestoreCommentRepository implements ICommentRepository {
     List<Comment> comments = [];
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(docRes)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
@@ -134,9 +134,9 @@ class FirestoreCommentRepository implements ICommentRepository {
           if (newComment.originalCommment == false &&
               newComment.initialComment == null) {
             var parentCommentQuery = await _firestore
-                .collection("Residence")
+                .collection("residences")
                 .doc(docRes)
-                .collection("post")
+                .collection("posts")
                 .doc(postSnapshot.id)
                 .collection("comments")
                 .where("id", isEqualTo: commentId)
@@ -145,9 +145,9 @@ class FirestoreCommentRepository implements ICommentRepository {
             var parentCommentQueryID = parentCommentQuery.docs.first.id;
             if (parentCommentQueryID.isNotEmpty) {
               await _firestore
-                  .collection("Residence")
+                  .collection("residences")
                   .doc(docRes)
-                  .collection("post")
+                  .collection("posts")
                   .doc(postSnapshot.id)
                   .collection("comments")
                   .doc(parentCommentQueryID)
@@ -157,9 +157,9 @@ class FirestoreCommentRepository implements ICommentRepository {
               var parentCommentId = parentCommentQuery.docs.first.id;
 
               await _firestore
-                  .collection("Residence")
+                  .collection("residences")
                   .doc(docRes)
-                  .collection("post")
+                  .collection("posts")
                   .doc(postSnapshot.id)
                   .collection("comments")
                   .doc(parentCommentId)
@@ -169,9 +169,9 @@ class FirestoreCommentRepository implements ICommentRepository {
           } else if (newComment.originalCommment == false &&
               newComment.initialComment != null) {
             var replyCommentQuery = await _firestore
-                .collection("Residence")
+                .collection("residences")
                 .doc(docRes)
-                .collection("post")
+                .collection("posts")
                 .doc(postSnapshot.id)
                 .collection("comments")
                 .where("id", isEqualTo: initialComment)
@@ -180,9 +180,9 @@ class FirestoreCommentRepository implements ICommentRepository {
             var replyCommentQueryId = replyCommentQuery.docs.first.id;
             if (replyCommentQueryId.isNotEmpty) {
               await _firestore
-                  .collection("Residence")
+                  .collection("residences")
                   .doc(docRes)
-                  .collection("post")
+                  .collection("posts")
                   .doc(postSnapshot.id)
                   .collection("comments")
                   .doc(replyCommentQueryId)
@@ -191,18 +191,18 @@ class FirestoreCommentRepository implements ICommentRepository {
             }
           } else {
             await _firestore
-                .collection("Residence")
+                .collection("residences")
                 .doc(docRes)
-                .collection("post")
+                .collection("posts")
                 .doc(postSnapshot.id)
                 .collection("comments")
                 .add(newComment.toMap());
           }
 
           QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await _firestore
-              .collection("Residence")
+              .collection("residences")
               .doc(docRes)
-              .collection("post")
+              .collection("posts")
               .doc(postSnapshot.id)
               .collection("comments")
               .get();

@@ -1,19 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/search_agency_module.dart';
-import 'package:connect_kasa/core/providers/agency_search_flow_provider.dart';
-import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/statut_list.dart';
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/models/pages_models/agency_dept.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/controllers/features/agency_search_flow.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/search_agency_module.dart';
+import 'package:konodal/core/providers/agency_search_flow_provider.dart';
+import 'package:konodal/core/providers/lot_repository_provider.dart';
+import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/statut_list.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/models/pages_models/agency_dept.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ModifyPropInfoLoc extends ConsumerStatefulWidget {
@@ -110,14 +109,6 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
     super.dispose();
   }
 
-  TextEditingController _initAndGetController(String key, String? initialText) {
-    if (!_controllers.containsKey(key)) {
-      _controllers[key] = TextEditingController(text: initialText ?? '');
-    }
-    _focusNodes.putIfAbsent(key, () => FocusNode());
-    return _controllers[key]!;
-  }
-
   void disposeControllerForBuilding(int index) {
     _controllers['building_name_$index']?.dispose();
     _focusNodes['building_name_$index']?.dispose();
@@ -132,7 +123,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
 
     setState(() {
       if (results.isEmpty) {
-        // Aucun match dans Gerance : entrée custom, non référencée.
+        // Aucun match dans gerances : entrée custom, non référencée.
         final newAgency = _flow.buildCustomAgency(emailPart);
         searchResults = [newAgency];
         widget.lot.syndicAgency = newAgency;
@@ -221,7 +212,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
                                 success: (v) => v, failure: (_) => false));
                         final ok = okAgency && okRef;
 
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(ok
@@ -261,7 +252,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
                 controller: _controllers["mail_contact"]!,
                 onSelect: (Agency agency) {
                   setState(() {
-                    // Agence choisie, référencée dans Gerance
+                    // Agence choisie, référencée dans gerances
                     widget.lot.syndicAgency = agency; // cache d'affichage
                     widget.lot.geranceRef = _flow.refFor(agency);
                     searchResults.clear();
@@ -311,7 +302,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
               if (delegated &&
                   _controllers["mail_contact"]!.text.isNotEmpty) ...[
                 if (widget.lot.geranceRef != null)
-                  // Référencé dans Gerance → champs non éditables
+                  // Référencé dans gerances → champs non éditables
                   ...[
                   buildField("Nom de l'agence", "agencyName", editable: false),
                   buildField("Adresse", "address", editable: false),
@@ -452,7 +443,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
     selectedStatut = widget.lot.type;
     delegated = widget.lot.geranceRef != null || widget.lot.syndicAgency != null;
 
-    // Si référencé dans Gerance, on résout depuis la source à jour plutôt
+    // Si référencé dans gerances, on résout depuis la source à jour plutôt
     // que de se fier à une copie potentiellement figée.
     if (widget.lot.geranceRef != null) {
       widget.lot.syndicAgency = await _flow.resolve(widget.lot.geranceRef!);
@@ -494,7 +485,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
     };
 
     if (delegated && widget.lot.geranceRef != null) {
-      // Référencé dans Gerance : on ne persiste que la référence, jamais de
+      // Référencé dans gerances : on ne persiste que la référence, jamais de
       // copie (les champs affichés sont en lecture seule dans ce cas).
       updatedData['geranceRef'] = widget.lot.geranceRef!.toJson();
       updatedData['syndicAgency'] = FieldValue.delete();

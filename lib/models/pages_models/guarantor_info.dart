@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/income_entry.dart';
-import 'package:connect_kasa/controllers/features/job_entry.dart';
+import 'package:konodal/controllers/features/income_entry.dart';
+import 'package:konodal/controllers/features/job_entry.dart';
 import 'package:intl/intl.dart';
 
 class GuarantorInfo {
@@ -82,9 +82,7 @@ class GuarantorInfo {
       'email': email,
       'name': name,
       'surname': surname,
-      'birthday': birthday != null
-          ? DateFormat('dd/MM/yyyy').format(birthday.toDate())
-          : null,
+      'birthday': DateFormat('dd/MM/yyyy').format(birthday.toDate()),
       'sex': sex,
       'nationality': nationality,
       'placeOfborn': placeOfborn,

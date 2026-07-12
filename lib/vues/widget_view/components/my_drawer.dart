@@ -1,7 +1,7 @@
-import 'package:connect_kasa/controllers/features/load_user_controller.dart';
-import 'package:connect_kasa/controllers/providers/message_provider.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/features/load_user_controller.dart';
+import 'package:konodal/controllers/providers/message_provider.dart';
+import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,7 +31,7 @@ class MyDrawer extends StatelessWidget {
                 left: 10,
                 right: 10,
               ),
-              child: ProfilTile(uid, 22, 19, 22, false, Colors.black87),
+              child: profilTile(uid, 22, 19, 22, false, Colors.black87),
             ),
             ElevatedButton(
               onPressed: () async {

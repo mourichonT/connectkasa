@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/mail_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/mail.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/mail_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/mail.dart';
 
 class FirestoreMailRepository implements IMailRepository {
   final FirebaseFirestore _firestore;
@@ -14,11 +14,11 @@ class FirestoreMailRepository implements IMailRepository {
   @override
   Stream<Result<QuerySnapshot>> getMail(
       String uid, Lot selectedLot, List<String> accountantMail) {
-    // Residence/{id}/mail, pas la collection racine 'mail' : sendMail()
+    // residences/{id}/mail, pas la collection racine 'mail' : sendMail()
     // écrit ici depuis la migration du scoping par résidence (voir
     // firestore.rules), la collection racine ne reçoit plus rien depuis.
     return _firestore
-        .collection("Residence")
+        .collection("residences")
         .doc(selectedLot.residenceId)
         .collection('mail')
         .where('message.subject',
@@ -39,11 +39,11 @@ class FirestoreMailRepository implements IMailRepository {
   Future<Result<List<Mail>>> getMailFromUid(
       String uid, Lot selectedLot, String accountantMail) async {
     try {
-      // Residence/{id}/mail, pas la collection racine 'mail' : sendMail()
+      // residences/{id}/mail, pas la collection racine 'mail' : sendMail()
       // écrit ici depuis la migration du scoping par résidence (voir
       // firestore.rules), la collection racine ne reçoit plus rien depuis.
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(selectedLot.residenceId)
           .collection('mail')
           .where('message.subject',
@@ -90,10 +90,10 @@ class FirestoreMailRepository implements IMailRepository {
         html: message,
       );
 
-      final residenceRef = _firestore.collection("Residence").doc(targetResidenceId);
+      final residenceRef = _firestore.collection("residences").doc(targetResidenceId);
 
       // La Cloud Function send_email_on_create écoute la création de
-      // documents dans Residence/{id}/mail (from == null) pour déclencher
+      // documents dans residences/{id}/mail (from == null) pour déclencher
       // l'envoi SMTP réel en plus de l'affichage dans le fil in-app.
       await residenceRef.collection("mail").add(newMessage.toJson());
 

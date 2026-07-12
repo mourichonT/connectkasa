@@ -1,10 +1,10 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/demande_loc.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_text_fied.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/firestore_residence_repository.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/demande_loc.dart';
+import 'package:konodal/models/pages_models/user.dart';
+import 'package:konodal/vues/widget_view/components/my_text_fied.dart';
 import 'package:flutter/material.dart';
 
 class LookUpUser {
@@ -70,6 +70,7 @@ class LookUpUser {
                   );
                 } else {
                   // Aucun utilisateur trouvé
+                  if (!context.mounted) return;
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(
@@ -190,6 +191,7 @@ class LookUpUser {
                   );
                 } else {
                   // Aucun utilisateur trouvé
+                  if (!context.mounted) return;
                   showDialog(
                     context: context,
                     builder: (context) => AlertDialog(

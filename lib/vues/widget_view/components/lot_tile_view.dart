@@ -1,7 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 
-import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:konodal/controllers/handlers/colors_utils.dart';
+import 'package:konodal/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import '../../../controllers/features/my_texts_styles.dart';
 import '../../../models/pages_models/lot.dart';

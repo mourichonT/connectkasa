@@ -1,8 +1,8 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_user.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/vues/widget_view/page_widget/Privacy_politic_widget.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_user.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/user.dart';
+import 'package:konodal/vues/widget_view/page_widget/privacy_politic_widget.dart';
 import 'package:flutter/material.dart';
 
 class PrivatePolicyPage extends StatefulWidget {
@@ -72,7 +72,7 @@ class _PrivatePolicyPageState extends State<PrivatePolicyPage> {
               ElevatedButton(
                 onPressed: _isChecked
                     ? () {
-                        SubmitUser.UpdateUser(
+                        SubmitUser.updateUser(
                           context: context,
                           uid: widget.user.uid,
                           field: 'privacyPolicy',
@@ -82,7 +82,7 @@ class _PrivatePolicyPageState extends State<PrivatePolicyPage> {
                         widget.refresh();
                         // Utilisation de Future.delayed pour différer le pop
                         Future.delayed(Duration(milliseconds: 300), () {
-                          if (mounted) {
+                          if (context.mounted) {
                             // Vérifie que le widget est toujours monté
                             Navigator.pop(context);
                           }

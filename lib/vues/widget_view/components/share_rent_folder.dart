@@ -1,14 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/demande_loc.dart';
-import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/look_up_user.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/firestore_lot_repository.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/demande_loc.dart';
+import 'package:konodal/models/pages_models/guarantor_info.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/look_up_user.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class ShareRentFolder {
   static Future<List<GuarantorInfo>> showGuarantorSelectionDialog(
@@ -17,13 +17,13 @@ class ShareRentFolder {
     List<GuarantorInfo> allGarants = await FirestoreUserRepository()
         .getGarants(uid)
         .then((result) => result.when(success: (v) => v, failure: (_) => []));
-    List<String> selected = [];
 
     appLog('Garants disponibles:');
-    allGarants.forEach((g) {
+    for (var g in allGarants) {
       appLog('Garant: ${g.name} ${g.surname} - ${g.email}');
-    });
+    }
 
+    if (!context.mounted) return [];
     return await showDialog<List<GuarantorInfo>>(
           context: context,
           builder: (context) {
@@ -110,6 +110,7 @@ class ShareRentFolder {
 
     Lot? selectedLot;
 
+    if (!context.mounted) return;
     await showDialog(
       context: context,
       builder: (context) {
@@ -159,6 +160,7 @@ class ShareRentFolder {
                     // champ à mettre à jour
                     idLocataire, // id du locataire à ajouter
                   );
+                  if (!context.mounted) return;
                   Navigator.of(context).pop(); // ferme le dialog
                 } else {
                   // Optionnel : afficher un message d'erreur si aucun lot sélectionné

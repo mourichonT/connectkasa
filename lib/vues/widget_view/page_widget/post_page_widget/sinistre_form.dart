@@ -1,13 +1,14 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/structure_residence.dart';
-import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_post_controller.dart';
+import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/core/repositories/firestore_residence_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/structure_residence.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 
 class SinistreForm extends StatefulWidget {
@@ -34,11 +35,12 @@ class SinistreForm extends StatefulWidget {
 class SinistreFormState extends State<SinistreForm> {
   late TextEditingController title;
   late TextEditingController desc;
-  final IResidenceRepository _ResServices = FirestoreResidenceRepository();
+  final IResidenceRepository _resServices = FirestoreResidenceRepository();
   List<Map<String, String>> itemsLocalisation = [];
   List<String> itemsEtage = [];
   List<String> itemsElements = [];
   String? localisationId;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -50,7 +52,7 @@ class SinistreFormState extends State<SinistreForm> {
 
   Future<void> _loadLocalisations() async {
     if (widget.preferedLot != null) {
-      final locs = await _ResServices
+      final locs = await _resServices
           .getAllLocalisation(widget.preferedLot!.residenceId)
           .then((result) =>
               result.when(success: (v) => v, failure: (_) => <Map<String, String>>[]));
@@ -62,7 +64,7 @@ class SinistreFormState extends State<SinistreForm> {
 
   Future<void> _getLocDetails() async {
     if (widget.preferedLot != null && localisationId != null) {
-      final StructureResidence? loc = await _ResServices
+      final StructureResidence? loc = await _resServices
           .getDetailLocalisation(
               widget.preferedLot!.residenceId, localisationId!)
           .then((result) =>
@@ -70,8 +72,8 @@ class SinistreFormState extends State<SinistreForm> {
 
       if (loc != null) {
         setState(() {
-          itemsEtage = loc.etage!;
-          itemsElements = loc.elements!; // ou ce que tu veux faire avec
+          itemsEtage = loc.etage ?? [];
+          itemsElements = loc.elements ?? []; // ou ce que tu veux faire avec
         });
       }
     }
@@ -254,55 +256,62 @@ class SinistreFormState extends State<SinistreForm> {
 
               /// **Bouton Soumettre**
               Center(
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (localisation.isEmpty ||
-                        etage.isEmpty ||
-                        title.text.isEmpty ||
-                        desc.text.isEmpty ||
-                        imagePath.isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          backgroundColor: Colors.red,
-                          content: Text(
-                            'Tous les champs sont requis!',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      );
-                      return;
-                    }
+                child: ButtonAdd(
+                  color: Theme.of(context).primaryColor,
+                  text: "Soumettre",
+                  horizontal: 20,
+                  vertical: 5,
+                  size: SizeFont.h2.size,
+                  function: _isSubmitting
+                      ? null
+                      : () async {
+                          if (localisation.isEmpty ||
+                              etage.isEmpty ||
+                              title.text.isEmpty ||
+                              desc.text.isEmpty ||
+                              imagePath.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                backgroundColor: Colors.red,
+                                content: Text(
+                                  'Tous les champs sont requis!',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            );
+                            return;
+                          }
 
-                    try {
-                      await SubmitPostController.addPostAfterChecking(
-                        uid: widget.uid,
-                        docRes: widget.preferedLot!.residenceId,
-                        idPost: widget.idPost,
-                        selectedLabel: widget.folderName,
-                        imagePath: imagePath,
-                        title: title,
-                        desc: desc,
-                        anonymPost: anonymPost,
-                        localisation: localisation,
-                        etage: etage,
-                        element: filters,
-                      );
-                    } catch (e) {
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: Colors.red,
-                          content: Text("Erreur lors de l'envoi : $e"),
-                        ),
-                      );
-                      return;
-                    }
+                          setState(() => _isSubmitting = true);
+                          try {
+                            await SubmitPostController.addPostAfterChecking(
+                              uid: widget.uid,
+                              docRes: widget.preferedLot!.residenceId,
+                              idPost: widget.idPost,
+                              selectedLabel: widget.folderName,
+                              imagePath: imagePath,
+                              title: title,
+                              desc: desc,
+                              anonymPost: anonymPost,
+                              localisation: localisation,
+                              etage: etage,
+                              element: filters,
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            setState(() => _isSubmitting = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                backgroundColor: Colors.red,
+                                content: Text("Erreur lors de l'envoi : $e"),
+                              ),
+                            );
+                            return;
+                          }
 
-                    if (!context.mounted) return;
-                    Navigator.pop(context);
-                  },
-                  child: MyTextStyle.lotName("Soumettre",
-                      Theme.of(context).primaryColor, SizeFont.h2.size),
+                          if (!context.mounted) return;
+                          Navigator.pop(context);
+                        },
                 ),
               ),
             ],

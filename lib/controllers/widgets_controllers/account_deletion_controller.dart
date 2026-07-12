@@ -1,6 +1,6 @@
-import 'package:connect_kasa/controllers/features/delete_account.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:konodal/controllers/features/delete_account.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 
 class AccountDeletionController {
@@ -39,6 +39,7 @@ class AccountDeletionController {
     );
 
     if (confirmed != true) return;
+    if (!context.mounted) return;
     await DeleteAccount.execute(context: context, uid: uid, email: email);
   }
 }

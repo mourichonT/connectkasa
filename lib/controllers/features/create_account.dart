@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
-import 'package:connect_kasa/models/pages_models/user_temp.dart';
+import 'package:konodal/controllers/handlers/progress_widget.dart';
+import 'package:konodal/models/pages_models/user_temp.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -59,13 +59,14 @@ class CreateAccountController {
       );
 
       // Ajout des données utilisateur dans Firestore
-      await firestore.collection('User').doc(userCredential.user!.uid).set(
+      await firestore.collection('users').doc(userCredential.user!.uid).set(
             newUser.toMap(),
           );
 
       // Pas de message de succès ici : ce n'est que la création technique
       // du compte (Auth + doc Firestore quasi vide) - l'utilisateur n'a pas
       // encore rempli son profil (Step1-4 dans ProgressWidget juste après).
+      if (!context.mounted) return;
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) {
@@ -94,9 +95,11 @@ class CreateAccountController {
         default:
           errorMessage = "Une erreur est survenue. Veuillez réessayer.";
       }
+      if (!context.mounted) return;
       _showSnackbar(context, errorMessage);
     } catch (e) {
       // Gestion des erreurs inattendues
+      if (!context.mounted) return;
       _showSnackbar(context, "Erreur inattendue : ${e.toString()}");
     }
   }

@@ -1,13 +1,13 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/lot_repository_provider.dart';
+import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class Step3 extends ConsumerStatefulWidget {
   final Residence residence;
@@ -201,8 +201,7 @@ class _Step3State extends ConsumerState<Step3> {
             surfaceTintColor: Colors.white,
             padding: const EdgeInsets.all(2),
             height: 70,
-            child: Container(
-                child: Row(
+            child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -226,7 +225,7 @@ class _Step3State extends ConsumerState<Step3> {
                       'Suivant',
                     ),
                   ),
-                ]))),
+                ])),
       ),
     );
   }

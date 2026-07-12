@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/storage_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/post_style.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/models/pages_models/post_style.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,10 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
-import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/controllers/features/submit_post_controller.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class ModifyAskingNeighborsForm extends ConsumerStatefulWidget {
   final Post post;
@@ -124,7 +124,6 @@ class ModifyAskingNeighborsFormState
   FontStyle _selectedFontStyle = FontStyle.normal;
   Color _selectedFontColor = Colors.black87;
   bool _fontSize = false;
-  final bool _fontColor = false;
   bool _fontItalic = false;
   bool _fontBold = false;
   String imagePath = "";
@@ -240,7 +239,7 @@ class ModifyAskingNeighborsFormState
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ProfilTile(widget.post.user, 22, 19, 22, true, Colors.black87,
+                profilTile(widget.post.user, 22, 19, 22, true, Colors.black87,
                     SizeFont.h2.size),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
@@ -270,8 +269,7 @@ class ModifyAskingNeighborsFormState
               visible: _selectedColor != null &&
                       _selectedColor != Colors.white ||
                   _selectedImagePath != null && _selectedImagePath!.isNotEmpty,
-              child: Container(
-                child: Row(
+              child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   mainAxisSize: MainAxisSize.max,
                   children: [
@@ -384,7 +382,6 @@ class ModifyAskingNeighborsFormState
                     ),
                   ],
                 ),
-              ),
             ),
             RepaintBoundary(
               key: _globalKey,
@@ -563,7 +560,7 @@ class ModifyAskingNeighborsFormState
                               failure: (error) => throw error));
                     }
 
-                    await SubmitPostController.UpdatePost(
+                    await SubmitPostController.updatePost(
                         uid: widget.uid,
                         like: widget.post.like,
                         idPost: widget.post.id,

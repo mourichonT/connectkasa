@@ -1,64 +1,56 @@
 {
   "project_info": {
-    "project_number": "325705345982",
-    "project_id": "connectkasa-84f23",
-    "storage_bucket": "connectkasa-84f23.appspot.com"
+    "project_number": "814247048228",
+    "project_id": "konodal-dev",
+    "storage_bucket": "konodal-dev.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:325705345982:android:731cd0e4e917d361d7e7ef",
+        "mobilesdk_app_id": "1:814247048228:android:be239b9015268993cd94b1",
         "android_client_info": {
-          "package_name": "fr.connectkasa.connect_kasa"
+          "package_name": "com.konodal.app"
         }
       },
       "oauth_client": [
         {
-          "client_id": "325705345982-80l875pvs2rbd7isuc7h5uprh7fv9e9q.apps.googleusercontent.com",
+          "client_id": "814247048228-75t4h1qbkjgggu3kjfn0djf3octkmu1c.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "fr.connectkasa.connect_kasa",
+            "package_name": "com.konodal.app",
+            "certificate_hash": "8c605d4404aa37d7a7774ccc02c0ed869cc56578"
+          }
+        },
+        {
+          "client_id": "814247048228-b3dbi5gloacoeft489ijqhqn3ht74lnk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.konodal.app",
             "certificate_hash": "6af1e89f9e8c8034100ca2502e6ec79a2c5de812"
           }
         },
         {
-          "client_id": "325705345982-omrhv77a53qvg9qoddrcisaclt0884id.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "fr.connectkasa.connect_kasa",
-            "certificate_hash": "0110fd9cb991564f524b818af26b2eab907ac31f"
-          }
-        },
-        {
-          "client_id": "325705345982-viiv8q417qvi0hmo5ce3lm33u0hsb0qd.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "fr.connectkasa.connect_kasa",
-            "certificate_hash": "24213c582c937aa88808ff1e04f2c5b7abad2133"
-          }
-        },
-        {
-          "client_id": "325705345982-iunq0ds36vl5kd82b2ia9dvataaosvvj.apps.googleusercontent.com",
+          "client_id": "814247048228-0vcmlfk7p1ss6b83k9n0nniafd32ahij.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCUm-fFBYmMzKBYub-50EMBXPdKW0G-fLc"
+          "current_key": "AIzaSyAdWUq_o685acDxUbppMVVPZr2wQJwT4q8"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "325705345982-3a3fbcs7133ddohsrhairqm6ifvbhlaq.apps.googleusercontent.com",
+              "client_id": "814247048228-0vcmlfk7p1ss6b83k9n0nniafd32ahij.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "325705345982-s5e4glsk8267gt34cd7t0ap9d47f0a4n.apps.googleusercontent.com",
+              "client_id": "814247048228-tij2dai582mtif0e01h2s544elve8de1.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "fr.connectkasa.connectKasa"
+                "bundle_id": "com.konodal.app"
               }
             }
           ]

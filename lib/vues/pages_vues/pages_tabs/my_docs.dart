@@ -1,16 +1,16 @@
-import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/icons_extension.dart';
-import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/docs_page/add_docs_form.dart';
+import 'package:konodal/core/repositories/firestore_docs_repository.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/firestore_storage_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/icons_extension.dart';
+import 'package:konodal/models/pages_models/document_model.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/pages_vues/docs_page/add_docs_form.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class MydocsPageView extends StatefulWidget {
   final Lot lotSelected;
@@ -144,6 +144,7 @@ class MydocsPageViewState extends State<MydocsPageView>
                                     if (await canLaunchUrl(url)) {
                                       await launchUrl(url);
                                     } else {
+                                      if (!context.mounted) return;
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         const SnackBar(
@@ -177,6 +178,7 @@ class MydocsPageViewState extends State<MydocsPageView>
                                             if (await canLaunchUrl(url)) {
                                               await launchUrl(url);
                                             } else {
+                                              if (!context.mounted) return;
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
                                                 const SnackBar(
@@ -358,6 +360,7 @@ class MydocsPageViewState extends State<MydocsPageView>
                                     if (await canLaunchUrl(url)) {
                                       await launchUrl(url);
                                     } else {
+                                      if (!context.mounted) return;
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                         const SnackBar(
@@ -391,6 +394,7 @@ class MydocsPageViewState extends State<MydocsPageView>
                                             if (await canLaunchUrl(url)) {
                                               await launchUrl(url);
                                             } else {
+                                              if (!context.mounted) return;
                                               ScaffoldMessenger.of(context)
                                                   .showSnackBar(
                                                 const SnackBar(

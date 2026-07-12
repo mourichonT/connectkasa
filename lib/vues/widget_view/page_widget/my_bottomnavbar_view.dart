@@ -1,8 +1,8 @@
 // ignore_for_file: prefer_const_constructors_in_immutables
 
-import 'package:connect_kasa/controllers/pages_controllers/my_bottomnavbar_%20controller.dart';
-import 'package:connect_kasa/controllers/providers/message_provider.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:konodal/controllers/pages_controllers/my_bottomnavbar_%20controller.dart';
+import 'package:konodal/controllers/providers/message_provider.dart';
+import 'package:konodal/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

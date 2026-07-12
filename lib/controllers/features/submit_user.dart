@@ -1,15 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
-import 'package:connect_kasa/core/repositories/docs_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_docs_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/models/pages_models/user_temp.dart';
+import 'package:konodal/core/repositories/docs_repository.dart';
+import 'package:konodal/core/repositories/firestore_docs_repository.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/models/pages_models/document_model.dart';
+import 'package:konodal/models/pages_models/user_info.dart';
+import 'package:konodal/models/pages_models/user_temp.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../models/pages_models/residence.dart';
 
@@ -28,33 +25,41 @@ class SubmitUser {
     required String sex,
     required String nationality,
     required String placeOfborn,
-    required Residence residence,
-    required String lotId,
+    required Residence? residence,
+    required String? lotId,
     required String docTypeID,
     String? companyName,
     String? pseudo,
     String? docTypeJustif,
     String? imagepathIDrecto,
     String? imagepathIDverso,
+    String? idExtension,
     String? imagepathJustif,
+    String? justifExtension,
     String? kbisPath,
+    String? kbisExtension,
     bool? informationsCorrectes,
     String? fcmToken,
   }) async {
     final IUserRepository dataBasesUserServices = FirestoreUserRepository();
     final IDocsRepository docsRepository = FirestoreDocsRepository();
 
-    // Résout l'ID réel du document Residence/{id}/lot/{docId} à partir du
+    // Résout l'ID réel du document residences/{id}/lot/{docId} à partir du
     // refLot saisi à l'inscription — plus de clé composite reconstruite.
-    final lotQuery = await FirebaseFirestore.instance
-        .collection('Residence')
-        .doc(residence.id)
-        .collection('lot')
-        .where('refLot', isEqualTo: lotId)
-        .limit(1)
-        .get();
-    final String? realLotId =
-        lotQuery.docs.isNotEmpty ? lotQuery.docs.first.id : null;
+    // Absent si l'inscription se fait sans résidence (cf step1.dart "Je n'ai
+    // pas encore de résidence" / step4_bis.dart) : aucune résidence/lot à
+    // résoudre dans ce cas, l'utilisateur se rattachera plus tard.
+    String? realLotId;
+    if (residence != null && lotId != null) {
+      final lotQuery = await FirebaseFirestore.instance
+          .collection('residences')
+          .doc(residence.id)
+          .collection('lots')
+          .where('refLot', isEqualTo: lotId)
+          .limit(1)
+          .get();
+      realLotId = lotQuery.docs.isNotEmpty ? lotQuery.docs.first.id : null;
+    }
 
     final newUser = UserTemp(
       createdDate: Timestamp.now(),
@@ -76,7 +81,7 @@ class SubmitUser {
         .setUser(
             newUser,
             realLotId,
-            residence.id,
+            residence?.id,
             companyName,
             intendedFor,
             statutResident,
@@ -89,6 +94,7 @@ class SubmitUser {
     if (imagepathIDrecto != null && imagepathIDverso != null) {
       final newDocId = DocumentModel(
         type: docTypeID,
+        extension: idExtension,
         timeStamp: Timestamp.now(),
         documentPathRecto: imagepathIDrecto,
         documentPathVerso: imagepathIDverso,
@@ -101,7 +107,8 @@ class SubmitUser {
     if (docTypeJustif != null && imagepathJustif != null) {
       final newDocJustif = DocumentModel(
         type: docTypeJustif,
-        residenceId: residence.id,
+        extension: justifExtension,
+        residenceId: residence?.id,
         timeStamp: Timestamp.now(),
         documentPathRecto: imagepathJustif,
         lotId: lotId,
@@ -117,7 +124,8 @@ class SubmitUser {
     if (compagnyBuy && kbisPath != null) {
       final newDocKbis = DocumentModel(
         type: "Kbis",
-        residenceId: residence.id,
+        extension: kbisExtension,
+        residenceId: residence?.id,
         timeStamp: Timestamp.now(),
         documentPathRecto: kbisPath,
         lotId: lotId,
@@ -127,7 +135,7 @@ class SubmitUser {
     }
   }
 
-  static UpdateUser(
+  static updateUser(
       {required BuildContext context,
       required String uid,
       required String field,
@@ -141,12 +149,14 @@ class SubmitUser {
           .then((result) => result.when(
               success: (_) {}, failure: (error) => throw error));
 
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('$label mis à jour avec succès!'),
         ),
       );
     } catch (e) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de la mise à jour du champ private: $e'),
@@ -162,7 +172,6 @@ class SubmitUser {
     // tu peux ajouter ici d'autres paramètres comme la liste des revenus etc.
   }) async {
     final IUserRepository dataBasesUserServices = FirestoreUserRepository();
-    if (user == null) return;
 
     bool success = await dataBasesUserServices
         .updateUserInfo(user)

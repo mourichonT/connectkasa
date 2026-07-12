@@ -4,8 +4,7 @@
 // utility in the flutter_test package. For example, you can send tap and scroll
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
-import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
-import 'package:connect_kasa/main.dart';
+import 'package:konodal/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

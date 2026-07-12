@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/enum/tab_bar_icon.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class MyTabBarController {
   final IconTabBar iconTabBar = IconTabBar();
@@ -33,7 +33,7 @@ class MyTabBarWidget extends StatefulWidget {
   const MyTabBarWidget({super.key, required this.controller});
 
   @override
-  _MyTabBarWidgetState createState() => _MyTabBarWidgetState();
+  State<MyTabBarWidget> createState() => _MyTabBarWidgetState();
 }
 
 class _MyTabBarWidgetState extends State<MyTabBarWidget>

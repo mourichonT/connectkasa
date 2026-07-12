@@ -1,4 +1,4 @@
-import 'package:connect_kasa/core/providers/docs_repository_provider.dart';
+import 'package:konodal/core/providers/docs_repository_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Documents/justificatifs d'un locataire (MyInfosRent). ref.invalidate(...)

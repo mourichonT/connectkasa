@@ -1,4 +1,4 @@
-import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 
 class ChatBubble extends StatelessWidget {
@@ -21,7 +21,7 @@ class ChatBubble extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
-          color: defColor.withOpacity(0.5),
+          color: defColor.withValues(alpha: 0.5),
         ),
         child: Text(
           message,

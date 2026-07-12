@@ -1,31 +1,31 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/job_entry.dart';
-import 'package:connect_kasa/controllers/features/justif_document.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/current_user_provider.dart';
-import 'package:connect_kasa/core/providers/docs_repository_provider.dart';
-import 'package:connect_kasa/core/providers/garant_providers.dart';
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/docs_repository.dart';
-import 'package:connect_kasa/core/repositories/storage_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/controllers/features/income_entry.dart';
-import 'package:connect_kasa/models/enum/icons_extension.dart';
-import 'package:connect_kasa/models/enum/tenant_list.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
-import 'package:connect_kasa/vues/widget_view/components/import_docs.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/controllers/features/job_entry.dart';
+import 'package:konodal/controllers/features/justif_document.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/current_user_provider.dart';
+import 'package:konodal/core/providers/docs_repository_provider.dart';
+import 'package:konodal/core/providers/garant_providers.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/repositories/docs_repository.dart';
+import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/controllers/features/income_entry.dart';
+import 'package:konodal/models/enum/icons_extension.dart';
+import 'package:konodal/models/enum/tenant_list.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/document_model.dart';
+import 'package:konodal/models/pages_models/guarantor_info.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/vues/widget_view/components/import_docs.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class MyGarantInfos extends ConsumerStatefulWidget {
   final String uid; // UID de l'utilisateur (locataire)
@@ -370,7 +370,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
                               ? fileType.icon
                               : Image.asset(
                                   'images/icon_extension/default.png'),
-                          title: Text(doc.type ?? ""),
+                          title: Text(doc.type),
                           trailing: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -381,6 +381,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
                                   if (await canLaunchUrl(url)) {
                                     await launchUrl(url);
                                   } else {
+                                    if (!context.mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
@@ -452,7 +453,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
                 const SizedBox(height: 10),
                 Center(
                   child: ButtonAdd(
@@ -764,6 +765,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
     }
 
     if (newGarantId == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Erreur lors de l'enregistrement du garant"),
@@ -790,6 +792,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
       }
     }
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Garant et documents enregistrés")),
     );
@@ -830,7 +833,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
     ref.invalidate(garantDocumentsProvider(
         (tenantUid: widget.uid, garantId: widget.garant!.id!)));
 
-    if (!context.mounted) return;
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Document supprimé avec succès")),
     );

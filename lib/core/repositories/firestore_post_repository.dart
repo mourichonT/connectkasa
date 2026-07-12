@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/post_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/post_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/post.dart';
 
 class FirestorePostRepository implements IPostRepository {
   final FirebaseFirestore _firestore;
@@ -14,9 +14,9 @@ class FirestorePostRepository implements IPostRepository {
   Future<Result<Post>> getPost(String residenceId, String postId) async {
     try {
       QuerySnapshot postQuery = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
@@ -27,9 +27,9 @@ class FirestorePostRepository implements IPostRepository {
       }
 
       QuerySnapshot postsQuery = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("post")
+          .collection("posts")
           .get();
 
       for (DocumentSnapshot postDoc in postsQuery.docs) {
@@ -57,9 +57,9 @@ class FirestorePostRepository implements IPostRepository {
   Future<Result<void>> removePost(String residenceId, String postId) async {
     try {
       QuerySnapshot<Map<String, dynamic>> postQuery = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
@@ -88,9 +88,9 @@ class FirestorePostRepository implements IPostRepository {
     List<Post> posts = [];
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(doc)
-          .collection("post")
+          .collection("posts")
           .where('type', isEqualTo: 'annonces')
           .get();
       for (var docSnapshot in querySnapshot.docs) {
@@ -107,9 +107,9 @@ class FirestorePostRepository implements IPostRepository {
     List<Post> posts = [];
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(doc)
-          .collection("post")
+          .collection("posts")
           .where('user', isEqualTo: uid)
           .where('type', isEqualTo: 'annonces')
           .get();
@@ -134,7 +134,7 @@ class FirestorePostRepository implements IPostRepository {
     List<Post> posts = [];
     try {
       Query<Map<String, dynamic>> baseQuery =
-          _firestore.collection("Residence").doc(doc).collection("post");
+          _firestore.collection("residences").doc(doc).collection("posts");
 
       Timestamp? timestampFrom;
       Timestamp? timestampTo;
@@ -225,9 +225,9 @@ class FirestorePostRepository implements IPostRepository {
     List<Post> posts = [];
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(doc)
-          .collection("post")
+          .collection("posts")
           .orderBy('timeStamp', descending: true)
           .get();
       for (var docSnapshot in querySnapshot.docs) {
@@ -249,9 +249,9 @@ class FirestorePostRepository implements IPostRepository {
     List<Post> posts = [];
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(doc)
-          .collection("post")
+          .collection("posts")
           .orderBy('timeStamp', descending: true)
           .get();
 
@@ -285,9 +285,9 @@ class FirestorePostRepository implements IPostRepository {
     }
     try {
       Query<Map<String, dynamic>> query = _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(doc)
-          .collection("post")
+          .collection("posts")
           .orderBy('timeStamp', descending: true)
           .limit(limit + 1);
       if (startAfter != null) {
@@ -322,9 +322,9 @@ class FirestorePostRepository implements IPostRepository {
     }
     try {
       Query<Map<String, dynamic>> query = _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(doc)
-          .collection("post")
+          .collection("posts")
           .orderBy('timeStamp', descending: true)
           .limit(limit + 1);
       if (startAfter != null) {
@@ -360,9 +360,9 @@ class FirestorePostRepository implements IPostRepository {
   Future<Result<Post?>> addPost(Post newPost, String docRes) async {
     try {
       await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(docRes)
-          .collection("post")
+          .collection("posts")
           .add(newPost.toMap());
       return Result.success(newPost);
     } catch (e) {
@@ -375,9 +375,9 @@ class FirestorePostRepository implements IPostRepository {
       Post newSignalement, String docRes, String idPost) async {
     try {
       await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(docRes)
-          .collection("post")
+          .collection("posts")
           .doc(idPost)
           .collection("signalements")
           .doc(newSignalement.id)
@@ -393,9 +393,9 @@ class FirestorePostRepository implements IPostRepository {
       String residenceId, String postId, String userId) async {
     try {
       final postQuery = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
@@ -417,9 +417,9 @@ class FirestorePostRepository implements IPostRepository {
       String residenceId, String postId, String userId) async {
     try {
       final postQuery = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
@@ -442,9 +442,9 @@ class FirestorePostRepository implements IPostRepository {
     List<Post> posts = [];
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(docRes)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
@@ -455,9 +455,9 @@ class FirestorePostRepository implements IPostRepository {
 
         QuerySnapshot<Map<String, dynamic>> signalementsSnapshot =
             await _firestore
-                .collection("Residence")
+                .collection("residences")
                 .doc(docRes)
-                .collection("post")
+                .collection("posts")
                 .doc(postDocId)
                 .collection("signalements")
                 .get();
@@ -477,9 +477,9 @@ class FirestorePostRepository implements IPostRepository {
   Future<Result<Post?>> getUpdatePost(String docRes, String postId) async {
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(docRes)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
@@ -497,9 +497,9 @@ class FirestorePostRepository implements IPostRepository {
       String residenceId, String postId, String userId) async {
     try {
       final postQuery = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
@@ -521,9 +521,9 @@ class FirestorePostRepository implements IPostRepository {
       String residenceId, String postId, String userId) async {
     try {
       final postQuery = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
@@ -545,18 +545,18 @@ class FirestorePostRepository implements IPostRepository {
       Post updatedPost, String docRes, String postId) async {
     try {
       QuerySnapshot querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(docRes)
-          .collection("post")
+          .collection("posts")
           .where('id', isEqualTo: postId)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
         DocumentSnapshot documentSnapshot = querySnapshot.docs.first;
         await _firestore
-            .collection("Residence")
+            .collection("residences")
             .doc(docRes)
-            .collection("post")
+            .collection("posts")
             .doc(documentSnapshot.id)
             .update(updatedPost.toMap());
 
@@ -564,9 +564,9 @@ class FirestorePostRepository implements IPostRepository {
       }
 
       QuerySnapshot postsQuery = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(docRes)
-          .collection("post")
+          .collection("posts")
           .get();
 
       for (DocumentSnapshot postDoc in postsQuery.docs) {
@@ -596,9 +596,9 @@ class FirestorePostRepository implements IPostRepository {
     List<Post> annonceTrouvees = [];
     try {
       CollectionReference collectionReference = _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residence)
-          .collection("post");
+          .collection("posts");
 
       QuerySnapshot querySnapshot = await collectionReference.get();
 
@@ -628,9 +628,9 @@ class FirestorePostRepository implements IPostRepository {
     List<Post> annonces = [];
     try {
       Query<Map<String, dynamic>> baseQuery = _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(doc)
-          .collection("post")
+          .collection("posts")
           .where('type', isEqualTo: 'annonces');
 
       Timestamp? timestampFrom;
@@ -690,9 +690,9 @@ class FirestorePostRepository implements IPostRepository {
     List<Post> signalements = [];
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(docRes)
-          .collection("post")
+          .collection("posts")
           .where("id", isEqualTo: postId)
           .get();
 
@@ -701,9 +701,9 @@ class FirestorePostRepository implements IPostRepository {
 
         QuerySnapshot<Map<String, dynamic>> signalementsSnapshot =
             await _firestore
-                .collection("Residence")
+                .collection("residences")
                 .doc(docRes)
-                .collection("post")
+                .collection("posts")
                 .doc(postDocId)
                 .collection("signalements")
                 .get();
@@ -725,9 +725,9 @@ class FirestorePostRepository implements IPostRepository {
     List<Post> posts = [];
     try {
       QuerySnapshot postQuery = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("post")
+          .collection("posts")
           .where("user", isEqualTo: userId)
           .get();
 
@@ -735,9 +735,9 @@ class FirestorePostRepository implements IPostRepository {
           .map((doc) => Post.fromMap(doc.data() as Map<String, dynamic>)));
 
       QuerySnapshot allPostsQuery = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("post")
+          .collection("posts")
           .get();
 
       for (var postDoc in allPostsQuery.docs) {
@@ -762,9 +762,9 @@ class FirestorePostRepository implements IPostRepository {
     int priceMax = 0;
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(doc)
-          .collection("post")
+          .collection("posts")
           .where('type', isEqualTo: 'annonces')
           .get();
 

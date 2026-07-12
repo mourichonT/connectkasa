@@ -1,17 +1,15 @@
 // ignore_for_file: library_private_types_in_public_api
 
 import 'dart:convert';
-import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/providers/color_provider.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/widget_view/components/lot_tile_view.dart';
+import 'package:konodal/controllers/features/load_prefered_data.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/widget_view/components/lot_tile_view.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../models/pages_models/lot.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 // LotBottomSheet (modifié)
 class LotBottomSheet extends StatefulWidget {

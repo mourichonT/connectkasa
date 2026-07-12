@@ -1,14 +1,14 @@
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/statut_post_list.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/statut_post_list.dart';
 import 'package:flutter/material.dart';
 import 'package:multi_select_flutter/util/multi_select_item.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/my_multiselected_dropdown.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/core/repositories/firestore_residence_repository.dart';
+import 'package:konodal/controllers/widgets_controllers/my_multiselected_dropdown.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 typedef FilterCallback = void Function({
   required List<String?> locationElement,
@@ -41,7 +41,7 @@ class FilterAllPostController extends StatefulWidget {
 class FilterAllPostControllerState extends State<FilterAllPostController> {
   final TextEditingController _dateFromController = TextEditingController();
   final TextEditingController _dateToController = TextEditingController();
-  final IResidenceRepository _ResServices = FirestoreResidenceRepository();
+  final IResidenceRepository _resServices = FirestoreResidenceRepository();
   late Future<List<Map<String, String>>> _allLocationsFuture;
   late Post post;
   final TypeList _typeList = TypeList();
@@ -60,7 +60,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
   @override
   void initState() {
     super.initState();
-    _allLocationsFuture = _ResServices
+    _allLocationsFuture = _resServices
         .getAllLocalisation(widget.residenceSelected)
         .then((result) =>
             result.when(success: (v) => v, failure: (error) => throw error));
@@ -109,7 +109,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                     // ⚠️ Mise à jour ici : List<Map<String, String>>
                     List<Map<String, String>> items = snapshot.data ?? [];
 
-                    return MyMultiSelectedDropDown(
+                    return myMultiSelectedDropDown(
                       fontSize: SizeFont.para.size,
                       myKey: _multiSelectKey,
                       width: sizeDate,
@@ -127,13 +127,6 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                               .map((element) => element!)
                               .toList();
 
-                          // Si tu veux aussi récupérer les `id`, tu peux ici :
-                          List<String> selectedIds = items
-                              .where((item) => values.contains(item["label"]))
-                              .map((item) => item["id"]!)
-                              .toList();
-
-                          // Tu peux les stocker si tu veux (ajoute une variable `List<String>` par ex.)
                           _updateFilters();
                         });
                       },
@@ -146,7 +139,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                   }
                 },
               ),
-              MyMultiSelectedDropDown(
+              myMultiSelectedDropDown(
                 fontSize: SizeFont.para.size,
                 myKey: _multiTypeKey,
                 width: sizeDate,
@@ -239,7 +232,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             mainAxisSize: MainAxisSize.min,
             children: [
-              MyMultiSelectedDropDown(
+              myMultiSelectedDropDown(
                 fontSize: SizeFont.para.size,
                 myKey: _multiStatutKey,
                 width: sizeDate,

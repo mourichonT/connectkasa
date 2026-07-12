@@ -1,6 +1,6 @@
-import 'package:connect_kasa/controllers/pages_controllers/chat_controller.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/pages_controllers/chat_controller.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 
 class MessageUserTile extends StatelessWidget {
@@ -46,7 +46,7 @@ class MessageUserTile extends StatelessWidget {
                 Padding(
                   padding:
                       const EdgeInsets.only(left: 10, right: 10, top: 10),
-                  child: ProfilTile(
+                  child: profilTile(
                     idUserTo,
                     22,
                     19,

@@ -1,33 +1,33 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/demande_loc.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/guarantor_detail.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/demande_loc.dart';
+import 'package:konodal/models/pages_models/user_info.dart';
+import 'package:konodal/vues/pages_vues/manage_app/guarantor_detail.dart';
+import 'package:konodal/vues/pages_vues/manage_app/tenant_detail.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class TenantController extends StatefulWidget {
   final UserInfo tenant;
   final String uid;
   final String? residenceId;
-  // ID du lot (Residence/{residenceId}/lot/{lotId}) occupé par ce
+  // ID du lot (residences/{residenceId}/lot/{lotId}) occupé par ce
   // locataire - nécessaire pour révoquer son accès de manière scopée à ce
   // seul lot (removeIdLocataire), plutôt que de tous ses lots. Absent pour
   // une simple demande de location pas encore acceptée.
   final String? lotId;
   final Color color;
-  Function()? refreshUnseeCounter;
+  final Function()? refreshUnseeCounter;
   // Rafraîchit la liste des locataires de ManagementTenant après une
   // révocation réussie depuis TenantDetail.
-  Function()? refreshTenants;
+  final Function()? refreshTenants;
   final String? demandeId;
 
-  TenantController({
+  const TenantController({
     super.key,
     required this.tenant,
     required this.uid,
@@ -65,7 +65,7 @@ class _TenantControllerState extends State<TenantController> {
 
   Future<List<DemandeLoc>> fetchDemandesLoc() async {
     final snapshot = await FirebaseFirestore.instance
-        .collection('User')
+        .collection('users')
         .doc(widget.uid)
         .collection('demandes_loc')
         .get();
@@ -157,7 +157,7 @@ class _TenantControllerState extends State<TenantController> {
                                     top: 0, bottom: 40, left: 30),
                                 child: Row(
                                   children: [
-                                    ProfilTile(
+                                    profilTile(
                                         widget.tenant.uid, 35, 30, 35, false),
                                     const SizedBox(width: 10),
                                     Expanded(
@@ -200,7 +200,7 @@ class _TenantControllerState extends State<TenantController> {
                                           mainAxisAlignment:
                                               MainAxisAlignment.center,
                                           children: [
-                                            ProfilTile(widget.tenant.uid, 55,
+                                            profilTile(widget.tenant.uid, 55,
                                                 35, 55, false),
                                           ],
                                         ),

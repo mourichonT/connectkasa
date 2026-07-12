@@ -1,5 +1,5 @@
-import 'package:connect_kasa/controllers/providers/color_provider.dart';
-import 'package:connect_kasa/models/enum/set_gif_color.dart';
+import 'package:konodal/controllers/providers/color_provider.dart';
+import 'package:konodal/models/enum/set_gif_color.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

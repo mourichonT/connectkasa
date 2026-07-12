@@ -1,8 +1,8 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_user.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/notification_type.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_user.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/notification_type.dart';
+import 'package:konodal/models/pages_models/user.dart';
 import 'package:flutter/material.dart';
 
 class NotificationsSettingsPage extends StatefulWidget {
@@ -32,7 +32,7 @@ class _NotificationsSettingsPageState
       _prefs[key] = value;
       widget.user.notificationPrefs[key] = value;
     });
-    SubmitUser.UpdateUser(
+    SubmitUser.updateUser(
       context: context,
       uid: widget.user.uid,
       field: 'notificationPrefs.$key',

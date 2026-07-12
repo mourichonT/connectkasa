@@ -1,24 +1,33 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/residence.dart';
 import 'package:flutter/material.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/repositories/firestore_residence_repository.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class Step1 extends StatefulWidget {
   final Function(Residence) recupererInformationsStep1;
+  final VoidCallback onNoResidence;
   final int currentPage;
   final PageController progressController;
+  // Masqué dans le parcours de rattachement d'un utilisateur déjà approuvé
+  // (AttachExistingLotPage, my_nav_bar.dart "no lot") : cet utilisateur
+  // cherche précisément à rattacher une résidence, "je n'en ai pas encore"
+  // n'a pas de sens dans ce contexte.
+  final bool showNoResidenceOption;
 
   const Step1({
     super.key,
     required this.recupererInformationsStep1,
+    required this.onNoResidence,
     required this.currentPage,
     required this.progressController,
+    this.showNoResidenceOption = true,
   });
 
   @override
-  _Step1State createState() => _Step1State();
+  State<Step1> createState() => _Step1State();
 }
 
 class _Step1State extends State<Step1> {
@@ -28,6 +37,7 @@ class _Step1State extends State<Step1> {
   Residence? selectedResidence;
   late List<Residence> residencesTrouvees;
   bool visible = false;
+  bool noResidence = false;
 
   Residence? getResidence() {
     if (selectedResidence != null) {
@@ -116,25 +126,48 @@ class _Step1State extends State<Step1> {
               ],
             ),
           ),
+          if (widget.showNoResidenceOption) ...[
+            const SizedBox(
+              height: 20,
+            ),
+            CheckboxListTile(
+              value: noResidence,
+              onChanged: (value) {
+                setState(() {
+                  noResidence = value ?? false;
+                });
+              },
+              title: MyTextStyle.postDesc(
+                "Je n'ai pas encore de résidence",
+                SizeFont.h3.size,
+                Colors.black54,
+              ),
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
+          ],
           const SizedBox(
-            height: 150,
+            height: 130,
           ),
         ],
       ),
       bottomNavigationBar: Visibility(
-        visible: getResidence().toString().isNotEmpty,
+        visible: noResidence || getResidence().toString().isNotEmpty,
         child: BottomAppBar(
             surfaceTintColor: Colors.white,
             padding: const EdgeInsets.all(2),
             height: 70,
-            child: Container(
-                child: Row(
+            child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                   TextButton(
                     onPressed: () {
+                      if (noResidence) {
+                        widget.onNoResidence();
+                        return;
+                      }
+
                       Residence residence = getResidence()!;
 
                       widget.recupererInformationsStep1(residence);
@@ -150,7 +183,7 @@ class _Step1State extends State<Step1> {
                       'Suivant',
                     ),
                   ),
-                ]))),
+                ])),
       ),
     );
   }

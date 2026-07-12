@@ -65,7 +65,7 @@ class DocumentModel {
         residenceId: json['residenceId'] ?? "",
         lotId: json['lotId'] ?? "",
         extension: json['extension'] ?? "",
-        destinataire: destinataireList ?? []);
+        destinataire: destinataireList);
   }
   Map<String, dynamic> toJson() {
     return {

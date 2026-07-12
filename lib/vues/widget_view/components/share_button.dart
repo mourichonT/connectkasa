@@ -22,8 +22,9 @@ class ShareButton extends StatelessWidget {
             size: 20,
           ),
           onPressed: () {
-            Share.share(
-                'Regardez ce post sur WhatsApp: ${post.title}\n${post.description}');
+            SharePlus.instance.share(ShareParams(
+                text:
+                    'Regardez ce post sur WhatsApp: ${post.title}\n${post.description}'));
           },
         ),
         MyTextStyle.iconText("Partager", color: colorText),

@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/demande_loc.dart';
-import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/models/pages_models/user_temp.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/demande_loc.dart';
+import 'package:konodal/models/pages_models/guarantor_info.dart';
+import 'package:konodal/models/pages_models/user.dart';
+import 'package:konodal/models/pages_models/user_info.dart';
+import 'package:konodal/models/pages_models/user_temp.dart';
 
 /// Remplace DataBasesUserServices (Phase 2 du chantier architecture,
 /// dernier service - le plus gros). getUserById/watchUserById existaient
@@ -12,7 +12,7 @@ import 'package:connect_kasa/models/pages_models/user_temp.dart';
 abstract interface class IUserRepository {
   Future<Result<User>> getUserById(String uid);
 
-  /// Flux temps réel du document User/{uid} (utilisé par le provider
+  /// Flux temps réel du document users/{uid} (utilisé par le provider
   /// Riverpod de l'utilisateur connecté).
   Stream<Result<User>> watchUserById(String uid);
 

@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/create_account.dart';
-import 'package:connect_kasa/controllers/features/load_user_controller.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/authentification_process.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_text_fied.dart';
+import 'package:konodal/controllers/features/create_account.dart';
+import 'package:konodal/controllers/features/load_user_controller.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/widgets_controllers/authentification_process.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/widget_view/components/my_text_fied.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class CreateAccountPage extends StatefulWidget {
   const CreateAccountPage({super.key});
@@ -23,6 +23,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
   final LoadUserController _loadUserController = LoadUserController();
 
   bool showConfirmPassword = false;
+  bool _isGoogleSigningIn = false;
 
   @override
   void initState() {
@@ -64,13 +65,14 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
             children: [
               const SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.only(bottom: 40),
-                width: width / 4,
-                child: Image.asset("images/assets/CK.png"),
+                padding: const EdgeInsets.only(top: 60, bottom: 60),
+                width: width / 1.5,
+                child: Image.asset(
+                    "images/assets/logo_by_colors/logoVert72.119.91.png"),
               ),
               MyTextStyle.lotName(
                   "Créer votre compte", Colors.black54, SizeFont.header.size),
-              const SizedBox(height: 10),
+              const SizedBox(height: 40),
               MyTextField(
                 autofocus: false,
                 hintText: "Email",
@@ -119,9 +121,9 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                     "Continuer", Colors.white, SizeFont.h2.size),
               ),
               const SizedBox(height: 50),
-              DividerWithText(),
+              dividerWithText(),
               const SizedBox(height: 20),
-              WidgetConnectionTiers(
+              widgetConnectionTiers(
                 context,
                 28,
                 42,
@@ -130,6 +132,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
                 width,
                 "images/assets/logo_login/google.png",
                 "Google",
+                _isGoogleSigningIn,
+                (value) => setState(() => _isGoogleSigningIn = value),
               ),
             ],
           ),
@@ -138,7 +142,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     );
   }
 
-  Widget DividerWithText() {
+  Widget dividerWithText() {
     return Row(
       children: [
         Expanded(child: Divider(thickness: 0.5, color: Colors.grey[400])),
@@ -151,7 +155,7 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     );
   }
 
-  Widget WidgetConnectionTiers(
+  Widget widgetConnectionTiers(
     BuildContext context,
     double radius,
     double space,
@@ -160,6 +164,8 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
     double width,
     String pathIcon,
     String provider,
+    bool isSigningIn,
+    void Function(bool) setSigningIn,
   ) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -168,31 +174,44 @@ class _CreateAccountPageState extends State<CreateAccountPage> {
           elevation: 4,
           minimumSize: Size(width, 50),
         ),
-        onPressed: () async {
-          final authProcess = AuthentificationProcess(
-            context: context,
-            firestore: firestore,
-            loadUserController: loadUserController,
-          );
+        onPressed: isSigningIn
+            ? null
+            : () async {
+                setSigningIn(true);
+                final authProcess = AuthentificationProcess(
+                  context: context,
+                  firestore: firestore,
+                  loadUserController: loadUserController,
+                );
 
-          try {
-            await authProcess.fluttLogInWithGoogle();
-          } catch (e) {
-            appLog("Erreur lors de l'authentification Google: $e");
-          }
-        },
-        child: Row(
-          children: [
-            SizedBox(
-                width: radius, height: radius, child: Image.asset(pathIcon)),
-            SizedBox(width: space),
-            MyTextStyle.postDesc(
-              "S'inscrire avec $provider",
-              SizeFont.h3.size,
-              Colors.black54,
-            ),
-          ],
-        ),
+                try {
+                  await authProcess.fluttLogInWithGoogle();
+                } catch (e) {
+                  appLog("Erreur lors de l'authentification Google: $e");
+                } finally {
+                  if (mounted) setSigningIn(false);
+                }
+              },
+        child: isSigningIn
+            ? SizedBox(
+                width: radius,
+                height: radius,
+                child: const CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Row(
+                children: [
+                  SizedBox(
+                      width: radius,
+                      height: radius,
+                      child: Image.asset(pathIcon)),
+                  SizedBox(width: space),
+                  MyTextStyle.postDesc(
+                    "S'inscrire avec $provider",
+                    SizeFont.h3.size,
+                    Colors.black54,
+                  ),
+                ],
+              ),
       ),
     );
   }

@@ -1,16 +1,11 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/garant_providers.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/my_info_garant.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/my_infos_rent.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail_withheader.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/garant_providers.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/pages_vues/manage_app/my_info_garant.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class ManagementGarants extends ConsumerStatefulWidget {
   final Color color;

@@ -1,18 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/pages_controllers/tenant_controller.dart';
-import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/demande_loc.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/pages_controllers/tenant_controller.dart';
+import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/core/repositories/firestore_lot_repository.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/demande_loc.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/user_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class ManagementTenant extends StatefulWidget {
   final Color color;
@@ -68,8 +68,7 @@ class ManagementTenantState extends State<ManagementTenant>
         .then((lots) {
       return lots.where((lot) {
         // Vérifie que le lot est non nul et que le uid est dans idProprietaire
-        return lot != null &&
-            lot.idProprietaire != null &&
+        return lot.idProprietaire != null &&
             lot.idProprietaire!.contains(widget.uid);
       }).toList();
     });

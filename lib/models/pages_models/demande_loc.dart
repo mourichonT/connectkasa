@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-// import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
-// import 'package:connect_kasa/models/pages_models/user_info.dart';
+// import 'package:konodal/models/pages_models/guarantor_info.dart';
+// import 'package:konodal/models/pages_models/user_info.dart';
 
 class DemandeLoc {
   final String? id;

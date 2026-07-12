@@ -6,7 +6,7 @@ class TextEntryModal extends StatefulWidget {
   const TextEntryModal({super.key, required this.onSave});
 
   @override
-  _TextEntryModalState createState() => _TextEntryModalState();
+  State<TextEntryModal> createState() => _TextEntryModalState();
 }
 
 class _TextEntryModalState extends State<TextEntryModal> {

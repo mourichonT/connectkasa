@@ -1,20 +1,18 @@
-import 'dart:async';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
-import 'package:connect_kasa/vues/widget_view/components/photo_for_id.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/vues/widget_view/components/photo_for_id.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class Step0 extends StatefulWidget {
   final String userId;
   final String emailUser;
   final Function(String, String, String, String, String, String, String, String,
-      String, String, String, bool?) recupererInformationsStep0;
+      String, String, String, String, bool?) recupererInformationsStep0;
   final int currentPage;
   final PageController progressController;
   // final bool isCameraOpen;
@@ -32,7 +30,7 @@ class Step0 extends StatefulWidget {
   });
 
   @override
-  _Step0State createState() => _Step0State();
+  State<Step0> createState() => _Step0State();
 }
 
 class _Step0State extends State<Step0> with WidgetsBindingObserver {
@@ -43,10 +41,10 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
   String _sex = "";
   String _nationality = "";
   String _placeOfBorn = "";
-  TextEditingController _pseudoController = TextEditingController();
+  final TextEditingController _pseudoController = TextEditingController();
   String imagePathIDrecto = "";
   String imagePathIDverso = "";
-  Timer? _deleteTimer;
+  String idExtension = "";
   String? idChoice = "";
   bool visibleID = false;
   bool? informationsCorrectes;
@@ -114,7 +112,7 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 MyTextStyle.lotName(
-                    """Vous venez de vous installer dans une résidence du réseau ConnectKasa. Commençons par renseigner quelques informations. """,
+                    """Vous venez de vous installer dans une résidence du réseau KONODAL. Commençons par renseigner quelques informations. """,
                     Colors.black54),
                 Padding(
                   padding: const EdgeInsets.only(top: 30),
@@ -145,6 +143,8 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
                             title: idChoice!,
                             onImageUploaded: (downloadUrl) =>
                                 downloadImagePathID(downloadUrl, true),
+                            onExtensionResolved: (ext) =>
+                                setState(() => idExtension = ext),
                             cardOverlay: true,
                             onCameraStateChanged: (bool isOpen) {
                               widget.onCameraStateChanged(isOpen);
@@ -178,6 +178,8 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
                         },
                         onImageUploaded: (downloadUrl) =>
                             downloadImagePathID(downloadUrl, false),
+                        onExtensionResolved: (ext) =>
+                            setState(() => idExtension = ext),
                         cardOverlay: true,
                       ),
                     ],
@@ -287,6 +289,7 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
                     imagePathIDrecto,
                     imagePathIDverso,
                     idChoice!,
+                    idExtension,
                     informationsCorrectes,
                   );
                   if (widget.currentPage < 5) {

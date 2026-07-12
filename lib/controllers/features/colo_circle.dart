@@ -1,8 +1,8 @@
-import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
-import 'package:connect_kasa/controllers/providers/color_provider.dart';
-import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
+import 'package:konodal/controllers/features/load_prefered_data.dart';
+import 'package:konodal/controllers/providers/color_provider.dart';
+import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/core/repositories/firestore_lot_repository.dart';
+import 'package:konodal/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -34,10 +34,11 @@ class ColorCircle extends StatelessWidget {
       onPressed: () async {
         // 1. Mettre à jour dans Firebase
         await databaseService.updateLotColor(userId, idLot, color);
+        if (!context.mounted) return;
 
         // 2. Mettre à jour dans ColorProvider si c'est le bon lot
         if (idLot == idLotSelected) {
-          final hexColor = color.value.toRadixString(16).padLeft(8, '0');
+          final hexColor = color.toARGB32().toRadixString(16).padLeft(8, '0');
           context.read<ColorProvider>().updateColor(hexColor);
 
           // 3. Mettre à jour dans SharedPreferences

@@ -1,32 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/job_entry.dart';
-import 'package:connect_kasa/controllers/features/justif_document.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/current_user_provider.dart';
-import 'package:connect_kasa/core/providers/docs_providers.dart';
-import 'package:connect_kasa/core/providers/docs_repository_provider.dart';
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/docs_repository.dart';
-import 'package:connect_kasa/core/repositories/storage_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/controllers/features/income_entry.dart';
-import 'package:connect_kasa/models/enum/icons_extension.dart';
-import 'package:connect_kasa/models/enum/tenant_list.dart';
-import 'package:connect_kasa/models/pages_models/demande_loc.dart';
-import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
-import 'package:connect_kasa/vues/widget_view/components/import_docs.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
-import 'package:connect_kasa/vues/widget_view/components/share_rent_folder.dart';
+import 'package:konodal/controllers/features/job_entry.dart';
+import 'package:konodal/controllers/features/justif_document.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/current_user_provider.dart';
+import 'package:konodal/core/providers/docs_providers.dart';
+import 'package:konodal/core/providers/docs_repository_provider.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/repositories/docs_repository.dart';
+import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/controllers/features/income_entry.dart';
+import 'package:konodal/models/enum/icons_extension.dart';
+import 'package:konodal/models/enum/tenant_list.dart';
+import 'package:konodal/models/pages_models/demande_loc.dart';
+import 'package:konodal/models/pages_models/document_model.dart';
+import 'package:konodal/models/pages_models/user_info.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/vues/widget_view/components/import_docs.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/vues/widget_view/components/share_rent_folder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class MyInfosRent extends ConsumerStatefulWidget {
   final String uid;
@@ -84,8 +84,8 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
       });
 
       if (tenantUser != null) {
-        jobEntries = List<JobEntry>.from(tenantUser!.jobIncomes ?? []);
-        incomeEntries = List<IncomeEntry>.from(tenantUser!.incomes ?? []);
+        jobEntries = List<JobEntry>.from(tenantUser!.jobIncomes);
+        incomeEntries = List<IncomeEntry>.from(tenantUser!.incomes);
       }
     }
   }
@@ -203,7 +203,7 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
                   const SizedBox(height: 10),
                 ],
               );
-            }).toList(),
+            }),
 
             Center(
               child: ButtonAdd(
@@ -289,7 +289,7 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
                       ],
                     ),
                   );
-                }).toList(),
+                }),
                 Center(
                   child: ButtonAdd(
                     color: Colors.transparent,
@@ -381,6 +381,7 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
         .updateUserInfo(updatedUser)
         .then((result) => result.when(success: (v) => v, failure: (_) => false));
 
+    if (!mounted) return;
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Informations mises à jour avec succès")),
@@ -391,15 +392,6 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
       );
     }
     ref.invalidate(tenantDocumentsProvider(widget.uid));
-  }
-
-  Timestamp? _parseDate(String dateStr) {
-    try {
-      DateTime dt = DateFormat('dd/MM/yyyy').parse(dateStr);
-      return Timestamp.fromDate(dt);
-    } catch (e) {
-      return null;
-    }
   }
 
   @override
@@ -542,7 +534,7 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
               leading: fileType != null
                   ? fileType.icon
                   : Image.asset('images/icon_extension/default.png'),
-              title: Text(doc.type ?? ""),
+              title: Text(doc.type),
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -553,6 +545,7 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
                       if (await canLaunchUrl(url)) {
                         await launchUrl(url);
                       } else {
+                        if (!context.mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content:
@@ -633,7 +626,7 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
     );
     ref.invalidate(tenantDocumentsProvider(widget.uid));
 
-    if (!context.mounted) return;
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Document supprimé avec succès")),
     );

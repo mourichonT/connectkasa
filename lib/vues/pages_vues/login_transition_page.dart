@@ -1,22 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
-import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
-import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
-import 'package:connect_kasa/controllers/providers/color_provider.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/pages_vues/no_approval_page.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/controllers/handlers/api/flutter_api.dart';
+import 'package:konodal/controllers/handlers/progress_widget.dart';
+import 'package:konodal/controllers/pages_controllers/my_app.dart';
+import 'package:konodal/controllers/providers/color_provider.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/pages_vues/no_approval_page.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 /// Page affichée immédiatement après une authentification Firebase
 /// réussie (Google ou email), AVANT la recherche Firestore de
 /// l'utilisateur (AuthentificationProcess.fluttLogInWithGoogle/
-/// SignInWithMail poussaient auparavant cette page seulement APRÈS
+/// signInWithMail poussaient auparavant cette page seulement APRÈS
 /// cette recherche + la vérification d'approbation - laissant l'écran
 /// de connexion sans retour visuel pendant tout ce temps). La
 /// recherche et la décision de destination (accueil / en attente
@@ -187,7 +187,7 @@ class _LoginTransitionPageState extends State<LoginTransitionPage> {
       // du dernier lot chargé dans ColorProvider : à ce stade on ne sait
       // pas encore quel lot appartient à l'utilisateur qui se connecte.
       body: Center(
-        child: AppLoader(size: 260, color: ColorProvider.defaultColor),
+        child: AppLoader(size: 120, color: ColorProvider.defaultColor),
       ),
     );
   }

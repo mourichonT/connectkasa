@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/pages_models/user_temp.dart';
+import 'package:konodal/models/pages_models/user_temp.dart';
 
 Future<String> generateUniqueRefUserApp(
     FirebaseFirestore firestore, UserTemp user) async {
@@ -11,7 +11,7 @@ Future<String> generateUniqueRefUserApp(
 
   while (exists) {
     var snapshot = await firestore
-        .collection('User')
+        .collection('users')
         .where('refUserApp', isEqualTo: refUserApp)
         .get();
 

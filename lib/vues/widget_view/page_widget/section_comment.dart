@@ -1,13 +1,13 @@
 // ignore_for_file: must_be_immutable, library_private_types_in_public_api
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/repositories/firestore_comment_repository.dart';
-import 'package:connect_kasa/models/pages_models/comment.dart';
-import 'package:connect_kasa/vues/widget_view/components/comment_tile.dart';
+import 'package:konodal/core/repositories/firestore_comment_repository.dart';
+import 'package:konodal/models/pages_models/comment.dart';
+import 'package:konodal/vues/widget_view/components/comment_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class SectionComment extends StatefulWidget {
   String residenceSelected;
@@ -142,7 +142,7 @@ class _SectionCommentState extends State<SectionComment>
           padding: const EdgeInsets.symmetric(horizontal: 15),
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,

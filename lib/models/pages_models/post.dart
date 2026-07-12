@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/pages_models/post_style.dart';
+import 'package:konodal/models/pages_models/post_style.dart';
 
 class Post {
   String id;
@@ -14,9 +14,9 @@ class Post {
   String _pathImage = "";
   String title;
   String description;
-  String location_element;
-  List<String>? location_details;
-  String location_floor;
+  String locationElement;
+  List<String>? locationDetails;
+  String locationFloor;
   List<String>? like;
   List<Post> signalement;
   bool hideUser;
@@ -39,9 +39,9 @@ class Post {
       String pathImage = "",
       required this.title,
       required this.description,
-      this.location_element = "",
-      this.location_details = const [], // Nouvel attribut
-      this.location_floor = "", // Nouvel attribut
+      this.locationElement = "",
+      this.locationDetails = const [], // Nouvel attribut
+      this.locationFloor = "", // Nouvel attribut
       this.like = const [],
       this.signalement = const [],
       required this.hideUser,
@@ -168,10 +168,10 @@ class Post {
     return Post(
       id: map['id'] ?? "",
       description: map['description'] ?? "",
-      location_element:
+      locationElement:
           map['location_element'] ?? "", // Mise à jour du nom de l'attribut
-      location_details: convertLocationDetails, // Nouvel attribut
-      location_floor: map['location_floor'] ?? "", // Nouvel attribut
+      locationDetails: convertLocationDetails, // Nouvel attribut
+      locationFloor: map['location_floor'] ?? "", // Nouvel attribut
       subtype: map['subtype'] ?? "",
       pathImage: map['pathImage'] ?? "",
       refResidence: map['refResidence'] ?? "",
@@ -216,9 +216,9 @@ class Post {
     return {
       'id': id,
       'description': description,
-      'location_element': location_element, // Mise à jour du nom de l'attribut
-      'location_details': location_details, // Nouvel attribut
-      'location_floor': location_floor, // Nouvel attribut
+      'location_element': locationElement, // Mise à jour du nom de l'attribut
+      'location_details': locationDetails, // Nouvel attribut
+      'location_floor': locationFloor, // Nouvel attribut
       'subtype': subtype,
       'pathImage': pathImage,
       'refResidence': refResidence,

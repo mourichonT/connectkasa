@@ -1,7 +1,6 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 
 class ProfileMenu extends StatelessWidget {
   final String uid;
@@ -12,16 +11,15 @@ class ProfileMenu extends StatelessWidget {
   final Icon icon;
   final VoidCallback? press;
 
-  ProfileMenu(
-      {Key? key,
+  const ProfileMenu(
+      {super.key,
       required this.text,
       required this.icon,
       this.press,
       required this.uid,
       required this.color,
       this.idLot,
-      required this.isLogOut})
-      : super(key: key);
+      required this.isLogOut});
 
   @override
   Widget build(BuildContext context) {

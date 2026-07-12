@@ -1,23 +1,24 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
-import 'package:connect_kasa/core/repositories/post_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_post_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
-import 'package:connect_kasa/vues/pages_vues/annonces_page/annonce_page_details.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/communication_detail.dart';
-import 'package:connect_kasa/vues/pages_vues/annonces_page/modify_annonceform.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/modify_asking_neighbors_form.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/modify_postform.dart';
-import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/user_by_id_provider.dart';
+import 'package:konodal/core/repositories/post_repository.dart';
+import 'package:konodal/core/repositories/firestore_post_repository.dart';
+import 'package:konodal/core/repositories/firestore_storage_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/image_annonce.dart';
+import 'package:konodal/vues/pages_vues/annonces_page/annonce_page_details.dart';
+import 'package:konodal/vues/pages_vues/post_page/communication_detail.dart';
+import 'package:konodal/vues/pages_vues/annonces_page/modify_annonceform.dart';
+import 'package:konodal/vues/pages_vues/post_page/modify_asking_neighbors_form.dart';
+import 'package:konodal/vues/pages_vues/post_page/modify_postform.dart';
+import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
+// ignore: must_be_immutable
 class SinistreTile extends StatefulWidget {
   late Post post;
   final String uid;
@@ -79,7 +80,7 @@ class SinistreTileState extends State<SinistreTile> {
                           final postUpdated = snapshot.data;
                           if (postUpdated != null) {
                             return PopScope(
-                              onPopInvoked: (didPop) async {
+                              onPopInvokedWithResult: (didPop, result) async {
                                 Post? postChanges = await dbService
                                     .getUpdatePost(
                                         widget.residenceId, widget.post.id)
@@ -183,7 +184,7 @@ class SinistreTileState extends State<SinistreTile> {
                               padding: const EdgeInsets.all(8),
                               width: 120,
                               height: 120,
-                              child: ImageAnnounced(context, 120, 120),
+                              child: imageAnnounced(context, 120, 120),
                             ),
                           ),
                         const SizedBox(width: 20),
@@ -279,6 +280,7 @@ class SinistreTileState extends State<SinistreTile> {
                                                       post: widget.post,
                                                     )));
                                       }
+                                      if (!context.mounted) return;
 
                                       if (widget.post.type == "sinistres" ||
                                           widget.post.type == "incivilites") {
@@ -293,6 +295,7 @@ class SinistreTileState extends State<SinistreTile> {
                                                       post: widget.post,
                                                     )));
                                       }
+                                      if (!context.mounted) return;
                                       if (widget.post.type == "annonces") {
                                         await Navigator.push(
                                             context,
@@ -387,6 +390,7 @@ class SinistreTileState extends State<SinistreTile> {
     await _storageServices.removeFileFromUrl(widget.post.pathImage!);
     // await _databaseServices.getAllPostsToModify(widget.residenceId);
     widget.updatePostsList!();
+    if (!mounted) return;
     Navigator.pop(context);
   }
 }

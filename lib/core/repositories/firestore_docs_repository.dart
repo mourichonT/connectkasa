@@ -1,9 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/docs_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/document_model.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/docs_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/document_model.dart';
 
 class FirestoreDocsRepository implements IDocsRepository {
   final FirebaseFirestore _firestore;
@@ -18,17 +18,17 @@ class FirestoreDocsRepository implements IDocsRepository {
 
     try {
       if (idType.contains(newDoc.type)) {
-        // Cas ID : stocké dans User/{userId}/documents (lotId pas utilisé)
+        // Cas ID : stocké dans users/{userId}/documents (lotId pas utilisé)
         DocumentReference<Map<String, dynamic>> userDocRef =
-            _firestore.collection("User").doc(userId);
+            _firestore.collection("users").doc(userId);
         await userDocRef.collection("documents").add(newDoc.toJson());
       } else {
-        // Cas non-ID : stocké dans User/{userId}/lots/{lotId}/documents
+        // Cas non-ID : stocké dans users/{userId}/lots/{lotId}/documents
         if (lotId == null) {
           throw Exception("lotId requis pour un document rattaché à un lot.");
         }
         DocumentReference<Map<String, dynamic>> userLotRef = _firestore
-            .collection("User")
+            .collection("users")
             .doc(userId)
             .collection("lots")
             .doc(lotId);
@@ -45,7 +45,7 @@ class FirestoreDocsRepository implements IDocsRepository {
       DocumentModel newDoc, String userId) async {
     try {
       DocumentReference<Map<String, dynamic>> userDocRef =
-          _firestore.collection("User").doc(userId);
+          _firestore.collection("users").doc(userId);
       await userDocRef.collection("documents").add(newDoc.toJson());
       return Result.success(newDoc);
     } catch (e) {
@@ -61,7 +61,7 @@ class FirestoreDocsRepository implements IDocsRepository {
   }) async {
     try {
       final garantDocRef = _firestore
-          .collection("User")
+          .collection("users")
           .doc(userId)
           .collection("garants")
           .doc(garantId)
@@ -80,7 +80,7 @@ class FirestoreDocsRepository implements IDocsRepository {
 
     try {
       QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
           .collection("documents_copro")
           .get();
@@ -100,7 +100,7 @@ class FirestoreDocsRepository implements IDocsRepository {
 
     try {
       final querySnapshot = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
           .collection("documents_copro")
           .get();
@@ -124,7 +124,7 @@ class FirestoreDocsRepository implements IDocsRepository {
 
     try {
       CollectionReference documentsRef = _firestore
-          .collection("User")
+          .collection("users")
           .doc(uid)
           .collection("lots")
           .doc(lotId)
@@ -160,7 +160,7 @@ class FirestoreDocsRepository implements IDocsRepository {
     try {
       if (isCopro && residenceId != null) {
         await _firestore
-            .collection("Residence")
+            .collection("residences")
             .doc(residenceId)
             .collection("documents_copro")
             .doc(documentId)
@@ -168,7 +168,7 @@ class FirestoreDocsRepository implements IDocsRepository {
       } else if (TypeList.idTypes.contains(documentType)) {
         // Cas document d'identité
         await _firestore
-            .collection("User")
+            .collection("users")
             .doc(userId)
             .collection("documents")
             .doc(documentId)
@@ -182,7 +182,7 @@ class FirestoreDocsRepository implements IDocsRepository {
           // révoqués depuis, ou n'avoir jamais reçu ce document précis.
           for (String uid in recipientUids) {
             await _firestore
-                .collection("User")
+                .collection("users")
                 .doc(uid)
                 .collection("lots")
                 .doc(lotId)
@@ -193,7 +193,7 @@ class FirestoreDocsRepository implements IDocsRepository {
         } else if (userId != null) {
           // Cas classique avec un seul user
           await _firestore
-              .collection("User")
+              .collection("users")
               .doc(userId)
               .collection("lots")
               .doc(lotId)
@@ -220,7 +220,7 @@ class FirestoreDocsRepository implements IDocsRepository {
   }) async {
     try {
       await _firestore
-          .collection("User")
+          .collection("users")
           .doc(userId)
           .collection("documents")
           .doc(documentId)
@@ -243,7 +243,7 @@ class FirestoreDocsRepository implements IDocsRepository {
     }
     try {
       await _firestore
-          .collection('User')
+          .collection('users')
           .doc(uid)
           .collection('garants')
           .doc(garantId)
@@ -262,7 +262,7 @@ class FirestoreDocsRepository implements IDocsRepository {
       String uid, String garantId) async {
     try {
       final docSnapshot = await _firestore
-          .collection('User')
+          .collection('users')
           .doc(uid)
           .collection('garants')
           .doc(garantId)
@@ -287,7 +287,7 @@ class FirestoreDocsRepository implements IDocsRepository {
       String uid) async {
     try {
       final docSnapshot = await _firestore
-          .collection('User')
+          .collection('users')
           .doc(uid)
           .collection('documents')
           .get();

@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:connect_kasa/core/result/result.dart';
+import 'package:konodal/core/result/result.dart';
 import 'package:image_picker/image_picker.dart';
 
 /// Remplace StorageServices (Phase 2 du chantier architecture).

@@ -1,13 +1,13 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/residence_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/contact.dart'; // Importez votre modèle Contact
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/residence_repository_provider.dart';
+import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/contact.dart'; // Importez votre modèle Contact
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,7 +15,7 @@ class ManageContact extends ConsumerStatefulWidget {
   final Color color; // La couleur peut être passée de la page parente
   final Residence residence;
 
-  ManageContact({super.key, required this.color, required this.residence});
+  const ManageContact({super.key, required this.color, required this.residence});
 
   @override
   ConsumerState<ManageContact> createState() => ManageContactState();
@@ -45,21 +45,17 @@ class ManageContactState extends ConsumerState<ManageContact> {
   }
 
   Future<void> _loadContacts() async {
-    if (widget.residence.id != null) {
-      // Récupère les structures en utilisant la nouvelle fonction du service
-      final fetchedBuildings = await _residenceServices
-          .getContactByResidence(widget.residence.id)
-          .then((result) =>
-              result.when(success: (v) => v, failure: (_) => <Contact>[]));
-      setState(() {
-        contacts = fetchedBuildings;
-        // Toutes les cartes sont fermées au chargement.
-        _expandedContacts.clear();
-      });
-    } else {
-      contacts = []; // Si pas d'ID de résidence, initialise la liste comme vide
+    // Récupère les structures en utilisant la nouvelle fonction du service
+    final fetchedBuildings = await _residenceServices
+        .getContactByResidence(widget.residence.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Contact>[]));
+    setState(() {
+      contacts = fetchedBuildings;
+      // Toutes les cartes sont fermées au chargement.
+      _expandedContacts.clear();
+    });
     }
-  }
 
   // Fonction utilitaire pour initialiser et récupérer un TextEditingController et son FocusNode
   // Cela rend le code plus propre et réutilisable.
@@ -137,16 +133,15 @@ class ManageContactState extends ConsumerState<ManageContact> {
       _focusNodes.remove('${contactPrefix}_web');
       contacts.removeAt(index);
     });
-    await _residenceServices.removeContact(widget.residence.id!, contact);
+    await _residenceServices.removeContact(widget.residence.id, contact);
   }
 
   void saveContacts() async {
-    if (widget.residence.id == null) return;
-
     for (var contact in contacts) {
       if ((contact.name.trim().isEmpty ||
           contact.phone.trim().isEmpty ||
           contact.service.trim().isEmpty)) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content:
@@ -158,13 +153,14 @@ class ManageContactState extends ConsumerState<ManageContact> {
 
       if (contact.id == null) {
         // Nouveau contact : ajouter
-        await _residenceServices.addContact(widget.residence.id!, contact);
+        await _residenceServices.addContact(widget.residence.id, contact);
       } else {
         // Contact existant : mettre à jour
         await _residenceServices.updateContact(contact.id!, contact);
       }
     }
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text("Contacts mis à jour avec succès")),
     );
@@ -213,8 +209,6 @@ class ManageContactState extends ConsumerState<ManageContact> {
               // Initialisation des contrôleurs pour ce contact spécifique
               final nameController =
                   _initAndGetController('${contactPrefix}_name', contact.name);
-              final serviceController = _initAndGetController(
-                  '${contactPrefix}_service', contact.service);
               final phoneController = _initAndGetController(
                   '${contactPrefix}_phone', contact.phone);
               final mailController =
@@ -303,7 +297,7 @@ class ManageContactState extends ConsumerState<ManageContact> {
                             onValueChanged: (value) {
                               setState(() {
                                 contact.service =
-                                    value!; // Met à jour la propriété 'type' du bâtiment
+                                    value; // Met à jour la propriété 'type' du bâtiment
                               });
                             },
                           ),
@@ -404,7 +398,7 @@ class ManageContactState extends ConsumerState<ManageContact> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
                   Center(
                     child: ButtonAdd(
                       color: Colors.transparent,

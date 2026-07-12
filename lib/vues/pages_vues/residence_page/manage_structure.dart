@@ -1,22 +1,21 @@
-import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/search_agency_module.dart';
-import 'package:connect_kasa/core/providers/agency_search_flow_provider.dart';
-import 'package:connect_kasa/core/providers/residence_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/models/enum/elements_list.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/models/pages_models/agency_dept.dart'; // Gardez cette importation si elle est utilisée ailleurs
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/models/pages_models/structure_residence.dart';
-import 'package:connect_kasa/vues/widget_view/components/agency_search_result_list.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/controllers/features/agency_search_flow.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/search_agency_module.dart';
+import 'package:konodal/core/providers/agency_search_flow_provider.dart';
+import 'package:konodal/core/providers/residence_repository_provider.dart';
+import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/models/enum/elements_list.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/models/pages_models/agency_dept.dart'; // Gardez cette importation si elle est utilisée ailleurs
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/models/pages_models/structure_residence.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class ManageStructure extends ConsumerStatefulWidget {
   final Residence residence;
@@ -26,7 +25,7 @@ class ManageStructure extends ConsumerStatefulWidget {
   // management_res_info_g.dart).
   final String? initialExpandedStructureId;
 
-  ManageStructure({
+  const ManageStructure({
     super.key,
     required this.residence,
     required this.color,
@@ -56,7 +55,6 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
 
   bool isSearching = false;
   List<String> itemsElements = [];
-  bool _itemSelected = false;
 
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
@@ -71,52 +69,48 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
   }
 
   Future<void> _loadBuildings() async {
-    if (widget.residence.id != null) {
-      final fetchedBuildings = await _residenceServices
-          .getStructuresByResidence(widget.residence.id!)
-          .then((result) => result.when(
-              success: (v) => v, failure: (_) => <StructureResidence>[]));
+    final fetchedBuildings = await _residenceServices
+        .getStructuresByResidence(widget.residence.id)
+        .then((result) => result.when(
+            success: (v) => v, failure: (_) => <StructureResidence>[]));
 
-      // Résout les syndics référencés dans Gerance depuis la source à jour
-      // plutôt que de se fier à une copie potentiellement figée.
-      for (final building in fetchedBuildings) {
-        if (building.geranceRef != null) {
-          building.syndicAgency = await _flow.resolve(building.geranceRef!);
+    // Résout les syndics référencés dans gerances depuis la source à jour
+    // plutôt que de se fier à une copie potentiellement figée.
+    for (final building in fetchedBuildings) {
+      if (building.geranceRef != null) {
+        building.syndicAgency = await _flow.resolve(building.geranceRef!);
+      }
+    }
+
+    setState(() {
+      buildings = fetchedBuildings;
+      // Toutes les cartes sont fermées au chargement, sauf celle ciblée
+      // par la navigation entrante.
+      _expandedBuildings.clear();
+      if (widget.initialExpandedStructureId != null) {
+        final target = buildings.firstWhere(
+          (b) => b.id == widget.initialExpandedStructureId,
+          orElse: () => StructureResidence(name: '', type: ''),
+        );
+        if (target.id != null) {
+          _expandedBuildings.add(target);
         }
       }
+    });
 
-      setState(() {
-        buildings = fetchedBuildings;
-        // Toutes les cartes sont fermées au chargement, sauf celle ciblée
-        // par la navigation entrante.
-        _expandedBuildings.clear();
-        if (widget.initialExpandedStructureId != null) {
-          final target = buildings.firstWhere(
-            (b) => b.id == widget.initialExpandedStructureId,
-            orElse: () => StructureResidence(name: '', type: ''),
+    if (widget.initialExpandedStructureId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final key = _cardKeys[widget.initialExpandedStructureId];
+        if (key?.currentContext != null) {
+          Scrollable.ensureVisible(
+            key!.currentContext!,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
           );
-          if (target.id != null) {
-            _expandedBuildings.add(target);
-          }
         }
       });
-
-      if (widget.initialExpandedStructureId != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final key = _cardKeys[widget.initialExpandedStructureId];
-          if (key?.currentContext != null) {
-            Scrollable.ensureVisible(
-              key!.currentContext!,
-              duration: const Duration(milliseconds: 300),
-              curve: Curves.easeInOut,
-            );
-          }
-        });
-      }
-    } else {
-      buildings = [];
     }
-  }
+    }
 
   Future<void> searchAgencyByEmail(
       String emailPart, StructureResidence building) async {
@@ -128,11 +122,10 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
 
     setState(() {
       if (results.isEmpty) {
-        // Aucun match dans Gerance : entrée custom, non référencée.
+        // Aucun match dans gerances : entrée custom, non référencée.
         building.syndicAgency = _flow.buildCustomAgency(emailPart);
         building.geranceRef = null;
         searchResults = [building.syndicAgency!];
-        _itemSelected = true;
       } else {
         searchResults = results;
       }
@@ -169,20 +162,11 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
     });
     if (structureId != null) {
       await _residenceServices.removeStructure(
-          widget.residence.id!, structureId);
+          widget.residence.id, structureId);
     }
   }
 
   Future<void> saveBuildings() async {
-    if (widget.residence.id == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content:
-                Text("Impossible de sauvegarder : ID de résidence manquant.")),
-      );
-      return;
-    }
-
     for (int i = 0; i < buildings.length; i++) {
       final building = buildings[i];
 
@@ -215,22 +199,38 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
         });
         return;
       }
+
+      if (building.etage == null || building.etage!.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                "Le nombre d'étages du bâtiment '${building.name}' est obligatoire."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        setState(() {
+          _expandedBuildings.add(building);
+        });
+        return;
+      }
     }
     try {
       for (var building in buildings) {
         appLog(building.toJson());
-        await _residenceServices.saveStructure(widget.residence.id!, building);
+        await _residenceServices.saveStructure(widget.residence.id, building);
         _expandedBuildings.remove(building);
       }
 
       setState(() {});
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Structures mises à jour avec succès")),
       );
 
       _loadBuildings();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text("Erreur lors de la sauvegarde des structures : $e")),
@@ -317,7 +317,7 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
                       .length
                       .toString());
 
-              final _lookupController = _initAndGetController(
+              final lookupController = _initAndGetController(
                   'building_ref_gerance_$index',
                   building.syndicAgency?.syndic?.mail ?? "");
 
@@ -391,7 +391,7 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
                             items: ElementsList.structureType(),
                             onValueChanged: (value) {
                               setState(() {
-                                building.type = value!;
+                                building.type = value;
                               });
                             },
                           ),
@@ -708,7 +708,7 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
                                     setState(() {
                                       building.hasDifferentSyndic = value;
                                       if (!value) {
-                                        _lookupController.clear();
+                                        lookupController.clear();
                                         building.syndicAgency = null;
                                         building.geranceRef = null;
                                         searchResults = [];
@@ -728,7 +728,6 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
                             onSelect: (Agency agency) {
                               setState(() {
                                 agencySearchController.text = agency.name;
-                                _itemSelected = true;
                                 searchResults = [];
                                 building.syndicAgency = agency; // cache d'affichage
                                 building.geranceRef = _flow.refFor(agency);
@@ -742,7 +741,6 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
                                 setState(() {
                                   searchResults = [];
                                   isSearching = false;
-                                  _itemSelected = false;
                                   building.syndicAgency = null;
                                   building.geranceRef = null;
                                 });
@@ -760,7 +758,7 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
                   const SizedBox(height: 10),
                   Center(
                     child: ButtonAdd(

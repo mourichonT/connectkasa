@@ -1,28 +1,28 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_doc_controller.dart';
-import 'package:connect_kasa/core/providers/current_user_provider.dart';
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/storage_repository.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu_cb.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/widget_view/components/import_docs.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_doc_controller.dart';
+import 'package:konodal/core/providers/current_user_provider.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu_cb.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/vues/widget_view/components/import_docs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class AddDocsForm extends ConsumerStatefulWidget {
   final Lot lotSelected;
   final String uid;
   final bool isDocCopro;
 
-  AddDocsForm(
+  const AddDocsForm(
       {super.key,
       required this.uid,
       required this.lotSelected,
@@ -34,7 +34,7 @@ class AddDocsForm extends ConsumerStatefulWidget {
 
 class AddDocsFormState extends ConsumerState<AddDocsForm> {
   double fontSize = 12;
-  final TypeList _CatList = TypeList();
+  final TypeList _catList = TypeList();
   late final IUserRepository _userRepository;
   late final IStorageRepository _storageRepository;
 
@@ -131,13 +131,11 @@ class AddDocsFormState extends ConsumerState<AddDocsForm> {
               .getUserById(locataireId)
               .then((result) => result.when(
                   success: (v) => v, failure: (error) => throw error));
-          if (user != null) {
-            final fullName = "${user.name} ${user.surname}".trim();
-            destinatairesLabels.add(fullName);
-            destinatairesMap[fullName] = [locataireId];
-            destinatairesReal.add(locataireId);
-          }
-        } catch (e) {
+          final fullName = "${user.name} ${user.surname}".trim();
+          destinatairesLabels.add(fullName);
+          destinatairesMap[fullName] = [locataireId];
+          destinatairesReal.add(locataireId);
+                } catch (e) {
           appLog(
               "Erreur lors de la récupération du locataire $locataireId : $e");
         }
@@ -189,7 +187,7 @@ class AddDocsFormState extends ConsumerState<AddDocsForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  ProfilTile(
+                  profilTile(
                     widget.uid,
                     22,
                     19,
@@ -239,7 +237,7 @@ class AddDocsFormState extends ConsumerState<AddDocsForm> {
                   "Quelle est la catégorie de votre document",
                   false,
                   preferedLot: widget.lotSelected,
-                  items: _CatList.categoryDocs(),
+                  items: _catList.categoryDocs(),
                   onValueChanged: (String value) {
                     setState(() {
                       type = value;

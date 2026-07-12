@@ -1,10 +1,10 @@
 // ignore_for_file: must_be_immutable
 
-import 'package:connect_kasa/controllers/pages_controllers/chat_controller.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/pages_controllers/chat_controller.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
+import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
 
 class MessageGeranceTile extends StatefulWidget {
   final double radius;
@@ -12,7 +12,7 @@ class MessageGeranceTile extends StatefulWidget {
   final String idUserTo;
   final String residenceId;
 
-  MessageGeranceTile({
+  const MessageGeranceTile({
     super.key,
     required this.radius,
     required this.idUserFrom,
@@ -59,7 +59,7 @@ class MessageGeranceTileState extends State<MessageGeranceTile> {
                 Padding(
                   padding: const EdgeInsets.only(
                       top: 5, bottom: 5, left: 5, right: 10),
-                  child: ProfilTile(widget.idUserFrom, 22, 19, 22, true,
+                  child: profilTile(widget.idUserFrom, 22, 19, 22, true,
                       Colors.black87, SizeFont.h2.size),
                 ),
               ],

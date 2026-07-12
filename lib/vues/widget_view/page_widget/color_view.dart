@@ -1,11 +1,11 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/controllers/features/colo_circle.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/handlers/colors_utils.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/controllers/features/colo_circle.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/controllers/features/color_controller.dart';
-import 'package:connect_kasa/models/enum/tab_bar_icon.dart';
+import 'package:konodal/controllers/features/color_controller.dart';
+import 'package:konodal/models/enum/tab_bar_icon.dart';
 
 class ColorView extends StatefulWidget {
   final String uiserId;
@@ -13,9 +13,9 @@ class ColorView extends StatefulWidget {
   final String idLotSelected;
   final Function(Color) onColorSelected;
 
-  IconTabBar iconTabBar = IconTabBar();
+  final IconTabBar iconTabBar = IconTabBar();
   final ColorController defaultColor = const ColorController();
-  List<Color> customColors = [
+  final List<Color> customColors = [
     // Rouges
     const Color.fromRGBO(204, 51, 51, 1), // Rouge profond
     const Color.fromRGBO(255, 102, 102, 1), // Rouge moyen
@@ -55,7 +55,7 @@ class ColorView extends StatefulWidget {
   });
 
   @override
-  _ColorViewState createState() => _ColorViewState();
+  State<ColorView> createState() => _ColorViewState();
 }
 
 class _ColorViewState extends State<ColorView> {

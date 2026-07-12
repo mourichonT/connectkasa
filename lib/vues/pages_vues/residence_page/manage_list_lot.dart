@@ -1,19 +1,18 @@
-import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
-import 'package:connect_kasa/models/enum/elements_list.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/structure_residence.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/core/repositories/firestore_lot_repository.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/structure_residence.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/core/repositories/firestore_residence_repository.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class ManageListLot extends StatefulWidget {
   final Color color;
@@ -70,17 +69,14 @@ class _ManageListLotState extends State<ManageListLot> {
   }
 
   Future<void> _loadBuildings() async {
-    if (widget.residence.id == null) return;
-
     try {
       final fetched = await _residenceServices
-          .getStructuresByResidence(widget.residence.id!)
+          .getStructuresByResidence(widget.residence.id)
           .then((result) =>
               result.when(success: (v) => v, failure: (error) => throw error));
       if (mounted) {
         setState(() {
           nameBuildings = fetched
-              .where((b) => b.type != null && b.name != null)
               .map((b) => "${b.type} ${b.name}")
               .toList()
             ..sort((a, b) {
@@ -100,20 +96,18 @@ class _ManageListLotState extends State<ManageListLot> {
   }
 
   Future<void> _loadLots() async {
-    if (widget.residence.id != null) {
-      final fetchedLots = await _lotServices
-          .getLotByResidence(widget.residence.id)
-          .then((result) =>
-              result.when(success: (v) => v, failure: (_) => <Lot>[]));
-      setState(() {
-        lots.clear();
-        lots.addAll(fetchedLots);
-        // Toutes les cartes sont fermées au chargement.
-        _expandedLots.clear();
-        _groupKeyForLot.clear();
-      });
+    final fetchedLots = await _lotServices
+        .getLotByResidence(widget.residence.id)
+        .then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]));
+    setState(() {
+      lots.clear();
+      lots.addAll(fetchedLots);
+      // Toutes les cartes sont fermées au chargement.
+      _expandedLots.clear();
+      _groupKeyForLot.clear();
+    });
     }
-  }
 
   void _addLot() {
     setState(() {
@@ -124,7 +118,7 @@ class _ManageListLotState extends State<ManageListLot> {
           typeLot: '',
           type: '',
           idProprietaire: [],
-          residenceId: widget.residence.id!,
+          residenceId: widget.residence.id,
           residenceData: {},
           userLotDetails: {},
         ),
@@ -152,7 +146,7 @@ class _ManageListLotState extends State<ManageListLot> {
     // Un lot jamais enregistré (juste ajouté localement, pas encore
     // sauvegardé) n'a pas encore d'ID : rien à supprimer côté Firestore.
     if (lotId != null) {
-      await _lotServices.deleteLot(widget.residence.id!, lotId);
+      await _lotServices.deleteLot(widget.residence.id, lotId);
     }
 
     setState(() {
@@ -178,9 +172,6 @@ class _ManageListLotState extends State<ManageListLot> {
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
 
-    // Liste des noms uniquement (pour tri et regroupement)
-    final buildingNamesOnly = buildings.map((b) => b.name.trim()).toList();
-
     // Regrouper les lots par nom de bâtiment (clé figée jusqu'à
     // l'enregistrement, voir _groupKeyFor)
     Map<String, List<Lot>> lotsGroupedByBuilding = {};
@@ -197,7 +188,7 @@ class _ManageListLotState extends State<ManageListLot> {
       return buildingName; // fallback
     }
 
-    // Trier les groupes selon l’ordre de buildingNamesOnly
+    // Trier les groupes par longueur de nom puis alphabétiquement
     final sortedEntries = lotsGroupedByBuilding.entries.toList()
       ..sort((a, b) {
         final nameA = getFullBuildingName(a.key);
@@ -325,11 +316,11 @@ class _ManageListLotState extends State<ManageListLot> {
                         ],
                       ),
                     );
-                  }).toList(),
+                  }),
                   const SizedBox(height: 30),
                 ],
               );
-            }).toList(),
+            }),
 
                   const SizedBox(height: 20),
                   Center(
@@ -424,7 +415,7 @@ class _ManageListLotState extends State<ManageListLot> {
     for (int i = 0; i < lots.length; i++) {
       final lot = lots[i];
 
-      final refLot = lot.refLot?.trim() ?? '';
+      final refLot = lot.refLot.trim();
       final building = lot.batiment?.trim() ?? '';
       final number = lot.lot?.trim() ?? '';
       final combo = "$building-$number";
@@ -460,9 +451,10 @@ class _ManageListLotState extends State<ManageListLot> {
     // Tous les lots sont valides, on peut les enregistrer
     try {
       for (var lot in lots) {
-        await _lotServices.createOrUpdateLot(widget.residence.id!, lot);
+        await _lotServices.createOrUpdateLot(widget.residence.id, lot);
       }
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Lots enregistrés avec succès"),
@@ -478,6 +470,7 @@ class _ManageListLotState extends State<ManageListLot> {
         }
       });
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Erreur lors de l'enregistrement : $e"),

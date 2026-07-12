@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
 
-Widget ImageAnnounced(BuildContext context, double width, double height) {
+Widget imageAnnounced(BuildContext context, double width, double height) {
   return Container(
       height: height,
       width: width,

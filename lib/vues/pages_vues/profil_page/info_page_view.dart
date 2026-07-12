@@ -1,11 +1,11 @@
-import 'package:connect_kasa/controllers/features/load_user_controller.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/pages_vues/manage_app/management_folder_rent.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/new_page_menu.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/info_pers_page_modify.dart';
+import 'package:konodal/controllers/features/load_user_controller.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/user_by_id_provider.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/pages_vues/manage_app/management_folder_rent.dart';
+import 'package:konodal/vues/pages_vues/profil_page/new_page_menu.dart';
+import 'package:konodal/vues/pages_vues/profil_page/info_pers_page_modify.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -59,7 +59,7 @@ class _InfoPageViewState extends ConsumerState<InfoPageView> {
           // Invalide le cache partagé plutôt que de recharger un état
           // local : InfoPageView n'affiche de toute façon aucune donnée
           // utilisateur directement, seuls les autres widgets qui
-          // consomment userByIdProvider(uid) (ProfilTile...) en
+          // consomment userByIdProvider(uid) (profilTile...) en
           // bénéficient.
           refresh: () => ref.invalidate(userByIdProvider(widget.uid)),
           user: user,

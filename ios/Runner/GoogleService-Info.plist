@@ -2,18 +2,24 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CLIENT_ID</key>
+	<string>814247048228-tij2dai582mtif0e01h2s544elve8de1.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.814247048228-tij2dai582mtif0e01h2s544elve8de1</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>814247048228-75t4h1qbkjgggu3kjfn0djf3octkmu1c.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
-	<string>AIzaSyDGodmYAmRU5y5_d0erkvmjNATA-Yg1JY8</string>
+	<string>AIzaSyCoPcPqDlkgqOXxTQqFyfyuj8zlEDszOCE</string>
 	<key>GCM_SENDER_ID</key>
-	<string>325705345982</string>
+	<string>814247048228</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>fr.connectkasa.connectKasa</string>
+	<string>com.konodal.app</string>
 	<key>PROJECT_ID</key>
-	<string>connectkasa-84f23</string>
+	<string>konodal-dev</string>
 	<key>STORAGE_BUCKET</key>
-	<string>connectkasa-84f23.appspot.com</string>
+	<string>konodal-dev.firebasestorage.app</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:325705345982:ios:8bc16879122f9076d7e7ef</string>
+	<string>1:814247048228:ios:55cf43dc725f3f77cd94b1</string>
 </dict>
 </plist>

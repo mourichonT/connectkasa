@@ -1,20 +1,20 @@
-import 'package:connect_kasa/controllers/features/contact_features.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/current_user_provider.dart';
-import 'package:connect_kasa/core/providers/docs_providers.dart';
-import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/icons_extension.dart';
-import 'package:connect_kasa/models/pages_models/document_model.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
-import 'package:connect_kasa/vues/widget_view/components/share_rent_folder.dart';
+import 'package:konodal/controllers/features/contact_features.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/current_user_provider.dart';
+import 'package:konodal/core/providers/docs_providers.dart';
+import 'package:konodal/core/providers/lot_repository_provider.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/icons_extension.dart';
+import 'package:konodal/models/pages_models/document_model.dart';
+import 'package:konodal/models/pages_models/user_info.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/pages_vues/chat_page/chat_page.dart';
+import 'package:konodal/vues/widget_view/components/share_rent_folder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class TenantDetail extends ConsumerWidget {
   final UserInfo tenant;
@@ -25,13 +25,13 @@ class TenantDetail extends ConsumerWidget {
   final String? lotId;
   final String? demandeId;
   final Color color;
-  Function()? refreshUnseeCounter;
+  final Function()? refreshUnseeCounter;
   // Rafraîchit la liste des locataires de ManagementTenant après une
   // révocation réussie (l'onglet "Actuels" doit perdre ce locataire,
   // l'onglet "Historique" doit le gagner).
-  Function()? refreshTenants;
+  final Function()? refreshTenants;
 
-  TenantDetail(
+  const TenantDetail(
       {super.key,
       this.refreshUnseeCounter,
       this.refreshTenants,
@@ -148,6 +148,7 @@ class TenantDetail extends ConsumerWidget {
                     if (refreshUnseeCounter != null) {
                       refreshUnseeCounter!();
                     }
+                    if (!context.mounted) return;
                     Navigator.pop(context);
                   },
                   color: Colors.red[800]!,
@@ -269,7 +270,7 @@ class TenantDetail extends ConsumerWidget {
                     income.label,
                     "${amountDouble.toStringAsFixed(2)} €",
                   );
-                }).toList(),
+                }),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: const Divider(),
@@ -348,7 +349,6 @@ class TenantDetail extends ConsumerWidget {
           itemCount: documentList.length,
           itemBuilder: (context, index) {
             final docMap = documentList[index];
-            final String docId = docMap['id'];
             final DocumentModel doc = docMap['document'];
 
             final fileType = getFileType(doc.extension);
@@ -361,6 +361,7 @@ class TenantDetail extends ConsumerWidget {
                   if (await canLaunchUrl(url)) {
                     await launchUrl(url);
                   } else {
+                    if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content:
@@ -376,7 +377,7 @@ class TenantDetail extends ConsumerWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       fileType != null
-                          ? Container(width: 30, child: fileType.icon)
+                          ? SizedBox(width: 30, child: fileType.icon)
                           : Image.asset(
                               'images/icon_extension/default.png',
                               height: 20,

@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/statut_post_list.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/statut_post_list.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -185,7 +185,7 @@ class MyTextStyle {
     return formattedDate;
   }
 
-  static String EventHours(Timestamp timestamp) {
+  static String eventHours(Timestamp timestamp) {
     tz.TZDateTime eventDate = tz.TZDateTime.from(timestamp.toDate(), tz.local);
     tz.Location paris = tz.getLocation('Europe/Paris');
     eventDate = tz.TZDateTime.from(eventDate, paris);
@@ -225,7 +225,7 @@ class MyTextStyle {
     }
   }
 
-  static EventDateDay(Timestamp timestamp, double size) {
+  static eventDateDay(Timestamp timestamp, double size) {
     // Convertir le Timestamp en millisecondes depuis l'époque Unix
     int milliseconds = timestamp.millisecondsSinceEpoch;
     DateTime eventDate = DateTime.fromMillisecondsSinceEpoch(milliseconds);
@@ -237,7 +237,7 @@ class MyTextStyle {
     );
   }
 
-  static EventDateMonth(Timestamp timestamp, double size) {
+  static eventDateMonth(Timestamp timestamp, double size) {
     // Convertir le Timestamp en millisecondes depuis l'époque Unix
     int milliseconds = timestamp.millisecondsSinceEpoch;
     DateTime eventDate = DateTime.fromMillisecondsSinceEpoch(milliseconds);
@@ -249,7 +249,7 @@ class MyTextStyle {
     );
   }
 
-  static MailDate(Timestamp timestamp) {
+  static mailDate(Timestamp timestamp) {
     // Convertir le Timestamp en millisecondes depuis l'époque Unix
     int milliseconds = timestamp.millisecondsSinceEpoch;
 

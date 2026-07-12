@@ -1,14 +1,14 @@
-import 'package:connect_kasa/controllers/features/contact_features.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/buid_google_map.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/modal_entry_text.dart';
-import 'package:connect_kasa/vues/pages_vues/chat_page/mail_chat_page.dart';
+import 'package:konodal/controllers/features/contact_features.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/widgets_controllers/buid_google_map.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/modal_entry_text.dart';
+import 'package:konodal/vues/pages_vues/chat_page/mail_chat_page.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/core/repositories/firestore_mail_repository.dart';
-import 'package:connect_kasa/models/pages_models/mail.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/repositories/firestore_mail_repository.dart';
+import 'package:konodal/models/pages_models/mail.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class CardContactView extends StatefulWidget {
   final Lot selectedlot;
@@ -45,7 +45,7 @@ class CardContactView extends StatefulWidget {
   });
 
   @override
-  _CardContactViewState createState() => _CardContactViewState();
+  State<CardContactView> createState() => _CardContactViewState();
 }
 
 class _CardContactViewState extends State<CardContactView> {
@@ -108,7 +108,8 @@ class _CardContactViewState extends State<CardContactView> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor.withOpacity(0.4),
+                    color:
+                        Theme.of(context).primaryColor.withValues(alpha: 0.4),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(10),
                       topRight: Radius.circular(10),
@@ -150,7 +151,7 @@ class _CardContactViewState extends State<CardContactView> {
                                   Icons.subdirectory_arrow_right_rounded)
                               : Container(),
                         ),
-                        title: MyTextStyle.MailDate(mails.last.startTime),
+                        title: MyTextStyle.mailDate(mails.last.startTime),
                         subtitle: Text(
                           mails.last.html,
                           overflow: TextOverflow.ellipsis,

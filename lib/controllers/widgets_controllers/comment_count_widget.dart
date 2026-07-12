@@ -1,4 +1,4 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:flutter/material.dart';
 
 class CommentCountWidget extends StatelessWidget {

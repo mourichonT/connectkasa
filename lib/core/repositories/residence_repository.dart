@@ -1,7 +1,7 @@
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/contact.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/models/pages_models/structure_residence.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/contact.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/models/pages_models/structure_residence.dart';
 
 /// Remplace DataBasesResidenceServices (Phase 2 du chantier architecture).
 abstract interface class IResidenceRepository {

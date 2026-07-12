@@ -1,9 +1,9 @@
-import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 
 class SignalementTile extends StatelessWidget {
@@ -50,10 +50,11 @@ class SignalementTile extends StatelessWidget {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.black12
-                              .withOpacity(0.5), // Transparent en haut
+                              .withValues(alpha: 0.5), // Transparent en haut
+                          Colors.black12.withValues(
+                              alpha: 0.2), // Semi-transparent au milieu
                           Colors.black12
-                              .withOpacity(0.2), // Semi-transparent au milieu
-                          Colors.black12.withOpacity(0.0), // Opaque en bas
+                              .withValues(alpha: 0.0), // Opaque en bas
                         ],
                       ),
                     ),
@@ -70,7 +71,7 @@ class SignalementTile extends StatelessWidget {
                                     refLot: residence)),
                           );
                         },
-                        child: ProfilTile(post.user, 22, 19, 22, true,
+                        child: profilTile(post.user, 22, 19, 22, true,
                             Colors.white, SizeFont.h2.size),
                       ),
                     ),
@@ -93,14 +94,14 @@ class SignalementTile extends StatelessWidget {
                     MyTextStyle.commentDate(post.timeStamp),
                   ],
                 ),
-                post.location_element == ""
+                post.locationElement == ""
                     ? Container()
                     : Row(
                         children: [
                           MyTextStyle.lotName("Localisation : ", Colors.black54,
                               SizeFont.h3.size),
                           MyTextStyle.lotName(
-                              "${post.location_element} ${post.location_floor} ",
+                              "${post.locationElement} ${post.locationFloor} ",
                               Colors.black54,
                               SizeFont.h3.size),
                         ],

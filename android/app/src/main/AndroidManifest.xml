@@ -8,13 +8,13 @@
 
 
     <application
-        android:label="connect_kasa"
+        android:label="Konodal"
          android:name="android.app.Application"
         android:icon="@mipmap/ic_launcher">
        
         <provider
         android:name="androidx.core.content.FileProvider"
-        android:authorities="fr.connectkasa.connect_kasa.fileprovider"
+        android:authorities="com.konodal.app.fileprovider"
         android:exported="false"
         android:grantUriPermissions="true"
         android:permission="android.permission.MANAGE_EXTERNAL_STORAGE">

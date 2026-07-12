@@ -1,24 +1,22 @@
-import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/models/enum/event_type.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/pages_models/contact.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
-import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget.dart';
-import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_post_controller.dart';
+import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/core/repositories/firestore_residence_repository.dart';
+import 'package:konodal/models/enum/event_type.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/contact.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
-import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class EventForm extends StatefulWidget {
   final String residence;
@@ -43,7 +41,6 @@ class EventForm extends StatefulWidget {
 class EventFormState extends State<EventForm> {
   final IResidenceRepository _databaseContactServices =
       FirestoreResidenceRepository();
-  File? _selectedImage;
 
   TextEditingController title = TextEditingController();
   TextEditingController desc = TextEditingController();
@@ -51,6 +48,7 @@ class EventFormState extends State<EventForm> {
   final TextEditingController _timeEventController = TextEditingController();
   String imagePath = "";
   bool anonymPost = false;
+  bool _isSubmitting = false;
   late List<String> labelsCat;
   String idPost = const Uuid().v1();
   DateTime? selectedDate;
@@ -93,7 +91,7 @@ class EventFormState extends State<EventForm> {
   /// Construit le Timestamp en interprétant année/mois/jour/heure/minute
   /// comme une heure de Paris (et non l'heure locale de l'appareil), pour
   /// que l'heure saisie corresponde à l'heure réellement affichée ensuite
-  /// (MyTextStyle.EventHours convertit toujours vers Europe/Paris).
+  /// (MyTextStyle.eventHours convertit toujours vers Europe/Paris).
   Timestamp _parisTimestamp(DateTime date, TimeOfDay time) {
     final paris = tz.getLocation('Europe/Paris');
     final tzDateTime = tz.TZDateTime(
@@ -169,7 +167,7 @@ class EventFormState extends State<EventForm> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ProfilTile(
+                      profilTile(
                         widget.uid,
                         22,
                         19,
@@ -419,7 +417,9 @@ class EventFormState extends State<EventForm> {
                 horizontal: 20,
                 vertical: 5,
                 size: SizeFont.h3.size,
-                function: () async {
+                function: _isSubmitting
+                    ? null
+                    : () async {
                   if (imagePath.isEmpty ||
                       _dateEventController.text.isEmpty ||
                       title.text.isEmpty ||
@@ -437,6 +437,7 @@ class EventFormState extends State<EventForm> {
                     );
                     return;
                   }
+                  setState(() => _isSubmitting = true);
                   try {
                     await SubmitPostController.submitForm(
                       uid: widget.uid,
@@ -453,6 +454,7 @@ class EventFormState extends State<EventForm> {
                     );
                   } catch (e) {
                     if (!context.mounted) return;
+                    setState(() => _isSubmitting = false);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         backgroundColor: Colors.red,

@@ -1,11 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/services/firestore_paths.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/agency_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/agency.dart';
-import 'package:connect_kasa/models/pages_models/agency_dept.dart';
-import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
+import 'package:konodal/controllers/services/firestore_paths.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/agency_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/agency.dart';
+import 'package:konodal/models/pages_models/agency_dept.dart';
+import 'package:konodal/models/pages_models/gerance_ref.dart';
 
 class FirestoreAgencyRepository implements IAgencyRepository {
   final FirebaseFirestore _firestore;
@@ -22,13 +22,13 @@ class FirestoreAgencyRepository implements IAgencyRepository {
 
     try {
       // Recherche par sous-chaîne (n'importe où dans le mail, pas seulement
-      // en préfixe) dans l'index Gerance/{id}/contacts, filtré par type de
+      // en préfixe) dans l'index gerances/{id}/contacts, filtré par type de
       // service ("serviceSyndic", "geranceLocative", ...). Même approche que
       // rechercheFirestore (recherche de résidence à l'inscription) :
       // Firestore ne fait pas de recherche par sous-chaîne nativement, donc
       // on filtre côté client après récupération par serviceType. Cet index
       // est généré automatiquement (Cloud Function sync_gerance_contacts) à
-      // partir du champ Gerance/{id}.services : jamais écrit à la main.
+      // partir du champ gerances/{id}.services : jamais écrit à la main.
       final contactsSnapshot = await _firestore
           .collectionGroup(FirestorePaths.contacts)
           .where('serviceType', isEqualTo: serviceType)
@@ -42,7 +42,7 @@ class FirestoreAgencyRepository implements IAgencyRepository {
       if (matchingDocs.isEmpty) return const Result.success([]);
 
       // Un même cabinet peut matcher plusieurs contacts (service + agents) ;
-      // on ne relit chaque document Gerance parent qu'une seule fois.
+      // on ne relit chaque document gerances parent qu'une seule fois.
       final geranceIds =
           matchingDocs.map((doc) => doc.reference.parent.parent!.id).toSet();
       final geranceDocs = await Future.wait(geranceIds.map(

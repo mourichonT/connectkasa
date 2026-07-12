@@ -1,16 +1,16 @@
 // ignore_for_file: must_be_immutable
 
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/vues/pages_vues/profil_page/show_profil_page.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
-import 'package:connect_kasa/controllers/pages_controllers/my_nav_bar.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/comment_button.dart';
-import 'package:connect_kasa/vues/widget_view/components/like_button_post.dart';
-import 'package:connect_kasa/vues/widget_view/components/share_button.dart';
+import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/comment_button.dart';
+import 'package:konodal/vues/widget_view/components/like_button_post.dart';
+import 'package:konodal/vues/widget_view/components/share_button.dart';
 
 class PostView extends StatefulWidget {
   late Post postOrigin;
@@ -118,7 +118,7 @@ class PostViewState extends State<PostView> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 11),
                       child: MyTextStyle.lotName(
-                          "${widget.postSelected!.title} / ${widget.postSelected!.location_element}",
+                          "${widget.postSelected!.title} / ${widget.postSelected!.locationElement}",
                           Colors.white,
                           SizeFont.h2.size),
                     ),
@@ -152,7 +152,7 @@ class PostViewState extends State<PostView> {
                                       refLot: widget.residence)),
                             );
                           },
-                          child: ProfilTile(widget.postSelected!.user, 22, 19,
+                          child: profilTile(widget.postSelected!.user, 22, 19,
                               22, true, Colors.white, SizeFont.h2.size),
                         ),
                       ),

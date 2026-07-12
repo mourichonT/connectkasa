@@ -1,15 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/generate_ref_user_app.dart';
-import 'package:connect_kasa/controllers/features/income_entry.dart';
-import 'package:connect_kasa/controllers/features/job_entry.dart';
-import 'package:connect_kasa/core/errors/app_exceptions.dart';
-import 'package:connect_kasa/core/repositories/user_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/demande_loc.dart';
-import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
-import 'package:connect_kasa/models/pages_models/user.dart';
-import 'package:connect_kasa/models/pages_models/user_info.dart';
-import 'package:connect_kasa/models/pages_models/user_temp.dart';
+import 'package:konodal/controllers/features/generate_ref_user_app.dart';
+import 'package:konodal/controllers/features/income_entry.dart';
+import 'package:konodal/controllers/features/job_entry.dart';
+import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/demande_loc.dart';
+import 'package:konodal/models/pages_models/guarantor_info.dart';
+import 'package:konodal/models/pages_models/user.dart';
+import 'package:konodal/models/pages_models/user_info.dart';
+import 'package:konodal/models/pages_models/user_temp.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 
 class FirestoreUserRepository implements IUserRepository {
@@ -21,7 +21,7 @@ class FirestoreUserRepository implements IUserRepository {
   @override
   Future<Result<User>> getUserById(String uid) async {
     try {
-      final snapshot = await _firestore.collection('User').doc(uid).get();
+      final snapshot = await _firestore.collection('users').doc(uid).get();
 
       if (!snapshot.exists || snapshot.data() == null) {
         return Result.failure(
@@ -36,7 +36,7 @@ class FirestoreUserRepository implements IUserRepository {
 
   @override
   Stream<Result<User>> watchUserById(String uid) {
-    return _firestore.collection('User').doc(uid).snapshots().map((snapshot) {
+    return _firestore.collection('users').doc(uid).snapshots().map((snapshot) {
       if (!snapshot.exists || snapshot.data() == null) {
         return Result<User>.failure(
             NotFoundException('Utilisateur $uid introuvable'));
@@ -66,7 +66,7 @@ class FirestoreUserRepository implements IUserRepository {
         "informationsCorrectes": informationsCorrectes,
       };
 
-      await _firestore.collection("User").doc(newUser.uid).set(
+      await _firestore.collection("users").doc(newUser.uid).set(
             fullUserData,
             SetOptions(merge: true),
           );
@@ -77,7 +77,7 @@ class FirestoreUserRepository implements IUserRepository {
 
       if (lotId != null) {
         await _firestore
-            .collection("User")
+            .collection("users")
             .doc(newUser.uid)
             .collection("lots")
             .doc(lotId)
@@ -91,7 +91,7 @@ class FirestoreUserRepository implements IUserRepository {
         }, SetOptions(merge: true));
 
         if (residenceId != null) {
-          await _firestore.collection("User").doc(newUser.uid).set({
+          await _firestore.collection("users").doc(newUser.uid).set({
             "residencesIds": FieldValue.arrayUnion([residenceId]),
           }, SetOptions(merge: true));
         }
@@ -110,7 +110,7 @@ class FirestoreUserRepository implements IUserRepository {
   }) async {
     try {
       await _firestore
-          .collection('User')
+          .collection('users')
           .doc(uid)
           .collection('private')
           .doc('fcm')
@@ -129,7 +129,7 @@ class FirestoreUserRepository implements IUserRepository {
     bool? newBool,
   }) async {
     try {
-      final snapshot = await _firestore.collection('User').doc(uid).get();
+      final snapshot = await _firestore.collection('users').doc(uid).get();
       if (!snapshot.exists) {
         return Result.failure(NotFoundException('Utilisateur $uid introuvable'));
       }
@@ -140,7 +140,7 @@ class FirestoreUserRepository implements IUserRepository {
             UnknownException('Aucune valeur spécifiée pour la mise à jour.'));
       }
 
-      await _firestore.collection('User').doc(uid).update({field: newValue});
+      await _firestore.collection('users').doc(uid).update({field: newValue});
       return const Result.success(null);
     } catch (e) {
       return Result.failure(AppException.from(e));
@@ -167,11 +167,11 @@ class FirestoreUserRepository implements IUserRepository {
     List<String> users = [];
     try {
       final documentSnapshot =
-          await _firestore.collection("Residence").doc(residenceId).get();
+          await _firestore.collection("residences").doc(residenceId).get();
 
       if (documentSnapshot.exists) {
         final lotQuerySnapshot =
-            await documentSnapshot.reference.collection("lot").get();
+            await documentSnapshot.reference.collection("lots").get();
 
         for (final lotDoc in lotQuerySnapshot.docs) {
           List<String> idLocataire =
@@ -195,7 +195,7 @@ class FirestoreUserRepository implements IUserRepository {
   Future<Result<UserInfo?>> getUserWithInfo(String userId) async {
     try {
       final userDocRef = await _firestore
-          .collection("User")
+          .collection("users")
           .where("uid", isEqualTo: userId)
           .get();
 
@@ -248,7 +248,7 @@ class FirestoreUserRepository implements IUserRepository {
       String userID, String refLot) async {
     try {
       final lotRef = _firestore
-          .collection("User")
+          .collection("users")
           .doc(userID)
           .collection("lots")
           .doc(refLot);
@@ -272,7 +272,7 @@ class FirestoreUserRepository implements IUserRepository {
   Future<Result<bool>> updateUserInfo(UserInfo updatedUser) async {
     try {
       final userQuery = await _firestore
-          .collection("User")
+          .collection("users")
           .where("uid", isEqualTo: updatedUser.uid)
           .get();
 
@@ -325,7 +325,7 @@ class FirestoreUserRepository implements IUserRepository {
   }) async {
     try {
       final userQuery = await _firestore
-          .collection("User")
+          .collection("users")
           .where("uid", isEqualTo: uid)
           .get();
 
@@ -354,7 +354,7 @@ class FirestoreUserRepository implements IUserRepository {
     final List<GuarantorInfo> garants = [];
     try {
       final userQuery = await _firestore
-          .collection('User')
+          .collection('users')
           .where('uid', isEqualTo: uid)
           .get();
 
@@ -377,7 +377,7 @@ class FirestoreUserRepository implements IUserRepository {
       String uid, String garantId) async {
     try {
       final userQuery = await _firestore
-          .collection('User')
+          .collection('users')
           .where('uid', isEqualTo: uid)
           .get();
 
@@ -399,7 +399,7 @@ class FirestoreUserRepository implements IUserRepository {
   Future<Result<bool>> deleteGarant(String uid, String garantId) async {
     try {
       await _firestore
-          .collection('User')
+          .collection('users')
           .doc(uid)
           .collection('garants')
           .doc(garantId)
@@ -414,7 +414,7 @@ class FirestoreUserRepository implements IUserRepository {
   Future<Result<void>> shareFile(DemandeLoc demande, String uid) async {
     try {
       final docRef = _firestore
-          .collection('User')
+          .collection('users')
           .doc(uid)
           .collection('demandes_loc')
           .doc();
@@ -430,7 +430,7 @@ class FirestoreUserRepository implements IUserRepository {
     List<DemandeLoc> demandes = [];
     try {
       final querySnapshot = await _firestore
-          .collection('User')
+          .collection('users')
           .doc(uid)
           .collection('demandes_loc')
           .get();
@@ -448,7 +448,7 @@ class FirestoreUserRepository implements IUserRepository {
   Future<Result<void>> deleteDemande(String uid, String demandeId) async {
     try {
       await _firestore
-          .collection('User')
+          .collection('users')
           .doc(uid)
           .collection('demandes_loc')
           .doc(demandeId)
@@ -465,7 +465,7 @@ class FirestoreUserRepository implements IUserRepository {
     try {
       if (destinataireEmail != null && destinataireEmail.isNotEmpty) {
         final emailQuery = await _firestore
-            .collection("User")
+            .collection("users")
             .where("email", isEqualTo: destinataireEmail)
             .limit(1)
             .get();
@@ -477,7 +477,7 @@ class FirestoreUserRepository implements IUserRepository {
 
       if (refAPP != null && refAPP.isNotEmpty) {
         final refAppQuery = await _firestore
-            .collection("User")
+            .collection("users")
             .where("refUserApp", isEqualTo: refAPP)
             .limit(1)
             .get();
@@ -507,7 +507,7 @@ class FirestoreUserRepository implements IUserRepository {
   }) async {
     try {
       final userLotRef = _firestore
-          .collection("User")
+          .collection("users")
           .doc(userId)
           .collection("lots")
           .doc(lotId);
@@ -525,7 +525,7 @@ class FirestoreUserRepository implements IUserRepository {
       await userLotRef.set(lotData, SetOptions(merge: true));
 
       if (residenceId != null) {
-        await _firestore.collection("User").doc(userId).set({
+        await _firestore.collection("users").doc(userId).set({
           "residencesIds": FieldValue.arrayUnion([residenceId]),
         }, SetOptions(merge: true));
       }
@@ -541,7 +541,7 @@ class FirestoreUserRepository implements IUserRepository {
       String userId, String demandeId) async {
     try {
       await _firestore
-          .collection('User')
+          .collection('users')
           .doc(userId)
           .collection('demandes_loc')
           .doc(demandeId)

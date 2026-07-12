@@ -1,6 +1,6 @@
 {
-    "name": "connect_kasa",
-    "short_name": "connect_kasa",
+    "name": "konodal",
+    "short_name": "konodal",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

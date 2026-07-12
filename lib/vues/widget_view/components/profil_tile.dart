@@ -1,10 +1,10 @@
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
-import 'package:connect_kasa/controllers/widgets_controllers/format_profil_pic.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/user_by_id_provider.dart';
+import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-Widget ProfilTile(
+Widget profilTile(
     String uid, double radius1, double radius2, double size, bool pseudoHidden,
     [Color? color, double? pseudoFontSize]) {
   final FormatProfilPic formatProfilPic = FormatProfilPic();

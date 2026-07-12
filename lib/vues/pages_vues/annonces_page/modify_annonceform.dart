@@ -1,13 +1,12 @@
-import 'dart:io';
 import 'dart:math';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/storage_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_post_controller.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,8 +29,7 @@ class ModifyAnnonceForm extends ConsumerStatefulWidget {
 
 class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
   late final IStorageRepository _storageServices;
-  File? _selectedImage;
-  final TypeList _CatList = TypeList();
+  final TypeList _catList = TypeList();
 
   late TextEditingController textEditingController;
   TextEditingController title = TextEditingController();
@@ -51,7 +49,7 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
   void initState() {
     super.initState();
     _storageServices = ref.read(storageRepositoryProvider);
-    List<String> declarationType = _CatList.categoryAnnonce();
+    List<String> declarationType = _catList.categoryAnnonce();
     labelsCat = declarationType.asMap().entries.map((entry) {
       return entry.value;
     }).toList();
@@ -128,7 +126,7 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ProfilTile(widget.post.user, 30, 26, 30, true,
+                      profilTile(widget.post.user, 30, 26, 30, true,
                           Colors.black87, SizeFont.h2.size),
                     ],
                   ),
@@ -137,8 +135,7 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        Container(
-                          child: DropdownButtonFormField<String>(
+                        DropdownButtonFormField<String>(
                             padding: const EdgeInsets.symmetric(horizontal: 5),
                             decoration: InputDecoration(
                               isDense: true,
@@ -167,7 +164,6 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                               );
                             }).toList(),
                           ),
-                        ),
                         Padding(
                           padding: const EdgeInsets.only(top: 15),
                           child: Row(
@@ -216,8 +212,7 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                               MyTextStyle.lotName(
                                   "Prix : ", Colors.black87, SizeFont.h3.size),
                               const SizedBox(width: 15),
-                              Container(
-                                child: Row(
+                              Row(
                                   children: [
                                     Container(
                                       padding: const EdgeInsets.symmetric(
@@ -262,7 +257,6 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                                     ),
                                   ],
                                 ),
-                              ),
                             ],
                           ),
                         ),
@@ -315,7 +309,7 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.black.withOpacity(0.5),
+                                color: Colors.black.withValues(alpha: 0.5),
                               ),
                               child: const Icon(
                                 Icons.close,
@@ -351,7 +345,7 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                   ElevatedButton(
                     onPressed: () async {
                       try {
-                        await SubmitPostController.UpdatePost(
+                        await SubmitPostController.updatePost(
                             subtype: categorie,
                             like: widget.post.like,
                             uid: widget.uid,
@@ -397,7 +391,6 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
     setState(() {
       removeImage = false;
       String fileName = "${Random().nextInt(10000)}";
-      _selectedImage = File(returnedImage.path);
       _storageServices
           .uploadImg(returnedImage, "residences", widget.residence,
               "${widget.post.type}/${widget.post.id}", fileName)
@@ -414,7 +407,6 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
     setState(() {
       removeImage = false;
       String fileName = "${Random().nextInt(10000)}";
-      _selectedImage = File(returnedImage.path);
       _storageServices
           .uploadImg(returnedImage, "residences", widget.residence,
               "${widget.post.type}/${widget.post.id}", fileName)

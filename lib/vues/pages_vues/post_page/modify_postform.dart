@@ -1,19 +1,18 @@
-import 'dart:io';
 import 'dart:math';
 
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/core/repositories/residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
-import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/controllers/features/submit_post_controller.dart';
+import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/core/repositories/firestore_residence_repository.dart';
+import 'package:konodal/core/repositories/firestore_storage_repository.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class ModifyPostForm extends StatefulWidget {
   final Post post;
@@ -33,7 +32,6 @@ class ModifyPostForm extends StatefulWidget {
 class ModifyPostFormState extends State<ModifyPostForm> {
   double fontSize = SizeFont.para.size;
   final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
-  File? _selectedImage;
   final TypeList _typeList = TypeList();
   final IResidenceRepository residenceServices =
       FirestoreResidenceRepository();
@@ -93,11 +91,11 @@ class ModifyPostFormState extends State<ModifyPostForm> {
 
         // Initialisation des valeurs sélectionnées en fonction du post actuel
         type = labelsType.contains(widget.post.type) ? widget.post.type : null;
-        localisation = locationElements.contains(widget.post.location_element)
-            ? widget.post.location_element
+        localisation = locationElements.contains(widget.post.locationElement)
+            ? widget.post.locationElement
             : null;
-        etage = locationsFloor.contains(widget.post.location_floor)
-            ? widget.post.location_floor
+        etage = locationsFloor.contains(widget.post.locationFloor)
+            ? widget.post.locationFloor
             : null;
       });
     });
@@ -144,7 +142,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      ProfilTile(widget.post.user, 22, 19, 22, true,
+                      profilTile(widget.post.user, 22, 19, 22, true,
                           Colors.black87, SizeFont.h2.size),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -280,14 +278,14 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                           .map((String itemsElement) {
                         return FilterChip(
                           label: Text(itemsElement),
-                          selected: widget.post.location_details!
+                          selected: widget.post.locationDetails!
                               .contains(itemsElement),
                           onSelected: (bool selected) {
                             setState(() {
                               if (selected) {
-                                widget.post.location_details!.add(itemsElement);
+                                widget.post.locationDetails!.add(itemsElement);
                               } else {
-                                widget.post.location_details!
+                                widget.post.locationDetails!
                                     .remove(itemsElement);
                               }
                             });
@@ -298,18 +296,18 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                   else
                     Wrap(
                       spacing: 5.0,
-                      children: widget.post.location_details!
+                      children: widget.post.locationDetails!
                           .map((String itemsElement) {
                         return FilterChip(
                           label: Text(itemsElement),
-                          selected: widget.post.location_details!
+                          selected: widget.post.locationDetails!
                               .contains(itemsElement),
                           onSelected: (bool selected) {
                             setState(() {
                               if (selected) {
-                                widget.post.location_details!.add(itemsElement);
+                                widget.post.locationDetails!.add(itemsElement);
                               } else {
-                                widget.post.location_details!
+                                widget.post.locationDetails!
                                     .remove(itemsElement);
                               }
                             });
@@ -393,7 +391,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.black.withOpacity(0.5),
+                              color: Colors.black.withValues(alpha: 0.5),
                             ),
                             child: const Icon(
                               Icons.close,
@@ -429,7 +427,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
             ElevatedButton(
               onPressed: () async {
                 try {
-                  await SubmitPostController.UpdatePost(
+                  await SubmitPostController.updatePost(
                     like: widget.post.like,
                     uid: widget.uid,
                     idPost: widget.post.id,
@@ -441,7 +439,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                     docRes: widget.post.refResidence,
                     localisation: localisation,
                     etage: etage,
-                    element: widget.post.location_details!,
+                    element: widget.post.locationDetails!,
                   );
                 } catch (e) {
                   if (!context.mounted) return;
@@ -477,7 +475,6 @@ class ModifyPostFormState extends State<ModifyPostForm> {
       removeImage = !removeImage;
       String fileName = "${widget.post.id}-${Random().nextInt(10000)}";
 
-      _selectedImage = File(returnedImage.path);
       _storageServices
           .uploadImg(returnedImage, "residences", widget.residence,
               widget.post.type, fileName)
@@ -495,7 +492,6 @@ class ModifyPostFormState extends State<ModifyPostForm> {
     if (returnedImage == null) return;
     setState(() {
       removeImage = !removeImage;
-      _selectedImage = File(returnedImage.path);
       _storageServices
           .uploadImg(returnedImage, "residences", widget.residence,
               widget.post.type, fileName)

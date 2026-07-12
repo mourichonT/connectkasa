@@ -8,10 +8,10 @@
 // écrit à la main suffit pour ce cas.
 import 'dart:io';
 
-import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
-import 'package:connect_kasa/core/repositories/storage_repository.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/vues/widget_view/components/camera_files_choices.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';

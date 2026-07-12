@@ -1,4 +1,4 @@
-name: connect_kasa
+name: konodal
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -84,6 +84,9 @@ dependencies:
  
   
 
+  http: ^1.5.0-beta.2
+  path: ^1.9.1
+  flutter_native_splash: ^2.4.6
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -99,9 +102,24 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 flutter_launcher_icons:
   android: true
-  image_path: C:\Dev\connect_kasa\images\assets\K_blanc_vert.png
+  image_path: images/assets/logo_k_icon.png
+  adaptive_icon_background: "#48775B"
+  adaptive_icon_foreground: images/assets/logo_k_icon.png
   ios: true
-  
+  remove_alpha_ios: true
+  background_color_ios: "#48775B"
+
+flutter_native_splash:
+  color: "#48775B"
+  image: images/assets/logo-blanc_horizontal.png
+  android_12:
+    color: "#48775B"
+    # Android 12+ force l'icône du splash natif dans une zone circulaire
+    # (même contrainte que les icônes adaptatives) : le logo complet avec
+    # le texte "KONODAL" y est rogné. On utilise donc le K seul, déjà
+    # conçu pour tenir dans ce cercle (icône de l'app).
+    image: images/assets/logo_k_icon.png
+
 # The following section is specific to Flutter packages.
 flutter:
 
@@ -152,7 +170,6 @@ flutter:
      - images/assets/gif_by_colors/k_loader_rose_255.153.187.gif
      - images/assets/gif_by_colors/k_loader_rose_255.204.229.gif
      - images/assets/logoCK250connectKasa.png
-     - images/assets/logoCKvertconnectKasa.png
      - images/assets/logo_login/google.png
      - images/assets/logo_login/apple-logo.png
      - images/assets/logo_login/microsoft.png

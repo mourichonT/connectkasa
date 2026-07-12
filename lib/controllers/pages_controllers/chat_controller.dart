@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class ChatController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -15,9 +15,9 @@ class ChatController {
       //final chatId = generateChatId(idUserFrom, otherUserId);
 
       final chatDoc = await _firestore
-          .collection("Residence")
+          .collection("residences")
           .doc(residenceId)
-          .collection("chat")
+          .collection("chats")
           .doc(chatId)
           .get();
 
@@ -51,9 +51,9 @@ class ChatController {
     String chatRoomId = ids.join("_");
 
     final docRef = FirebaseFirestore.instance
-        .collection("Residence")
+        .collection("residences")
         .doc(residence)
-        .collection("chat")
+        .collection("chats")
         .doc(chatRoomId);
 
     final docSnapshot = await docRef.get();
@@ -91,9 +91,9 @@ class ChatController {
     required String chatId,
   }) {
     return FirebaseFirestore.instance
-        .collection("Residence")
+        .collection("residences")
         .doc(residenceId)
-        .collection("chat")
+        .collection("chats")
         .doc(chatId)
         .snapshots()
         .map((snapshot) {

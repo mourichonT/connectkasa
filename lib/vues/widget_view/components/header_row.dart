@@ -1,11 +1,10 @@
-import 'package:connect_kasa/controllers/features/Icon_modify_or_delette.dart';
-import 'package:connect_kasa/models/enum/font_setting.dart';
-import 'package:connect_kasa/models/enum/type_list.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/post.dart';
-import 'package:connect_kasa/models/pages_models/residence.dart';
+import 'package:konodal/controllers/features/icon_modify_or_delette.dart';
+import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/post.dart';
 import 'package:flutter/material.dart';
-import 'package:connect_kasa/controllers/features/my_texts_styles.dart'; // Assure-toi que ton style est importé correctement
+import 'package:konodal/controllers/features/my_texts_styles.dart'; // Assure-toi que ton style est importé correctement
 
 // ignore: must_be_immutable
 class CustomHeaderRow extends StatelessWidget {
@@ -54,7 +53,7 @@ class CustomHeaderRow extends StatelessWidget {
           MyTextStyle.statuColor(post.statu!, colorStatut),
           Visibility(
               visible: isCsMember,
-              child: IconModifyOrDelette(post, lot!, context, updatePostsList)),
+              child: iconModifyOrDelette(post, lot, context, updatePostsList)),
         ],
       ),
     );

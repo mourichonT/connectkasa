@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/core/result/result.dart';
-import 'package:connect_kasa/models/pages_models/lot.dart';
-import 'package:connect_kasa/models/pages_models/mail.dart';
+import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/mail.dart';
 
 /// Remplace DatabasesMailServices (Phase 2 du chantier architecture).
 abstract interface class IMailRepository {

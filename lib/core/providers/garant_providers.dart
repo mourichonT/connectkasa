@@ -1,6 +1,6 @@
-import 'package:connect_kasa/core/providers/current_user_provider.dart';
-import 'package:connect_kasa/core/providers/docs_repository_provider.dart';
-import 'package:connect_kasa/models/pages_models/guarantor_info.dart';
+import 'package:konodal/core/providers/current_user_provider.dart';
+import 'package:konodal/core/providers/docs_repository_provider.dart';
+import 'package:konodal/models/pages_models/guarantor_info.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Garants d'un utilisateur (ManagementGarants). ref.invalidate(...)
