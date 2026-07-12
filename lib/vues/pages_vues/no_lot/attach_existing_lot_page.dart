@@ -10,6 +10,7 @@ import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/document_model.dart';
 import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
 import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step1.dart';
@@ -243,10 +244,13 @@ class _AttachExistingLotPageState
             onPressed: () => showDialog(
               context: context,
               builder: (_) => AlertDialog(
-                title: const Text("Vous ne trouvez pas votre résidence ?"),
-                content: const Text(
+                title: MyTextStyle.lotName("Vous ne trouvez pas votre résidence ?",
+                    Colors.black87, SizeFont.h2.size),
+                content: MyTextStyle.annonceDesc(
                     "Contactez notre support, votre résidence n'a peut-être "
-                    "pas encore été créée dans l'application."),
+                    "pas encore été créée dans l'application.",
+                    SizeFont.h3.size,
+                    3),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -338,15 +342,21 @@ class _JustificatifStepState extends State<_JustificatifStep> {
         : TypeList.justifTypeProps;
 
     return Scaffold(
-      body: SingleChildScrollView(
+      body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               MyTextStyle.lotName(
                   "Fournissez un justificatif de domicile pour ce lot",
-                  Colors.black54),
+                  Colors.black54,
+                  null,
+                  null,
+                  null,
+                  null,
+                  TextAlign.center),
               const SizedBox(height: 30),
               MyDropDownMenu(
                 width,
@@ -389,12 +399,18 @@ class _JustificatifStepState extends State<_JustificatifStep> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              onPressed: (visibleJustif && imagePathJustif.isNotEmpty)
+            ButtonAdd(
+              color: Theme.of(context).primaryColor.withValues(
+                  alpha:
+                      (visibleJustif && imagePathJustif.isNotEmpty) ? 1.0 : 0.5),
+              text: "Soumettre",
+              horizontal: 20,
+              vertical: 5,
+              size: SizeFont.h2.size,
+              function: (visibleJustif && imagePathJustif.isNotEmpty)
                   ? () => widget.onSubmit(
                       justifChoice, imagePathJustif, justifExtension)
                   : null,
-              child: const Text("Soumettre"),
             ),
           ],
         ),

@@ -66,10 +66,12 @@ class MyTextStyle {
       [double? size,
       FontWeight? fontweight,
       TextOverflow? overflow,
-      int? maxLines]) {
+      int? maxLines,
+      TextAlign? textAlign]) {
     return Text(text,
         overflow: overflow,
         maxLines: maxLines,
+        textAlign: textAlign,
         style: GoogleFonts.robotoCondensed(
           fontWeight: fontweight ?? FontWeight.w600,
           fontSize: size ?? SizeFont.h3.size,
