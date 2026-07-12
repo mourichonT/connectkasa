@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class ColorProvider with ChangeNotifier {
-  Color _color = const Color.fromRGBO(72, 119, 91, 1); // Couleur par défaut
+  static const Color defaultColor = Color.fromRGBO(72, 119, 91, 1);
+
+  Color _color = defaultColor;
 
   Color get color => _color;
 

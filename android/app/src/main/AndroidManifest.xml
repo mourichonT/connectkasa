@@ -49,6 +49,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Désactive Impeller (retour au moteur Skia) : suspecté de mal
+             décoder/composer les GIF animés colorés du loader (couleur
+             incorrecte, affichage abîmé). À retirer si ce n'est pas la
+             cause, ou à garder si ça règle le problème. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
         <!-- Ajoutez la clé API Google Maps ici -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"

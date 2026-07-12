@@ -133,6 +133,24 @@ flutter:
      - images/assets/logo_by_colors/logoRose255.204.229.png
      - images/assets/logoCK.png
      - images/assets/CK.png
+     - images/assets/gif_by_colors/k_loader_rouge_204.51.51.gif
+     - images/assets/gif_by_colors/k_loader_rouge_255.102.102.gif
+     - images/assets/gif_by_colors/k_loader_rouge_255.153.153.gif
+     - images/assets/gif_by_colors/k_loader_orange_255.153.51.gif
+     - images/assets/gif_by_colors/k_loader_orange_255.187.102.gif
+     - images/assets/gif_by_colors/k_loader_orange_255.204.153.gif
+     - images/assets/gif_by_colors/k_loader_vert_72.119.91.gif
+     - images/assets/gif_by_colors/k_loader_vert_102.153.122.gif
+     - images/assets/gif_by_colors/k_loader_vert_132.170.143.gif
+     - images/assets/gif_by_colors/k_loader_bleue_0.51.102.gif
+     - images/assets/gif_by_colors/k_loader_bleue_51.102.153.gif
+     - images/assets/gif_by_colors/k_loader_bleue_102.153.204.gif
+     - images/assets/gif_by_colors/k_loader_pourpre_102.51.102.gif
+     - images/assets/gif_by_colors/k_loader_pourpre_153.102.153.gif
+     - images/assets/gif_by_colors/k_loader_pourpre_204.153.204.gif
+     - images/assets/gif_by_colors/k_loader_rose_255.102.153.gif
+     - images/assets/gif_by_colors/k_loader_rose_255.153.187.gif
+     - images/assets/gif_by_colors/k_loader_rose_255.204.229.gif
      - images/assets/logoCK250connectKasa.png
      - images/assets/logoCKvertconnectKasa.png
      - images/assets/logo_login/google.png

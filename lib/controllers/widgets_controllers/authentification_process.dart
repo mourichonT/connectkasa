@@ -1,21 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connect_kasa/controllers/features/load_user_controller.dart';
 import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
-import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
+import 'package:connect_kasa/core/errors/app_exceptions.dart';
 import 'package:connect_kasa/core/repositories/user_repository.dart';
 import 'package:connect_kasa/core/repositories/firestore_user_repository.dart';
+import 'package:connect_kasa/core/result/result.dart';
 import 'package:connect_kasa/vues/pages_vues/no_approval_page.dart';
-import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
-import 'package:firebase_auth/firebase_auth.dart' as Firebase;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connect_kasa/controllers/features/load_user_controller.dart';
-import 'package:connect_kasa/controllers/handlers/api/flutter_api.dart';
-import 'package:connect_kasa/controllers/pages_controllers/my_app.dart';
-import 'package:connect_kasa/vues/pages_vues/no_approval_page.dart';
+import 'package:connect_kasa/vues/pages_vues/login_transition_page.dart';
 import 'package:connect_kasa/controllers/handlers/progress_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart' as Firebase;
 import 'package:firebase_auth/firebase_auth.dart';
@@ -35,57 +26,53 @@ class AuthentificationProcess {
   });
 
   final IUserRepository _userDataBases = FirestoreUserRepository();
-  Future<Firebase.User?> fluttLogInWithGoogle() async {
+
+  /// Ouvre le sélecteur de compte Google directement (pas de loader
+  /// avant : on ne veut pas de flash d'écran entre le clic et la
+  /// modal). Le loader (LoginTransitionPage) n'est poussé qu'une fois
+  /// un compte choisi, pour couvrir le seul aller-retour réseau qui
+  /// restait visible sur l'écran de connexion : l'échange des jetons
+  /// Google contre des identifiants Firebase.
+  Future<void> fluttLogInWithGoogle() async {
     try {
-      // 1. Déconnexion de Firebase et Google
       await FirebaseAuth.instance.signOut();
-      await GoogleSignIn()
-          .signOut(); // <- Assure-toi d'importer 'google_sign_in'
+      final googleSignIn = GoogleSignIn();
+      await googleSignIn.signOut();
 
-      // 2. Lancer l'authentification avec Google
-      await loadUserController
-          .loadUserDataGoogle(); // <- fait la connexion Google et l'auth avec Firebase
-
-      // 3. Récupérer l'utilisateur connecté via Firebase
-      final user = FirebaseAuth.instance.currentUser;
-
-      if (user == null) {
-        appLog("Aucun utilisateur Google authentifié.");
-        return null;
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        appLog("Connexion Google annulée par l'utilisateur.");
+        return;
       }
 
-      final uid = user.uid;
-      final email = user.email;
-
-      appLog("✅ Compte Google connecté : UID=$uid | EMAIL=$email");
-
-      // 4. Chercher dans Firestore si l'utilisateur existe
-      final userData = await _userDataBases
-          .getUserById(uid)
-          .then((result) => result.when(
-              success: (v) => v, failure: (error) => throw error));
-
-      if (userData != null && userData.approved == true) {
-        navigateToMyApp(uid, firestore);
-        return user;
-      } else if (userData != null && userData.approved == false) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => NoApprovalPage(),
+      if (!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => LoginTransitionPage(
+            firestore: firestore,
+            googleSignInTask: () => _completeGoogleSignIn(googleUser),
           ),
-        );
-        return null;
-      } else {
-        // L'utilisateur n'existe pas encore dans Firestore
-        appLog("🚨 Utilisateur non trouvé dans Firestore → Redirection Step0");
-
-        navigateToStep0(user);
-        return null;
-      }
+        ),
+      );
     } catch (e) {
       appLog("❌ Erreur lors de la connexion Google : $e");
-      return null;
+    }
+  }
+
+  Future<Result<UserCredential>> _completeGoogleSignIn(
+      GoogleSignInAccount googleUser) async {
+    try {
+      final googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      final userCredential =
+          await FirebaseAuth.instance.signInWithCredential(credential);
+      return Result.success(userCredential);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
     }
   }
 
@@ -225,14 +212,15 @@ class AuthentificationProcess {
     }
   }
 
-  void navigateToMyApp(String userID, FirebaseFirestore firestore) {
-    initUserFcmToken(userID);
+  void navigateToMyApp(String userID, FirebaseFirestore firestore,
+      {String? email}) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => MyApp2(
+        builder: (context) => LoginTransitionPage(
           firestore: firestore,
           uid: userID,
+          emailUser: email,
         ),
       ),
     );

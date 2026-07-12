@@ -29,6 +29,7 @@ import 'package:connect_kasa/vues/pages_vues/profil_page/profile_page_view.dart'
 import 'package:connect_kasa/vues/widget_view/page_widget/my_bottomnavbar_view.dart';
 import 'package:connect_kasa/vues/widget_view/page_widget/lot_bottom_sheet.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class MyNavBar extends StatefulWidget {
   final String uid;
@@ -104,12 +105,22 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
           .getFirstLotByUserId(widget.uid)
           .then((result) =>
               result.when(success: (v) => v, failure: (error) => throw error));
-      final color = _defaultLot.userLotDetails['colorSelected'];
-      if (color != null) {
-        Provider.of<ColorProvider>(context, listen: false).updateColor(color);
-      }
     }
-    _updateCsMemberStatus(_preferedLot ?? _defaultLot);
+
+    // Applique la couleur du lot actif (préféré si connu, sinon le
+    // premier lot de l'utilisateur) - avant, cet appel était fait
+    // uniquement dans le cas "pas de lot préféré" ci-dessus, donc la
+    // couleur restait celle par défaut (#48775B) dès qu'un lot préféré
+    // était résolu depuis le cache (SharedPreferences) - le cas normal
+    // après une reconnexion, une fois "lot préféré" scopé par uid et
+    // persistant entre les sessions.
+    final activeLot = _preferedLot ?? _defaultLot;
+    final color = activeLot.userLotDetails['colorSelected'];
+    if (color != null && mounted) {
+      Provider.of<ColorProvider>(context, listen: false).updateColor(color);
+    }
+
+    _updateCsMemberStatus(activeLot);
     setState(() => _hasNoLot = false);
 
     // Lance l'écoute des messages ici, une fois résidence connue
@@ -172,19 +183,6 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
       ),
     );
   }
-
-  // void _showLotSelector() {
-  //   showModalBottomSheet(
-  //     context: context,
-  //     backgroundColor: Colors.white,
-  //     showDragHandle: true,
-  //     builder: (_) => LotBottomSheet(
-  //         uid: widget.uid,
-  //         selectedLot: _preferedLot ?? _defaultLot,
-  //         onRefresh: _initializeLot,
-  //         lots: _lotsList ?? []),
-  //   );
-  // }
 
   Widget _buildNoLotScreen(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -395,7 +393,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                           children: [
                             Image.asset(
                               SetLogoColor.getLogoPath(lotColor),
-                              width: MediaQuery.of(context).size.width / 2.5,
+                              width: MediaQuery.of(context).size.width / 3,
                               fit: BoxFit.fitWidth,
                             ),
                             Builder(
@@ -449,7 +447,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
 
       // END DRAWER
       endDrawer: _lotsList == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AppLoader())
           : ProfilePage(
               uid: widget.uid,
               idLot: lot.id!,
