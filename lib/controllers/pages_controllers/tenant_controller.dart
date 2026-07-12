@@ -9,6 +9,7 @@ import 'package:connect_kasa/vues/pages_vues/manage_app/guarantor_detail.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class TenantController extends StatefulWidget {
   final UserInfo tenant;
@@ -81,7 +82,7 @@ class _TenantControllerState extends State<TenantController> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(child: AppLoader()),
           );
         }
 

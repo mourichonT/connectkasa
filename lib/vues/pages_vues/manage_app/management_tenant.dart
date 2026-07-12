@@ -12,6 +12,7 @@ import 'package:connect_kasa/models/pages_models/user_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class ManagementTenant extends StatefulWidget {
   final Color color;
@@ -204,7 +205,7 @@ class ManagementTenantState extends State<ManagementTenant>
               future: _lotByUser,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: AppLoader());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Erreur: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -215,7 +216,7 @@ class ManagementTenantState extends State<ManagementTenant>
                     builder: (context, tenantsSnapshot) {
                       if (tenantsSnapshot.connectionState ==
                           ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(child: AppLoader());
                       } else if (tenantsSnapshot.hasError) {
                         return Center(
                             child: Text('Erreur: ${tenantsSnapshot.error}'));
@@ -289,7 +290,7 @@ class ManagementTenantState extends State<ManagementTenant>
               builder: (context, demandesSnapshot) {
                 if (demandesSnapshot.connectionState ==
                     ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: AppLoader());
                 } else if (demandesSnapshot.hasError) {
                   return Center(
                       child: Text('Erreur: ${demandesSnapshot.error}'));
@@ -373,7 +374,7 @@ class ManagementTenantState extends State<ManagementTenant>
               future: formerTenantsAndLots,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: AppLoader());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Erreur: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {

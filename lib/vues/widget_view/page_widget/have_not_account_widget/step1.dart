@@ -3,6 +3,7 @@ import 'package:connect_kasa/models/pages_models/residence.dart';
 import 'package:flutter/material.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:connect_kasa/core/repositories/firestore_residence_repository.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class Step1 extends StatefulWidget {
   final Function(Residence) recupererInformationsStep1;
@@ -75,7 +76,7 @@ class _Step1State extends State<Step1> {
                     future: saisieAsyncFunction(_addressController.text),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(child: AppLoader());
                       } else {
                         return AutoCompleteTextField<String>(
                           controller: _addressController,

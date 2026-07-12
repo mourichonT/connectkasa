@@ -8,6 +8,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/core/repositories/firestore_mail_repository.dart';
 import 'package:connect_kasa/models/pages_models/mail.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class CardContactView extends StatefulWidget {
   final Lot selectedlot;
@@ -91,7 +92,7 @@ class _CardContactViewState extends State<CardContactView> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: AppLoader(),
           );
         } else if (snapshot.hasError) {
           return Center(

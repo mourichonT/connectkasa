@@ -13,6 +13,7 @@ import 'package:connect_kasa/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class TenantDetailWithHeader extends StatefulWidget {
   final UserInfo tenant;
@@ -375,7 +376,7 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
       future: _documentsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: AppLoader());
         } else if (snapshot.hasError) {
           return Center(child: Text('Erreur : ${snapshot.error}'));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {

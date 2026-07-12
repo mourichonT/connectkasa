@@ -10,6 +10,7 @@ import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class ChatPage extends StatefulWidget {
   final String residence;
@@ -157,7 +158,7 @@ class ChatPageState extends State<ChatPage> {
           return Text("Error ${snapshot.error}");
         }
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: AppLoader());
         }
 
         return snapshot.data!.when(

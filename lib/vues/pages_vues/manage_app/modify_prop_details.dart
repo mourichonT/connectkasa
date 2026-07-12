@@ -1,15 +1,16 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
+import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
 import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ModifyPropDetails extends StatefulWidget {
+class ModifyPropDetails extends ConsumerStatefulWidget {
   final Lot lot;
   final String idLotSelected;
   final String uid;
@@ -22,11 +23,11 @@ class ModifyPropDetails extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => ModifyPropDetailsState();
+  ConsumerState<ModifyPropDetails> createState() => ModifyPropDetailsState();
 }
 
-class ModifyPropDetailsState extends State<ModifyPropDetails> {
-  ILotRepository lotServices = FirestoreLotRepository();
+class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
+  late final ILotRepository lotServices;
 
   TextEditingController name = TextEditingController();
   String? selectedStatut;
@@ -39,6 +40,7 @@ class ModifyPropDetailsState extends State<ModifyPropDetails> {
   @override
   void initState() {
     super.initState();
+    lotServices = ref.read(lotRepositoryProvider);
     isProprietaire = widget.lot.idProprietaire?.contains(widget.uid) ?? false;
     nameFocusNode.addListener(() => setState(() {}));
     name.addListener(_handleTextChange);

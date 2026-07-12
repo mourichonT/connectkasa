@@ -8,6 +8,7 @@ import 'package:connect_kasa/core/repositories/firestore_residence_repository.da
 import 'package:connect_kasa/controllers/widgets_controllers/my_multiselected_dropdown.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 typedef FilterCallback = void Function({
   required List<String?> locationElement,
@@ -101,7 +102,7 @@ class FilterAllPostControllerState extends State<FilterAllPostController> {
                 future: _allLocationsFuture,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator();
+                    return const AppLoader();
                   } else if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');
                   } else {

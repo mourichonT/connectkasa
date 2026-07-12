@@ -12,6 +12,7 @@ import 'package:connect_kasa/vues/widget_view/components/image_annonce.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class ShowProfilPage extends ConsumerWidget {
   final String uid;
@@ -32,7 +33,7 @@ class ShowProfilPage extends ConsumerWidget {
     return userAsync.when(
       loading: () => const Scaffold(
         backgroundColor: Colors.white,
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: AppLoader()),
       ),
       error: (error, stackTrace) => const Scaffold(
         backgroundColor: Colors.white,
@@ -245,7 +246,7 @@ class ShowProfilPage extends ConsumerWidget {
       return postsAsync.when(
         loading: () => const Padding(
           padding: EdgeInsets.only(top: 30),
-          child: Center(child: CircularProgressIndicator()),
+          child: Center(child: AppLoader()),
         ),
         error: (error, stackTrace) =>
             const Center(child: Text("Aucune publication disponible.")),

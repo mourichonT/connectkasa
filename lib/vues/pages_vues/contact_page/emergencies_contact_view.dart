@@ -7,6 +7,7 @@ import 'package:connect_kasa/core/repositories/firestore_residence_repository.da
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class EmergenciesContactsView extends StatelessWidget {
   final IResidenceRepository _databaseContactServices =
@@ -26,7 +27,7 @@ class EmergenciesContactsView extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             // Affichez un indicateur de chargement si les données ne sont pas encore disponibles
             return const Center(
-              child: CircularProgressIndicator(),
+              child: AppLoader(),
             );
           } else if (snapshot.hasError) {
             // Gérez les erreurs ici

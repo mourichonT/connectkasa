@@ -12,6 +12,7 @@ import 'package:connect_kasa/vues/pages_vues/post_page/sinistre_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class AnnoncesPageView extends ConsumerStatefulWidget {
   final String residenceSelected;
@@ -146,7 +147,7 @@ class AnnoncesPageViewState extends ConsumerState<AnnoncesPageView>
           ),
         Expanded(
           child: postsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
+            loading: () => const Center(child: AppLoader()),
             error: (error, stackTrace) => Text('Erreur : $error'),
             data: (allPosts) {
               return TabBarView(

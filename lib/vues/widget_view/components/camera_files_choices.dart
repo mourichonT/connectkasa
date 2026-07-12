@@ -1,14 +1,17 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
+import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
+import 'package:connect_kasa/core/repositories/storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
-class CameraOrFiles extends StatefulWidget {
+class CameraOrFiles extends ConsumerStatefulWidget {
   final String racineFolder;
   final String residence;
   final String folderName;
@@ -40,15 +43,21 @@ class CameraOrFiles extends StatefulWidget {
   });
 
   @override
-  CameraOrFilesState createState() => CameraOrFilesState();
+  ConsumerState<CameraOrFiles> createState() => CameraOrFilesState();
 }
 
-class CameraOrFilesState extends State<CameraOrFiles> {
+class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
   final ImagePicker _picker = ImagePicker();
-  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
+  late final IStorageRepository _storageServices;
   final String fileName = const Uuid().v4();
   File? _selectedImage;
   bool isCameraOpen = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _storageServices = ref.read(storageRepositoryProvider);
+  }
 
   /// Dossier Storage effectif : ajoute widget.fileName comme sous-dossier
   /// de widget.folderName quand il est fourni (ex: id du post), pour isoler
@@ -328,7 +337,7 @@ class CameraOrFilesState extends State<CameraOrFiles> {
               child: Container(
                 color: Colors.black45,
                 child: const Center(
-                  child: CircularProgressIndicator(),
+                  child: AppLoader(),
                 ),
               ),
             ),

@@ -7,6 +7,7 @@ import 'package:connect_kasa/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class Step3 extends ConsumerStatefulWidget {
   final Residence residence;
@@ -90,7 +91,7 @@ class _Step3State extends ConsumerState<Step3> {
               future: _typeLotFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const CircularProgressIndicator();
+                  return const AppLoader();
                 } else if (snapshot.hasError) {
                   return Text("Error: ${snapshot.error}");
                 } else {
@@ -125,7 +126,7 @@ class _Step3State extends ConsumerState<Step3> {
                   future: _typeBatFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
+                      return const AppLoader();
                     } else if (snapshot.hasError) {
                       return Text("Error: ${snapshot.error}");
                     } else {
@@ -165,7 +166,7 @@ class _Step3State extends ConsumerState<Step3> {
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const AppLoader();
                         } else if (snapshot.hasError) {
                           return Text("Error: ${snapshot.error}");
                         } else {

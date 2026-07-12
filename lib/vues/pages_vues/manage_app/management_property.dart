@@ -1,7 +1,7 @@
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
+import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
 import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
@@ -9,8 +9,10 @@ import 'package:connect_kasa/vues/pages_vues/manage_app/modify_propoerty.dart';
 import 'package:connect_kasa/vues/pages_vues/no_lot/attach_existing_lot_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
-class ManagementProperty extends StatefulWidget {
+class ManagementProperty extends ConsumerStatefulWidget {
   final String uid;
   final String idLot;
   final Color color;
@@ -21,19 +23,20 @@ class ManagementProperty extends StatefulWidget {
       required this.uid,
       required this.idLot});
   @override
-  ManagementPropertyState createState() => ManagementPropertyState();
+  ConsumerState<ManagementProperty> createState() =>
+      ManagementPropertyState();
 }
 
-class ManagementPropertyState extends State<ManagementProperty> {
+class ManagementPropertyState extends ConsumerState<ManagementProperty> {
   late Color _backgroundColor;
   late Future<List<Lot?>> _lotByUser;
-
-  final ILotRepository _databasesLotServices = FirestoreLotRepository();
+  late final ILotRepository _databasesLotServices;
 
   Map<String, Color> _lotColors = {};
 
   @override
   void initState() {
+    _databasesLotServices = ref.read(lotRepositoryProvider);
     _lotByUser = _databasesLotServices
         .getLotByIdUser(widget.uid)
         .then((result) =>
@@ -70,7 +73,7 @@ class ManagementPropertyState extends State<ManagementProperty> {
           future: _lotByUser,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: AppLoader());
             } else if (snapshot.hasError) {
               return Center(child: Text('Erreur: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {

@@ -5,12 +5,15 @@ import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
+import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
+import 'package:connect_kasa/core/repositories/storage_repository.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
-class PhotoForId extends StatefulWidget {
+class PhotoForId extends ConsumerStatefulWidget {
   final String racineFolder;
   final String residence;
   final String folderName;
@@ -36,9 +39,10 @@ class PhotoForId extends StatefulWidget {
   PhotoForIdState createState() => PhotoForIdState();
 }
 
-class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
+class PhotoForIdState extends ConsumerState<PhotoForId>
+    with WidgetsBindingObserver {
   final ImagePicker _picker = ImagePicker();
-  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
+  late final IStorageRepository _storageServices;
   final FirebaseFunctions _functions = FirebaseFunctions.instance;
   String fileName = const Uuid().v4();
   File? _selectedImage;
@@ -48,6 +52,7 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _storageServices = ref.read(storageRepositoryProvider);
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -245,7 +250,7 @@ class PhotoForIdState extends State<PhotoForId> with WidgetsBindingObserver {
           borderRadius: BorderRadius.circular(10),
         ),
         child: _isProcessing
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: AppLoader())
             : _selectedImage != null
                 ? Image.file(_selectedImage!, fit: BoxFit.cover)
                 : const Icon(Icons.add_a_photo, size: 50, color: Colors.grey),

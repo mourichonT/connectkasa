@@ -9,6 +9,7 @@ import 'package:connect_kasa/models/pages_models/mail.dart';
 import 'package:connect_kasa/vues/widget_view/components/chat_bubble.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class MailChatPage extends StatefulWidget {
   final String agencyName;
@@ -110,7 +111,7 @@ class MailChatPageState extends State<MailChatPage> {
             return Text("Error ${snapshot.error}");
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const CircularProgressIndicator();
+            return const AppLoader();
           }
 
           final result = snapshot.data!;

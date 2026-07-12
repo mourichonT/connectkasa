@@ -1,11 +1,13 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
+import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
+import 'package:connect_kasa/core/repositories/storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/models/pages_models/post_style.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +19,7 @@ import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
 
-class ModifyAskingNeighborsForm extends StatefulWidget {
+class ModifyAskingNeighborsForm extends ConsumerStatefulWidget {
   final Post post;
   final String residence;
   final String uid;
@@ -29,10 +31,13 @@ class ModifyAskingNeighborsForm extends StatefulWidget {
       required this.uid});
 
   @override
-  State<StatefulWidget> createState() => ModifyAskingNeighborsFormState();
+  ConsumerState<ModifyAskingNeighborsForm> createState() =>
+      ModifyAskingNeighborsFormState();
 }
 
-class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
+class ModifyAskingNeighborsFormState
+    extends ConsumerState<ModifyAskingNeighborsForm> {
+  late final IStorageRepository _storageRepository;
   TextEditingController desc = TextEditingController();
   final ButtonStyle style =
       ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20));
@@ -131,6 +136,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
   @override
   void initState() {
     super.initState();
+    _storageRepository = ref.read(storageRepositoryProvider);
     _selectedColor = _selectedColor =
         getColorFromString(widget.post.style?.backgroundColor ?? "");
     _selectedImagePath = widget.post.style?.backgroundImage ?? "";
@@ -544,7 +550,7 @@ class ModifyAskingNeighborsFormState extends State<ModifyAskingNeighborsForm> {
                       Uint8List pngBytes = await _capturePng();
                       File file = await _saveImage(pngBytes);
 
-                      imageUrl = await FirestoreStorageRepository()
+                      imageUrl = await _storageRepository
                           .uploadImg(
                             XFile(file.path),
                             "residences",

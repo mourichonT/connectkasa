@@ -2,8 +2,8 @@ import 'package:connect_kasa/controllers/features/load_prefered_data.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/handlers/colors_utils.dart';
 import 'package:connect_kasa/controllers/providers/name_lot_provider.dart';
+import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
 import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/pages_vues/manage_app/modify_prop_details.dart';
@@ -13,9 +13,10 @@ import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget
 import 'package:connect_kasa/vues/widget_view/page_widget/color_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart' hide Provider, Consumer;
 import 'package:provider/provider.dart';
 
-class ModifyProperty extends StatefulWidget {
+class ModifyProperty extends ConsumerStatefulWidget {
   final Lot lot;
   final String idLotSelected;
   final String uid;
@@ -30,11 +31,11 @@ class ModifyProperty extends StatefulWidget {
   });
 
   @override
-  State<ModifyProperty> createState() => _ModifyPropertyState();
+  ConsumerState<ModifyProperty> createState() => _ModifyPropertyState();
 }
 
-class _ModifyPropertyState extends State<ModifyProperty> {
-  final ILotRepository lotServices = FirestoreLotRepository();
+class _ModifyPropertyState extends ConsumerState<ModifyProperty> {
+  late final ILotRepository lotServices;
   final TextEditingController name = TextEditingController();
   final FocusNode nameFocusNode = FocusNode();
 
@@ -45,6 +46,7 @@ class _ModifyPropertyState extends State<ModifyProperty> {
   @override
   void initState() {
     super.initState();
+    lotServices = ref.read(lotRepositoryProvider);
     isProprietaire = widget.lot.idProprietaire?.contains(widget.uid) ?? false;
     nameFocusNode.addListener(() => setState(() {}));
     name.addListener(_handleTextChange);

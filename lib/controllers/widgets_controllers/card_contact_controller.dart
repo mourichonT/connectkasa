@@ -5,6 +5,7 @@ import 'package:connect_kasa/models/pages_models/gerance_ref.dart';
 import 'package:connect_kasa/models/pages_models/lot.dart';
 import 'package:connect_kasa/vues/widget_view/components/card_contact_view.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 /// Affiche le contact syndic (résidence/bâtiment) ou gérance locative (lot).
 /// Prend directement soit une Agency déjà résolue (cas custom, non
@@ -32,7 +33,7 @@ class CardContactController extends StatelessWidget {
         future: FirestoreAgencyRepository().resolveRef(geranceRef!),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: AppLoader());
           }
           final resolvedAgency = snapshot.data
               ?.when(success: (agency) => agency, failure: (_) => null);

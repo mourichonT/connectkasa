@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 /// Levée quand l'utilisateur annule la procédure (dialogue de mot de passe
 /// fermé, ou Google Sign-In annulé) pendant la ré-authentification.
@@ -19,7 +20,7 @@ class DeleteAccount {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) =>
-          const Center(child: CircularProgressIndicator()),
+          const Center(child: AppLoader()),
     );
 
     try {

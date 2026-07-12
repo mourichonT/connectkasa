@@ -8,6 +8,7 @@ import 'package:connect_kasa/vues/pages_vues/post_page/sinistre_tile.dart';
 import 'package:connect_kasa/controllers/pages_controllers/filter_allpost_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class SinistrePageView extends ConsumerStatefulWidget {
   final String residenceId;
@@ -199,7 +200,7 @@ class SinistrePageViewState extends ConsumerState<SinistrePageView>
                 children: <Widget>[
                   postsAsync.when(
                     loading: () =>
-                        const Center(child: CircularProgressIndicator()),
+                        const Center(child: AppLoader()),
                     error: (error, stackTrace) => Text('Error: $error'),
                     data: (paginated) {
                       final allPosts = paginated.posts;
@@ -212,7 +213,7 @@ class SinistrePageViewState extends ConsumerState<SinistrePageView>
                           if (index >= allPosts.length) {
                             return const Padding(
                               padding: EdgeInsets.symmetric(vertical: 20),
-                              child: Center(child: CircularProgressIndicator()),
+                              child: Center(child: AppLoader()),
                             );
                           }
                           final post = allPosts[index];
@@ -238,7 +239,7 @@ class SinistrePageViewState extends ConsumerState<SinistrePageView>
                   ),
                   signalementsAsync.when(
                     loading: () =>
-                        const Center(child: CircularProgressIndicator()),
+                        const Center(child: AppLoader()),
                     error: (error, stackTrace) => Text('Error: $error'),
                     data: (paginated) {
                       final allPosts = paginated.posts;
@@ -252,7 +253,7 @@ class SinistrePageViewState extends ConsumerState<SinistrePageView>
                           if (index >= allPosts.length) {
                             return const Padding(
                               padding: EdgeInsets.symmetric(vertical: 20),
-                              child: Center(child: CircularProgressIndicator()),
+                              child: Center(child: AppLoader()),
                             );
                           }
                           Post post = allPosts[index];

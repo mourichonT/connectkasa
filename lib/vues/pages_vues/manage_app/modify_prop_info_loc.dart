@@ -3,8 +3,8 @@ import 'package:connect_kasa/controllers/features/agency_search_flow.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/search_agency_module.dart';
 import 'package:connect_kasa/core/providers/agency_search_flow_provider.dart';
+import 'package:connect_kasa/core/providers/lot_repository_provider.dart';
 import 'package:connect_kasa/core/repositories/lot_repository.dart';
-import 'package:connect_kasa/core/repositories/firestore_lot_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/statut_list.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
@@ -33,7 +33,7 @@ class ModifyPropInfoLoc extends ConsumerStatefulWidget {
 }
 
 class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
-  ILotRepository lotServices = FirestoreLotRepository();
+  late final ILotRepository lotServices;
 
   //TextEditingController nameSyndic = TextEditingController();
   String? selectedStatut;
@@ -66,6 +66,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
   @override
   void initState() {
     super.initState();
+    lotServices = ref.read(lotRepositoryProvider);
     _flow = ref.read(agencySearchFlowProvider('geranceLocative'));
     _initFields();
     isProprietaire = widget.lot.idProprietaire?.contains(widget.uid) ?? false;

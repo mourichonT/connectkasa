@@ -14,6 +14,7 @@ import 'package:connect_kasa/vues/widget_view/page_widget/chat_page_widget/messa
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class SubtitleMessage extends ConsumerStatefulWidget {
   final String residence;
@@ -246,7 +247,7 @@ class _SubtitleMessageState extends ConsumerState<SubtitleMessage>
                 builder: (context, AsyncSnapshot<List<User>> snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(
-                      child: CircularProgressIndicator(),
+                      child: AppLoader(),
                     );
                   } else if (snapshot.hasError) {
                     return Text('Error: ${snapshot.error}');

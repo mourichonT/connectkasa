@@ -16,6 +16,7 @@ import 'package:connect_kasa/vues/widget_view/components/custom_textfield_widget
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class ManagementResInfoG extends ConsumerStatefulWidget {
   final Residence residence;
@@ -309,7 +310,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: AppLoader()));
     }
 
     return Scaffold(

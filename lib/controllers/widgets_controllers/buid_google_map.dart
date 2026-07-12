@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class AgencyMapWidget extends StatelessWidget {
   final String address;
@@ -18,7 +19,7 @@ class AgencyMapWidget extends StatelessWidget {
       future: locationFromAddress(address),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: AppLoader());
         } else if (snapshot.hasError) {
           return const Center(
               child: Text('Erreur lors de la récupération de la position'));

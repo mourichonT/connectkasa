@@ -7,6 +7,7 @@ import 'package:connect_kasa/vues/widget_view/components/comment_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class SectionComment extends StatefulWidget {
   String residenceSelected;
@@ -71,7 +72,7 @@ class _SectionCommentState extends State<SectionComment>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: AppLoader(),
           );
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');

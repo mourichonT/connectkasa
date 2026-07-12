@@ -25,6 +25,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class MyGarantInfos extends ConsumerStatefulWidget {
   final String uid; // UID de l'utilisateur (locataire)
@@ -158,7 +159,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
     if (isLoading) {
       return const Scaffold(
         backgroundColor: Colors.white,
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(child: AppLoader()),
       );
     }
 
@@ -344,7 +345,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
                     (tenantUid: widget.uid, garantId: currentGarant!.id!)));
                 return documentsAsync.when(
                   loading: () =>
-                      const Center(child: CircularProgressIndicator()),
+                      const Center(child: AppLoader()),
                   error: (error, stackTrace) =>
                       Center(child: Text('Erreur : $error')),
                   data: (documentList) {

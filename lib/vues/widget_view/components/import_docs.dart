@@ -1,13 +1,15 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
+import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
+import 'package:connect_kasa/core/repositories/storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
 
-class ImportDocs extends StatefulWidget {
+class ImportDocs extends ConsumerStatefulWidget {
   final String racineFolder;
   final List<String> filename;
   final String folderName;
@@ -25,15 +27,21 @@ class ImportDocs extends StatefulWidget {
       this.reflot});
 
   @override
-  State<ImportDocs> createState() => _ImportDocsState();
+  ConsumerState<ImportDocs> createState() => _ImportDocsState();
 }
 
-class _ImportDocsState extends State<ImportDocs> {
-  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
+class _ImportDocsState extends ConsumerState<ImportDocs> {
+  late final IStorageRepository _storageServices;
   final String fileName = const Uuid().v4();
   File? _selectedFile;
   String? _fileDisplayName;
   String? _fileExtension;
+
+  @override
+  void initState() {
+    super.initState();
+    _storageServices = ref.read(storageRepositoryProvider);
+  }
 
   Future<void> _pickDocument() async {
     final result = await FilePicker.platform.pickFiles(

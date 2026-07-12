@@ -16,6 +16,7 @@ import 'package:connect_kasa/vues/pages_vues/post_page/post_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class SinistreTile extends StatefulWidget {
   late Post post;
@@ -71,7 +72,7 @@ class SinistreTileState extends State<SinistreTile> {
                           AsyncSnapshot<Post?> snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
-                          return const CircularProgressIndicator();
+                          return const AppLoader();
                         } else if (snapshot.hasError) {
                           return Text('Error: ${snapshot.error}');
                         } else {

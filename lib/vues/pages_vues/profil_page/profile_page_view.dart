@@ -20,6 +20,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   final String uid;
@@ -128,7 +129,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         ),
       ),
       body: (_isLoading || userAsync.isLoading)
-          ? const Center(child: CircularProgressIndicator()) // ✅ Loader global
+          ? const Center(child: AppLoader()) // ✅ Loader global
           : LayoutBuilder(
               builder: (context, constraints) {
                 return SingleChildScrollView(

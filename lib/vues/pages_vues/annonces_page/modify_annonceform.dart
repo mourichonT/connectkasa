@@ -2,16 +2,18 @@ import 'dart:io';
 import 'dart:math';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/controllers/features/submit_post_controller.dart';
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
+import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
+import 'package:connect_kasa/core/repositories/storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:connect_kasa/models/enum/type_list.dart';
 import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 
-class ModifyAnnonceForm extends StatefulWidget {
+class ModifyAnnonceForm extends ConsumerStatefulWidget {
   final Post post;
   final String residence;
   final String uid;
@@ -23,11 +25,11 @@ class ModifyAnnonceForm extends StatefulWidget {
       required this.uid});
 
   @override
-  State<StatefulWidget> createState() => ModifyAnnonceFormState();
+  ConsumerState<ModifyAnnonceForm> createState() => ModifyAnnonceFormState();
 }
 
-class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
-  final FirestoreStorageRepository _storageServices = FirestoreStorageRepository();
+class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
+  late final IStorageRepository _storageServices;
   File? _selectedImage;
   final TypeList _CatList = TypeList();
 
@@ -48,6 +50,7 @@ class ModifyAnnonceFormState extends State<ModifyAnnonceForm> {
   @override
   void initState() {
     super.initState();
+    _storageServices = ref.read(storageRepositoryProvider);
     List<String> declarationType = _CatList.categoryAnnonce();
     labelsCat = declarationType.asMap().entries.map((entry) {
       return entry.value;

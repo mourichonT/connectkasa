@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class GuarantorDetail extends ConsumerStatefulWidget {
   final String garantid;
@@ -41,7 +42,7 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
 
     return Scaffold(
       body: garantAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: AppLoader()),
         error: (error, stackTrace) =>
             Center(child: Text('Erreur : $error')),
         data: (g) {
@@ -153,7 +154,7 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
 
   Widget _buildGridSection(AsyncValue<List<Map<String, dynamic>>> documentsAsync) {
     return documentsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: AppLoader()),
       error: (error, stackTrace) => Center(child: Text('Erreur : $error')),
       data: (documentList) {
         if (documentList.isEmpty) {

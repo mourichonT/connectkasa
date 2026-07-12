@@ -10,6 +10,7 @@ import 'package:connect_kasa/vues/pages_vues/manage_app/tenant_detail_withheader
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class ManagementGarants extends ConsumerStatefulWidget {
   final Color color;
@@ -39,7 +40,7 @@ class ManagementGarantsState extends ConsumerState<ManagementGarants> {
         ),
       ),
       body: garantsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const Center(child: AppLoader()),
         error: (error, stackTrace) =>
             Center(child: Text('Erreur: $error')),
         data: (garants) {

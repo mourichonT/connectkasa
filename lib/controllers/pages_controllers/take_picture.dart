@@ -7,6 +7,7 @@ import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class TakePictureScreen extends StatefulWidget {
   final String idType;
@@ -61,7 +62,7 @@ class _TakePictureScreenState extends State<TakePictureScreen> {
                 if (snapshot.connectionState == ConnectionState.done) {
                   return CameraPreview(_controller);
                 } else {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: AppLoader());
                 }
               },
             ),

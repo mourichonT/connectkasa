@@ -18,6 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class EventForm extends StatefulWidget {
   final String residence;
@@ -335,7 +336,7 @@ class EventFormState extends State<EventForm> {
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
-                                    return const CircularProgressIndicator(); // Affiche un loader en attendant
+                                    return const AppLoader(); // Affiche un loader en attendant
                                   } else if (snapshot.hasError) {
                                     return Text("Erreur : ${snapshot.error}");
                                   } else if (!snapshot.hasData ||

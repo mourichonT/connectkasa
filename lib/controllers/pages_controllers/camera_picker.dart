@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class CameraPicker extends StatefulWidget {
   const CameraPicker({super.key});
@@ -45,7 +46,7 @@ class _CameraPickerState extends State<CameraPicker> {
   @override
   Widget build(BuildContext context) {
     if (!_isInitialized) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: AppLoader());
     }
 
     return CameraPreview(_controller);

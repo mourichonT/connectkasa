@@ -5,6 +5,7 @@ import 'package:connect_kasa/controllers/features/contact_features.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/providers/user_by_id_provider.dart';
 import 'package:connect_kasa/models/pages_models/contact.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class DetailContactView extends ConsumerWidget {
   final Contact contact;
@@ -24,7 +25,7 @@ class DetailContactView extends ConsumerWidget {
       ),
       body: userAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(),
+          child: AppLoader(),
         ),
         error: (error, stackTrace) => Center(
           child: Text('Error: $error'),

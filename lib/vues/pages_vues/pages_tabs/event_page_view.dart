@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/date_symbol_data_local.dart'; // Importez ce package
 import 'package:table_calendar/table_calendar.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class EventPageView extends ConsumerStatefulWidget {
   final Lot? preferedLot;
@@ -264,7 +265,7 @@ class EventPageViewState extends ConsumerState<EventPageView>
 
     return eventsAsync.when(
       loading: () =>
-          const Center(child: CircularProgressIndicator()),
+          const Center(child: AppLoader()),
       error: (error, stackTrace) => Center(child: Text('Erreur: $error')),
       data: (allPosts) {
         final allEvents = _eventsOnly(allPosts);

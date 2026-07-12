@@ -10,6 +10,7 @@ import 'package:connect_kasa/vues/widget_view/page_widget/annonce_page_widget/an
 import 'package:connect_kasa/vues/widget_view/page_widget/post_page_widget/post_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class Homeview extends ConsumerStatefulWidget {
   String residenceSelected;
@@ -83,7 +84,7 @@ class HomeviewState extends ConsumerState<Homeview> {
         ref.watch(postsByResidenceProvider(widget.residenceSelected));
 
     return paginatedAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: AppLoader()),
       error: (error, stackTrace) => Text('Erreur: $error'),
       data: (paginated) {
         final allPosts = paginated.posts;
@@ -92,7 +93,7 @@ class HomeviewState extends ConsumerState<Homeview> {
           // résolve le vrai lot (placeholder _defaultLot au tout premier
           // build) : pas encore "aucun post", juste pas encore chargé.
           if (widget.residenceSelected.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: AppLoader());
           }
           return const Center(
             child: Text("Aucun post n'a été publié pour le moment"),
@@ -111,7 +112,7 @@ class HomeviewState extends ConsumerState<Homeview> {
                 if (index >= allPosts.length) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
-                    child: Center(child: CircularProgressIndicator()),
+                    child: Center(child: AppLoader()),
                   );
                 }
                 Post post = allPosts[index];

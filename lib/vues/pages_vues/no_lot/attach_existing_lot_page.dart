@@ -18,6 +18,7 @@ import 'package:connect_kasa/vues/widget_view/page_widget/have_not_account_widge
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:provider/provider.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 /// Rattache un utilisateur déjà existant (connecté) à une résidence/un lot
 /// déjà créés en base, via recherche. Réutilise Step1/Step2/Step3 du
@@ -253,7 +254,7 @@ class _AttachExistingLotPageState
         ],
       ),
       body: _isSaving
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: AppLoader())
           : PageView(
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),

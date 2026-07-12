@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/models/pages_models/agency.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class AgencySearchResultList extends StatelessWidget {
   final bool isSearching;
@@ -18,7 +19,7 @@ class AgencySearchResultList extends StatelessWidget {
     if (isSearching) {
       return const Padding(
         padding: EdgeInsets.all(8.0),
-        child: CircularProgressIndicator(),
+        child: AppLoader(),
       );
     } else if (searchResults.isNotEmpty) {
       return Container(

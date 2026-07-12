@@ -10,6 +10,7 @@ import 'package:connect_kasa/vues/pages_vues/docs_page/add_docs_form.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class MydocsPageView extends StatefulWidget {
   final Lot lotSelected;
@@ -119,7 +120,7 @@ class MydocsPageViewState extends State<MydocsPageView>
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
-                                child: CircularProgressIndicator());
+                                child: AppLoader());
                           } else if (snapshot.hasError) {
                             return Text('Erreur : ${snapshot.error}');
                           } else {
@@ -328,7 +329,7 @@ class MydocsPageViewState extends State<MydocsPageView>
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
                             return const Center(
-                                child: CircularProgressIndicator());
+                                child: AppLoader());
                           } else if (snapshot.hasError) {
                             return Text('Error: ${snapshot.error}');
                           } else if (!snapshot.hasData ||

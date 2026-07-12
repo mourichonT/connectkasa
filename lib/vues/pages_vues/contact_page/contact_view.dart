@@ -9,6 +9,7 @@ import 'package:connect_kasa/vues/pages_vues/contact_page/emergencies_contact_vi
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class ContactView extends ConsumerWidget {
   final String uid;
@@ -26,7 +27,7 @@ class ContactView extends ConsumerWidget {
     final contactsAsync = ref.watch(contactsByResidenceProvider(residenceSelected));
 
     return contactsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: AppLoader()),
       error: (error, stackTrace) => Text('Error: $error'),
       data: (allContact) {
         return Scaffold(

@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:connect_kasa/core/repositories/firestore_storage_repository.dart';
+import 'package:connect_kasa/core/providers/storage_repository_provider.dart';
+import 'package:connect_kasa/core/repositories/storage_repository.dart';
 import 'package:connect_kasa/models/enum/font_setting.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +18,7 @@ import 'package:connect_kasa/vues/widget_view/components/button_add.dart';
 import 'package:connect_kasa/controllers/features/my_texts_styles.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
 
-class AskingNeighbordsForm extends StatefulWidget {
+class AskingNeighbordsForm extends ConsumerStatefulWidget {
   final Lot? preferedLot;
   final String racineFolder;
   final String uid;
@@ -35,10 +37,12 @@ class AskingNeighbordsForm extends StatefulWidget {
   });
 
   @override
-  State<StatefulWidget> createState() => AskingNeighbordsFormState();
+  ConsumerState<AskingNeighbordsForm> createState() =>
+      AskingNeighbordsFormState();
 }
 
-class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
+class AskingNeighbordsFormState extends ConsumerState<AskingNeighbordsForm> {
+  late final IStorageRepository _storageRepository;
   final ButtonStyle style =
       ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20));
   final List<Color> _colors = [
@@ -105,6 +109,12 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
   final GlobalKey _globalKey = GlobalKey();
   String _backgroundColor = "";
   String _backgroundImage = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _storageRepository = ref.read(storageRepositoryProvider);
+  }
 
   @override
   void dispose() {
@@ -448,7 +458,7 @@ class AskingNeighbordsFormState extends State<AskingNeighbordsForm> {
                   Uint8List pngBytes = await _capturePng();
                   File file = await _saveImage(pngBytes);
 
-                  imageUrl = await FirestoreStorageRepository()
+                  imageUrl = await _storageRepository
                       .uploadImg(
                         XFile(file.path),
                         widget.racineFolder,

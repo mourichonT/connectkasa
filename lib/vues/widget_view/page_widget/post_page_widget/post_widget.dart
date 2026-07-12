@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 
 import '../../../../../models/pages_models/post.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class PostWidget extends StatefulWidget {
   final Lot lot;
@@ -86,7 +87,7 @@ class PostWidgetState extends State<PostWidget> {
               future: _signalementFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(child: AppLoader());
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else {
@@ -132,7 +133,7 @@ class PostWidgetState extends State<PostWidget> {
                                         AsyncSnapshot<Post?> snapshot) {
                                       if (snapshot.connectionState ==
                                           ConnectionState.waiting) {
-                                        return const CircularProgressIndicator();
+                                        return const AppLoader();
                                       } else if (snapshot.hasError) {
                                         return Text('Error: ${snapshot.error}');
                                       } else {

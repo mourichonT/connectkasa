@@ -8,6 +8,7 @@ import 'package:connect_kasa/models/pages_models/post.dart';
 import 'package:connect_kasa/vues/pages_vues/post_page/sinistre_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:connect_kasa/core/utils/app_logger.dart';
+import 'package:connect_kasa/vues/widget_view/components/app_loader.dart';
 
 class SinitresTileController extends StatefulWidget {
   final Post post;
@@ -73,7 +74,7 @@ class SinitresTileControllerState extends State<SinitresTileController> {
                     future: _signalementFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
+                        return const Center(child: AppLoader());
                       } else if (snapshot.hasError) {
                         return Center(child: Text('Error: ${snapshot.error}'));
                       } else {
