@@ -46,8 +46,8 @@
       "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "location_element", "order": "ASCENDING" },
-        { "fieldPath": "statu", "order": "ASCENDING" },
+        { "fieldPath": "location.locationElements", "order": "ASCENDING" },
+        { "fieldPath": "statut", "order": "ASCENDING" },
         { "fieldPath": "type", "order": "ASCENDING" },
         { "fieldPath": "timeStamp", "order": "ASCENDING" }
       ]
@@ -56,7 +56,7 @@
       "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "location_element", "order": "ASCENDING" },
+        { "fieldPath": "location.locationElements", "order": "ASCENDING" },
         { "fieldPath": "type", "order": "ASCENDING" },
         { "fieldPath": "timeStamp", "order": "ASCENDING" }
       ]
@@ -65,18 +65,18 @@
       "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "location_element", "order": "ASCENDING" },
+        { "fieldPath": "location.locationElements", "order": "ASCENDING" },
         { "fieldPath": "type", "order": "ASCENDING" },
         { "fieldPath": "timeStamp", "order": "ASCENDING" },
-        { "fieldPath": "statu", "order": "ASCENDING" }
+        { "fieldPath": "statut", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "posts",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "subtype", "order": "ASCENDING" },
-        { "fieldPath": "price", "order": "ASCENDING" }
+        { "fieldPath": "annonce.subType", "order": "ASCENDING" },
+        { "fieldPath": "annonce.price", "order": "ASCENDING" }
       ]
     },
     {
@@ -84,7 +84,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "price", "order": "ASCENDING" }
+        { "fieldPath": "annonce.price", "order": "ASCENDING" }
       ]
     },
     {

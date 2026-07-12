@@ -247,7 +247,7 @@ class SinistreTileState extends State<SinistreTile> {
                                       ),
                                       Flexible(
                                         child: MyTextStyle.lotDesc(
-                                            widget.post.statu!,
+                                            widget.post.statut!,
                                             SizeFont.para.size),
                                       ),
                                     ],

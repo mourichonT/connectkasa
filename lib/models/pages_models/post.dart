@@ -10,7 +10,7 @@ class Post {
   Timestamp timeStamp;
   Timestamp? eventDate;
   Timestamp? declaredDate;
-  String _statu = "";
+  String _statut = "";
   String _pathImage = "";
   String title;
   String description;
@@ -35,7 +35,7 @@ class Post {
       required this.timeStamp,
       this.eventDate,
       this.declaredDate,
-      String statu = "",
+      String statut = "",
       String pathImage = "",
       required this.title,
       required this.description,
@@ -51,7 +51,7 @@ class Post {
       this.style,
       this.prestaName}) {
     _pathImage = pathImage;
-    _statu = statu;
+    _statut = statut;
     _subtype = subtype;
   }
 
@@ -69,14 +69,14 @@ class Post {
     return _subtype;
   }
 
-  String? get statu => _statu;
-  set statu(String? value) {
-    _statu = value ?? ""; // Valeur par défaut si null
+  String? get statut => _statut;
+  set statut(String? value) {
+    _statut = value ?? ""; // Valeur par défaut si null
   }
 
-  set newStatu(String? newStatu) {
-    if (newStatu != "") {
-      _statu = newStatu!;
+  set newStatut(String? newStatut) {
+    if (newStatut != "") {
+      _statut = newStatut!;
     }
   }
 
@@ -126,6 +126,17 @@ class Post {
   }
 
   factory Post.fromMap(Map<String, dynamic> map) {
+    // Nouveau format : sous-objets location/event/annonce. Ancien format
+    // (documents déjà en base avant ce refactor) : champs à plat directement
+    // sur le post - on les relit tels quels, sans migration de données
+    // obligatoire avant déploiement (même principe que 'style' ci-dessous).
+    final Map<String, dynamic> location =
+        map['location'] is Map ? Map<String, dynamic>.from(map['location']) : map;
+    final Map<String, dynamic> event =
+        map['event'] is Map ? Map<String, dynamic>.from(map['event']) : map;
+    final Map<String, dynamic> annonce =
+        map['annonce'] is Map ? Map<String, dynamic>.from(map['annonce']) : map;
+
     List<dynamic>? likeList = map['like'];
     List<String> convertedLikeList = [];
     if (likeList != null) {
@@ -135,7 +146,8 @@ class Post {
         }
       }
     }
-    List<dynamic>? detailsList = map['location_details'];
+    List<dynamic>? detailsList =
+        location['locationDetails'] ?? map['location_details'];
     List<String> convertLocationDetails = [];
     if (detailsList != null) {
       for (var detail in detailsList) {
@@ -145,7 +157,7 @@ class Post {
       }
     }
 
-    List<dynamic>? participantsList = map['participants'];
+    List<dynamic>? participantsList = event['participants'];
     List<String> convertedParticipantsList = [];
     if (participantsList != null) {
       for (var user in participantsList) {
@@ -155,7 +167,7 @@ class Post {
       }
     }
 
-    List<dynamic>? eventTypeList = map['eventType'];
+    List<dynamic>? eventTypeList = event['eventType'];
     List<String> convertedEventTyeList = [];
     if (eventTypeList != null) {
       for (var eventTypeSelected in eventTypeList) {
@@ -168,17 +180,19 @@ class Post {
     return Post(
       id: map['id'] ?? "",
       description: map['description'] ?? "",
-      locationElement:
-          map['location_element'] ?? "", // Mise à jour du nom de l'attribut
+      locationElement: location['locationElements'] ??
+          map['location_element'] ??
+          "", // Mise à jour du nom de l'attribut
       locationDetails: convertLocationDetails, // Nouvel attribut
-      locationFloor: map['location_floor'] ?? "", // Nouvel attribut
-      subtype: map['subtype'] ?? "",
+      locationFloor: location['locationFloor'] ??
+          map['location_floor'] ??
+          "", // Nouvel attribut
+      subtype: annonce['subType'] ?? map['subtype'] ?? "",
       pathImage: map['pathImage'] ?? "",
       refResidence: map['refResidence'] ?? "",
-      statu: map['statu'] ?? "",
+      statut: map['statut'] ?? map['statu'] ?? "",
       timeStamp: map['timeStamp'] ?? 0,
-      eventDate:
-          map['eventDate'] != null ? map['eventDate'] as Timestamp : null,
+      eventDate: event['eventDate'] != null ? event['eventDate'] as Timestamp : null,
       declaredDate:
           map['declaredDate'] != null ? map['declaredDate'] as Timestamp : null,
       title: map['title'] ?? "",
@@ -194,7 +208,7 @@ class Post {
       hideUser: map['hideUser'],
       participants: convertedParticipantsList,
       eventType: convertedEventTyeList,
-      price: map['price'] ?? 0,
+      price: annonce['price'] ?? map['price'] ?? 0,
       // Nouveau format : style imbriqué. Ancien format (documents déjà en
       // base avant ce refactor) : champs à plat directement sur le post -
       // on les relit tels quels, sans migration de données nécessaire.
@@ -208,35 +222,101 @@ class Post {
                   map['fontStyle'] != null
               ? PostStyle.fromMap(map)
               : null),
-      prestaName: map['prestaName'],
+      prestaName: event['prestaName'] ?? map['prestaName'],
     );
   }
 
   Map<String, dynamic> toMap() {
+    final location = {
+      if (locationDetails != null && locationDetails!.isNotEmpty)
+        'locationDetails': locationDetails,
+      if (locationFloor.isNotEmpty) 'locationFloor': locationFloor,
+      if (locationElement.isNotEmpty) 'locationElements': locationElement,
+    };
+    final event = {
+      if (eventDate != null) 'eventDate': eventDate,
+      if (eventType != null && eventType!.isNotEmpty) 'eventType': eventType,
+      if (participants != null && participants!.isNotEmpty)
+        'participants': participants,
+      if ((prestaName ?? '').isNotEmpty) 'prestaName': prestaName,
+    };
+    final annonce = {
+      if ((subtype ?? '').isNotEmpty) 'subType': subtype,
+      if (price != null && price != 0) 'price': price,
+    };
+
     return {
       'id': id,
       'description': description,
-      'location_element': locationElement, // Mise à jour du nom de l'attribut
-      'location_details': locationDetails, // Nouvel attribut
-      'location_floor': locationFloor, // Nouvel attribut
-      'subtype': subtype,
-      'pathImage': pathImage,
+      if (location.isNotEmpty) 'location': location,
+      if ((pathImage ?? '').isNotEmpty) 'pathImage': pathImage,
       'refResidence': refResidence,
-      'statu': statu,
-      'eventType': eventType,
+      if ((statut ?? '').isNotEmpty) 'statut': statut,
+      if (event.isNotEmpty) 'event': event,
       'timeStamp': timeStamp,
-      'eventDate': eventDate,
       if (declaredDate != null) 'declaredDate': declaredDate,
-      'title': title,
+      if (title.isNotEmpty) 'title': title,
       'type': type,
       'user': user,
-      'like': like,
-      'signalement': signalement.map((post) => post.toMap()).toList(),
+      if (like != null && like!.isNotEmpty) 'like': like,
+      if (signalement.isNotEmpty)
+        'signalement': signalement.map((post) => post.toMap()).toList(),
       'hideUser': hideUser,
-      'participants': participants,
-      'price': price,
-      'style': style?.toMap(),
-      'prestaName': prestaName
+      if (annonce.isNotEmpty) 'annonce': annonce,
+      if (style != null) 'style': style!.toMap(),
     };
+  }
+
+  /// Comme toMap(), mais pour un update() partiel : chaque champ optionnel
+  /// est ciblé individuellement en notation pointée (ex: 'event.eventDate'),
+  /// effacé via FieldValue.delete() quand vide plutôt que simplement omis -
+  /// un update() ne touche jamais les clés absentes de la map, donc un champ
+  /// vidé lors d'une modification (ex: prix retiré) resterait sinon figé en
+  /// base avec son ancienne valeur. La notation pointée cible le champ
+  /// imbriqué précis sans effacer les autres champs du même sous-objet
+  /// (location/event/annonce).
+  Map<String, dynamic> toUpdateMap() {
+    final map = <String, dynamic>{
+      'id': id,
+      'description': description,
+      'refResidence': refResidence,
+      'timeStamp': timeStamp,
+      'type': type,
+      'user': user,
+      'hideUser': hideUser,
+    };
+
+    void setOrClear(String key, dynamic value, bool isEmpty) {
+      map[key] = isEmpty ? FieldValue.delete() : value;
+    }
+
+    setOrClear('title', title, title.isEmpty);
+    setOrClear('pathImage', pathImage, (pathImage ?? '').isEmpty);
+    setOrClear('statut', statut, (statut ?? '').isEmpty);
+    setOrClear('declaredDate', declaredDate, declaredDate == null);
+    setOrClear('like', like, like == null || like!.isEmpty);
+    setOrClear('signalement', signalement.map((p) => p.toMap()).toList(),
+        signalement.isEmpty);
+    setOrClear('style', style?.toMap(), style == null);
+
+    setOrClear('location.locationElements', locationElement,
+        locationElement.isEmpty);
+    setOrClear('location.locationDetails', locationDetails,
+        locationDetails == null || locationDetails!.isEmpty);
+    setOrClear(
+        'location.locationFloor', locationFloor, locationFloor.isEmpty);
+
+    setOrClear('event.eventDate', eventDate, eventDate == null);
+    setOrClear('event.eventType', eventType,
+        eventType == null || eventType!.isEmpty);
+    setOrClear('event.participants', participants,
+        participants == null || participants!.isEmpty);
+    setOrClear(
+        'event.prestaName', prestaName, (prestaName ?? '').isEmpty);
+
+    setOrClear('annonce.subType', subtype, (subtype ?? '').isEmpty);
+    setOrClear('annonce.price', price, price == null || price == 0);
+
+    return map;
   }
 }

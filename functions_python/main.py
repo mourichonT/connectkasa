@@ -1122,9 +1122,12 @@ class _ReportGenerator:
             draw_image_from_url(post_img_url)
         draw_spacer(space_header)
 
-        location = post_data.get('location_element', '')
-        floor = post_data.get('location_floor', '')
-        location_details = ', '.join(post_data.get('location_details') or [])
+        post_location = post_data.get('location') or {}
+        location = post_location.get('locationElements', post_data.get('location_element', ''))
+        floor = post_location.get('locationFloor', post_data.get('location_floor', ''))
+        location_details = ', '.join(
+            post_location.get('locationDetails', post_data.get('location_details')) or []
+        )
         draw_header(f"Localisation : {location} • Etage : {floor} • Précision : {location_details}", font_size=12, color=(0, 0, 0))
         draw_spacer(space_para)
         draw_header(f"Date de publication: {formatted_post_timestamp}", font_size=12, color=(0, 0, 0))
@@ -1166,8 +1169,13 @@ class _ReportGenerator:
 
                 y -= 0.6 * cm
 
-                sig_location_details = ', '.join(sig.get('location_details') or [])
-                draw_header(f"Localisation : {sig.get('location_element', '')} • Etage : {sig.get('location_floor', '')} • Précision : {sig_location_details}", font_size=12, color=(0, 0, 0))
+                sig_location = sig.get('location') or {}
+                sig_location_details = ', '.join(
+                    sig_location.get('locationDetails', sig.get('location_details')) or []
+                )
+                sig_location_element = sig_location.get('locationElements', sig.get('location_element', ''))
+                sig_location_floor = sig_location.get('locationFloor', sig.get('location_floor', ''))
+                draw_header(f"Localisation : {sig_location_element} • Etage : {sig_location_floor} • Précision : {sig_location_details}", font_size=12, color=(0, 0, 0))
                 draw_spacer(space_para)
                 draw_header(f"Date de publication: {formatted_sig_timestamp}", font_size=12, color=(0, 0, 0))
                 draw_spacer(space_header)
@@ -1412,9 +1420,10 @@ def check_similar_post_OpenAI(req: https_fn.Request) -> https_fn.Response:
         if not existing.get('timeStamp') or existing['timeStamp'] < twenty_four_hours_ago:
             continue
 
-        if _normalize_text(existing.get("location_element", "")) != location_element_norm:
+        existing_location = existing.get("location") or {}
+        if _normalize_text(existing_location.get("locationElements", existing.get("location_element", ""))) != location_element_norm:
             continue
-        if _normalize_text(existing.get("location_floor", "")) != location_floor_norm:
+        if _normalize_text(existing_location.get("locationFloor", existing.get("location_floor", ""))) != location_floor_norm:
             continue
 
         existing_title = _normalize_text(existing.get("title", ""))

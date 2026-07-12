@@ -50,7 +50,7 @@ class CustomHeaderRow extends StatelessWidget {
         children: [
           MyTextStyle.lotName(getType(post), Colors.black87, SizeFont.h3.size),
           Spacer(),
-          MyTextStyle.statuColor(post.statu!, colorStatut),
+          MyTextStyle.statuColor(post.statut!, colorStatut),
           Visibility(
               visible: isCsMember,
               child: iconModifyOrDelette(post, lot, context, updatePostsList)),

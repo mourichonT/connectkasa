@@ -189,7 +189,7 @@ class FirestorePostRepository implements IPostRepository {
         Query<Map<String, dynamic>> query = baseQuery;
 
         if (combo[0] != null) {
-          query = query.where('location_element', isEqualTo: combo[0]);
+          query = query.where('location.locationElements', isEqualTo: combo[0]);
         }
         if (combo[1] != null) {
           query = query.where('type', isEqualTo: combo[1]);
@@ -201,7 +201,7 @@ class FirestorePostRepository implements IPostRepository {
           query = query.where('timeStamp', isLessThanOrEqualTo: combo[3]);
         }
         if (combo[4] != null) {
-          query = query.where('statu', isEqualTo: combo[4]);
+          query = query.where('statut', isEqualTo: combo[4]);
         }
 
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
@@ -558,7 +558,7 @@ class FirestorePostRepository implements IPostRepository {
             .doc(docRes)
             .collection("posts")
             .doc(documentSnapshot.id)
-            .update(updatedPost.toMap());
+            .update(updatedPost.toUpdateMap());
 
         return Result.success(updatedPost);
       }
@@ -578,7 +578,7 @@ class FirestorePostRepository implements IPostRepository {
         if (signalementsQuery.docs.isNotEmpty) {
           DocumentSnapshot postWithSignalementsDoc =
               signalementsQuery.docs.first;
-          await postWithSignalementsDoc.reference.update(updatedPost.toMap());
+          await postWithSignalementsDoc.reference.update(updatedPost.toUpdateMap());
           return Result.success(updatedPost);
         }
       }
@@ -658,7 +658,7 @@ class FirestorePostRepository implements IPostRepository {
         Query<Map<String, dynamic>> query = baseQuery;
 
         if (combo[0] != null) {
-          query = query.where('subtype', isEqualTo: combo[0]);
+          query = query.where('annonce.subType', isEqualTo: combo[0]);
         }
         if (combo[1] != null) {
           query = query.where('timeStamp', isGreaterThanOrEqualTo: combo[1]);
@@ -667,10 +667,10 @@ class FirestorePostRepository implements IPostRepository {
           query = query.where('timeStamp', isLessThanOrEqualTo: combo[2]);
         }
         if (combo[3] != null) {
-          query = query.where('price', isGreaterThanOrEqualTo: combo[3]);
+          query = query.where('annonce.price', isGreaterThanOrEqualTo: combo[3]);
         }
         if (combo[4] != null) {
-          query = query.where('price', isLessThanOrEqualTo: combo[4]);
+          query = query.where('annonce.price', isLessThanOrEqualTo: combo[4]);
         }
 
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();

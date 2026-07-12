@@ -135,7 +135,7 @@ Widget iconModifyOrDelette(
               builder: (context, scrollController) {
                 return StatefulBuilder(
                   builder: (BuildContext context, StateSetter setState) {
-                    int currentStep = _getCurrentStep(post.statu);
+                    int currentStep = _getCurrentStep(post.statut);
 
                     void showUpdateError(Object e) {
                       if (!context.mounted) return;
@@ -154,7 +154,7 @@ Widget iconModifyOrDelette(
                           await SubmitPostController.updatePost(
                             like: post.like,
                             uid: post.user,
-                            statu: "Prise en compte",
+                            statut: "Prise en compte",
                             timeStamp: post.timeStamp,
                             idPost: post.id,
                             selectedLabel: post.type,
@@ -185,13 +185,13 @@ Widget iconModifyOrDelette(
 
                           setState(() {
                             currentStep = 1;
-                            post.statu = "Prise en compte";
+                            post.statut = "Prise en compte";
                           });
                         } else if (currentStep == 1) {
                           await SubmitPostController.updatePost(
                             like: post.like,
                             uid: post.user,
-                            statu: "Terminé",
+                            statut: "Terminé",
                             idPost: post.id,
                             selectedLabel: post.type,
                             imagePath: post.pathImage,
@@ -206,7 +206,7 @@ Widget iconModifyOrDelette(
                           );
                           setState(() {
                             currentStep = 2;
-                            post.statu = "Terminé";
+                            post.statut = "Terminé";
                           });
                         }
                       } catch (e) {
@@ -220,7 +220,7 @@ Widget iconModifyOrDelette(
                           await SubmitPostController.updatePost(
                             like: post.like,
                             uid: post.user,
-                            statu: "En attente",
+                            statut: "En attente",
                             idPost: post.id,
                             selectedLabel: post.type,
                             imagePath: post.pathImage,
@@ -236,13 +236,13 @@ Widget iconModifyOrDelette(
 
                           setState(() {
                             currentStep = 0;
-                            post.statu = "En attente";
+                            post.statut = "En attente";
                           });
                         } else if (currentStep == 2) {
                           await SubmitPostController.updatePost(
                             like: post.like,
                             uid: post.user,
-                            statu: "Prise en compte",
+                            statut: "Prise en compte",
                             timeStamp: post.timeStamp,
                             idPost: post.id,
                             selectedLabel: post.type,
@@ -258,7 +258,7 @@ Widget iconModifyOrDelette(
                           );
                           setState(() {
                             currentStep = 0;
-                            post.statu = "Prise en compte";
+                            post.statut = "Prise en compte";
                           });
                         }
                       } catch (e) {

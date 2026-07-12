@@ -32,12 +32,12 @@ class PostStyle {
 
   Map<String, dynamic> toMap() {
     return {
-      'backgroundColor': backgroundColor,
-      'backgroundImage': backgroundImage,
-      'fontSize': fontSize,
-      'fontWeight': fontWeight,
-      'fontColor': fontColor,
-      'fontStyle': fontStyle,
+      if (backgroundColor != null) 'backgroundColor': backgroundColor,
+      if (backgroundImage != null) 'backgroundImage': backgroundImage,
+      if (fontSize != null) 'fontSize': fontSize,
+      if (fontWeight != null) 'fontWeight': fontWeight,
+      if (fontColor != null) 'fontColor': fontColor,
+      if (fontStyle != null) 'fontStyle': fontStyle,
     };
   }
 }
