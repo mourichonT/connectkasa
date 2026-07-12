@@ -37,7 +37,7 @@ IMAP_PORT = 993
 SMTP_HOST = 'smtp.gmail.com'
 SMTP_PORT = 465
 
-EMAIL_ADDRESS = 'connectkasadev@gmail.com'
+EMAIL_ADDRESS = 'admin.konodal@gmail.com'
 # Secret Firebase (jamais en clair dans le code / git) : à définir avec
 # `firebase functions:secrets:set EMAIL_PASSWORD`. Déclaré individuellement
 # sur chaque décorateur plutôt que via set_global_options(secrets=...) : le
@@ -624,30 +624,40 @@ def extract_id_card_data(req: https_fn.CallableRequest):
 
 
 # ---------------------------------------------------------------------------
-# APPROBATION - repasse approved à false après un rattachement self-service
-# (attach_existing_lot_page.dart). Le champ `approved` est volontairement
-# non-modifiable par le client dans firestore.rules (User/{uid}, allow
-# update : request.resource.data.approved == resource.data.approved) : un
-# nouveau rattachement de lot doit être revalidé par une personne, comme à
-# l'inscription. Cette fonction est le seul moyen légitime de le faire
-# depuis l'app, via le SDK Admin qui contourne les règles côté serveur.
+# RATTACHEMENT SELF-SERVICE - ajoute l'appelant à idProprietaire/idLocataire
+# d'un lot (attach_existing_lot_page.dart). firestore.rules n'autorise
+# l'update de residences/{id}/lots/{lotId} qu'aux CS members ou à un
+# propriétaire déjà listé (gestion de ses locataires) : un nouvel arrivant
+# qui s'auto-rattache n'entre dans aucun de ces cas et ne peut donc pas
+# écrire ce champ lui-même. Cette fonction est le seul moyen légitime de le
+# faire depuis l'app, via le SDK Admin qui contourne les règles côté serveur
+# - uid toujours pris de req.auth, jamais du payload client.
 # ---------------------------------------------------------------------------
 
 @https_fn.on_call()
-def reset_approval_after_self_attach(req: https_fn.CallableRequest):
+def attach_user_to_lot(req: https_fn.CallableRequest):
     if req.auth is None:
         raise https_fn.HttpsError(
             code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
             message="Authentification requise"
         )
 
-    # Toujours l'uid de l'appelant authentifié, jamais une valeur du payload
-    # client : un utilisateur ne doit pouvoir repasser en attente que son
-    # propre compte.
     uid = req.auth.uid
-    firestore.client().collection("users").document(uid).update({
-        "approved": False,
-    })
+    residence_id = req.data.get("residenceId")
+    lot_id = req.data.get("lotId")
+    statut_resident = req.data.get("statutResident")
+
+    if not residence_id or not lot_id or not statut_resident:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="residenceId, lotId et statutResident requis"
+        )
+
+    field = "idProprietaire" if statut_resident == "Propriétaire" else "idLocataire"
+    firestore.client().collection("residences").document(residence_id) \
+        .collection("lots").document(lot_id).update({
+            field: firestore.ArrayUnion([uid]),
+        })
     return {"success": True}
 
 
@@ -763,8 +773,8 @@ def send_custom_email(req: https_fn.Request) -> https_fn.Response:
         </div>
         <p style="font-size: 12px; color: #666; text-align: center;">
             En cas de difficultés, merci de contacter nos services via :
-            <a href="mailto:support@connectkasa.com" style="color: #48775B; font-size: 12px;">
-                support@connectkasa.com
+            <a href="mailto:admin.konodal@gmail.com" style="color: #48775B; font-size: 12px;">
+                admin.konodal@gmail.com
             </a>
         </p>
         </td>
@@ -991,7 +1001,7 @@ class _ReportGenerator:
                 draw_line(f"[Erreur de chargement image: {e}]", indent=1)
 
         def draw_footer():
-            footer_text = "Contact : contact@connectkasa.fr | www.connectkasa.fr"
+            footer_text = "Contact : admin.konodal@gmail.com"
             footer_divider = "_" * 100
 
             footer_y = margin / 2
@@ -1103,7 +1113,7 @@ class _ReportGenerator:
         draw_header(f"   Nom : {name} {surname}", font_size=12, color=(0, 0, 0))
         draw_spacer(space_para)
         lot_info = user_info.get("lot_data") or {}
-        statut = lot_info.get("StatutResident", "Non renseigné")
+        statut = lot_info.get("statutResident", "Non renseigné")
         draw_header(f"   Statut déclarant : {statut}", font_size=12, color=(0, 0, 0))
         draw_spacer(space_header)
 
@@ -1146,7 +1156,7 @@ class _ReportGenerator:
                 draw_header(f"   Nom : {name} {surname}", font_size=12, color=(0, 0, 0))
                 draw_spacer(space_para)
                 lot_info = user_sig_info.get("lot_data") or {}
-                statut = lot_info.get("StatutResident", "Non renseigné")
+                statut = lot_info.get("statutResident", "Non renseigné")
                 draw_header(f"   Statut déclarant : {statut}", font_size=12, color=(0, 0, 0))
                 draw_spacer(space_header)
                 sig_image_url = sig.get("pathImage")

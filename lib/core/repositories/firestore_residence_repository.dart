@@ -16,7 +16,7 @@ class FirestoreResidenceRepository implements IResidenceRepository {
   Future<Result<List<Contact>>> getEmergenciesContacts() async {
     try {
       final querySnapshot =
-          await _firestore.collection("contactsServices_fr").get();
+          await _firestore.collection("emergencyContactsFr").get();
       final contacts = querySnapshot.docs
           .map((docSnapshot) => Contact.fromJson(docSnapshot.data()))
           .toList();

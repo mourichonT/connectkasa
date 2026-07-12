@@ -10,7 +10,7 @@ Auth correspondant, et leurs sous-collections lots/private/garants/
 demandes_loc) - demandé explicitement par l'utilisateur.
 
 Réutilise 5 comptes réels déjà existants (Auth + doc User valides, hors
-compte admin connectkasadev@gmail.com) comme propriétaires/locataires,
+compte admin admin.konodal@gmail.com) comme propriétaires/locataires,
 comme demandé (2 locataires, 3 propriétaires, pas de compte fictif) :
   - 3 propriétaires : Xlw2lBjwVwQxlQeGuN2N4L1Gkxj2 (Thibault Mourichon),
     TynyVZWwTpXRtu1nWRkVfPpCzD42 (Jules Poitoux / Doe Janette),
@@ -213,7 +213,7 @@ for i, res in enumerate(RESIDENCES):
                     "colorSelected": "ff48775b",
                     "nameLot": ref_lot,
                     "residenceId": res_id,
-                    "StatutResident": "Propriétaire",
+                    "statutResident": "Propriétaire",
                 })
             for uid in id_locataire:
                 db.collection("User").document(uid).set(
@@ -226,7 +226,7 @@ for i, res in enumerate(RESIDENCES):
                     "colorSelected": "ff48775b",
                     "nameLot": ref_lot,
                     "residenceId": res_id,
-                    "StatutResident": "Locataire",
+                    "statutResident": "Locataire",
                 })
 
     print(f"  {created} lots créés (5 Appartement + 5 Place de parking) - "

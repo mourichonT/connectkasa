@@ -84,7 +84,15 @@ service cloud.firestore {
       }
 
       match /lots/{lotId} {
-        allow read, write: if isOwner(uid) || isCsMember(resource.data.residenceId);
+        allow read: if isOwner(uid) || isCsMember(resource.data.residenceId);
+        allow create: if isOwner(uid) && request.resource.data.isApprovedLot == false;
+        // isApprovedLot ne doit jamais être modifiable par le client (même
+        // logique que users/{uid}.approved) : seule une validation manuelle
+        // (Console, après vérification humaine des documents déposés) peut
+        // le repasser à true.
+        allow update: if (isOwner(uid) || isCsMember(resource.data.residenceId)) &&
+          request.resource.data.isApprovedLot == resource.data.isApprovedLot;
+        allow delete: if isOwner(uid) || isCsMember(resource.data.residenceId);
 
         match /documents/{docId} {
           allow read: if isOwner(uid) || isSharedTenantDoc(uid) ||
@@ -269,9 +277,9 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // ---------- Root "contactsServices_fr" ----------
+    // ---------- Root "emergencyContactsFr" ----------
     // Contacts d'urgence génériques (non sensibles, non scopés résidence).
-    match /contactsServices_fr/{id} {
+    match /emergencyContactsFr/{id} {
       allow read: if isSignedIn();
       allow write: if false;
     }

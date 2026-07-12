@@ -83,28 +83,37 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
     });
   }
 
-  Future<void> _initializeLot() async {
-    _lotsList = await _databasesLotServices
+  // Un lot nouvellement rattaché (inscription ou rattachement self-service)
+  // reste bloqué tant qu'une personne n'a pas revérifié les documents
+  // déposés (isApprovedLot, cf. addLotToUser/setUser) : on ne le propose
+  // donc ni comme lot par défaut, ni dans la liste soumise au sélecteur.
+  Future<List<Lot>> _fetchApprovedLots() async {
+    final allLots = await _databasesLotServices
         .getLotByIdUser(widget.uid)
         .then((result) =>
             result.when(success: (v) => v, failure: (_) => <Lot>[]));
-    _preferedLot = await _loadPreferedData.loadPreferedLot(widget.uid);
+    return allLots
+        .where((lot) => lot.userLotDetails['isApprovedLot'] == true)
+        .toList();
+  }
 
-    // Aucun lot du tout (ni préféré, ni dans la liste) : rien à afficher
-    // dans les onglets habituels. getFirstLotByUserId lèverait une
-    // Exception non gérée dans ce cas (item UX du backlog) ; on le détecte ici
-    // directement depuis _lotsList, déjà chargé, plutôt que de s'appuyer
-    // sur cette exception comme flux de contrôle.
+  Future<void> _initializeLot() async {
+    _lotsList = await _fetchApprovedLots();
+    _preferedLot = await _loadPreferedData.loadPreferedLot(widget.uid);
+    if (_preferedLot != null &&
+        _preferedLot!.userLotDetails['isApprovedLot'] != true) {
+      _preferedLot = null;
+    }
+
+    // Aucun lot approuvé du tout (ni préféré, ni dans la liste) : rien à
+    // afficher dans les onglets habituels.
     if (_preferedLot == null && (_lotsList?.isEmpty ?? true)) {
       if (mounted) setState(() => _hasNoLot = true);
       return;
     }
 
     if (_preferedLot == null) {
-      _defaultLot = await _databasesLotServices
-          .getFirstLotByUserId(widget.uid)
-          .then((result) =>
-              result.when(success: (v) => v, failure: (error) => throw error));
+      _defaultLot = _lotsList!.first;
     }
 
     // Applique la couleur du lot actif (préféré si connu, sinon le
@@ -164,10 +173,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
           }
 
           // 3) (optionnel) rafraîchir la liste des lots et relancer l'écoute messages
-          _lotsList = await _databasesLotServices
-        .getLotByIdUser(widget.uid)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (_) => <Lot>[]));
+          _lotsList = await _fetchApprovedLots();
 
           final residenceId = newLot.residenceId;
           if (residenceId.isNotEmpty && mounted) {

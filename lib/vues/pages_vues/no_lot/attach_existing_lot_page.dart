@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:konodal/controllers/features/load_user_controller.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
-import 'package:konodal/controllers/providers/message_provider.dart';
 import 'package:konodal/core/providers/current_user_provider.dart';
 import 'package:konodal/core/providers/docs_repository_provider.dart';
 import 'package:konodal/core/providers/lot_repository_provider.dart';
@@ -18,7 +16,6 @@ import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/ste
 import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/step3.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:provider/provider.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 /// Rattache un utilisateur déjà existant (connecté) à une résidence/un lot
@@ -34,21 +31,18 @@ import 'package:konodal/vues/widget_view/components/app_loader.dart';
 /// ne fait que rattacher le lot et déposer le justificatif de domicile :
 /// l'utilisateur a déjà un profil complet, inutile de le lui refaire saisir.
 ///
-/// Si [resetApproval] est vrai (cas par défaut : utilisateur bloqué sans
-/// aucun lot, cf. my_nav_bar.dart), le compte repasse en `approved: false`
-/// à la fin et l'utilisateur est déconnecté : un premier rattachement doit
-/// être revalidé par une personne, comme à l'inscription. Si faux (cas
-/// ManagementProperty : un utilisateur déjà actif qui rattache un lot
-/// supplémentaire à son compte), on ne touche pas à `approved` — il n'y a
-/// pas lieu de re-suspendre l'accès d'un utilisateur déjà validé.
+/// Le lot nouvellement rattaché démarre avec `isApprovedLot: false` sur
+/// users/{uid}/lots/{lotId} (cf. addLotToUser) : c'est ce champ, propre à ce
+/// lot, qui gate son usage tant qu'une personne n'a pas revérifié les
+/// documents déposés — le compte lui-même (`approved`, global) n'est plus
+/// touché ici, pour ne pas suspendre l'accès aux autres lots déjà validés
+/// de l'utilisateur.
 class AttachExistingLotPage extends ConsumerStatefulWidget {
   final String uid;
-  final bool resetApproval;
 
   const AttachExistingLotPage({
     super.key,
     required this.uid,
-    this.resetApproval = true,
   });
 
   @override
@@ -59,7 +53,6 @@ class AttachExistingLotPage extends ConsumerStatefulWidget {
 class _AttachExistingLotPageState
     extends ConsumerState<AttachExistingLotPage> {
   final PageController _pageController = PageController();
-  final LoadUserController _loadUserController = LoadUserController();
 
   Residence? _residence;
   String _typeResident = "";
@@ -139,16 +132,16 @@ class _AttachExistingLotPageState
     // residences/{id}/lot/{id} lui-même (idLocataire/idProprietaire, lu par
     // ex. par getNumUsersByResidence pour "Mes voisins") doit être mis à
     // jour séparément, comme le fait _applyTenantChange pour le flux
-    // "propriétaire ajoute un locataire".
-    final lotRef = FirebaseFirestore.instance
-        .collection("residences")
-        .doc(_residence!.id)
-        .collection("lots")
-        .doc(lot.id);
-    final field =
-        _typeResident == "Propriétaire" ? "idProprietaire" : "idLocataire";
-    await lotRef.update({
-      field: FieldValue.arrayUnion([widget.uid]),
+    // "propriétaire ajoute un locataire". firestore.rules n'autorise cette
+    // écriture qu'aux CS members ou à un propriétaire déjà listé : un
+    // nouvel arrivant qui s'auto-rattache doit donc passer par cette
+    // Cloud Function (SDK Admin, contourne les règles côté serveur).
+    await FirebaseFunctions.instance
+        .httpsCallable('attach_user_to_lot')
+        .call({
+      "residenceId": _residence!.id,
+      "lotId": lot.id,
+      "statutResident": _typeResident,
     });
 
     final docsRepository = ref.read(docsRepositoryProvider);
@@ -183,39 +176,16 @@ class _AttachExistingLotPageState
       );
     }
 
-    if (!widget.resetApproval) {
-      // Utilisateur déjà actif (ManagementProperty) rattachant un lot
-      // supplémentaire : pas de revalidation à déclencher, il n'y a pas
-      // lieu de re-suspendre un compte déjà approuvé.
-      if (mounted) Navigator.of(context).pop(true);
-      return;
-    }
-
-    // Un nouveau rattachement de lot doit être revalidé, comme à
-    // l'inscription : on ne conserve pas l'accès complet acquis avant ce
-    // rattachement tant qu'une personne n'a pas revérifié la situation.
-    // approved n'est volontairement pas modifiable par le client
-    // (firestore.rules) : seule cette Cloud Function, via le SDK Admin,
-    // est autorisée à le repasser à false.
-    await FirebaseFunctions.instance
-        .httpsCallable('reset_approval_after_self_attach')
-        .call();
-
+    // Le lot part avec isApprovedLot: false (cf. addLotToUser) : pas de
+    // remise à false du compte ni de déconnexion forcée, seul ce nouveau
+    // lot reste bloqué tant qu'une personne n'a pas revérifié les documents.
     if (!mounted) return;
-
-    // approved n'est vérifié qu'au moment de la connexion
-    // (authentification_process.dart), jamais en cours de session : sans
-    // déconnexion explicite ici, l'utilisateur garderait l'accès complet
-    // dans cette session malgré approved repassé à false. On déconnecte
-    // donc immédiatement pour forcer une nouvelle connexion, qui affichera
-    // correctement NoApprovalPage.
     await showDialog<void>(
       context: context,
-      barrierDismissible: false,
       builder: (_) => AlertDialog(
         content: MyTextStyle.lotDesc(
-          "Votre demande a été transmise à notre équipe. Vous allez être "
-          "déconnecté le temps de la validation.", SizeFont.h2.size,
+          "Votre demande a été transmise à notre équipe. Ce lot sera "
+          "accessible une fois les documents vérifiés.", SizeFont.h2.size,
         ),
         actions: [
           TextButton(
@@ -226,11 +196,7 @@ class _AttachExistingLotPageState
       ),
     );
 
-    if (!mounted) return;
-    context.read<MessageProvider>().reset();
-    await _loadUserController.handleGoogleSignOut();
-    if (!mounted) return;
-    Navigator.of(context).popUntil(ModalRoute.withName('/'));
+    if (mounted) Navigator.of(context).pop(true);
   }
 
   @override

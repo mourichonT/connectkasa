@@ -182,7 +182,6 @@ class ManagementPropertyState extends ConsumerState<ManagementProperty> {
                   MaterialPageRoute(
                     builder: (_) => AttachExistingLotPage(
                       uid: widget.uid,
-                      resetApproval: false,
                     ),
                   ),
                 );

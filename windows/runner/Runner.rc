@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "fr.connectkasa" "\0"
-            VALUE "FileDescription", "connect_kasa" "\0"
+            VALUE "CompanyName", "com.konodal.app" "\0"
+            VALUE "FileDescription", "konodal" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "connect_kasa" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2024 fr.connectkasa. All rights reserved." "\0"
+            VALUE "InternalName", "konodal" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 com.konodal.app. All rights reserved." "\0"
             VALUE "OriginalFilename", "connect_kasa.exe" "\0"
-            VALUE "ProductName", "connect_kasa" "\0"
+            VALUE "ProductName", "konodal" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

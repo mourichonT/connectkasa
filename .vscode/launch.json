@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "connect_kasa",
+            "name": "konodal",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "connect_kasa (profile mode)",
+            "name": "konodal (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "connect_kasa (release mode)",
+            "name": "konodal (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

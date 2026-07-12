@@ -49,6 +49,7 @@ class FirestoreLotRepository implements ILotRepository {
       lot.userLotDetails = {
         "colorSelected": userLotData['colorSelected'],
         "nameLot": userLotData['nameLot'],
+        "isApprovedLot": userLotData['isApprovedLot'] ?? false,
       };
 
       lots.add(lot);

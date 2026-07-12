@@ -27,11 +27,11 @@ class PrivacyPolicy {
   - Accéder à vos données personnelles
   - Demander la correction ou la suppression de vos données
   - Vous opposer à leur traitement ou en demander la limitation
-  Pour exercer ces droits, vous pouvez nous contacter via connectkasadev@gmail.com.""";
+  Pour exercer ces droits, vous pouvez nous contacter via admin.konodal@gmail.com.""";
 
   static String policyChanges =
       """Nous nous réservons le droit de modifier cette politique de confidentialité à tout moment. Toute mise à jour sera publiée dans l’application et prendra effet immédiatement après sa publication.""";
 
   static String contact =
-      """Pour toute question ou demande liée à vos données personnelles, vous pouvez nous contacter à l’adresse suivante : connectkasadev@gmail.com.""";
+      """Pour toute question ou demande liée à vos données personnelles, vous pouvez nous contacter à l’adresse suivante : admin.konodal@gmail.com.""";
 }

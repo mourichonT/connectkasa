@@ -76,6 +76,7 @@ class SubmitUser {
       nationality: nationality,
       placeOfborn: placeOfborn,
       isInfoCorrect: informationsCorrectes ?? false,
+      compagnyBuy: compagnyBuy,
     );
 
     await dataBasesUserServices

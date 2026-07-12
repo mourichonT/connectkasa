@@ -82,7 +82,10 @@ class FirestoreUserRepository implements IUserRepository {
           if (residenceId != null) "residenceId": residenceId,
           if (companyName != null) "companyName": companyName,
           if (intentedFor != null) "intendedFor": intentedFor,
-          "StatutResident": statutResident,
+          "statutResident": statutResident,
+          // Tant qu'une personne n'a pas revérifié les documents déposés
+          // pour ce lot, il reste bloqué (cf. isApprovedLot dans Lot).
+          "isApprovedLot": false,
         }, SetOptions(merge: true));
 
         if (residenceId != null) {
@@ -513,8 +516,11 @@ class FirestoreUserRepository implements IUserRepository {
         if (residenceId != null) "residenceId": residenceId,
         if (companyName != null) "companyName": companyName,
         if (intendedFor != null) "intendedFor": intendedFor,
-        if (statutResident != null) "StatutResident": statutResident,
+        if (statutResident != null) "statutResident": statutResident,
         if (entryDate != null) "entryDate": entryDate,
+        // Tant qu'une personne n'a pas revérifié les documents déposés
+        // pour ce lot, il reste bloqué (cf. isApprovedLot dans Lot).
+        "isApprovedLot": false,
       };
 
       await userLotRef.set(lotData, SetOptions(merge: true));

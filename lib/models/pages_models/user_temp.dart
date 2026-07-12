@@ -22,7 +22,7 @@ class UserTemp extends User {
     //required this.statutResident,
     required this.typeLot,
     required super.birthday,
-    // bool? compagnyBuy
+    this.compagnyBuy,
   });
 
   factory UserTemp.fromMap(Map<String, dynamic> map) {
@@ -40,8 +40,8 @@ class UserTemp extends User {
         uid: map['uid'],
         approved: map['approved'],
         //statutResident: map['statutResident'],
-        typeLot: map['typeLot']
-        //compagnyBuy: map['compagnyBuy']??false
+        typeLot: map['typeLot'],
+        compagnyBuy: map['compagnyBuy'] ?? false,
         );
   }
 
