@@ -3,6 +3,7 @@ import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/controllers/features/submit_post_controller.dart';
 import 'package:konodal/core/providers/storage_repository_provider.dart';
 import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/post.dart';
@@ -352,8 +353,8 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                             selectedLabel: widget.post.type,
                             idPost: widget.post.id,
                             imagePath: imagePath!,
-                            title: title.text,
-                            desc: desc.text,
+                            title: capitalizeFirstLetter(title.text),
+                            desc: capitalizeFirstLetter(desc.text),
                             anonymPost: anonymPost,
                             docRes: widget.post.refResidence,
                             price: int.parse(price.text));

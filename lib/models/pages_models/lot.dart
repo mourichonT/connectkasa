@@ -19,6 +19,17 @@ class Lot {
   String residenceId;
   Map<String, dynamic> residenceData;
   Map<String, dynamic> userLotDetails;
+
+  /// Adresse de la résidence (residenceData['address']) : les champs
+  /// numero/avenue/street/zipCode/city sont regroupés sous 'address' côté
+  /// Firestore (cf. Residence/Address). Retombe sur residenceData lui-même
+  /// si 'address' est absent, pour rester compatible avec d'anciens
+  /// documents pas encore migrés vers la structure imbriquée.
+  Map<String, dynamic> get residenceAddress {
+    final nested = residenceData['address'];
+    if (nested is Map) return Map<String, dynamic>.from(nested);
+    return residenceData;
+  }
   // syndicAgency (en réalité une gérance locative pour un lot, cf.
   // modify_prop_info_loc.dart : recherche sur le département
   // "geranceLocative") : cache d'affichage, résolu depuis geranceRef ou

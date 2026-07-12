@@ -5,6 +5,7 @@ import 'package:konodal/controllers/features/search_agency_module.dart';
 import 'package:konodal/core/providers/agency_search_flow_provider.dart';
 import 'package:konodal/core/providers/lot_repository_provider.dart';
 import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/statut_list.dart';
 import 'package:konodal/models/pages_models/agency.dart';
@@ -83,7 +84,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
       // Agence
       "agencyName",
       "agenceNumero",
-      "agenceVoie",
+      "agenceAvenue",
       "agenceStreet",
       "agenceZipCodeVille",
       "agenceZipCode",
@@ -132,12 +133,12 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
         // Remplir les contrôleurs dérivés
         _controllers["agencyName"]!.text = newAgency.name;
         _controllers["agenceNumero"]!.text = newAgency.numeros;
-        _controllers["agenceVoie"]!.text = newAgency.voie;
+        _controllers["agenceAvenue"]!.text = newAgency.avenue;
         _controllers["agenceStreet"]!.text = newAgency.street;
         _controllers["agenceZipCode"]!.text = newAgency.zipCode;
         _controllers["agenceCity"]!.text = newAgency.city;
         _controllers["address"]!.text =
-            "${newAgency.numeros} ${newAgency.voie} ${newAgency.street}".trim();
+            "${newAgency.numeros} ${newAgency.avenue} ${newAgency.street}".trim();
         _controllers["zipCodeVille"]!.text =
             "${newAgency.zipCode} ${newAgency.city}".trim();
       } else {
@@ -226,7 +227,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
                         for (final k in [
                           "agencyName",
                           "agenceNumero",
-                          "agenceVoie",
+                          "agenceAvenue",
                           "agenceStreet",
                           "agenceZipCode",
                           "agenceCity",
@@ -259,14 +260,14 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
                     _controllers["agencyName"]!.text = agency.name;
                     _controllers["agenceNumero"]!.text =
                         agency.numeros; // <-- fix
-                    _controllers["agenceVoie"]!.text = agency.voie;
+                    _controllers["agenceAvenue"]!.text = agency.avenue;
                     _controllers["agenceStreet"]!.text = agency.street;
                     _controllers["agenceZipCode"]!.text = agency.zipCode;
                     _controllers["agenceCity"]!.text = agency.city;
                     _controllers["mail_contact"]!.text =
                         agency.syndic?.mail ?? "";
                     _controllers["address"]!.text =
-                        "${agency.numeros} ${agency.voie} ${agency.street}"
+                        "${agency.numeros} ${agency.avenue} ${agency.street}"
                             .trim();
                     _controllers["zipCodeVille"]!.text =
                         "${agency.zipCode} ${agency.city}".trim();
@@ -283,7 +284,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
                       for (final k in [
                         "agencyName",
                         "agenceNumero",
-                        "agenceVoie",
+                        "agenceAvenue",
                         "agenceStreet",
                         "agenceZipCode",
                         "agenceCity",
@@ -322,7 +323,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
                       )),
                       Expanded(
                           child:
-                              buildField("Voie", "agenceVoie", editable: true)),
+                              buildField("Voie", "agenceAvenue", editable: true)),
                     ],
                   ),
                   buildField("Libelé", "agenceStreet", editable: true),
@@ -453,14 +454,14 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
 
     _controllers["agencyName"]?.text = agency?.name ?? '';
     _controllers["agenceNumero"]?.text = agency?.numeros ?? '';
-    _controllers["agenceVoie"]?.text = agency?.voie ?? '';
+    _controllers["agenceAvenue"]?.text = agency?.avenue ?? '';
     _controllers["agenceStreet"]?.text = agency?.street ?? '';
     _controllers["agenceZipCode"]?.text = agency?.zipCode ?? '';
     _controllers["agenceCity"]?.text = agency?.city ?? '';
     _controllers["mail_contact"]?.text = agency?.syndic?.mail ?? '';
     _controllers["address"]?.text = agency == null
         ? ''
-        : "${agency.numeros} ${agency.voie} ${agency.street}".trim();
+        : "${agency.numeros} ${agency.avenue} ${agency.street}".trim();
     _controllers["zipCodeVille"]?.text =
         agency == null ? '' : "${agency.zipCode} ${agency.city}".trim();
 
@@ -494,12 +495,12 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
       // champs (éditables dans ce cas).
       final selectedAgency = Agency(
         id: widget.lot.syndicAgency?.id ?? '',
-        name: _controllers["agencyName"]!.text,
+        name: capitalizeFirstLetter(_controllers["agencyName"]!.text),
         numeros: _controllers["agenceNumero"]!.text,
-        voie: _controllers["agenceVoie"]!.text,
-        street: _controllers["agenceStreet"]!.text,
+        avenue: capitalizeFirstLetter(_controllers["agenceAvenue"]!.text),
+        street: capitalizeFirstLetter(_controllers["agenceStreet"]!.text),
         zipCode: _controllers["agenceZipCode"]!.text,
-        city: _controllers["agenceCity"]!.text,
+        city: capitalizeFirstLetter(_controllers["agenceCity"]!.text),
         syndic: AgencyDept(
           agents: widget.lot.syndicAgency?.syndic?.agents ?? [],
           mail: _controllers["mail_contact"]!.text,

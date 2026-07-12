@@ -78,15 +78,15 @@ class _LotTileViewState extends State<LotTileView> {
                     Row(
                       children: [
                         MyTextStyle.lotDesc(
-                            widget.lot.residenceData["numero"] ?? "",
+                            widget.lot.residenceAddress["numero"] ?? "",
                             SizeFont.h3.size),
                         Container(padding: const EdgeInsets.only(left: 2)),
                         MyTextStyle.lotDesc(
-                            widget.lot.residenceData["voie"] ?? "",
+                            widget.lot.residenceAddress["avenue"] ?? "",
                             SizeFont.h3.size),
                         Container(padding: const EdgeInsets.only(left: 2)),
                         MyTextStyle.lotDesc(
-                            widget.lot.residenceData["street"] ?? "",
+                            widget.lot.residenceAddress["street"] ?? "",
                             SizeFont.h3.size),
                         Container(padding: const EdgeInsets.only(left: 2)),
                       ],
@@ -94,11 +94,11 @@ class _LotTileViewState extends State<LotTileView> {
                     Row(
                       children: [
                         MyTextStyle.lotDesc(
-                            widget.lot.residenceData["zipCode"] ?? "",
+                            widget.lot.residenceAddress["zipCode"] ?? "",
                             SizeFont.h3.size),
                         Container(padding: const EdgeInsets.only(left: 2)),
                         MyTextStyle.lotDesc(
-                            widget.lot.residenceData["city"] ?? "",
+                            widget.lot.residenceAddress["city"] ?? "",
                             SizeFont.h3.size),
                       ],
                     ),

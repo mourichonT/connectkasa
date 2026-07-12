@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:konodal/core/providers/storage_repository_provider.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/core/repositories/storage_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/post.dart';
@@ -566,7 +567,7 @@ class ModifyAskingNeighborsFormState
                         idPost: widget.post.id,
                         selectedLabel: widget.post.type,
                         imagePath: imageUrl,
-                        desc: desc.text,
+                        desc: capitalizeFirstLetter(desc.text),
                         anonymPost: anonymPost,
                         docRes: widget.residence,
                         style: PostStyle(

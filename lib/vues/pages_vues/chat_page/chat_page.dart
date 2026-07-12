@@ -3,6 +3,7 @@ import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/controllers/pages_controllers/chat_controller.dart';
 import 'package:konodal/controllers/providers/message_provider.dart';
 import 'package:konodal/core/repositories/firestore_chat_repository.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:konodal/vues/widget_view/components/chat_bubble.dart';
@@ -80,7 +81,7 @@ class ChatPageState extends State<ChatPage> {
       final result = await _chatRepository.sendMessage(
         widget.idUserFrom,
         widget.idUserTo,
-        chatController.text,
+        capitalizeFirstLetter(chatController.text),
         widget.residence,
       );
       if (result.isSuccess) {

@@ -23,7 +23,6 @@ abstract interface class IUserRepository {
     String? companyName,
     String? intentedFor,
     String? statutResident,
-    bool? informationsCorrectes,
     String? fcmToken,
   );
 

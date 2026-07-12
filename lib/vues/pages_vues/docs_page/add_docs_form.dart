@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 
 class AddDocsForm extends ConsumerStatefulWidget {
   final Lot lotSelected;
@@ -295,7 +296,7 @@ class AddDocsFormState extends ConsumerState<AddDocsForm> {
       await SubmitDocController.submitFormCopro(
         residenceId: widget.lotSelected.residenceId,
         docExtension: fileExtension,
-        docName: docName.text,
+        docName: capitalizeFirstLetter(docName.text),
         category: type,
         docPath: imagePath,
       );
@@ -303,7 +304,7 @@ class AddDocsFormState extends ConsumerState<AddDocsForm> {
       await SubmitDocController.submitFormIndividuel(
         residenceId: widget.lotSelected.residenceId,
         docExtension: fileExtension,
-        docName: docName.text,
+        docName: capitalizeFirstLetter(docName.text),
         category: type,
         docPath: imagePath,
         uid: destinatairesReal,

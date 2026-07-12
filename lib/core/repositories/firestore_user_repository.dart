@@ -53,7 +53,6 @@ class FirestoreUserRepository implements IUserRepository {
     String? companyName,
     String? intentedFor,
     String? statutResident,
-    bool? informationsCorrectes,
     String? fcmToken,
   ) async {
     try {
@@ -61,13 +60,9 @@ class FirestoreUserRepository implements IUserRepository {
 
       Map<String, dynamic> userData = newUser.toMap();
       userData['refUserApp'] = refUserApp;
-      Map<String, dynamic> fullUserData = {
-        ...userData,
-        "informationsCorrectes": informationsCorrectes,
-      };
 
       await _firestore.collection("users").doc(newUser.uid).set(
-            fullUserData,
+            userData,
             SetOptions(merge: true),
           );
 

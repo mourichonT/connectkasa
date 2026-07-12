@@ -39,22 +39,24 @@ class UserInfo extends User {
   factory UserInfo.fromMap(Map<String, dynamic> map) {
     final List incomesFromMap = map['revenus'] ?? [];
     final List jobIncomesFromMap = map['activities'] ?? [];
+    final userGroup = (map['user'] as Map?)?.cast<String, dynamic>() ?? {};
+    final profilGroup = (map['profil'] as Map?)?.cast<String, dynamic>() ?? {};
 
     return UserInfo(
       email: map['email'] ?? "",
-      name: map['name'] ?? "",
-      surname: map['surname'] ?? "",
-      sex: map['sex'] ?? "",
-      nationality: map['nationality'] ?? "",
-      placeOfborn: map['placeOfborn'] ?? "",
-      pseudo: map['pseudo'] ?? "",
+      name: userGroup['name'] ?? "",
+      surname: userGroup['surname'] ?? "",
+      sex: userGroup['sex'] ?? "",
+      nationality: userGroup['nationality'] ?? "",
+      placeOfborn: userGroup['placeOfborn'] ?? "",
+      pseudo: profilGroup['pseudo'] ?? "",
       uid: map['uid'] ?? "",
       approved: map['approved'] ?? false,
-      bio: map['bio'],
-      private: map['private'] ?? false,
+      bio: profilGroup['bio'],
+      private: profilGroup['private'] ?? false,
       createdDate: map['createdDate'] as Timestamp?,
-      profilPic: map['profilPic'] ?? "",
-      birthday: map['birthday'] as Timestamp,
+      profilPic: profilGroup['profilPic'] ?? "",
+      birthday: userGroup['birthday'] as Timestamp,
       dependent: map['dependent'] ?? 0,
       familySituation: map['familySituation'] ?? "",
       phone: map['phone'] ?? "",

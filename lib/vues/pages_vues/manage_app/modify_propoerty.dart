@@ -4,6 +4,7 @@ import 'package:konodal/controllers/handlers/colors_utils.dart';
 import 'package:konodal/controllers/providers/name_lot_provider.dart';
 import 'package:konodal/core/providers/lot_repository_provider.dart';
 import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:konodal/vues/pages_vues/manage_app/modify_prop_details.dart';
@@ -72,7 +73,7 @@ class _ModifyPropertyState extends ConsumerState<ModifyProperty> {
 
   void _handleSubmit(String field, String label, String value) async {
     final result = await lotServices.updateNameLot(
-        widget.uid, widget.lot.id!, value);
+        widget.uid, widget.lot.id!, capitalizeFirstLetter(value));
 
     if (result.isFailure) {
       if (mounted) {

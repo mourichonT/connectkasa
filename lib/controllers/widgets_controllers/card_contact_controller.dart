@@ -65,7 +65,7 @@ class CardContactController extends StatelessWidget {
         agencyName: resolvedAgency.name,
         agencystreet: resolvedAgency.street,
         agencyNum: resolvedAgency.numeros,
-        agencyVoie: resolvedAgency.voie,
+        agencyAvenue: resolvedAgency.avenue,
         agencyZIPCode: resolvedAgency.zipCode,
         agencyCity: resolvedAgency.city,
         uid: uid,

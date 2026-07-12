@@ -464,6 +464,30 @@ def sync_lot_tenants(event: firestore_fn.Event) -> None:
 
 
 # ---------------------------------------------------------------------------
+# residences/{id}.totalLot : compteur de lots maintenu automatiquement,
+# jamais écrit depuis le client (cf. residence.dart). Incrémente/décrémente
+# de façon atomique (firestore.Increment) plutôt que de recompter par une
+# requête à chaque écriture : évite une lecture supplémentaire et toute
+# course entre créations/suppressions concurrentes de lots.
+# ---------------------------------------------------------------------------
+
+@firestore_fn.on_document_written(document="residences/{residenceId}/lots/{lotId}")
+def sync_lot_count(event: firestore_fn.Event) -> None:
+    existed_before = event.data.before is not None and event.data.before.exists
+    exists_after = event.data.after is not None and event.data.after.exists
+
+    if existed_before == exists_after:
+        return  # ni création ni suppression (simple mise à jour du lot)
+
+    residence_id = event.params["residenceId"]
+    delta = 1 if exists_after else -1
+
+    firestore.client().collection("residences").document(residence_id).update({
+        "totalLot": firestore.Increment(delta),
+    })
+
+
+# ---------------------------------------------------------------------------
 # ENVOI - fallback, via requête HTTP
 # Body JSON attendu : {"to": "...", "subject": "...", "body": "...", "html": "..."}
 # ---------------------------------------------------------------------------
@@ -665,7 +689,7 @@ def send_custom_email(req: https_fn.Request) -> https_fn.Response:
         residence_id = data["residenceId"]
         residence_name = data["residenceName"]
         residence_numero = data["residenceNumero"]
-        residence_voie = data["residenceVoie"]
+        residence_avenue = data["residenceAvenue"]
         residence_street = data["residenceStreet"]
         residence_zipcode = data["residenceZipcode"]
         residence_city = data["residenceCity"]
@@ -687,7 +711,7 @@ def send_custom_email(req: https_fn.Request) -> https_fn.Response:
         )
 
     url = f"{TRIGGER_REPORT_BY_URL_URL}?postId={post_id}&residenceId={residence_id}"
-    residence_address = f"{residence_numero} {residence_voie} {residence_street}"
+    residence_address = f"{residence_numero} {residence_avenue} {residence_street}"
     residence_zipcity = f"{residence_zipcode} {residence_city}"
     declarant_html = (
         f'<p><strong>Déclarant :</strong> {declarant_status}</p>' if declarant_status else ''
@@ -1020,11 +1044,12 @@ class _ReportGenerator:
             buffer_draw(draw_header, residence_data.get('name', ''), 16, (1, 1, 1), True, True)
             draw_spacer(space_para)
 
-            address_line = f"{residence_data.get('numero', '')} {residence_data.get('voie', '')} {residence_data.get('street', '')}"
+            residence_address = residence_data.get('address') or {}
+            address_line = f"{residence_address.get('numero', '')} {residence_address.get('avenue', '')} {residence_address.get('street', '')}"
             buffer_draw(draw_header, address_line.strip(), 14, (1, 1, 1), True, False, True)
             draw_spacer(space_para)
 
-            city_line = f"{residence_data.get('zipCode', '')} {residence_data.get('city', '')}"
+            city_line = f"{residence_address.get('zipCode', '')} {residence_address.get('city', '')}"
             buffer_draw(draw_header, city_line.strip(), 14, (1, 1, 1), True, False, True)
 
         end_y = y

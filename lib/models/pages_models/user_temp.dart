@@ -16,6 +16,7 @@ class UserTemp extends User {
     required super.placeOfborn,
     super.createdDate,
     super.pseudo,
+    super.isInfoCorrect,
     required super.uid,
     required super.approved,
     //required this.statutResident,

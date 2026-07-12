@@ -9,6 +9,7 @@ import 'package:konodal/core/providers/storage_repository_provider.dart';
 import 'package:konodal/core/repositories/docs_repository.dart';
 import 'package:konodal/core/repositories/storage_repository.dart';
 import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/controllers/features/income_entry.dart';
 import 'package:konodal/models/enum/icons_extension.dart';
@@ -713,17 +714,25 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
 
     String? newGarantId;
 
+    final formattedName = capitalizeFirstLetter(name.text);
+    final formattedSurname = capitalizeFirstLetter(surname.text);
+    final formattedNationality = capitalizeFirstLetter(nationality.text);
+    final formattedPlaceOfBorn = capitalizeFirstLetter(placeOfBorn.text);
+    for (final job in jobEntries) {
+      job.profession = capitalizeFirstLetter(job.profession);
+    }
+
     if (currentGarant != null) {
       // Mise à jour existante
       GuarantorInfo updatedGarant = GuarantorInfo(
         id: currentGarant!.id,
         email: mail.text,
-        name: name.text,
-        surname: surname.text,
+        name: formattedName,
+        surname: formattedSurname,
         birthday: birthdayValue!,
         sex: sex,
-        nationality: nationality.text,
-        placeOfborn: placeOfBorn.text,
+        nationality: formattedNationality,
+        placeOfborn: formattedPlaceOfBorn,
         incomes: incomeEntries,
         jobIncomes: jobEntries,
         dependent: 0,
@@ -743,12 +752,12 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
       GuarantorInfo tempGarant = GuarantorInfo(
         id: null,
         email: mail.text,
-        name: name.text,
-        surname: surname.text,
+        name: formattedName,
+        surname: formattedSurname,
         birthday: birthdayValue!,
         sex: sex,
-        nationality: nationality.text,
-        placeOfborn: placeOfBorn.text,
+        nationality: formattedNationality,
+        placeOfborn: formattedPlaceOfBorn,
         incomes: incomeEntries,
         jobIncomes: jobEntries,
         dependent: 0,
@@ -802,12 +811,12 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
       currentGarant = GuarantorInfo(
         id: newGarantId,
         email: mail.text,
-        name: name.text,
-        surname: surname.text,
+        name: formattedName,
+        surname: formattedSurname,
         birthday: birthdayValue!,
         sex: sex,
-        nationality: nationality.text,
-        placeOfborn: placeOfBorn.text,
+        nationality: formattedNationality,
+        placeOfborn: formattedPlaceOfBorn,
         incomes: incomeEntries,
         jobIncomes: jobEntries,
         dependent: 0,

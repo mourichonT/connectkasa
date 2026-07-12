@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 
 class SubmitPostController {
   static Post _buildPost({
@@ -31,7 +32,7 @@ class SubmitPostController {
   }) {
     return Post(
       id: idPost,
-      description: desc?.text ?? "",
+      description: capitalizeFirstLetter(desc?.text ?? ""),
       locationElement: localisation ?? "",
       locationDetails: element ?? [],
       locationFloor: etage ?? "",
@@ -41,7 +42,7 @@ class SubmitPostController {
       refResidence: docRes,
       statu: selectedLabel == "sinistres" ? "En attente" : "",
       timeStamp: Timestamp.now(),
-      title: title?.text ?? "",
+      title: capitalizeFirstLetter(title?.text ?? ""),
       type: selectedLabel,
       user: uid,
       like: [],

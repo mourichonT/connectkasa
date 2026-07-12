@@ -1,18 +1,21 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:konodal/models/pages_models/address.dart';
 import 'package:konodal/models/pages_models/agency.dart';
 import 'package:konodal/models/pages_models/gerance_ref.dart';
 import 'package:konodal/models/pages_models/structure_residence.dart';
 
 class Residence {
   String name;
-  String numero;
-  String voie;
-  String street;
-  String zipCode;
-  String city;
+  // Regroupés sous 'address' côté Firestore (évite la duplication avec
+  // Agency, qui a les 5 mêmes champs) ; getters/setters ci-dessous pour
+  // ne pas casser tous les appelants existants qui lisent/écrivent
+  // .numero/.avenue/.street/.zipCode/.city directement.
+  Address address;
   String? mailContact;
   String id;
-  int nombreLot;
+  // Maintenu automatiquement par la Cloud Function sync_lot_count
+  // (functions_python/main.py), jamais écrit depuis le client.
+  int totalLot;
   List<String>? csmembers;
   // syndicAgency : cache d'affichage (résolu depuis geranceRef, ou saisie
   // custom si non référencée dans gerances). geranceRef et syndicAgency ne
@@ -24,37 +27,55 @@ class Residence {
   /// Plusieurs bâtiments identifiés par leur nom (ex: 'batA')
   Map<String, StructureResidence>? structures;
 
+  String get numero => address.numero;
+  set numero(String value) => address.numero = value;
+  String get avenue => address.avenue;
+  set avenue(String value) => address.avenue = value;
+  String get street => address.street;
+  set street(String value) => address.street = value;
+  String get zipCode => address.zipCode;
+  set zipCode(String value) => address.zipCode = value;
+  String get city => address.city;
+  set city(String value) => address.city = value;
+
   Residence({
     required this.name,
-    required this.numero,
-    required this.voie,
-    required this.street,
-    required this.zipCode,
-    required this.city,
+    required String numero,
+    required String avenue,
+    required String street,
+    required String zipCode,
+    required String city,
     required this.id,
     this.mailContact,
     this.csmembers,
-    this.nombreLot = 0,
+    this.totalLot = 0,
     this.syndicAgency,
     this.geranceRef,
     this.structures,
-  });
+  }) : address = Address(
+          numero: numero,
+          avenue: avenue,
+          street: street,
+          zipCode: zipCode,
+          city: city,
+        );
 
   /// Création à partir d'un JSON
   factory Residence.fromJson(Map<String, dynamic> json) {
     final structuresData = json['structures'] as Map<String, dynamic>?;
+    final address = Address.fromJson(json['address']);
 
     return Residence(
       name: json['name'] ?? '',
-      numero: json['numero'] ?? '',
-      voie: json['voie'] ?? '',
-      street: json['street'] ?? '',
-      zipCode: json['zipCode'] ?? '',
-      city: json['city'] ?? '',
+      numero: address.numero,
+      avenue: address.avenue,
+      street: address.street,
+      zipCode: address.zipCode,
+      city: address.city,
       id: json['id'] ?? '',
       mailContact: json['mail_contact'],
       csmembers: (json['csmembers'] as List?)?.cast<String>(),
-      nombreLot: json['nombreLot'] ?? 0,
+      totalLot: json['totalLot'] ?? 0,
       syndicAgency: json['syndicAgency'] != null
           ? Agency.fromJson(json['syndicAgency'])
           : null,
@@ -73,18 +94,19 @@ class Residence {
     SnapshotOptions? options,
   ) {
     final data = snapshot.data();
+    final address = Address.fromJson(data?['address']);
 
     return Residence(
       name: data?['name'] ?? '',
-      numero: data?['numero'] ?? '',
-      voie: data?['voie'] ?? '',
-      street: data?['street'] ?? '',
-      zipCode: data?['zipCode'] ?? '',
-      city: data?['city'] ?? '',
+      numero: address.numero,
+      avenue: address.avenue,
+      street: address.street,
+      zipCode: address.zipCode,
+      city: address.city,
       id: snapshot.id,
       mailContact: data?['mail_contact'],
       csmembers: (data?['csmembers'] as List?)?.cast<String>(),
-      nombreLot: data?['nombreLot'] ?? 0,
+      totalLot: data?['totalLot'] ?? 0,
       syndicAgency: data?['syndicAgency'] != null
           ? Agency.fromJson(data!['syndicAgency'])
           : null,
@@ -124,15 +146,11 @@ class Residence {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      'numero': numero,
-      'voie': voie,
-      'street': street,
-      'zipCode': zipCode,
-      'city': city,
+      'address': address.toJson(),
       'mail_contact': mailContact,
       'id': id,
       'csmembers': csmembers,
-      'nombreLot': nombreLot,
+      'totalLot': totalLot,
       'syndicAgency': syndicAgency?.toJson(),
       'geranceRef': geranceRef?.toJson(),
       'structures': structures?.map(

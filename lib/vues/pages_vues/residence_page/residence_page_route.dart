@@ -51,7 +51,7 @@ class ResidencePageRoute extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         MyTextStyle.lotDesc(
-                            "${res.numero} ${res.voie} ${res.street}",
+                            "${res.numero} ${res.avenue} ${res.street}",
                             SizeFont.h3.size),
                         MyTextStyle.lotDesc(
                             "${res.zipCode} ${res.city}", SizeFont.h3.size),

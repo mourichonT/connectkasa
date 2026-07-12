@@ -7,6 +7,7 @@ import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:konodal/vues/widget_view/components/photo_for_id.dart';
 import 'package:flutter/material.dart';
 import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 
 class Step0 extends StatefulWidget {
   final String userId;
@@ -285,7 +286,7 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
                     _sex,
                     _nationality,
                     _placeOfBorn,
-                    _pseudoController.text,
+                    capitalizeFirstLetter(_pseudoController.text),
                     imagePathIDrecto,
                     imagePathIDverso,
                     idChoice!,

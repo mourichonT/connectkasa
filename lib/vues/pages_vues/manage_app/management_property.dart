@@ -125,17 +125,17 @@ class ManagementPropertyState extends ConsumerState<ManagementProperty> {
                           Row(
                             children: [
                               MyTextStyle.lotDesc(
-                                  lot.residenceData["numero"] ?? "",
+                                  lot.residenceAddress["numero"] ?? "",
                                   SizeFont.h3.size),
                               Container(
                                   padding: const EdgeInsets.only(left: 4)),
                               MyTextStyle.lotDesc(
-                                  lot.residenceData["voie"] ?? "",
+                                  lot.residenceAddress["avenue"] ?? "",
                                   SizeFont.h3.size),
                               Container(
                                   padding: const EdgeInsets.only(left: 4)),
                               MyTextStyle.lotDesc(
-                                  lot.residenceData["street"] ?? "",
+                                  lot.residenceAddress["street"] ?? "",
                                   SizeFont.h3.size),
                               Container(
                                   padding: const EdgeInsets.only(left: 4)),
@@ -144,12 +144,12 @@ class ManagementPropertyState extends ConsumerState<ManagementProperty> {
                           Row(
                             children: [
                               MyTextStyle.lotDesc(
-                                  lot.residenceData["zipCode"] ?? "",
+                                  lot.residenceAddress["zipCode"] ?? "",
                                   SizeFont.h3.size),
                               Container(
                                   padding: const EdgeInsets.only(left: 4)),
                               MyTextStyle.lotDesc(
-                                  lot.residenceData["city"] ?? "",
+                                  lot.residenceAddress["city"] ?? "",
                                   SizeFont.h3.size),
                             ],
                           ),

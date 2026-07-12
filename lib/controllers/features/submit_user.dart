@@ -75,6 +75,7 @@ class SubmitUser {
       sex: sex,
       nationality: nationality,
       placeOfborn: placeOfborn,
+      isInfoCorrect: informationsCorrectes ?? false,
     );
 
     await dataBasesUserServices
@@ -85,7 +86,6 @@ class SubmitUser {
             companyName,
             intendedFor,
             statutResident,
-            informationsCorrectes,
             fcmToken)
         .then((result) => result.when(
             success: (_) {}, failure: (error) => throw error));

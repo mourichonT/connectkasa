@@ -6,6 +6,7 @@ import 'package:konodal/core/providers/agency_search_flow_provider.dart';
 import 'package:konodal/core/providers/residence_repository_provider.dart';
 import 'package:konodal/core/repositories/residence_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/address.dart';
 import 'package:konodal/models/pages_models/agency.dart';
 import 'package:konodal/models/pages_models/agency_dept.dart';
 import 'package:konodal/models/pages_models/residence.dart';
@@ -16,6 +17,7 @@ import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class ManagementResInfoG extends ConsumerStatefulWidget {
@@ -118,14 +120,14 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
       "mail_contact",
       "name",
       "numero",
-      "voie",
+      "avenue",
       "street",
       "zipCode",
       "city",
       // Agence
       "agencyName",
       "agenceNumero",
-      "agenceVoie",
+      "agenceAvenue",
       "agenceStreet",
       "agenceZipCodeVille",
       "agenceZipCode",
@@ -161,7 +163,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
       // Pré-remplir champs Résidence
       _controllers["name"]!.text = r.name;
       _controllers["numero"]!.text = r.numero;
-      _controllers["voie"]!.text = r.voie;
+      _controllers["avenue"]!.text = r.avenue;
       _controllers["street"]!.text = r.street;
       _controllers["zipCode"]!.text = r.zipCode;
       _controllers["city"]!.text = r.city;
@@ -180,13 +182,13 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
         final a = r.syndicAgency!;
         _controllers["agencyName"]!.text = a.name;
         _controllers["agenceNumero"]!.text = a.numeros;
-        _controllers["agenceVoie"]!.text = a.voie;
+        _controllers["agenceAvenue"]!.text = a.avenue;
         _controllers["agenceStreet"]!.text = a.street;
         _controllers["agenceZipCode"]!.text = a.zipCode;
         _controllers["agenceCity"]!.text = a.city;
 
         _controllers["address"]!.text =
-            "${a.numeros} ${a.voie} ${a.street}".trim();
+            "${a.numeros} ${a.avenue} ${a.street}".trim();
         _controllers["zipCodeVille"]!.text = "${a.zipCode} ${a.city}".trim();
       }
     } catch (e) {
@@ -222,12 +224,12 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
         // Remplir les contrôleurs dérivés
         _controllers["agencyName"]!.text = newAgency.name;
         _controllers["agenceNumero"]!.text = newAgency.numeros;
-        _controllers["agenceVoie"]!.text = newAgency.voie;
+        _controllers["agenceAvenue"]!.text = newAgency.avenue;
         _controllers["agenceStreet"]!.text = newAgency.street;
         _controllers["agenceZipCode"]!.text = newAgency.zipCode;
         _controllers["agenceCity"]!.text = newAgency.city;
         _controllers["address"]!.text =
-            "${newAgency.numeros} ${newAgency.voie} ${newAgency.street}".trim();
+            "${newAgency.numeros} ${newAgency.avenue} ${newAgency.street}".trim();
         _controllers["zipCodeVille"]!.text =
             "${newAgency.zipCode} ${newAgency.city}".trim();
       } else {
@@ -323,7 +325,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
                   child: buildField("Numéro", "numero", editable: false),
                 )),
                 Expanded(
-                    child: buildField("Type de voie", "voie", editable: false)),
+                    child: buildField("Type de voie", "avenue", editable: false)),
               ],
             ),
 
@@ -414,14 +416,14 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
                     _controllers["agencyName"]!.text = agency.name;
                     _controllers["agenceNumero"]!.text =
                         agency.numeros; // <-- fix
-                    _controllers["agenceVoie"]!.text = agency.voie;
+                    _controllers["agenceAvenue"]!.text = agency.avenue;
                     _controllers["agenceStreet"]!.text = agency.street;
                     _controllers["agenceZipCode"]!.text = agency.zipCode;
                     _controllers["agenceCity"]!.text = agency.city;
                     _controllers["mail_contact"]!.text =
                         agency.syndic?.mail ?? "";
                     _controllers["address"]!.text =
-                        "${agency.numeros} ${agency.voie} ${agency.street}"
+                        "${agency.numeros} ${agency.avenue} ${agency.street}"
                             .trim();
                     _controllers["zipCodeVille"]!.text =
                         "${agency.zipCode} ${agency.city}".trim();
@@ -439,7 +441,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
                       for (final k in [
                         "agencyName",
                         "agenceNumero",
-                        "agenceVoie",
+                        "agenceAvenue",
                         "agenceStreet",
                         "agenceZipCode",
                         "agenceCity",
@@ -478,7 +480,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
                       )),
                       Expanded(
                           child:
-                              buildField("Voie", "agenceVoie", editable: true)),
+                              buildField("Voie", "agenceAvenue", editable: true)),
                     ],
                   ),
                   buildField("Libelé", "agenceStreet", editable: true),
@@ -542,7 +544,8 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
     FocusScope.of(context).unfocus();
     final String refResidence = widget.residence.id;
 
-    final String residenceName = _controllers["name"]?.text.trim() ?? '';
+    final String residenceName =
+        capitalizeFirstLetter(_controllers["name"]?.text.trim() ?? '');
     final String mailContact = _controllers["mail_contact"]?.text.trim() ?? '';
 
     // Vérification obligatoire : nom de résidence + au moins un mail
@@ -576,11 +579,13 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
     // Données de base de la résidence
     final Map<String, dynamic> updatedData = {
       'name': residenceName,
-      'numero': _controllers["numero"]?.text ?? '',
-      'voie': _controllers["voie"]?.text ?? '',
-      'street': _controllers["street"]?.text ?? '',
-      'zipCode': _controllers["zipCode"]?.text ?? '',
-      'city': _controllers["city"]?.text ?? '',
+      'address': Address(
+        numero: _controllers["numero"]?.text ?? '',
+        avenue: capitalizeFirstLetter(_controllers["avenue"]?.text ?? ''),
+        street: capitalizeFirstLetter(_controllers["street"]?.text ?? ''),
+        zipCode: _controllers["zipCode"]?.text ?? '',
+        city: capitalizeFirstLetter(_controllers["city"]?.text ?? ''),
+      ).toJson(),
       // Non délégué : le mail saisi par l'utilisateur fait foi. Délégué :
       // mail_contact est vidé plutôt que de dupliquer le mail de l'agence -
       // la résolution se fait à la lecture (geranceRef/syndicAgency), pas
@@ -600,12 +605,12 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
       if (_itemSelected) {
         final selectedAgency = Agency(
           id: widget.residence.syndicAgency?.id ?? '',
-          name: _controllers["agencyName"]!.text,
+          name: capitalizeFirstLetter(_controllers["agencyName"]!.text),
           numeros: _controllers["agenceNumero"]!.text,
-          voie: _controllers["agenceVoie"]!.text,
-          street: _controllers["agenceStreet"]!.text,
+          avenue: capitalizeFirstLetter(_controllers["agenceAvenue"]!.text),
+          street: capitalizeFirstLetter(_controllers["agenceStreet"]!.text),
           zipCode: _controllers["agenceZipCode"]!.text,
-          city: _controllers["agenceCity"]!.text,
+          city: capitalizeFirstLetter(_controllers["agenceCity"]!.text),
           syndic: AgencyDept(
             agents: widget.residence.syndicAgency?.syndic?.agents ?? [],
             mail: _controllers["mail_contact"]!.text,
@@ -641,7 +646,7 @@ class _ManagementResInfoGState extends ConsumerState<ManagementResInfoG> {
     for (final k in [
       "agencyName",
       "agenceNumero",
-      "agenceVoie",
+      "agenceAvenue",
       "agenceStreet",
       "agenceZipCode",
       "agenceCity",

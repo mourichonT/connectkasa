@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:konodal/core/repositories/firestore_mail_repository.dart';
 import 'package:konodal/core/repositories/mail_repository.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class MailChatPageState extends State<MailChatPage> {
       final result = await _mailRepository.sendMail(
         selectedLot: widget.selectedLot,
         receiverId: widget.to,
-        message: mailChatController.text,
+        message: capitalizeFirstLetter(mailChatController.text),
       );
       result.when(
         success: (_) {},

@@ -13,6 +13,7 @@ import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 
 class ModifyPostForm extends StatefulWidget {
   final Post post;
@@ -433,8 +434,8 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                     idPost: widget.post.id,
                     selectedLabel: type!,
                     imagePath: imagePath,
-                    title: title.text,
-                    desc: desc.text,
+                    title: capitalizeFirstLetter(title.text),
+                    desc: capitalizeFirstLetter(desc.text),
                     anonymPost: anonymPost,
                     docRes: widget.post.refResidence,
                     localisation: localisation,

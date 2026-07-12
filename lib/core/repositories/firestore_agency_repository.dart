@@ -68,7 +68,7 @@ class FirestoreAgencyRepository implements IAgencyRepository {
           city: geranceData['city'] ?? '',
           numeros: geranceData['numeros'] ?? '',
           street: geranceData['street'] ?? '',
-          voie: geranceData['voie'] ?? '',
+          avenue: geranceData['avenue'] ?? '',
           zipCode: geranceData['zipCode'] ?? '',
           syndic: AgencyDept.fromJson(serviceData),
         ));
@@ -115,7 +115,7 @@ class FirestoreAgencyRepository implements IAgencyRepository {
         city: data['city'] ?? '',
         numeros: data['numeros'] ?? '',
         street: data['street'] ?? '',
-        voie: data['voie'] ?? '',
+        avenue: data['avenue'] ?? '',
         zipCode: data['zipCode'] ?? '',
         syndic: AgencyDept(
           agents: agentsJson

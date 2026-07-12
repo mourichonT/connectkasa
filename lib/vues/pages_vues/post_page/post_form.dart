@@ -83,15 +83,15 @@ class PostFormState extends State<PostForm> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceData["numero"],
+                        widget.preferedLot.residenceAddress["numero"],
                         SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 4)),
                     MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceData["voie"],
+                        widget.preferedLot.residenceAddress["avenue"],
                         SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 4)),
                     MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceData["street"],
+                        widget.preferedLot.residenceAddress["street"],
                         SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 4)),
                   ],
@@ -101,11 +101,11 @@ class PostFormState extends State<PostForm> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceData["zipCode"],
+                        widget.preferedLot.residenceAddress["zipCode"],
                         SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 4)),
                     MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceData["city"],
+                        widget.preferedLot.residenceAddress["city"],
                         SizeFont.h3.size),
                   ],
                 ),

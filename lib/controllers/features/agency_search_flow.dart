@@ -35,7 +35,7 @@ class AgencySearchFlow {
         city: '',
         numeros: '',
         street: '',
-        voie: '',
+        avenue: '',
         zipCode: '',
         syndic: AgencyDept(agents: [], mail: emailPart, phone: ''),
       );

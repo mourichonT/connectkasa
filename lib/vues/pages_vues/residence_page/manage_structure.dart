@@ -16,6 +16,7 @@ import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 
 class ManageStructure extends ConsumerStatefulWidget {
   final Residence residence;
@@ -216,6 +217,7 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
     }
     try {
       for (var building in buildings) {
+        building.name = capitalizeFirstLetter(building.name);
         appLog(building.toJson());
         await _residenceServices.saveStructure(widget.residence.id, building);
         _expandedBuildings.remove(building);
@@ -488,18 +490,21 @@ class ManageStructureState extends ConsumerState<ManageStructure> {
                                               setState(() {
                                                 if (newItemController
                                                     .text.isNotEmpty) {
+                                                  final newItem =
+                                                      capitalizeFirstLetter(
+                                                          newItemController
+                                                              .text);
                                                   // Assurez-vous que building.elements est initialisé
                                                   building.elements ??= [];
                                                   // Ajoutez le nouvel élément à la liste des éléments du bâtiment
-                                                  building.elements!.add(
-                                                      newItemController.text);
+                                                  building.elements!
+                                                      .add(newItem);
                                                   // Mettez à jour itemsElements si nécessaire pour que le FilterChip soit disponible
                                                   // Ceci est important si vous voulez que le nouvel élément apparaisse comme un FilterChip sélectionnable
                                                   // Si itemsElements est une liste fixe, vous devrez peut-être la rendre dynamique
-                                                  if (!itemsElements.contains(
-                                                      newItemController.text)) {
-                                                    itemsElements.add(
-                                                        newItemController.text);
+                                                  if (!itemsElements
+                                                      .contains(newItem)) {
+                                                    itemsElements.add(newItem);
                                                   }
                                                   // Mettez à jour le contrôleur de texte principal si vous l'utilisez
                                                   elementsController.text =

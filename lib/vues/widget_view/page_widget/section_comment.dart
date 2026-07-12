@@ -7,6 +7,7 @@ import 'package:konodal/vues/widget_view/components/comment_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class SectionComment extends StatefulWidget {
@@ -218,7 +219,7 @@ class _SectionCommentState extends State<SectionComment>
           widget.residenceSelected,
           widget.postSelected,
           Comment(
-            comment: formattedComment,
+            comment: capitalizeFirstLetter(formattedComment),
             user: widget.uid,
             timestamp: Timestamp.now(),
             like: [],
@@ -240,7 +241,7 @@ class _SectionCommentState extends State<SectionComment>
         widget.residenceSelected,
         widget.postSelected,
         Comment(
-          comment: _textEditingController.text,
+          comment: capitalizeFirstLetter(_textEditingController.text),
           user: widget.uid,
           timestamp: Timestamp.now(),
           like: [],

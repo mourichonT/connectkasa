@@ -9,6 +9,7 @@ import 'package:konodal/core/providers/storage_repository_provider.dart';
 import 'package:konodal/core/repositories/docs_repository.dart';
 import 'package:konodal/core/repositories/storage_repository.dart';
 import 'package:konodal/core/repositories/user_repository.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/controllers/features/income_entry.dart';
 import 'package:konodal/models/enum/icons_extension.dart';
@@ -356,6 +357,10 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
 
   void saveUserInfo() async {
     if (tenantUser == null) return;
+
+    for (final job in jobEntries) {
+      job.profession = capitalizeFirstLetter(job.profession);
+    }
 
     UserInfo updatedUser = UserInfo(
       uid: tenantUser!.uid,

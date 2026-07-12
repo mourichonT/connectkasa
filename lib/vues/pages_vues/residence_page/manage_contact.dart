@@ -3,6 +3,7 @@ import 'package:konodal/core/providers/residence_repository_provider.dart';
 import 'package:konodal/core/repositories/residence_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/pages_models/contact.dart'; // Importez votre modèle Contact
 import 'package:konodal/models/pages_models/residence.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
@@ -149,6 +150,14 @@ class ManageContactState extends ConsumerState<ManageContact> {
           ),
         );
         return;
+      }
+
+      contact.name = capitalizeFirstLetter(contact.name);
+      if (contact.street != null) {
+        contact.street = capitalizeFirstLetter(contact.street!);
+      }
+      if (contact.city != null) {
+        contact.city = capitalizeFirstLetter(contact.city!);
       }
 
       if (contact.id == null) {

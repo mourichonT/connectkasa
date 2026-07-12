@@ -1,5 +1,6 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/controllers/features/submit_user.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/legal_texts/info_centre.dart';
 import 'package:konodal/models/pages_models/user.dart';
@@ -139,7 +140,7 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
                     uid: widget.uid,
                     field: field,
                     label: label,
-                    value: value,
+                    value: capitalizeFirstLetter(value),
                   );
                   widget.refresh();
                 },
@@ -157,7 +158,7 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
                     uid: widget.uid,
                     field: field,
                     label: label,
-                    value: value,
+                    value: capitalizeFirstLetter(value),
                   );
                   widget.refresh();
                 },

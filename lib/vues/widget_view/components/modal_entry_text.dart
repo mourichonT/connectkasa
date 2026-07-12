@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 
 class TextEntryModal extends StatefulWidget {
   final Function(String) onSave;
@@ -29,7 +30,7 @@ class _TextEntryModalState extends State<TextEntryModal> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                String text = _textEditingController.text;
+                String text = capitalizeFirstLetter(_textEditingController.text);
                 widget.onSave(text);
                 Navigator.of(context).pop();
               },

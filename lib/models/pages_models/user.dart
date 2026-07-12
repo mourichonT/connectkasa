@@ -4,20 +4,30 @@ import 'package:konodal/models/enum/notification_type.dart';
 class User {
   String email;
   String _profilPic = "";
+  // Regroupés sous 'user' côté Firestore (identité issue de la pièce
+  // d'identité à l'inscription) ; getters/setters ci-dessous pour ne pas
+  // casser les appelants existants qui lisent/écrivent .name/.surname/etc.
+  // directement.
   String name;
   String surname;
   Timestamp birthday;
   String sex;
   String nationality;
   String placeOfborn;
-  String? pseudo;
+  // Renommé depuis informationsCorrectes (bolted-on hors modèle avant ce
+  // refactor) : l'utilisateur a confirmé que les infos extraites par l'OCR
+  // de sa pièce d'identité (step0.dart) sont correctes.
+  bool isInfoCorrect;
   String uid;
-  String? bio;
   Timestamp? createdDate;
   bool approved;
-  bool private;
   bool privacyPolicy;
   Map<String, bool> notificationPrefs;
+
+  // Regroupés sous 'profil' côté Firestore ; getters/setters ci-dessous.
+  String? pseudo;
+  String? bio;
+  bool private;
 
   User({
     required this.privacyPolicy,
@@ -35,6 +45,7 @@ class User {
     required this.approved,
     this.createdDate,
     this.bio,
+    this.isInfoCorrect = false,
     Map<String, bool>? notificationPrefs,
   }) : notificationPrefs = notificationPrefs ?? NotificationType.defaultPrefs {
     _profilPic = profilPic;
@@ -59,26 +70,30 @@ class User {
   }
 
   factory User.fromMap(Map<String, dynamic> map) {
+    final userGroup = (map['user'] as Map?)?.cast<String, dynamic>() ?? {};
+    final profilGroup = (map['profil'] as Map?)?.cast<String, dynamic>() ?? {};
+
     return User(
       privacyPolicy: map['privacyPolicy'] ?? false,
       email: map['email'] ?? "",
-      profilPic: map['profilPic'] ?? "",
+      profilPic: profilGroup['profilPic'] ?? "",
       approved: map['approved'] ?? false,
       createdDate: map['createdDate'] != null
           ? map['createdDate'] as Timestamp
           : Timestamp.fromMillisecondsSinceEpoch(0),
-      name: map['name'] ?? "",
-      surname: map['surname'] ?? "",
-      birthday: map['birthday'] != null
-          ? map['birthday'] as Timestamp
+      name: userGroup['name'] ?? "",
+      surname: userGroup['surname'] ?? "",
+      birthday: userGroup['birthday'] != null
+          ? userGroup['birthday'] as Timestamp
           : Timestamp.fromMillisecondsSinceEpoch(0),
-      sex: map['sex'] ?? "",
-      nationality: map['nationality'] ?? "",
-      placeOfborn: map['placeOfborn'] ?? "",
-      pseudo: map['pseudo'] ?? "",
+      sex: userGroup['sex'] ?? "",
+      nationality: userGroup['nationality'] ?? "",
+      placeOfborn: userGroup['placeOfborn'] ?? "",
+      isInfoCorrect: userGroup['isInfoCorrect'] ?? false,
+      pseudo: profilGroup['pseudo'] ?? "",
       uid: map['uid'] ?? "",
-      bio: map['bio'] ?? "",
-      private: map['private'] ?? false,
+      bio: profilGroup['bio'] ?? "",
+      private: profilGroup['private'] ?? false,
       // Fusionne avec les valeurs par défaut (tout activé) pour couvrir les
       // utilisateurs existants qui n'ont pas encore ce champ, ou les
       // nouveaux types de notification ajoutés après leur inscription.
@@ -93,20 +108,26 @@ class User {
   Map<String, dynamic> toMap() {
     return {
       'privacyPolicy': privacyPolicy,
-      'profilPic': profilPic,
       'approved': approved,
       'createdDate': createdDate,
-      'name': name,
-      'surname': surname,
-      'birthday': birthday,
-      'sex': sex,
-      'nationality': nationality,
-      'placeOfborn': placeOfborn,
-      'pseudo': pseudo,
       'uid': uid,
-      'bio': bio,
-      'private': private,
+      'email': email,
       'notificationPrefs': notificationPrefs,
+      'user': {
+        'name': name,
+        'surname': surname,
+        'birthday': birthday,
+        'sex': sex,
+        'nationality': nationality,
+        'placeOfborn': placeOfborn,
+        'isInfoCorrect': isInfoCorrect,
+      },
+      'profil': {
+        'pseudo': pseudo,
+        'bio': bio,
+        'private': private,
+        'profilPic': profilPic,
+      },
     };
   }
 }

@@ -20,7 +20,7 @@ class CardContactView extends StatefulWidget {
   final String agencyName;
   final String agencystreet;
   final String agencyNum;
-  final String agencyVoie;
+  final String agencyAvenue;
   final String agencyZIPCode;
   final String agencyCity;
   final String uid;
@@ -35,7 +35,7 @@ class CardContactView extends StatefulWidget {
     required this.agencyName,
     required this.agencystreet,
     required this.agencyNum,
-    required this.agencyVoie,
+    required this.agencyAvenue,
     required this.agencyZIPCode,
     required this.agencyCity,
     required this.uid,
@@ -85,7 +85,7 @@ class _CardContactViewState extends State<CardContactView> {
   @override
   Widget build(BuildContext context) {
     final address =
-        '${widget.agencyNum} ${widget.agencyVoie} ${widget.agencystreet}, ${widget.agencyZIPCode} ${widget.agencyCity}';
+        '${widget.agencyNum} ${widget.agencyAvenue} ${widget.agencystreet}, ${widget.agencyZIPCode} ${widget.agencyCity}';
 
     return FutureBuilder<List<Mail>>(
       future: _mailsFuture,
@@ -236,7 +236,7 @@ class _CardContactViewState extends State<CardContactView> {
                                       ),
                                     ),
                                     Text(
-                                      "${widget.agencyVoie} ",
+                                      "${widget.agencyAvenue} ",
                                       style: const TextStyle(
                                         color: Colors.black87,
                                         fontSize: 14,
