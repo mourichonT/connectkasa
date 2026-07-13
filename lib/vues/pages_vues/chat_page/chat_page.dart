@@ -88,6 +88,12 @@ class ChatPageState extends State<ChatPage> {
         chatController.clear();
         _focusNode.unfocus();
         _scrollToBottom();
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Erreur lors de l'envoi du message."),
+          ),
+        );
       }
     }
   }
