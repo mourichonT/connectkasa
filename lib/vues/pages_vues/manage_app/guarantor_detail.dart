@@ -82,8 +82,10 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
                     lineToWrite(
                         Icons.calendar_month,
                         "Date début contrat",
-                        DateFormat('dd/MM/yyyy')
-                            .format(g.jobIncomes[i].entryJobDate!.toDate())),
+                        g.jobIncomes[i].entryJobDate != null
+                            ? DateFormat('dd/MM/yyyy').format(
+                                g.jobIncomes[i].entryJobDate!.toDate())
+                            : "Non renseignée"),
                     if (i < g.jobIncomes.length - 1)
                       const Padding(
                         padding:

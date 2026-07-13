@@ -287,9 +287,12 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
                       lineToWrite(
                         Icons.calendar_month,
                         "Date début contrat",
-                        DateFormat('dd/MM/yyyy').format(
-                          widget.tenant.jobIncomes[i].entryJobDate!.toDate(),
-                        ),
+                        widget.tenant.jobIncomes[i].entryJobDate != null
+                            ? DateFormat('dd/MM/yyyy').format(
+                                widget.tenant.jobIncomes[i].entryJobDate!
+                                    .toDate(),
+                              )
+                            : "Non renseignée",
                       ),
                       if (i <
                           widget.tenant.jobIncomes.length -

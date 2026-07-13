@@ -244,9 +244,11 @@ class TenantDetail extends ConsumerWidget {
                   lineToWrite(
                     Icons.calendar_month,
                     "Date début contrat",
-                    DateFormat('dd/MM/yyyy').format(
-                      tenant.jobIncomes[i].entryJobDate!.toDate(),
-                    ),
+                    tenant.jobIncomes[i].entryJobDate != null
+                        ? DateFormat('dd/MM/yyyy').format(
+                            tenant.jobIncomes[i].entryJobDate!.toDate(),
+                          )
+                        : "Non renseignée",
                   ),
                   if (i <
                       tenant.jobIncomes.length -
