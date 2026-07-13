@@ -16,7 +16,7 @@ class FirestoreStorageRepository implements IStorageRepository {
       String residence, String folderName, String fileName) async {
     try {
       // Récupérer l'extension du fichier original
-      String extension = file.path.split('.').last;
+      String extension = file.path.split('.').last.toLowerCase();
 
       // Déterminer le type MIME en fonction de l'extension
       String mimeType;

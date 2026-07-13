@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/core/repositories/firestore_lot_repository.dart';
 import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/models/enum/add_tenant_outcome.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/demande_loc.dart';
 import 'package:konodal/models/pages_models/guarantor_info.dart';
@@ -151,28 +152,95 @@ class ShareRentFolder {
             ),
             TextButton(
               onPressed: () async {
-                if (selectedLot != null) {
-                  // On met à jour le lot sélectionné
-                  await dataBasesLotServices.addTenant(
-                    context,
-                    selectedLot!.residenceId,
-                    selectedLot!.id!,
-                    // champ à mettre à jour
-                    idLocataire, // id du locataire à ajouter
-                  );
-                  if (!context.mounted) return;
-                  Navigator.of(context).pop(); // ferme le dialog
-                } else {
+                if (selectedLot == null) {
                   // Optionnel : afficher un message d'erreur si aucun lot sélectionné
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text("Veuillez sélectionner un lot")),
                   );
+                  return;
                 }
+                await _addTenantToLot(
+                  context,
+                  dataBasesLotServices,
+                  selectedLot!.residenceId,
+                  selectedLot!.id!,
+                  idLocataire,
+                );
               },
               child: Text("Valider"),
             ),
           ],
         );
+      },
+    );
+  }
+
+  /// Ajoute [tenantId] au lot désigné, en gérant les 3 verdicts renvoyés par
+  /// ILotRepository.addTenant() (celui-ci ne fait plus d'UI lui-même) :
+  /// ajout direct, déjà présent, ou décision remplacer/ajouter à demander
+  /// à l'utilisateur avant de rappeler addTenant() avec replace renseigné.
+  static Future<void> _addTenantToLot(
+    BuildContext context,
+    FirestoreLotRepository dataBasesLotServices,
+    String residenceId,
+    String idLot,
+    String tenantId,
+  ) async {
+    final result =
+        await dataBasesLotServices.addTenant(residenceId, idLot, tenantId);
+    if (!context.mounted) return;
+
+    await result.when(
+      success: (outcome) async {
+        switch (outcome) {
+          case AddTenantOutcome.added:
+            Navigator.of(context).pop(); // ferme le dialog de sélection de lot
+            break;
+          case AddTenantOutcome.alreadyPresent:
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Ce locataire est déjà ajouté.")),
+            );
+            break;
+          case AddTenantOutcome.needsReplaceOrAddDecision:
+            final decision = await showDialog<String>(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: MyTextStyle.lotName("Locataire déjà présent",
+                    Colors.black87, SizeFont.h2.size),
+                content: MyTextStyle.lotName(
+                    "Souhaitez-vous remplacer le locataire actuel ou ajouter un colocataire ?",
+                    Colors.black87,
+                    SizeFont.h3.size,
+                    FontWeight.normal),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'replace'),
+                    child: const Text("Remplacer"),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, 'add'),
+                    child: const Text("Ajouter"),
+                  ),
+                ],
+              ),
+            );
+            if (decision != 'replace' && decision != 'add') return;
+            if (!context.mounted) return;
+            final decisionResult = await dataBasesLotServices.addTenant(
+                residenceId, idLot, tenantId,
+                replace: decision == 'replace');
+            if (!context.mounted) return;
+            decisionResult.when(
+              success: (_) => Navigator.of(context).pop(),
+              failure: (error) => ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Erreur : $error"))),
+            );
+            break;
+        }
+      },
+      failure: (error) async {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Erreur : $error")));
       },
     );
   }

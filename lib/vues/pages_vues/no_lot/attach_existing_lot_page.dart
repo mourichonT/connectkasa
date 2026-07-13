@@ -247,6 +247,7 @@ class _AttachExistingLotPageState
                     progressController: _pageController,
                     onCameraStateChanged: (_) {},
                     recupererInformationsStep2: _onRoleDefined,
+                    userId: widget.uid,
                   )
                 else
                   const SizedBox.shrink(),

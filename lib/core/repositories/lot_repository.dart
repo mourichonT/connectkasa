@@ -1,4 +1,5 @@
 import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/enum/add_tenant_outcome.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 
@@ -24,11 +25,14 @@ abstract interface class ILotRepository {
   Future<Result<bool>> updateLot(
       String residenceId, String idLot, String field, dynamic upDate);
 
-  /// Décision remplacer/ajouter prise par l'appelant (BuildContext requis
-  /// pour le dialog) : conservé tel quel pour cette migration, seul
-  /// share_rent_folder.dart l'utilise.
-  Future<Result<bool>> addTenant(BuildContext context, String residenceId,
-      String idLot, String tenantId);
+  /// N'affiche plus aucune UI (SnackBar/dialog) : renvoie un verdict
+  /// (AddTenantOutcome) à charge pour l'appelant. Si le lot a déjà un
+  /// locataire différent, renvoie needsReplaceOrAddDecision SANS rien écrire
+  /// - l'appelant doit alors demander à l'utilisateur remplacer/ajouter,
+  /// puis rappeler avec [replace] renseigné pour effectuer l'écriture.
+  Future<Result<AddTenantOutcome>> addTenant(
+      String residenceId, String idLot, String tenantId,
+      {bool? replace});
 
   Future<Result<void>> removeUserFromAllLots(String userID);
 

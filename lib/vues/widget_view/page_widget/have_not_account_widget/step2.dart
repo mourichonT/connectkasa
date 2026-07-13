@@ -10,6 +10,7 @@ class Step2 extends StatefulWidget {
   final int currentPage;
   final PageController progressController;
   final Function(bool) onCameraStateChanged;
+  final String userId;
 
   const Step2({
     super.key,
@@ -17,6 +18,7 @@ class Step2 extends StatefulWidget {
     required this.currentPage,
     required this.progressController,
     required this.onCameraStateChanged,
+    required this.userId,
   });
 
   @override
@@ -111,8 +113,8 @@ class _Step2State extends State<Step2> {
                       visible: compagnyBuy,
                       child: CameraOrFiles(
                         racineFolder: 'user',
-                        residence: 'document',
-                        folderName: 'documentID',
+                        residence: widget.userId,
+                        folderName: 'compagnyDoc',
                         title: pathKbis ?? "",
                         onImageUploaded: (downloadUrl) {
                           setState(() {

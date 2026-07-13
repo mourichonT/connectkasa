@@ -260,15 +260,14 @@ class _Step0State extends State<Step0> with WidgetsBindingObserver {
         ),
       ),
       bottomNavigationBar: Visibility(
-        visible: idChoice == 'Passeport' &&
-                imagePathIDrecto.isEmpty &&
-                informationsCorrectes != null
-            ? false
-            : true &&
-                    imagePathIDverso.isNotEmpty &&
-                    informationsCorrectes != null
-                ? true
-                : false,
+        // Un passeport n'a pas de verso : imagePathIDverso ne sera jamais
+        // renseigné dans ce cas (la section "Merci de prendre l'autre côté"
+        // plus haut est elle-même masquée pour idChoice == 'Passeport').
+        // L'exiger inconditionnellement empêchait le bouton "Suivant"
+        // d'apparaître pour tout utilisateur choisissant un passeport.
+        visible: imagePathIDrecto.isNotEmpty &&
+            (idChoice == 'Passeport' || imagePathIDverso.isNotEmpty) &&
+            informationsCorrectes != null,
         child: BottomAppBar(
           surfaceTintColor: Colors.white,
           padding: const EdgeInsets.all(2),

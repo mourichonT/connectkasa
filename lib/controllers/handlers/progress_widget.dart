@@ -451,6 +451,7 @@ class ProgressWidgetState extends State<ProgressWidget>
               currentPage: currentPage,
               progressController: _progressController,
               onCameraStateChanged: _handleCameraState,
+              userId: widget.userId,
             ),
             Step3(
               typeResident: residentType,

@@ -1,10 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:konodal/core/repositories/firestore_user_repository.dart';
-import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/core/errors/app_exceptions.dart';
 import 'package:konodal/core/repositories/lot_repository.dart';
 import 'package:konodal/core/result/result.dart';
-import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/add_tenant_outcome.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:flutter/material.dart';
 
@@ -274,8 +273,9 @@ class FirestoreLotRepository implements ILotRepository {
   }
 
   @override
-  Future<Result<bool>> addTenant(BuildContext context, String residenceId,
-      String idLot, String tenantId) async {
+  Future<Result<AddTenantOutcome>> addTenant(
+      String residenceId, String idLot, String tenantId,
+      {bool? replace}) async {
     try {
       final lotRef = _firestore
           .collection("residences")
@@ -285,58 +285,30 @@ class FirestoreLotRepository implements ILotRepository {
 
       final lotDoc = await lotRef.get();
 
-      if (!lotDoc.exists) return const Result.success(false);
+      if (!lotDoc.exists) {
+        return const Result.success(AddTenantOutcome.alreadyPresent);
+      }
 
       final currentLocataires =
           List<dynamic>.from(lotDoc.get('idLocataire') ?? []);
 
       if (currentLocataires.contains(tenantId)) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Ce locataire est déjà ajouté.")),
-          );
-        }
-        return const Result.success(false);
+        return const Result.success(AddTenantOutcome.alreadyPresent);
       }
 
       if (currentLocataires.isNotEmpty) {
-        if (!context.mounted) return const Result.success(false);
-        final result = await showDialog<String>(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: MyTextStyle.lotName(
-                  "Locataire déjà présent", Colors.black87, SizeFont.h2.size),
-              content: MyTextStyle.lotName(
-                  "Souhaitez-vous remplacer le locataire actuel ou ajouter un colocataire ?",
-                  Colors.black87,
-                  SizeFont.h3.size,
-                  FontWeight.normal),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, 'replace'),
-                  child: const Text("Remplacer"),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, 'add'),
-                  child: const Text("Ajouter"),
-                ),
-              ],
-            );
-          },
-        );
-
-        if (result == 'replace') {
-          await _applyTenantChange(lotRef, residenceId, idLot, tenantId, true);
-          return const Result.success(true);
-        } else if (result == 'add') {
-          await _applyTenantChange(lotRef, residenceId, idLot, tenantId, false);
-          return const Result.success(true);
+        if (replace == null) {
+          // Aucune écriture : l'appelant doit d'abord demander à
+          // l'utilisateur de trancher, puis rappeler avec replace renseigné.
+          return const Result.success(
+              AddTenantOutcome.needsReplaceOrAddDecision);
         }
-        return const Result.success(false);
+        await _applyTenantChange(
+            lotRef, residenceId, idLot, tenantId, replace);
+        return const Result.success(AddTenantOutcome.added);
       } else {
         await _applyTenantChange(lotRef, residenceId, idLot, tenantId, false);
-        return const Result.success(true);
+        return const Result.success(AddTenantOutcome.added);
       }
     } catch (e) {
       return Result.failure(AppException.from(e));
