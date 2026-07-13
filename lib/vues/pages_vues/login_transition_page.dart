@@ -139,7 +139,7 @@ class _LoginTransitionPageState extends State<LoginTransitionPage> {
 
     result.when(
       success: (userData) {
-        if (userData.approved) {
+        if (userData.isApproved) {
           _initUserFcmToken(_uid);
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(

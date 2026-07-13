@@ -464,6 +464,48 @@ def sync_lot_tenants(event: firestore_fn.Event) -> None:
 
 
 # ---------------------------------------------------------------------------
+# users/{uid}/lots/{lotId}.isApprovedLot : passage à true (validation
+# manuelle - propriétaire acceptant un locataire depuis l'app, ou futur
+# backoffice gérance/syndic/admin) déclenche l'inscription de l'uid dans
+# idProprietaire/idLocataire du lot côté résidence - c'est cette inscription
+# qui constitue l'accès réel à la résidence (permissions Firestore, "Mes
+# voisins"...), pas isApprovedLot lui-même. isApproved (compte, identité +
+# documents vérifiés) doit AUSSI être à true, sinon un utilisateur non
+# vérifié pourrait obtenir un accès réel via un lot approuvé seul.
+# ---------------------------------------------------------------------------
+
+@firestore_fn.on_document_written(document="users/{userId}/lots/{lotId}")
+def sync_lot_approval(event: firestore_fn.Event) -> None:
+    after = event.data.after
+    if after is None or not after.exists:
+        return
+
+    before = event.data.before
+    was_approved = bool(before.get("isApprovedLot")) if before and before.exists else False
+    is_approved = bool(after.get("isApprovedLot"))
+    if was_approved or not is_approved:
+        return  # ne réagit qu'à la transition false -> true
+
+    user_id = event.params["userId"]
+    lot_id = event.params["lotId"]
+    residence_id = after.get("residenceId")
+    statut_resident = after.get("statutResident")
+    if not residence_id or not statut_resident:
+        return
+
+    db = firestore.client()
+    user_doc = db.collection("users").document(user_id).get()
+    if not user_doc.exists or not user_doc.get("isApproved"):
+        return  # compte pas encore vérifié : pas d'accès réel à la résidence
+
+    field = "idProprietaire" if statut_resident == "Propriétaire" else "idLocataire"
+    db.collection("residences").document(residence_id) \
+        .collection("lots").document(lot_id).update({
+            field: firestore.ArrayUnion([user_id]),
+        })
+
+
+# ---------------------------------------------------------------------------
 # residences/{id}.totalLot : compteur de lots maintenu automatiquement,
 # jamais écrit depuis le client (cf. residence.dart). Incrémente/décrémente
 # de façon atomique (firestore.Increment) plutôt que de recompter par une
@@ -623,42 +665,6 @@ def extract_id_card_data(req: https_fn.CallableRequest):
         )
 
 
-# ---------------------------------------------------------------------------
-# RATTACHEMENT SELF-SERVICE - ajoute l'appelant à idProprietaire/idLocataire
-# d'un lot (attach_existing_lot_page.dart). firestore.rules n'autorise
-# l'update de residences/{id}/lots/{lotId} qu'aux CS members ou à un
-# propriétaire déjà listé (gestion de ses locataires) : un nouvel arrivant
-# qui s'auto-rattache n'entre dans aucun de ces cas et ne peut donc pas
-# écrire ce champ lui-même. Cette fonction est le seul moyen légitime de le
-# faire depuis l'app, via le SDK Admin qui contourne les règles côté serveur
-# - uid toujours pris de req.auth, jamais du payload client.
-# ---------------------------------------------------------------------------
-
-@https_fn.on_call()
-def attach_user_to_lot(req: https_fn.CallableRequest):
-    if req.auth is None:
-        raise https_fn.HttpsError(
-            code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
-            message="Authentification requise"
-        )
-
-    uid = req.auth.uid
-    residence_id = req.data.get("residenceId")
-    lot_id = req.data.get("lotId")
-    statut_resident = req.data.get("statutResident")
-
-    if not residence_id or not lot_id or not statut_resident:
-        raise https_fn.HttpsError(
-            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
-            message="residenceId, lotId et statutResident requis"
-        )
-
-    field = "idProprietaire" if statut_resident == "Propriétaire" else "idLocataire"
-    firestore.client().collection("residences").document(residence_id) \
-        .collection("lots").document(lot_id).update({
-            field: firestore.ArrayUnion([uid]),
-        })
-    return {"success": True}
 
 
 # ---------------------------------------------------------------------------

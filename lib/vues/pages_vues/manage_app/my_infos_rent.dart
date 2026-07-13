@@ -368,7 +368,7 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
       name: tenantUser!.name,
       surname: tenantUser!.surname,
       pseudo: tenantUser!.pseudo,
-      approved: tenantUser!.approved,
+      isApproved: tenantUser!.isApproved,
       profilPic: tenantUser!.profilPic ?? '',
       privacyPolicy: tenantUser!.privacyPolicy,
       birthday: tenantUser!.birthday,

@@ -199,11 +199,11 @@ class AuthentificationProcess {
         .getUserById(checkUser.uid)
         .then((result) => result.when(success: (v) => v, failure: (_) => null));
 
-    if (userData?.uid == checkUser.uid && userData?.approved == true) {
+    if (userData?.uid == checkUser.uid && userData?.isApproved == true) {
       // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
       navigateToMyApp(userData!.uid, firestore);
       return Future.value(checkUser);
-    } else if (userData?.uid == checkUser.uid && userData?.approved == false) {
+    } else if (userData?.uid == checkUser.uid && userData?.isApproved == false) {
       if (!context.mounted) return null;
       Navigator.push(
         context,

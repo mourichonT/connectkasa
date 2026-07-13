@@ -20,7 +20,7 @@ class User {
   bool isInfoCorrect;
   String uid;
   Timestamp? createdDate;
-  bool approved;
+  bool isApproved;
   bool privacyPolicy;
   Map<String, bool> notificationPrefs;
 
@@ -42,7 +42,7 @@ class User {
     required this.uid,
     this.pseudo,
     this.private = true,
-    required this.approved,
+    required this.isApproved,
     this.createdDate,
     this.bio,
     this.isInfoCorrect = false,
@@ -77,7 +77,7 @@ class User {
       privacyPolicy: map['privacyPolicy'] ?? false,
       email: map['email'] ?? "",
       profilPic: profilGroup['profilPic'] ?? "",
-      approved: map['approved'] ?? false,
+      isApproved: map['isApproved'] ?? false,
       createdDate: map['createdDate'] != null
           ? map['createdDate'] as Timestamp
           : Timestamp.fromMillisecondsSinceEpoch(0),
@@ -108,7 +108,7 @@ class User {
   Map<String, dynamic> toMap() {
     return {
       'privacyPolicy': privacyPolicy,
-      'approved': approved,
+      'isApproved': isApproved,
       'createdDate': createdDate,
       'uid': uid,
       'email': email,

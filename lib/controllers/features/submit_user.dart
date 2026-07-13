@@ -69,7 +69,7 @@ class SubmitUser {
       surname: surname,
       uid: newUserId,
       pseudo: pseudo,
-      approved: false,
+      isApproved: false,
       typeLot: typeChoice,
       birthday: birthday,
       sex: sex,

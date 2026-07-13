@@ -51,7 +51,7 @@ class CreateAccountController {
         placeOfborn: "",
         pseudo: "", // Remplacez par une saisie réelle
         uid: userCredential.user!.uid,
-        approved: false,
+        isApproved: false,
         // statutResident: "", // Remplacez par une logique réelle
         typeLot: "",
         birthday: Timestamp.now(), // Remplacez par une logique réelle

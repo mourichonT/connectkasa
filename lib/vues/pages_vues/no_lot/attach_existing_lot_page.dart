@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:cloud_functions/cloud_functions.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/core/providers/current_user_provider.dart';
 import 'package:konodal/core/providers/docs_repository_provider.dart';
@@ -34,7 +33,7 @@ import 'package:konodal/vues/widget_view/components/app_loader.dart';
 /// Le lot nouvellement rattaché démarre avec `isApprovedLot: false` sur
 /// users/{uid}/lots/{lotId} (cf. addLotToUser) : c'est ce champ, propre à ce
 /// lot, qui gate son usage tant qu'une personne n'a pas revérifié les
-/// documents déposés — le compte lui-même (`approved`, global) n'est plus
+/// documents déposés — le compte lui-même (`isApproved`, global) n'est plus
 /// touché ici, pour ne pas suspendre l'accès aux autres lots déjà validés
 /// de l'utilisateur.
 class AttachExistingLotPage extends ConsumerStatefulWidget {
@@ -128,22 +127,13 @@ class _AttachExistingLotPageState
         .then((result) => result.when(
             success: (_) {}, failure: (error) => throw error));
 
-    // addLotToUser ne dénormalise que côté users/{uid}/lots : le lot
-    // residences/{id}/lot/{id} lui-même (idLocataire/idProprietaire, lu par
-    // ex. par getNumUsersByResidence pour "Mes voisins") doit être mis à
-    // jour séparément, comme le fait _applyTenantChange pour le flux
-    // "propriétaire ajoute un locataire". firestore.rules n'autorise cette
-    // écriture qu'aux CS members ou à un propriétaire déjà listé : un
-    // nouvel arrivant qui s'auto-rattache doit donc passer par cette
-    // Cloud Function (SDK Admin, contourne les règles côté serveur).
-    await FirebaseFunctions.instance
-        .httpsCallable('attach_user_to_lot')
-        .call({
-      "residenceId": _residence!.id,
-      "lotId": lot.id,
-      "statutResident": _typeResident,
-    });
-
+    // Le lot part avec isApprovedLot: false (addLotToUser) : l'inscription
+    // dans idProprietaire/idLocataire côté résidence (ce qui donne l'accès
+    // réel) n'est plus faite ici. Elle est déclenchée côté serveur
+    // (sync_lot_approval, functions_python/main.py) uniquement quand
+    // isApprovedLot passe à true - validation manuelle (Console pour
+    // l'instant, futur backoffice gérance/syndic/admin) - et seulement si
+    // le compte est déjà isApproved.
     final docsRepository = ref.read(docsRepositoryProvider);
 
     if (docTypeJustif.isNotEmpty && justifPath.isNotEmpty) {

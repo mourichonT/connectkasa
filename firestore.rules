@@ -52,11 +52,11 @@ service cloud.firestore {
       // Recherche par email/refApp (ajout locataire/garant), affichage
       // profil (ProfilTile) dans posts/chat/commentaires partout dans l'app.
       allow read: if isSignedIn();
-      allow create: if isOwner(uid) && request.resource.data.approved == false;
-      // approved ne doit jamais être modifiable par le client une fois créé
+      allow create: if isOwner(uid) && request.resource.data.isApproved == false;
+      // isApproved ne doit jamais être modifiable par le client une fois créé
       // (seule une approbation manuelle hors-app doit pouvoir le faire).
       allow update: if isOwner(uid) &&
-        request.resource.data.approved == resource.data.approved;
+        request.resource.data.isApproved == resource.data.isApproved;
       // Suppression gérée par le flux dédié (Auth supprimé d'abord, puis
       // purge des données), jamais par un delete direct depuis le client.
       allow delete: if false;
@@ -87,7 +87,7 @@ service cloud.firestore {
         allow read: if isOwner(uid) || isCsMember(resource.data.residenceId);
         allow create: if isOwner(uid) && request.resource.data.isApprovedLot == false;
         // isApprovedLot ne doit jamais être modifiable par le client (même
-        // logique que users/{uid}.approved) : seule une validation manuelle
+        // logique que users/{uid}.isApproved) : seule une validation manuelle
         // (Console, après vérification humaine des documents déposés) peut
         // le repasser à true.
         allow update: if (isOwner(uid) || isCsMember(resource.data.residenceId)) &&

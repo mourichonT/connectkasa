@@ -219,7 +219,7 @@ class FirestoreUserRepository implements IUserRepository {
         uid: user.uid,
         pseudo: user.pseudo,
         profilPic: user.profilPic ?? "",
-        approved: user.approved,
+        isApproved: user.isApproved,
         birthday: user.birthday,
         incomes: (userInfoMap['revenus'] as List<dynamic>?)
                 ?.map((e) => IncomeEntry.fromMap(Map<String, dynamic>.from(e)))
