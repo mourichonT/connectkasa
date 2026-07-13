@@ -59,8 +59,11 @@ class _TenantControllerState extends State<TenantController> {
   Future<void> openDemande() async {
     await FirestoreUserRepository()
         .markDemandeAsRead(widget.uid, widget.demandeId!)
-        .then((result) => result.when(success: (_) {}, failure: (_) {}));
-    widget.refreshUnseeCounter!(); // Appelle la fonction callback du parent
+        .then((result) => result.when(
+            success: (_) {},
+            failure: (error) => appLog(
+                "Erreur lors du marquage de la demande comme lue : $error")));
+    widget.refreshUnseeCounter?.call(); // Appelle la fonction callback du parent
   }
 
   Future<List<DemandeLoc>> fetchDemandesLoc() async {
