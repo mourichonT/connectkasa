@@ -72,7 +72,7 @@ class NoLotPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 50),
                       MyTextStyle.postDesc(
-                        "2. Vous êtes locataire et vous souhaitez soumettre votre demande de location à un propriétaire/agence immobilière",
+                        "2. Vous souhaitez soumettre votre demande de location à un propriétaire/agence immobilière",
                         SizeFont.h3.size,
                         Colors.black54,
                         textAlign: TextAlign.center,

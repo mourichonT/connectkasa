@@ -536,6 +536,11 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
                 ...documents.asMap().entries.map((entry) {
                   final index = entry.key;
                   final doc = entry.value;
+
+                  // Une fois uploadé, ne pas réafficher le bloc de saisie -
+                  // même comportement que my_infos_rent.dart (locataire).
+                  if (doc.isUploaded) return const SizedBox.shrink();
+
                   return Padding(
                     padding: const EdgeInsets.only(top: 30, bottom: 15.0),
                     child: Column(
@@ -561,18 +566,35 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
                           filename: [widget.uid],
                           folderName: "doc&justif",
                           title: "",
-                          onDocumentUploaded: (downloadUrl, extension) {
+                          onDocumentUploaded: (downloadUrl, extension) async {
+                            if (doc.docType.isEmpty) return;
+                            // Garant déjà enregistré (a un ID) : on peut
+                            // persister le document tout de suite, comme pour
+                            // le locataire. Sinon (nouveau garant, pas encore
+                            // d'ID), on garde juste le fileUrl en mémoire :
+                            // saveGarantInfo() les enregistrera après avoir
+                            // créé le garant.
+                            final garantId = currentGarant?.id;
+                            if (garantId != null) {
+                              final newDocJustif = DocumentModel(
+                                extension: extension,
+                                type: doc.docType,
+                                timeStamp: Timestamp.now(),
+                                documentPathRecto: downloadUrl,
+                              );
+                              await docsRepository.setDocumentGarant(
+                                garantId: garantId,
+                                newDoc: newDocJustif,
+                                userId: widget.uid,
+                              );
+                              ref.invalidate(garantDocumentsProvider(
+                                  (tenantUid: widget.uid, garantId: garantId)));
+                            }
                             setState(() {
-                              // docUrl = downloadUrl;
                               documents[index].fileUrl = downloadUrl;
-                              // On utilise index ici
+                              documents[index].isUploaded = true;
                               fileExtension = extension;
                             });
-                            ref.invalidate(garantDocumentsProvider(
-                                (tenantUid: widget.uid,
-                                  garantId: widget.garant!.id!)));
-                            downloadImagePath(downloadUrl,
-                                extension); // Appel de ta fonction existante
                           },
                         )
                       ],
@@ -991,9 +1013,13 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
       return;
     }
 
-    // Enregistre les documents associés
+    // Enregistre les documents associés qui n'ont pas déjà été persistés
+    // immédiatement à l'upload (cf. onDocumentUploaded ci-dessus - seul le
+    // cas "nouveau garant sans ID au moment de l'upload" arrive ici).
     for (final doc in documents) {
-      if (doc.docType.isNotEmpty && doc.fileUrl?.isNotEmpty == true) {
+      if (!doc.isUploaded &&
+          doc.docType.isNotEmpty &&
+          doc.fileUrl?.isNotEmpty == true) {
         final newDocJustif = DocumentModel(
           extension: fileExtension,
           type: doc.docType,

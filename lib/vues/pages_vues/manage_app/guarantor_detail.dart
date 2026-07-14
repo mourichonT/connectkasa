@@ -80,8 +80,9 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
                       "Adresse",
                       "${g.address.street}"
                               "${g.address.complement?.isNotEmpty == true ? ', ${g.address.complement}' : ''}"
-                              ", ${g.address.zipCode} ${g.address.city}"
-                          .trim()),
+                              "\n${g.address.zipCode} ${g.address.city}"
+                          .trim(),
+                      wrapValue: true),
                 _buildSectionHeader("Activités & emplois"),
                 if (g.jobIncomes.isEmpty)
                   const Text("Aucune activité renseignée")
@@ -137,10 +138,13 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
     );
   }
 
-  Widget lineToWrite(IconData? icon, String label, String value) {
+  Widget lineToWrite(IconData? icon, String label, String value,
+      {bool wrapValue = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
+        crossAxisAlignment:
+            wrapValue ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
           if (icon != null)
             Icon(
@@ -150,9 +154,22 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
           const SizedBox(width: 10),
           MyTextStyle.lotDesc(label, SizeFont.h3.size, FontStyle.normal,
               FontWeight.bold, Colors.black54),
-          const Spacer(),
-          MyTextStyle.lotDesc(value, SizeFont.h3.size, FontStyle.normal,
-              FontWeight.normal, Colors.black54),
+          const SizedBox(width: 10),
+          if (wrapValue)
+            Expanded(
+              child: MyTextStyle.lotDesc(
+                  value,
+                  SizeFont.h3.size,
+                  FontStyle.normal,
+                  FontWeight.normal,
+                  Colors.black54,
+                  TextAlign.right),
+            )
+          else ...[
+            const Spacer(),
+            MyTextStyle.lotDesc(value, SizeFont.h3.size, FontStyle.normal,
+                FontWeight.normal, Colors.black54),
+          ],
         ],
       ),
     );

@@ -825,6 +825,122 @@ def send_custom_email(req: https_fn.Request) -> https_fn.Response:
         )
 
 
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]),
+    secrets=[EMAIL_PASSWORD],
+)
+def send_demande_email(req: https_fn.Request) -> https_fn.Response:
+    """Email envoyé au bailleur destinataire d'une nouvelle demande de
+    location (cf. LookUpUser.searchUserForm / sendDemandeEmail côté Dart) -
+    modèle adapté de send_custom_email (déclaration de sinistre)."""
+    if req.method != "POST":
+        return https_fn.Response(
+            json.dumps({"error": "Méthode non autorisée"}),
+            status=405,
+            content_type="application/json",
+        )
+
+    data = req.get_json(silent=True) or {}
+    try:
+        to_email = data["email"]
+        tenant_name = data["tenantName"]
+        tenant_surname = data["tenantSurname"]
+        tenant_email = data["tenantEmail"]
+        lot_address = data.get("lotAddress", "")
+        lot_numero = data.get("lotNumero", "")
+    except KeyError as e:
+        return https_fn.Response(
+            json.dumps({"error": f"Champ manquant : {e}"}),
+            status=400,
+            content_type="application/json",
+        )
+
+    lot_html = ""
+    if lot_address:
+        lot_html += f"<p><strong>Adresse du lot souhaité :</strong> {lot_address}</p>"
+    if lot_numero:
+        lot_html += f"<p><strong>Numéro de lot :</strong> {lot_numero}</p>"
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+    <meta charset="UTF-8">
+    <title>KONODAL - Notification</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
+    <table align="center" width="600" style="background-color: #ffffff; border-collapse: collapse; margin-top: 20px;">
+        <!-- Header -->
+        <tr>
+        <td style="background-color: #48775B; color: white; text-align: center; padding: 30px 20px;">
+            <img src="{REPORT_LOGO_URL}" alt="KONODAL-Logo" width="250" style="max-width: 100%;" />
+            <p style="margin: 5px 0 0;font-size: 16px">Nouvelle demande de location</p>
+        </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+        <td style="padding: 20px 20px; color: #333333;">
+            <div style="text-align: center;">
+                <p>Un locataire potentiel vous a envoyé son dossier de location :</p>
+                <h2>{tenant_name} {tenant_surname}</h2>
+                <p>{tenant_email}</p>
+            </div>
+
+            {lot_html}
+
+            <p style="font-size: 14px; text-align: center; margin-top: 20px;">
+                Connectez-vous à l'application KONODAL, rubrique "Gestion des
+                locataires" &gt; "Demandes", pour consulter le dossier complet
+                (profil, garants, pièces justificatives) et l'accepter ou le
+                refuser.
+            </p>
+
+        <p style="font-size: 12px; color: #666; text-align: center; margin-top: 20px;">
+            En cas de difficultés, merci de contacter nos services via :
+            <a href="mailto:admin.konodal@gmail.com" style="color: #48775B; font-size: 12px;">
+                admin.konodal@gmail.com
+            </a>
+        </p>
+        </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+        <td style="background-color: #e0e0e0; text-align: center; padding: 20px;">
+            <p style="margin: 10px 0;">KONODAL</p>
+            <p style="font-size: 12px; color: #777;">Copyright © 2023</p>
+        </td>
+        </tr>
+    </table>
+    </body>
+    </html>
+    """
+
+    try:
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "Nouvelle demande de location KONODAL"
+        message["From"] = EMAIL_ADDRESS
+        message["To"] = to_email
+        message.attach(MIMEText(html, "html"))
+
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD.value)
+            server.sendmail(EMAIL_ADDRESS, to_email, message.as_string())
+
+        return https_fn.Response(
+            json.dumps({"success": True, "message": "Email envoyé"}),
+            status=200,
+            content_type="application/json",
+        )
+    except Exception as e:
+        return https_fn.Response(
+            json.dumps({"error": str(e)}),
+            status=500,
+            content_type="application/json",
+        )
+
+
 class _ReportGenerator:
     """Génère le PDF de déclaration (Post + signalements) pour une résidence."""
 

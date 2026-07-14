@@ -5,10 +5,12 @@ import 'package:konodal/core/providers/docs_providers.dart';
 import 'package:konodal/core/providers/lot_repository_provider.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/icons_extension.dart';
+import 'package:konodal/models/enum/tenant_list.dart';
 import 'package:konodal/models/pages_models/document_model.dart';
 import 'package:konodal/models/pages_models/user_info.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/pages_vues/chat_page/chat_page.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:konodal/vues/widget_view/components/share_rent_folder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -124,7 +126,8 @@ class TenantDetail extends ConsumerWidget {
                   );
                 } else {
                   await ShareRentFolder.showLotSelectionDialog(
-                      context, senderUid, tenant.uid);
+                      context, senderUid, tenant.uid,
+                      demandeId: demandeId);
                 }
               },
               color: isCurrentTenant
@@ -140,9 +143,17 @@ class TenantDetail extends ConsumerWidget {
               Visibility(
                 child: ButtonAdd(
                   function: () async {
+                    final reason = await _showRefusalReasonDialog(context);
+                    if (reason == null) return; // annulé
+                    if (!context.mounted) return;
+
                     await ref
                         .read(userRepositoryProvider)
-                        .deleteDemande(senderUid, demandeId!)
+                        .refuseDemande(
+                          uid: senderUid,
+                          demandeId: demandeId!,
+                          reason: reason,
+                        )
                         .then((result) =>
                             result.when(success: (_) {}, failure: (_) {}));
                     if (refreshUnseeCounter != null) {
@@ -193,8 +204,9 @@ class TenantDetail extends ConsumerWidget {
                     "Adresse",
                     "${tenant.address.street}"
                             "${tenant.address.complement?.isNotEmpty == true ? ', ${tenant.address.complement}' : ''}"
-                            ", ${tenant.address.zipCode} ${tenant.address.city}"
-                        .trim()),
+                            "\n${tenant.address.zipCode} ${tenant.address.city}"
+                        .trim(),
+                    wrapValue: true),
 
               //contact
               _buildSectionHeader("Contact locataire"),
@@ -314,10 +326,71 @@ class TenantDetail extends ConsumerWidget {
     );
   }
 
-  Widget lineToWrite(IconData? icon, String label, String value) {
+  /// Modale demandant le motif de refus (liste fermée, non discriminatoire -
+  /// cf. TenantList.motifsRefusLocation) avant de confirmer "Refuser".
+  /// Retourne le motif choisi, ou null si annulé.
+  Future<String?> _showRefusalReasonDialog(BuildContext context) {
+    String reason = '';
+    // Largeur explicite (pas de LayoutBuilder) : AlertDialog dimensionne son
+    // content via IntrinsicWidth, incompatible avec LayoutBuilder - cf.
+    // look_up_user.dart. 80 = insetPadding horizontal par défaut (40x2).
+    final dropdownWidth = MediaQuery.of(context).size.width - 80;
+
+    return showDialog<String>(
+      context: context,
+      builder: (context) => StatefulBuilder(builder: (context, setState) {
+        return AlertDialog(
+          title: MyTextStyle.lotName(
+              "Refuser la demande", Colors.black87, SizeFont.h2.size),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MyTextStyle.postDesc(
+                "Vous choisissez de refuser la location à ${tenant.name} "
+                "${tenant.surname}, veuillez indiquer les motifs de ce refus.",
+                SizeFont.h3.size,
+                Colors.black54,
+                fontweight: FontWeight.normal,
+                textAlign: TextAlign.justify,
+              ),
+              const SizedBox(height: 15),
+              MyDropDownMenu(
+                dropdownWidth,
+                "Motif du refus",
+                reason.isEmpty ? "Motif du refus" : reason,
+                false,
+                items: TenantList.motifsRefusLocation(),
+                onValueChanged: (value) => setState(() => reason = value),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, null),
+              child: MyTextStyle.lotName("Annuler", Colors.black54,
+                  SizeFont.h3.size, FontWeight.normal),
+            ),
+            TextButton(
+              onPressed: reason.isEmpty
+                  ? null
+                  : () => Navigator.pop(context, reason),
+              child: MyTextStyle.lotName("Confirmer le refus",
+                  Colors.red[800]!, SizeFont.h3.size, FontWeight.normal),
+            ),
+          ],
+        );
+      }),
+    );
+  }
+
+  Widget lineToWrite(IconData? icon, String label, String value,
+      {bool wrapValue = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
+        crossAxisAlignment:
+            wrapValue ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
           if (icon != null)
             Icon(
@@ -327,9 +400,26 @@ class TenantDetail extends ConsumerWidget {
           const SizedBox(width: 10),
           MyTextStyle.lotDesc(label, SizeFont.h3.size, FontStyle.normal,
               FontWeight.bold, Colors.black54),
-          const Spacer(),
-          MyTextStyle.lotDesc(value, SizeFont.h3.size, FontStyle.normal,
-              FontWeight.normal, Colors.black54),
+          const SizedBox(width: 10),
+          // Adresse (et tout autre champ potentiellement long) : Spacer +
+          // Text sans contrainte de largeur ne wrap jamais (Row laisse le
+          // Text prendre sa largeur intrinsèque) - Expanded lui donne une
+          // largeur bornée pour que le retour à la ligne fonctionne.
+          if (wrapValue)
+            Expanded(
+              child: MyTextStyle.lotDesc(
+                  value,
+                  SizeFont.h3.size,
+                  FontStyle.normal,
+                  FontWeight.normal,
+                  Colors.black54,
+                  TextAlign.right),
+            )
+          else ...[
+            const Spacer(),
+            MyTextStyle.lotDesc(value, SizeFont.h3.size, FontStyle.normal,
+                FontWeight.normal, Colors.black54),
+          ],
         ],
       ),
     );

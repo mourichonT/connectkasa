@@ -37,6 +37,16 @@ service cloud.firestore {
         request.auth.uid in get(/databases/$(database)/documents/users/$(tenantUid)).data.sharedWithLandlords;
     }
 
+    // Un bailleur a reçu une demande de location (onglet "Demandes" de
+    // ManagementTenant) mais n'a pas encore ajouté ce locataire à un lot :
+    // dénormalisé sur users/{tenantUid}.pendingDemandeLandlords (maintenu par
+    // shareFile() dans firestore_user_repository.dart), pour qu'il puisse
+    // consulter le dossier avant de décider de l'accepter.
+    function isPendingDemandeLandlord(tenantUid) {
+      return isSignedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/users/$(tenantUid)).data.pendingDemandeLandlords;
+    }
+
     // Un document individuel (users/{uid}/lots/{lotId}/documents) est déposé
     // en copie chez chaque destinataire du lot (locataires + propriétaires,
     // cf my_docs.dart deleteDocument). Le propriétaire du lot doit donc
@@ -79,7 +89,7 @@ service cloud.firestore {
       // match générique, les deux s'additionnent (Firestore autorise si au
       // moins un match correspondant l'autorise).
       match /private/profilLocataire {
-        allow read: if isOwner(uid) || isSharedTenantDoc(uid);
+        allow read: if isOwner(uid) || isSharedTenantDoc(uid) || isPendingDemandeLandlord(uid);
         allow write: if isOwner(uid);
       }
 
@@ -113,28 +123,43 @@ service cloud.firestore {
 
       // Documents d'identité.
       match /documents/{docId} {
-        allow read: if isOwner(uid) || isSharedTenantDoc(uid);
+        allow read: if isOwner(uid) || isSharedTenantDoc(uid) || isPendingDemandeLandlord(uid);
         allow write: if isOwner(uid);
       }
 
       // Garants du dossier locataire (CRIT 2 - déplacé depuis
       // profil_locataire/{uid}/garants, un niveau de nesting en moins).
       match /garants/{garantId} {
-        allow read: if isOwner(uid) || isSharedTenantDoc(uid);
+        allow read: if isOwner(uid) || isSharedTenantDoc(uid) || isPendingDemandeLandlord(uid);
         allow write: if isOwner(uid);
 
         match /documents/{docId} {
-          allow read: if isOwner(uid) || isSharedTenantDoc(uid);
+          allow read: if isOwner(uid) || isSharedTenantDoc(uid) || isPendingDemandeLandlord(uid);
           allow write: if isOwner(uid);
         }
       }
 
       match /demandes_loc/{id} {
-        allow read, update, delete: if isOwner(uid);
+        // Le locataire émetteur (resource.data.tenantId) doit pouvoir lister
+        // ("Mes demandes en cours", requête collectionGroup) et retirer ses
+        // propres demandes envoyées, même si le document vit chez le
+        // bailleur destinataire (uid du chemin), pas chez lui.
+        allow read: if isOwner(uid) || (isSignedIn() && resource.data.tenantId == request.auth.uid);
+        allow update: if isOwner(uid);
+        allow delete: if isOwner(uid) || (isSignedIn() && resource.data.tenantId == request.auth.uid);
         // shareFile() écrit chez le bailleur trouvé (uid du chemin), pas
         // chez l'appelant : on vérifie donc que l'appelant se déclare bien
         // comme émetteur (tenantId), pas qu'il est propriétaire du doc.
         allow create: if isSignedIn() && request.resource.data.tenantId == request.auth.uid;
+      }
+
+      // Copie figée d'une demande refusée (cf. refuseDemande côté Dart) :
+      // survit à un retrait de la demande d'origine (demandes_loc) côté
+      // locataire, pour l'onglet "Historique" du bailleur. Lecture/écriture
+      // réservées au bailleur (uid du chemin) - le locataire n'a pas besoin
+      // d'y accéder, le motif étant déjà dupliqué sur demandes_loc lui-même.
+      match /demandes_historique/{id} {
+        allow read, write: if isOwner(uid);
       }
     }
 
@@ -306,6 +331,16 @@ service cloud.firestore {
     match /{path=**}/contacts/{contactId} {
       allow read: if isSignedIn();
       allow write: if false;
+    }
+
+    // Règle dédiée aux requêtes collectionGroup('demandes_loc')
+    // (getSentDemandes, "Mes demandes en cours" côté locataire) : même
+    // raison que contacts ci-dessus - la règle imbriquée users/{uid}/
+    // demandes_loc/{id} ne couvre que les lectures/deletes à chemin connu
+    // (users/{landlordId}/demandes_loc/{id} déjà résolu), pas une requête
+    // cross-documents à travers tous les users/{uid} d'un coup.
+    match /{path=**}/demandes_loc/{id} {
+      allow read: if isSignedIn() && resource.data.tenantId == request.auth.uid;
     }
 
     // ---------- gerances (annuaire syndic/agence) ----------

@@ -424,11 +424,15 @@ exports.notifyDemandeLoc = onDocumentCreated(
           return null;
         }
 
+        const lotInfo = demandeData.lotAddress ?
+        ` pour le bien situé ${demandeData.lotAddress}` +
+        (demandeData.lotNumero ? ` (lot ${demandeData.lotNumero})` : "") :
+        " pour l'un de vos biens";
+
         const notificationPayload = {
           notification: {
             title: "Nouvelle demande de location",
-            body: `Vous avez reçu une nouvelle demande 
-            de location pour l'un de vos biens`,
+            body: `Vous avez reçu une nouvelle demande de location${lotInfo}.`,
           },
           data: {
             type: "demande_loc",

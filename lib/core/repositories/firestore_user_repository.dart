@@ -8,6 +8,7 @@ import 'package:konodal/core/repositories/user_repository.dart';
 import 'package:konodal/core/result/result.dart';
 import 'package:konodal/models/pages_models/address.dart';
 import 'package:konodal/models/pages_models/conjoint_info.dart';
+import 'package:konodal/models/pages_models/demande_historique.dart';
 import 'package:konodal/models/pages_models/demande_loc.dart';
 import 'package:konodal/models/pages_models/guarantor_info.dart';
 import 'package:konodal/models/pages_models/user.dart';
@@ -456,6 +457,16 @@ class FirestoreUserRepository implements IUserRepository {
           .collection('demandes_loc')
           .doc();
       await docRef.set(demande.toJson());
+
+      // Dénormalisé pour firestore.rules (isPendingDemandeLandlord) : permet
+      // au bailleur destinataire de consulter le dossier (profil, garants,
+      // documents) avant même d'avoir ajouté ce locataire à un lot.
+      if (demande.tenantId != null) {
+        await _firestore.collection('users').doc(demande.tenantId).set({
+          'pendingDemandeLandlords': FieldValue.arrayUnion([uid]),
+        }, SetOptions(merge: true));
+      }
+
       return const Result.success(null);
     } catch (e) {
       return Result.failure(AppException.from(e));
@@ -490,6 +501,130 @@ class FirestoreUserRepository implements IUserRepository {
           .collection('demandes_loc')
           .doc(demandeId)
           .delete();
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> refuseDemande({
+    required String uid,
+    required String demandeId,
+    required String reason,
+  }) async {
+    try {
+      final demandeRef = _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('demandes_loc')
+          .doc(demandeId);
+      final demandeSnap = await demandeRef.get();
+      final demandeData = demandeSnap.data() ?? {};
+      final refusedAt = Timestamp.now();
+
+      await demandeRef.update({
+        'refused': true,
+        'open': true,
+        'refusalReason': reason,
+        'refusedAt': refusedAt,
+      });
+
+      // Copie figée indépendante de demandes_loc : survit à un retrait de la
+      // demande côté locataire (cf. withdrawDemande, qui ne touche que
+      // demandes_loc).
+      final tenantId = demandeData['tenantId'] as String? ?? '';
+      final tenantSnap =
+          await _firestore.collection('users').doc(tenantId).get();
+      final tenantMap = tenantSnap.data() ?? {};
+      final tenantUserGroup =
+          (tenantMap['user'] as Map?)?.cast<String, dynamic>() ?? {};
+
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('demandes_historique')
+          .doc(demandeId)
+          .set({
+        'tenantId': tenantId,
+        'tenantName': tenantUserGroup['name'] ?? '',
+        'tenantSurname': tenantUserGroup['surname'] ?? '',
+        'lotAddress': demandeData['lotAddress'],
+        'lotNumero': demandeData['lotNumero'],
+        'submittedAt': demandeData['timestamp'],
+        'refusedAt': refusedAt,
+        'refusalReason': reason,
+      });
+
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<List<DemandeHistorique>>> getDemandeHistorique(
+      String uid) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('demandes_historique')
+          .get();
+
+      final historique = querySnapshot.docs
+          .map((doc) => DemandeHistorique.fromJson(doc.data(), id: doc.id))
+          .toList();
+      return Result.success(historique);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<List<DemandeLoc>>> getSentDemandes(String tenantUid) async {
+    try {
+      final querySnapshot = await _firestore
+          .collectionGroup('demandes_loc')
+          .where('tenantId', isEqualTo: tenantUid)
+          .get();
+
+      final demandes = querySnapshot.docs
+          .map((doc) => DemandeLoc.fromJson(
+                doc.data(),
+                id: doc.id,
+                // users/{landlordId}/demandes_loc/{id} : le parent du parent
+                // du document est le users/{landlordId} destinataire.
+                landlordId: doc.reference.parent.parent!.id,
+              ))
+          .toList();
+      return Result.success(demandes);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> withdrawDemande({
+    required String tenantUid,
+    required String landlordId,
+    required String demandeId,
+  }) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(landlordId)
+          .collection('demandes_loc')
+          .doc(demandeId)
+          .delete();
+
+      // Révoque l'accès au dossier accordé par shareFile() (cf.
+      // isPendingDemandeLandlord) : le bailleur ne doit plus pouvoir
+      // consulter le dossier d'une demande retirée.
+      await _firestore.collection('users').doc(tenantUid).set({
+        'pendingDemandeLandlords': FieldValue.arrayRemove([landlordId]),
+      }, SetOptions(merge: true));
+
       return const Result.success(null);
     } catch (e) {
       return Result.failure(AppException.from(e));

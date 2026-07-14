@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/demande_historique.dart';
 import 'package:konodal/models/pages_models/demande_loc.dart';
 import 'package:konodal/models/pages_models/guarantor_info.dart';
 import 'package:konodal/models/pages_models/user.dart';
@@ -67,6 +68,35 @@ abstract interface class IUserRepository {
   Future<Result<List<DemandeLoc>>> getDemande(String uid);
 
   Future<Result<void>> deleteDemande(String uid, String demandeId);
+
+  /// Refuse une demande sans supprimer le document (contrairement à
+  /// deleteDemande) : le locataire doit voir le statut "Refusé" dans "Mes
+  /// demandes en cours" au lieu de la voir disparaître silencieusement.
+  /// Écrit aussi une copie figée dans demandes_historique (persiste même si
+  /// le locataire retire ensuite sa demande) - cf. DemandeHistorique.
+  Future<Result<void>> refuseDemande({
+    required String uid,
+    required String demandeId,
+    required String reason,
+  });
+
+  /// Historique des demandes refusées par ce bailleur (onglet "Historique"
+  /// de ManagementTenant), indépendant de demandes_loc (survit à un retrait
+  /// de demande côté locataire).
+  Future<Result<List<DemandeHistorique>>> getDemandeHistorique(String uid);
+
+  /// Toutes les demandes envoyées par ce locataire, tous bailleurs
+  /// destinataires confondus (requête collectionGroup sur demandes_loc,
+  /// filtrée par tenantId) - pour "Mes demandes en cours".
+  Future<Result<List<DemandeLoc>>> getSentDemandes(String tenantUid);
+
+  /// Retire une demande envoyée : supprime le document chez le bailleur
+  /// destinataire et révoque son accès au dossier (pendingDemandeLandlords).
+  Future<Result<void>> withdrawDemande({
+    required String tenantUid,
+    required String landlordId,
+    required String demandeId,
+  });
 
   Future<Result<User?>> getUserWithEmailOrRefApp(
       String? destinataireEmail, String? refAPP);

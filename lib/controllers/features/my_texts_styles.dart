@@ -80,9 +80,13 @@ class MyTextStyle {
   }
 
   static Text lotDesc(String text, double size,
-      [FontStyle? fontsize, FontWeight? weight, Color? color]) {
+      [FontStyle? fontsize,
+      FontWeight? weight,
+      Color? color,
+      TextAlign? textAlign]) {
     return Text(
       text,
+      textAlign: textAlign,
       style: GoogleFonts.roboto(
           fontSize: size,
           fontStyle: fontsize ?? FontStyle.italic,

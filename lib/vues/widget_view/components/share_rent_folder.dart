@@ -14,6 +14,11 @@ import 'package:konodal/core/utils/app_logger.dart';
 class ShareRentFolder {
   static Future<List<GuarantorInfo>> showGuarantorSelectionDialog(
       BuildContext context, String uid) async {
+    // Conservé à part du "context" du builder ci-dessous (masqué par les
+    // closures imbriquées) : reste valide après la fermeture de CE dialogue,
+    // contrairement au context du dialogue lui-même, utilisé pour ouvrir le
+    // dialogue "Destinataire" juste après - cf. onPressed "Valider".
+    final pageContext = context;
     DemandeLoc demande = DemandeLoc();
     List<GuarantorInfo> allGarants = await FirestoreUserRepository()
         .getGarants(uid)
@@ -33,8 +38,13 @@ class ShareRentFolder {
             return StatefulBuilder(
               builder: (context, setState) {
                 return AlertDialog(
-                  title: MyTextStyle.lotName('Sélectionnez 2 garants',
-                      Colors.black87, SizeFont.h1.size, FontWeight.bold),
+                  title: MyTextStyle.lotName(
+                      allGarants.length > 1
+                          ? 'Sélectionnez vos garants'
+                          : 'Sélectionnez votre garant',
+                      Colors.black87,
+                      SizeFont.h1.size,
+                      FontWeight.bold),
                   content: SizedBox(
                     width: double.maxFinite,
                     child: ListView(
@@ -47,7 +57,7 @@ class ShareRentFolder {
                               Colors.black87,
                               SizeFont.h3.size,
                               FontWeight.normal),
-                          subtitle: Text(g.email),
+                          subtitle: Text(g.relationToTenant),
                           value: isSelected,
                           onChanged: (bool? value) {
                             setState(() {
@@ -87,7 +97,12 @@ class ShareRentFolder {
                           tenantId: uid,
                           garantId: selectedGarantIds,
                         );
-                        await LookUpUser.searchUserForm(context, demande);
+                        // pageContext (pas le context du dialogue qu'on vient
+                        // de pop, déjà désactivé) : évite un context invalide
+                        // pour ouvrir le dialogue "Destinataire" qui pouvait
+                        // figer l'app.
+                        if (!pageContext.mounted) return;
+                        await LookUpUser.searchUserForm(pageContext, demande);
                       },
                       child: Text('Valider'),
                     ),
@@ -101,7 +116,8 @@ class ShareRentFolder {
   }
 
   static Future<void> showLotSelectionDialog(
-      BuildContext context, String userId, String idLocataire) async {
+      BuildContext context, String userId, String idLocataire,
+      {String? demandeId}) async {
     final dataBasesLotServices = FirestoreLotRepository();
 
     List<Lot> lots = await dataBasesLotServices
@@ -165,6 +181,8 @@ class ShareRentFolder {
                   selectedLot!.residenceId,
                   selectedLot!.id!,
                   idLocataire,
+                  landlordUid: userId,
+                  demandeId: demandeId,
                 );
               },
               child: Text("Valider"),
@@ -184,16 +202,31 @@ class ShareRentFolder {
     FirestoreLotRepository dataBasesLotServices,
     String residenceId,
     String idLot,
-    String tenantId,
-  ) async {
+    String tenantId, {
+    String? landlordUid,
+    String? demandeId,
+  }) async {
     final result =
         await dataBasesLotServices.addTenant(residenceId, idLot, tenantId);
     if (!context.mounted) return;
+
+    // Une fois le locataire ajouté, la demande n'a plus de raison d'exister
+    // (accès déjà effectif) : supprimée pour qu'elle disparaisse de "Mes
+    // demandes en cours" côté locataire.
+    Future<void> deleteDemandeIfAny() async {
+      if (landlordUid != null && demandeId != null) {
+        await FirestoreUserRepository()
+            .deleteDemande(landlordUid, demandeId)
+            .then((result) => result.when(success: (_) {}, failure: (_) {}));
+      }
+    }
 
     await result.when(
       success: (outcome) async {
         switch (outcome) {
           case AddTenantOutcome.added:
+            await deleteDemandeIfAny();
+            if (!context.mounted) return;
             Navigator.of(context).pop(); // ferme le dialog de sélection de lot
             break;
           case AddTenantOutcome.alreadyPresent:
@@ -230,10 +263,16 @@ class ShareRentFolder {
                 residenceId, idLot, tenantId,
                 replace: decision == 'replace');
             if (!context.mounted) return;
-            decisionResult.when(
-              success: (_) => Navigator.of(context).pop(),
-              failure: (error) => ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Erreur : $error"))),
+            await decisionResult.when(
+              success: (_) async {
+                await deleteDemandeIfAny();
+                if (!context.mounted) return;
+                Navigator.of(context).pop();
+              },
+              failure: (error) async {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Erreur : $error")));
+              },
             );
             break;
         }

@@ -23,7 +23,6 @@ import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:konodal/vues/widget_view/components/import_docs.dart';
 import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
-import 'package:konodal/vues/widget_view/components/share_rent_folder.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -387,41 +386,23 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
             top: false,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 15),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ButtonAdd(
-                    color: widget.color,
-                    text: "Enregistrer",
-                    size: SizeFont.h3.size,
-                    horizontal: 20,
-                    vertical: 10,
-                    colorText: Colors.white,
-                    borderColor: widget.color,
-                    function: saveUserInfo,
-                  ),
-                  ButtonAdd(
-                    color: Colors.transparent,
-                    text: "Partager",
-                    size: SizeFont.h3.size,
-                    horizontal: 20,
-                    vertical: 10,
-                    colorText: widget.color,
-                    borderColor: widget.color,
-                    function: () => sendFile(context),
-                  ),
-                ],
+              child: Center(
+                child: ButtonAdd(
+                  color: widget.color,
+                  text: "Enregistrer",
+                  size: SizeFont.h3.size,
+                  horizontal: 20,
+                  vertical: 10,
+                  colorText: Colors.white,
+                  borderColor: widget.color,
+                  function: saveUserInfo,
+                ),
               ),
             ),
           ),
         ],
       ),
     );
-  }
-
-  sendFile(BuildContext context) async {
-    await ShareRentFolder.showGuarantorSelectionDialog(
-        context, tenantUser!.uid);
   }
 
   void saveUserInfo() async {

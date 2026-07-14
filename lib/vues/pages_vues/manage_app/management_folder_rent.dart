@@ -2,8 +2,11 @@ import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/vues/pages_vues/manage_app/management_garants.dart';
 import 'package:konodal/vues/pages_vues/manage_app/my_infos_rent.dart';
+import 'package:konodal/vues/pages_vues/manage_app/my_pending_demands.dart';
 import 'package:konodal/vues/pages_vues/manage_app/my_situation_personnelle.dart';
 import 'package:konodal/vues/pages_vues/profil_page/new_page_menu.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/share_rent_folder.dart';
 import 'package:flutter/material.dart';
 
 class ManagementFolderRent extends StatefulWidget {
@@ -91,7 +94,45 @@ class _ManagementFolderRentState extends State<ManagementFolderRent> {
                   },
                   isLogOut: false,
                 ),
+                ProfileMenu(
+                  uid: widget.uid,
+                  color: widget.color,
+                  idLot: "",
+                  text: "Mes demandes en cours",
+                  icon: const Icon(Icons.send_outlined, size: 22),
+                  press: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MyPendingDemands(
+                          uid: widget.uid,
+                          color: widget.color,
+                        ),
+                      ),
+                    );
+                  },
+                  isLogOut: false,
+                ),
               ],
+            ),
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              child: Center(
+                child: ButtonAdd(
+                  color: Colors.transparent,
+                  text: "Soummettre mon dossier locataire",
+                  size: SizeFont.h3.size,
+                  horizontal: 20,
+                  vertical: 10,
+                  colorText: widget.color,
+                  borderColor: widget.color,
+                  function: () => ShareRentFolder.showGuarantorSelectionDialog(
+                      context, widget.uid),
+                ),
+              ),
             ),
           ),
         ],

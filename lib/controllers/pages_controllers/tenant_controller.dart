@@ -204,7 +204,7 @@ class _TenantControllerState extends State<TenantController> {
                                               MainAxisAlignment.center,
                                           children: [
                                             profilTile(widget.tenant.uid, 55,
-                                                35, 55, false),
+                                                50, 55, false),
                                           ],
                                         ),
                                         const SizedBox(height: 10),

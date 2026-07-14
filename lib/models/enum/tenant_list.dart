@@ -121,6 +121,10 @@ class TenantList {
   /// du locataire ou de sa caution.
   static List<String> docsTypeList() {
     return [
+      "Carte d'identité",
+      "Permis de conduire",
+      "Passeport",
+      "Titre de séjour",
       "Fiche de salaire",
       "Attestation employeur",
       "Contrat de travail",
@@ -147,6 +151,7 @@ class TenantList {
       "Bilan comptable ",
       "Déclaration fiscale Société",
       "Acte de cautionnement",
+      "Autre document",
     ];
   }
 
@@ -163,6 +168,25 @@ class TenantList {
       "Ami(e)",
       "Employeur",
       "Autre",
+    ];
+  }
+
+  /// Motifs de refus d'un dossier de location : la loi n'impose pas de
+  /// justifier un refus (contrairement à un congé pour reprise/vente), mais
+  /// interdit tout critère discriminatoire (origine, sexe, situation
+  /// familiale...) - liste limitée à des critères objectifs et non
+  /// discriminatoires (revenus, dossier, garanties).
+  static List<String> motifsRefusLocation() {
+    return [
+      "Revenus insuffisants au regard du loyer",
+      "Dossier incomplet",
+      "Garant(s) insuffisant(s) ou absent(s)",
+      "Situation professionnelle instable",
+      "Pièces justificatives non conformes",
+      "Doute sur l'authenticité des documents fournis",
+      "Autre candidature retenue",
+      "Lot déjà attribué",
+      "Autre motif",
     ];
   }
 }
