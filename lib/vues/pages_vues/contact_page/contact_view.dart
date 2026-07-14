@@ -11,6 +11,40 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
+// Icône par catégorie de prestation (cf. TypeList.servicePrestaList, liste
+// fermée utilisée par manage_contact.dart) - contact_phone_outlined en repli
+// pour un service non reconnu.
+IconData _iconForService(String service) {
+  switch (service) {
+    case "Nettoyage":
+      return Icons.cleaning_services_outlined;
+    case "Espaces verts":
+      return Icons.grass_outlined;
+    case "Électricité":
+      return Icons.bolt_outlined;
+    case "Entretiens Ascenseur":
+      return Icons.elevator_outlined;
+    case "Chauffage collectif":
+      return Icons.thermostat_outlined;
+    case "Plomberie":
+      return Icons.plumbing_outlined;
+    case "Ventilation (VMC)":
+      return Icons.air_outlined;
+    case "Portes et portails":
+      return Icons.sensor_door_outlined;
+    case "Vidéosurveillance":
+      return Icons.videocam_outlined;
+    case "Sécurité incendie":
+      return Icons.local_fire_department_outlined;
+    case "Gestion administrative":
+      return Icons.folder_outlined;
+    case "Toiture / étanchéité":
+      return Icons.roofing_outlined;
+    default:
+      return Icons.contact_phone_outlined;
+  }
+}
+
 class ContactView extends ConsumerWidget {
   final String uid;
   final String residenceSelected;
@@ -44,31 +78,36 @@ class ContactView extends ConsumerWidget {
                   itemCount: allContact.length,
                   itemBuilder: (context, index) {
                     Contact contact = allContact[index];
-                    return Material(
-                      child: ListTile(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            CupertinoPageRoute(
-                                builder: (context) => DetailContactView(
-                                      contact: contact,
-                                      uid: uid,
-                                    )),
-                          );
-                        },
-                        leading: SizedBox(
-                            width: MediaQuery.of(context).size.width / 4,
-                            child: MyTextStyle.lotName(contact.service,
-                                Colors.black87, SizeFont.h3.size)),
-                        title: MyTextStyle.lotName(
-                            contact.name, Colors.black87, SizeFont.h3.size),
-                        subtitle: MyTextStyle.lotDesc(
-                            contact.phone, SizeFont.h3.size),
-                        trailing: const Icon(
-                          Icons.arrow_forward_ios,
-                          color: Color(0xFF757575),
-                          size: 22,
-                        ),
+                    return ListTile(
+                      contentPadding:
+                          const EdgeInsets.only(left: 20, right: 30),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                              builder: (context) => DetailContactView(
+                                    contact: contact,
+                                    uid: uid,
+                                  )),
+                        );
+                      },
+                      leading: Icon(_iconForService(contact.service)),
+                      title: MyTextStyle.lotName(
+                          contact.name, Colors.black87, SizeFont.h3.size),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (contact.service.isNotEmpty)
+                            MyTextStyle.lotDesc(
+                                contact.service, SizeFont.h3.size),
+                          MyTextStyle.lotDesc(contact.phone, SizeFont.h3.size),
+                        ],
+                      ),
+                      trailing: const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Color(0xFF757575),
+                        size: 22,
                       ),
                     );
                   },

@@ -42,43 +42,45 @@ class DetailContactView extends ConsumerWidget {
                         MyTextStyle.lotName(
                             contact.name, Colors.black87, SizeFont.h2.size),
                         const SizedBox(height: 15),
-                        if (contact.num != "" &&
-                            contact.street != "" &&
-                            contact.city != "")
-                          InkWell(
-                            onTap: () {},
-                            //focusColor: Colors.green,
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 30),
-                                  child: const Icon(Icons.place),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    MyTextStyle.lotDesc(
-                                        "${contact.num} ${contact.street}",
-                                        SizeFont.h3.size),
-                                    MyTextStyle.lotDesc(
-                                        "${contact.zipcode} ${contact.city}",
-                                        SizeFont.h3.size),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        const SizedBox(
-                          height: 15,
-                        ),
                         const Divider(),
                         Column(
                           mainAxisAlignment: MainAxisAlignment.start,
                           mainAxisSize: MainAxisSize.max,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (contact.address.street.isNotEmpty &&
+                                contact.address.city.isNotEmpty)
+                              InkWell(
+                                onTap: () => ContactFeatures.openMaps(
+                                    "${contact.address.street}, ${contact.address.zipCode} ${contact.address.city}"),
+                                child: Column(
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 10, horizontal: 30),
+                                          child: const Icon(Icons.place),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            MyTextStyle.lotDesc(
+                                                contact.address.street,
+                                                SizeFont.h3.size),
+                                            MyTextStyle.lotDesc(
+                                                "${contact.address.zipCode} ${contact.address.city}",
+                                                SizeFont.h3.size),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                    const Divider(),
+                                  ],
+                                ),
+                              ),
                             if (contact.phone != "")
                               InkWell(
                                 onTap: () {

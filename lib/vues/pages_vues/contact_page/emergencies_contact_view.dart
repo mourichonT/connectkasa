@@ -9,6 +9,20 @@ import 'package:konodal/models/pages_models/contact.dart';
 import 'package:flutter/material.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
+// Icône par catégorie (contact.service) : texte libre ici (pas de liste
+// fermée comme TypeList.servicePrestaList), donc repli générique pour toute
+// valeur non reconnue - Pompier/SAMU partagent la même icône ("Urgence").
+IconData _iconForService(String service) {
+  switch (service) {
+    case "Sécurité":
+      return Icons.local_police_outlined;
+    case "Urgence":
+      return Icons.emergency_outlined;
+    default:
+      return Icons.local_phone_outlined;
+  }
+}
+
 class EmergenciesContactsView extends StatelessWidget {
   final IResidenceRepository _databaseContactServices =
       FirestoreResidenceRepository();
@@ -56,23 +70,30 @@ class EmergenciesContactsView extends StatelessWidget {
                     itemCount: allEmergenciesContact.length,
                     itemBuilder: (context, index) {
                       Contact contact = allEmergenciesContact[index];
-                      return Material(
-                        child: ListTile(
-                          onTap: () {},
-                          leading: SizedBox(
-                              width: MediaQuery.of(context).size.width / 4,
-                              child: MyTextStyle.lotName(contact.service,
-                                  Colors.black87, SizeFont.h3.size)),
-                          title:
-                              MyTextStyle.lotName(contact.name, Colors.black87),
-                          subtitle: MyTextStyle.lotDesc(
-                              contact.phone, SizeFont.h3.size),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.call),
-                            onPressed: () {
-                              ContactFeatures.launchPhoneCall(contact.phone);
-                            },
-                          ),
+                      return ListTile(
+                        contentPadding:
+                            const EdgeInsets.only(left: 20, right: 30),
+                        onTap: () =>
+                            ContactFeatures.launchPhoneCall(contact.phone),
+                        leading: Icon(_iconForService(contact.service)),
+                        title: MyTextStyle.lotName(
+                            contact.name, Colors.black87, SizeFont.h3.size),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (contact.service.isNotEmpty)
+                              MyTextStyle.lotDesc(
+                                  contact.service, SizeFont.h3.size),
+                            MyTextStyle.lotDesc(
+                                contact.phone, SizeFont.h3.size),
+                          ],
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.call),
+                          onPressed: () {
+                            ContactFeatures.launchPhoneCall(contact.phone);
+                          },
                         ),
                       );
                     },

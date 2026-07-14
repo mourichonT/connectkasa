@@ -4,8 +4,10 @@ import 'package:konodal/core/repositories/residence_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/core/utils/text_formatting.dart';
+import 'package:konodal/models/pages_models/address.dart';
 import 'package:konodal/models/pages_models/contact.dart'; // Importez votre modèle Contact
 import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/widget_view/components/address_search_field.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
@@ -76,10 +78,7 @@ class ManageContactState extends ConsumerState<ManageContact> {
           phone: '',
           web: '',
           mail: '',
-          num: '',
-          street: '',
-          city: '',
-          zipcode: ''));
+          address: Address()));
     });
   }
 
@@ -107,11 +106,6 @@ class ManageContactState extends ConsumerState<ManageContact> {
       _controllers.remove('${contactPrefix}_mail');
       _focusNodes['${contactPrefix}_mail']?.dispose();
       _focusNodes.remove('${contactPrefix}_mail');
-
-      _controllers['${contactPrefix}_num']?.dispose();
-      _controllers.remove('${contactPrefix}_num');
-      _focusNodes['${contactPrefix}_num']?.dispose();
-      _focusNodes.remove('${contactPrefix}_num');
 
       _controllers['${contactPrefix}_street']?.dispose();
       _controllers.remove('${contactPrefix}_street');
@@ -153,19 +147,33 @@ class ManageContactState extends ConsumerState<ManageContact> {
       }
 
       contact.name = capitalizeFirstLetter(contact.name);
-      if (contact.street != null) {
-        contact.street = capitalizeFirstLetter(contact.street!);
+      if (contact.address.street.isNotEmpty) {
+        contact.address.street = capitalizeFirstLetter(contact.address.street);
       }
-      if (contact.city != null) {
-        contact.city = capitalizeFirstLetter(contact.city!);
+      if (contact.address.city.isNotEmpty) {
+        contact.address.city = capitalizeFirstLetter(contact.address.city);
       }
 
-      if (contact.id == null) {
-        // Nouveau contact : ajouter
-        await _residenceServices.addContact(widget.residence.id, contact);
-      } else {
-        // Contact existant : mettre à jour
-        await _residenceServices.updateContact(contact.id!, contact);
+      final result = contact.id == null
+          // Nouveau contact : ajouter
+          ? await _residenceServices.addContact(widget.residence.id, contact)
+          // Contact existant : mettre à jour. widget.residence.id (pas
+          // contact.id!, qui pointait vers un chemin résidence inexistant
+          // et faisait échouer la mise à jour silencieusement - le résultat
+          // n'était jamais vérifié ci-dessous).
+          : await _residenceServices.updateContact(
+              widget.residence.id, contact);
+
+      if (result.isFailure) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                "Erreur lors de l'enregistrement de ${contact.name} : ${result.errorOrNull}"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
       }
     }
 
@@ -222,14 +230,12 @@ class ManageContactState extends ConsumerState<ManageContact> {
                   '${contactPrefix}_phone', contact.phone);
               final mailController =
                   _initAndGetController('${contactPrefix}_mail', contact.mail);
-              final numController =
-                  _initAndGetController('${contactPrefix}_num', contact.num);
               final streetController = _initAndGetController(
-                  '${contactPrefix}_street', contact.street);
-              final cityController =
-                  _initAndGetController('${contactPrefix}_city', contact.city);
+                  '${contactPrefix}_street', contact.address.street);
+              final cityController = _initAndGetController(
+                  '${contactPrefix}_city', contact.address.city);
               final zipcodeController = _initAndGetController(
-                  '${contactPrefix}_zipcode', contact.zipcode);
+                  '${contactPrefix}_zipcode', contact.address.zipCode);
               final webController =
                   _initAndGetController('${contactPrefix}_web', contact.web);
 
@@ -336,30 +342,23 @@ class ManageContactState extends ConsumerState<ManageContact> {
                             SizeFont.h3.size,
                           ),
                           const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: CustomTextFieldWidget(
-                                  label: "N°",
-                                  controller: numController,
-                                  isEditable: true,
-                                  keyboardType: TextInputType
-                                      .number, // Type de clavier numérique
-                                  onChanged: (val) => contact.num = val,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                flex: 3,
-                                child: CustomTextFieldWidget(
-                                  label: "Rue",
-                                  controller: streetController,
-                                  isEditable: true,
-                                  onChanged: (val) => contact.street = val,
-                                ),
-                              ),
-                            ],
+                          AddressSearchField(
+                            label: "Adresse",
+                            controller: streetController,
+                            onManualEdit: () {
+                              contact.address.codeQualite = '60';
+                              contact.address.street = streetController.text;
+                            },
+                            onSelected: (suggestion) {
+                              setState(() {
+                                contact.address.codeQualite = '00';
+                                contact.address.street = streetController.text;
+                                cityController.text = suggestion.city;
+                                zipcodeController.text = suggestion.postcode;
+                                contact.address.city = suggestion.city;
+                                contact.address.zipCode = suggestion.postcode;
+                              });
+                            },
                           ),
                           const SizedBox(height: 10),
                           Row(
@@ -370,7 +369,7 @@ class ManageContactState extends ConsumerState<ManageContact> {
                                   label: "Ville",
                                   controller: cityController,
                                   isEditable: true,
-                                  onChanged: (val) => contact.city = val,
+                                  onChanged: (val) => contact.address.city = val,
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -382,7 +381,8 @@ class ManageContactState extends ConsumerState<ManageContact> {
                                   isEditable: true,
                                   keyboardType: TextInputType
                                       .number, // Type de clavier numérique
-                                  onChanged: (val) => contact.zipcode = val,
+                                  onChanged: (val) =>
+                                      contact.address.zipCode = val,
                                 ),
                               ),
                             ],
