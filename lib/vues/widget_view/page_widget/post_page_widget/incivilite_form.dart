@@ -1,5 +1,6 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/controllers/features/submit_post_controller.dart';
+import 'package:konodal/core/utils/media_type.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
@@ -51,6 +52,7 @@ class InciviliteFormState extends State<InciviliteForm> {
   TextEditingController title = TextEditingController();
   TextEditingController desc = TextEditingController();
   String imagePath = "";
+  bool isVideoMedia = false;
   String fileName = '';
   bool anonymPost = true;
 
@@ -88,6 +90,9 @@ class InciviliteFormState extends State<InciviliteForm> {
                 title: title.text,
                 onImageUploaded:
                     downloadImagePath, // Passer la fonction de rappel
+                allowVideo: true,
+                onExtensionResolved: (ext) =>
+                    setState(() => isVideoMedia = isVideoExtension(ext)),
                 cardOverlay: false,
               ),
             ),
@@ -154,6 +159,7 @@ class InciviliteFormState extends State<InciviliteForm> {
                             idPost: widget.idPost,
                             selectedLabel: widget.folderName,
                             imagePath: imagePath,
+                            isVideo: isVideoMedia,
                             title: title,
                             desc: desc,
                             anonymPost: anonymPost,

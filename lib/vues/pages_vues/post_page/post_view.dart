@@ -10,6 +10,7 @@ import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/widget_view/components/comment_button.dart';
 import 'package:konodal/vues/widget_view/components/like_button_post.dart';
+import 'package:konodal/vues/widget_view/components/network_video_player.dart';
 import 'package:konodal/vues/widget_view/components/share_button.dart';
 
 class PostView extends StatefulWidget {
@@ -76,12 +77,16 @@ class PostViewState extends State<PostView> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Image.network(
-                widget.postSelected!.pathImage ?? "pas d'image",
-                fit: BoxFit.fitWidth,
-                width: width,
-                height: height,
-              ),
+              child: widget.postSelected!.isVideo
+                  ? NetworkVideoPlayer(
+                      url: widget.postSelected!.pathImage ?? "",
+                    )
+                  : Image.network(
+                      widget.postSelected!.pathImage ?? "pas d'image",
+                      fit: BoxFit.fitWidth,
+                      width: width,
+                      height: height,
+                    ),
             ),
             Positioned(
               top: 0,

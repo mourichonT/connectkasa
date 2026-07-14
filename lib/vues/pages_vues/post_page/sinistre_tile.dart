@@ -7,6 +7,7 @@ import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
+import 'package:konodal/vues/widget_view/components/network_video_player.dart';
 import 'package:konodal/vues/pages_vues/annonces_page/annonce_page_details.dart';
 import 'package:konodal/vues/pages_vues/post_page/communication_detail.dart';
 import 'package:konodal/vues/pages_vues/annonces_page/modify_annonceform.dart';
@@ -16,7 +17,6 @@ import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 // ignore: must_be_immutable
 class SinistreTile extends StatefulWidget {
@@ -63,94 +63,52 @@ class SinistreTileState extends State<SinistreTile> {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (context) => FutureBuilder<Post?>(
-                      future: dbService
-                          .getUpdatePost(widget.residenceId, widget.post.id)
-                          .then((result) => result.when(
-                              success: (v) => v,
-                              failure: (error) => throw error)),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<Post?> snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const AppLoader();
-                        } else if (snapshot.hasError) {
-                          return Text('Error: ${snapshot.error}');
-                        } else {
-                          final postUpdated = snapshot.data;
-                          if (postUpdated != null) {
-                            return PopScope(
-                              onPopInvokedWithResult: (didPop, result) async {
-                                Post? postChanges = await dbService
-                                    .getUpdatePost(
-                                        widget.residenceId, widget.post.id)
-                                    .then((result) => result.when(
-                                        success: (v) => v,
-                                        failure: (_) => null));
+                // widget.post est déjà disponible immédiatement (c'est ce qui
+                // affiche cette tuile) - pas besoin d'attendre une requête
+                // Firestore avant d'ouvrir le détail (l'ancien FutureBuilder
+                // bloquait l'ouverture derrière un loader plein écran pour
+                // rien : les deux branches de son résultat affichaient de
+                // toute façon widget.post, jamais la valeur récupérée).
+                // Le rafraîchissement au retour (PopScope) reste inchangé.
+                builder: (context) => PopScope(
+                      onPopInvokedWithResult: (didPop, result) async {
+                        Post? postChanges = await dbService
+                            .getUpdatePost(widget.residenceId, widget.post.id)
+                            .then((result) => result.when(
+                                success: (v) => v, failure: (_) => null));
 
-                                if (postChanges != null && mounted) {
-                                  setState(() {
-                                    widget.post = postChanges;
-                                  });
-                                }
-                              },
-                              child: Builder(builder: (context) {
-                                if (widget.post.type == "sinistres" ||
-                                    widget.post.type == "incivilites") {
-                                  return PostView(
-                                    postOrigin: widget.post,
-                                    residence: widget.residenceId,
-                                    uid: widget.uid,
-                                    postSelected: widget.post,
-                                    returnHomePage: false,
-                                  );
-                                } else if (widget.post.type ==
-                                    "communication") {
-                                  return CommunicationDetails(
-                                    uid: widget.uid,
-                                    post: widget.post,
-                                    residenceId: widget.residenceId,
-                                  );
-                                } else {
-                                  return AnnoncePageDetails(
-                                    returnHomePage: false,
-                                    post: widget.post,
-                                    uid: widget.uid,
-                                    residence: widget.residenceId,
-                                    colorStatut: widget.colorStatut,
-                                  );
-                                }
-                              }),
-                            );
-                          } else {
-                            //return const Text('No data');
-                            if (widget.post.type == "sinistres" ||
-                                widget.post.type == "incivilites") {
-                              return PostView(
-                                postOrigin: widget.post,
-                                residence: widget.residenceId,
-                                uid: widget.uid,
-                                postSelected: widget.post,
-                                returnHomePage: false,
-                              );
-                            } else if (widget.post.type == "communication") {
-                              return CommunicationDetails(
-                                uid: widget.uid,
-                                post: widget.post,
-                                residenceId: widget.residenceId,
-                              );
-                            } else {
-                              return AnnoncePageDetails(
-                                returnHomePage: false,
-                                post: widget.post,
-                                uid: widget.uid,
-                                residence: widget.residenceId,
-                                colorStatut: widget.colorStatut,
-                              );
-                            }
-                          }
+                        if (postChanges != null && mounted) {
+                          setState(() {
+                            widget.post = postChanges;
+                          });
                         }
                       },
+                      child: Builder(builder: (context) {
+                        if (widget.post.type == "sinistres" ||
+                            widget.post.type == "incivilites") {
+                          return PostView(
+                            postOrigin: widget.post,
+                            residence: widget.residenceId,
+                            uid: widget.uid,
+                            postSelected: widget.post,
+                            returnHomePage: false,
+                          );
+                        } else if (widget.post.type == "communication") {
+                          return CommunicationDetails(
+                            uid: widget.uid,
+                            post: widget.post,
+                            residenceId: widget.residenceId,
+                          );
+                        } else {
+                          return AnnoncePageDetails(
+                            returnHomePage: false,
+                            post: widget.post,
+                            uid: widget.uid,
+                            residence: widget.residenceId,
+                            colorStatut: widget.colorStatut,
+                          );
+                        }
+                      }),
                     )),
           );
         },
@@ -171,10 +129,30 @@ class SinistreTileState extends State<SinistreTile> {
                               padding: const EdgeInsets.all(8),
                               width: 120,
                               height: 120,
-                              child: Image.network(
-                                widget.post.pathImage!,
-                                fit: BoxFit.cover,
-                              ),
+                              child: widget.post.isVideo
+                                  ? Stack(
+                                      alignment: Alignment.center,
+                                      // Sans ça, le Stack se redimensionne au
+                                      // ratio de la vidéo (StackFit.loose,
+                                      // par défaut) au lieu de remplir toute
+                                      // la case 120x120 dédiée.
+                                      fit: StackFit.expand,
+                                      children: [
+                                        NetworkVideoPlayer(
+                                          url: widget.post.pathImage!,
+                                          showControls: false,
+                                        ),
+                                        const Icon(
+                                          Icons.play_circle_fill,
+                                          color: Colors.white70,
+                                          size: 36,
+                                        ),
+                                      ],
+                                    )
+                                  : Image.network(
+                                      widget.post.pathImage!,
+                                      fit: BoxFit.cover,
+                                    ),
                             ),
                           )
                         else

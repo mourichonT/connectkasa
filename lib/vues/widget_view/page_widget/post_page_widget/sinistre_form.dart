@@ -1,6 +1,7 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/controllers/features/submit_post_controller.dart';
 import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/core/utils/media_type.dart';
 import 'package:konodal/core/repositories/firestore_residence_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/lot.dart';
@@ -82,6 +83,7 @@ class SinistreFormState extends State<SinistreForm> {
   String localisation = "";
   String etage = "";
   String imagePath = "";
+  bool isVideoMedia = false;
   bool anonymPost = false;
   List<String> filters = [];
 
@@ -208,6 +210,9 @@ class SinistreFormState extends State<SinistreForm> {
                   folderName: widget.folderName,
                   title: title.text,
                   onImageUploaded: downloadImagePath,
+                  allowVideo: true,
+                  onExtensionResolved: (ext) =>
+                      setState(() => isVideoMedia = isVideoExtension(ext)),
                   cardOverlay: false,
                 ),
               ),
@@ -290,6 +295,7 @@ class SinistreFormState extends State<SinistreForm> {
                               idPost: widget.idPost,
                               selectedLabel: widget.folderName,
                               imagePath: imagePath,
+                              isVideo: isVideoMedia,
                               title: title,
                               desc: desc,
                               anonymPost: anonymPost,

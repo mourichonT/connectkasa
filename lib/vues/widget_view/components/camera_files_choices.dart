@@ -1,12 +1,15 @@
 import 'dart:io';
+import 'package:chewie/chewie.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
+import 'package:video_player/video_player.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/core/providers/storage_repository_provider.dart';
 import 'package:konodal/core/repositories/storage_repository.dart';
+import 'package:konodal/core/utils/media_type.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/core/utils/app_logger.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
@@ -24,6 +27,10 @@ class CameraOrFiles extends ConsumerStatefulWidget {
   final Function(bool)? onCameraStateChanged;
   final Function(String) onImageUploaded;
   final bool cardOverlay;
+  // Opt-in : par défaut false pour ne rien changer aux usages existants
+  // (documents d'identité, justificatifs, Kbis, photo de profil...) où une
+  // vidéo n'a pas de sens. Seuls les posts sinistre/incivilité l'activent.
+  final bool allowVideo;
   // Optionnels, pas utilisés par les appelants existants (aucun changement
   // de comportement pour eux) : permettent à un formulaire de désactiver
   // sa soumission tant que l'upload est en cours, pour éviter une
@@ -47,6 +54,7 @@ class CameraOrFiles extends ConsumerStatefulWidget {
     required this.title,
     required this.onImageUploaded,
     required this.cardOverlay,
+    this.allowVideo = false,
     this.onCameraStateChanged,
     this.onUploadStart,
     this.onUploadError,
@@ -62,7 +70,12 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
   late final IStorageRepository _storageServices;
   final String fileName = const Uuid().v4();
   File? _selectedImage;
+  VideoPlayerController? _videoController;
+  ChewieController? _chewieController;
   bool isCameraOpen = false;
+
+  bool get _isSelectedVideo =>
+      _selectedImage != null && isVideoExtension(_getFileExtension(_selectedImage!));
 
   @override
   void initState() {
@@ -89,7 +102,51 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
   @override
   void dispose() {
     _selectedImage = null; // Libérer la mémoire
+    _disposeVideoControllers();
     super.dispose();
+  }
+
+  /// Sans cette pause, disposer le contrôleur pendant une lecture en cours
+  /// peut faire planter nativement le décodeur (observé sur l'émulateur
+  /// Android, décodeur logiciel goldfish) - laisser MediaCodec se stabiliser
+  /// avant de libérer la Surface.
+  void _disposeVideoControllers() {
+    if (_videoController != null &&
+        _videoController!.value.isInitialized &&
+        _videoController!.value.isPlaying) {
+      _videoController!.pause();
+    }
+    _chewieController?.dispose();
+    _videoController?.dispose();
+    _chewieController = null;
+    _videoController = null;
+  }
+
+  /// Met à jour le fichier sélectionné et, si c'est une vidéo, initialise
+  /// son aperçu local (lecteur en pause sur la première frame) - sinon
+  /// libère un éventuel aperçu vidéo précédent (bascule vidéo -> image).
+  void _setSelectedFile(File file) {
+    _disposeVideoControllers();
+
+    setState(() {
+      _selectedImage = file;
+    });
+
+    if (isVideoExtension(_getFileExtension(file))) {
+      final controller = VideoPlayerController.file(file);
+      controller.initialize().then((_) {
+        if (!mounted) return;
+        setState(() {
+          _videoController = controller;
+          _chewieController = ChewieController(
+            videoPlayerController: controller,
+            autoPlay: false,
+            looping: false,
+            aspectRatio: controller.value.aspectRatio,
+          );
+        });
+      });
+    }
   }
 
   void openCamera() async {
@@ -108,9 +165,28 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
 
     if (pickedFile == null) return;
 
+    _setSelectedFile(File(pickedFile.path));
+
+    _uploadFromXFile(pickedFile);
+  }
+
+  void openVideoCamera() async {
     setState(() {
-      _selectedImage = File(pickedFile.path);
+      isCameraOpen = true;
+      widget.onCameraStateChanged?.call(true);
     });
+
+    final XFile? pickedFile =
+        await _picker.pickVideo(source: ImageSource.camera);
+
+    setState(() {
+      isCameraOpen = false;
+      widget.onCameraStateChanged?.call(false);
+    });
+
+    if (pickedFile == null) return;
+
+    _setSelectedFile(File(pickedFile.path));
 
     _uploadFromXFile(pickedFile);
   }
@@ -134,12 +210,32 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
     if (pickedFile == null || pickedFile.files.single.path == null) return;
 
     if (mounted) {
-      setState(() {
-        _selectedImage = File(pickedFile.files.single.path!);
-      });
+      _setSelectedFile(File(pickedFile.files.single.path!));
     }
 
     _uploadFromFilePicker(pickedFile);
+  }
+
+  /// Sélecteur galerie unifié photo/vidéo (image_picker), en un seul geste -
+  /// contrairement à _pickImage (FilePicker, images/pdf uniquement, utilisé
+  /// par les autres appelants de CameraOrFiles où la vidéo n'a pas de sens).
+  Future<void> _pickMediaFromGallery() async {
+    setState(() {
+      isCameraOpen = true;
+      widget.onCameraStateChanged?.call(true);
+    });
+
+    final XFile? media = await _picker.pickMedia();
+
+    setState(() {
+      isCameraOpen = false;
+      widget.onCameraStateChanged?.call(false);
+    });
+
+    if (media == null) return;
+
+    _setSelectedFile(File(media.path));
+    _uploadFromXFile(media);
   }
 
   void _uploadFromFilePicker(FilePickerResult result) {
@@ -250,6 +346,7 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
   Future<void> _removeImage() async {
     try {
       if (_selectedImage != null) {
+        _disposeVideoControllers();
         setState(() {
           _selectedImage = null;
         });
@@ -265,24 +362,34 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
     }
   }
 
-  /// Affiche la boîte de dialogue pour choisir l’image
+  /// Affiche la boîte de dialogue pour choisir le média : volontairement
+  /// minimal (2 choix), pas 4 - "Prendre" ouvre un tout petit choix
+  /// photo/vidéo seulement si allowVideo, "Galerie" utilise le sélecteur
+  /// unifié image_picker (une seule sélection, photo OU vidéo) plutôt que
+  /// deux entrées séparées.
   void _showImageSourceActionSheet(BuildContext context) {
     showModalBottomSheet(
       showDragHandle: true,
       context: context,
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.camera),
+              leading: Icon(widget.allowVideo ? Icons.camera_alt : Icons.camera),
               title: MyTextStyle.postDesc(
-                'Prendre une photo',
+                widget.allowVideo
+                    ? 'Prendre une photo ou une vidéo'
+                    : 'Prendre une photo',
                 SizeFont.h3.size,
                 Colors.black87,
               ),
               onTap: () {
-                Navigator.of(context).pop();
-                openCamera();
+                Navigator.of(sheetContext).pop();
+                if (widget.allowVideo) {
+                  _showCameraChoiceSheet(context);
+                } else {
+                  openCamera();
+                }
               },
             ),
             ListTile(
@@ -293,8 +400,12 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
                 Colors.black87,
               ),
               onTap: () {
-                Navigator.of(context).pop();
-                _pickImage(ImageSource.gallery);
+                Navigator.of(sheetContext).pop();
+                if (widget.allowVideo) {
+                  _pickMediaFromGallery();
+                } else {
+                  _pickImage(ImageSource.gallery);
+                }
               },
             ),
             if (_selectedImage != null)
@@ -307,11 +418,68 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
                 ),
                 onTap: () {
                   _removeImage();
-                  Navigator.of(context).pop();
+                  Navigator.of(sheetContext).pop();
                 },
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Petit choix photo/vidéo pour la capture caméra (allowVideo uniquement) -
+  /// évite d'alourdir le sheet principal avec 2 entrées "Prendre" distinctes.
+  void _showCameraChoiceSheet(BuildContext context) {
+    showModalBottomSheet(
+      showDragHandle: true,
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 30),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _cameraChoiceButton(
+                sheetContext,
+                icon: Icons.camera_alt,
+                label: 'Photo',
+                onSelected: openCamera,
+              ),
+              _cameraChoiceButton(
+                sheetContext,
+                icon: Icons.videocam,
+                label: 'Vidéo',
+                onSelected: openVideoCamera,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _cameraChoiceButton(
+    BuildContext sheetContext, {
+    required IconData icon,
+    required String label,
+    required VoidCallback onSelected,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(sheetContext).pop();
+        onSelected();
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: const Color(0xFFF5F6F9),
+            child: Icon(icon, size: 28, color: Colors.black87),
+          ),
+          const SizedBox(height: 8),
+          MyTextStyle.postDesc(label, SizeFont.h3.size, Colors.black87),
+        ],
       ),
     );
   }
@@ -328,21 +496,25 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
               ? SizedBox(
                   width: width,
                   height: width * 0.5,
-                  child: Builder(
-                    builder: (_) {
-                      try {
-                        return Image.file(
-                          _selectedImage!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildErrorPlaceholder(); // custom placeholder
+                  child: _isSelectedVideo
+                      ? (_chewieController != null
+                          ? Chewie(controller: _chewieController!)
+                          : const Center(child: AppLoader()))
+                      : Builder(
+                          builder: (_) {
+                            try {
+                              return Image.file(
+                                _selectedImage!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return _buildErrorPlaceholder(); // custom placeholder
+                                },
+                              );
+                            } catch (e) {
+                              return _buildErrorPlaceholder();
+                            }
                           },
-                        );
-                      } catch (e) {
-                        return _buildErrorPlaceholder();
-                      }
-                    },
-                  ),
+                        ),
                 )
               : _buildAddImageButton(width),
           if (_selectedImage != null)
@@ -400,7 +572,9 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
             ),
             const SizedBox(height: 10),
             Text(
-              "Ajouter une image",
+              widget.allowVideo
+                  ? "Ajouter une photo ou une vidéo"
+                  : "Ajouter une image",
               style: TextStyle(
                 color: Colors.black54,
                 fontSize: 16,
@@ -431,6 +605,10 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
       case 'bmp':
       case 'gif':
         return Icons.image;
+      case 'mp4':
+      case 'mov':
+      case 'm4v':
+        return Icons.videocam;
       default:
         return Icons.insert_drive_file;
     }

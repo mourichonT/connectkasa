@@ -5,7 +5,7 @@ buildscript {
     }
     dependencies {
         // Ajoutez la version AGP ici
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20"
         classpath 'com.android.tools.build:gradle:8.6.0'  // Utilisez la version compatible avec SDK 35
         classpath 'com.google.gms:google-services:4.4.2'  // Si ce plugin est nécessaire pour votre projet
     }

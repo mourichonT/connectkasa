@@ -12,6 +12,11 @@ class Post {
   Timestamp? declaredDate;
   String _statut = "";
   String _pathImage = "";
+  // Un post n'a qu'un seul média (image OU vidéo, jamais les deux) : ce
+  // champ précise le type de pathImage, car le fichier Storage lui-même
+  // n'a pas d'extension dans son nom (juste un UUID) - impossible de le
+  // déduire après coup depuis l'URL.
+  bool isVideo;
   String title;
   String description;
   String locationElement;
@@ -37,6 +42,7 @@ class Post {
       this.declaredDate,
       String statut = "",
       String pathImage = "",
+      this.isVideo = false,
       required this.title,
       required this.description,
       this.locationElement = "",
@@ -189,6 +195,7 @@ class Post {
           "", // Nouvel attribut
       subtype: annonce['subType'] ?? map['subtype'] ?? "",
       pathImage: map['pathImage'] ?? "",
+      isVideo: map['isVideo'] ?? false,
       refResidence: map['refResidence'] ?? "",
       statut: map['statut'] ?? map['statu'] ?? "",
       timeStamp: map['timeStamp'] ?? 0,
@@ -250,6 +257,7 @@ class Post {
       'description': description,
       if (location.isNotEmpty) 'location': location,
       if ((pathImage ?? '').isNotEmpty) 'pathImage': pathImage,
+      if (isVideo) 'isVideo': isVideo,
       'refResidence': refResidence,
       if ((statut ?? '').isNotEmpty) 'statut': statut,
       if (event.isNotEmpty) 'event': event,
@@ -292,6 +300,7 @@ class Post {
 
     setOrClear('title', title, title.isEmpty);
     setOrClear('pathImage', pathImage, (pathImage ?? '').isEmpty);
+    setOrClear('isVideo', isVideo, !isVideo);
     setOrClear('statut', statut, (statut ?? '').isEmpty);
     setOrClear('declaredDate', declaredDate, declaredDate == null);
     setOrClear('like', like, like == null || like!.isEmpty);

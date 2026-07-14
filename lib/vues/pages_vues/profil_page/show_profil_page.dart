@@ -10,6 +10,7 @@ import 'package:konodal/vues/pages_vues/post_page/communication_detail.dart';
 import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
+import 'package:konodal/vues/widget_view/components/network_video_player.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -305,10 +306,29 @@ class ShowProfilPage extends ConsumerWidget {
                             padding: const EdgeInsets.all(8),
                             width: 90,
                             height: 70,
-                            child: Image.network(
-                              post.pathImage!,
-                              fit: BoxFit.cover,
-                            ),
+                            child: post.isVideo
+                                ? Stack(
+                                    alignment: Alignment.center,
+                                    // Sans ça, le Stack se redimensionne au
+                                    // ratio de la vidéo au lieu de remplir
+                                    // toute la case dédiée.
+                                    fit: StackFit.expand,
+                                    children: [
+                                      NetworkVideoPlayer(
+                                        url: post.pathImage!,
+                                        showControls: false,
+                                      ),
+                                      const Icon(
+                                        Icons.play_circle_fill,
+                                        color: Colors.white70,
+                                        size: 28,
+                                      ),
+                                    ],
+                                  )
+                                : Image.network(
+                                    post.pathImage!,
+                                    fit: BoxFit.cover,
+                                  ),
                           ),
                         )
                       : ClipRRect(

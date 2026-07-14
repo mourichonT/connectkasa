@@ -33,7 +33,6 @@ class PostWidget extends StatefulWidget {
 
 class PostWidgetState extends State<PostWidget> {
   late Future<List<Post>> _signalementFuture;
-  late Future<Post?> _getPostFuture;
   IPostRepository dbService = FirestorePostRepository();
   List<List<String>> typeList = TypeList().typeDeclaration();
   int postCount = 0;
@@ -115,59 +114,43 @@ class PostWidgetState extends State<PostWidget> {
                         items: signalements.map((postSelected) {
                           return InkWell(
                             onTap: () {
-                              _getPostFuture = dbService
-                                  .getUpdatePost(
-                                      widget.residence, widget.post.id)
-                                  .then((result) => result.when(
-                                      success: (v) => v,
-                                      failure: (error) => throw error));
-
+                              // postSelected est déjà disponible (c'est ce qui
+                              // affiche cette tuile) - pas besoin d'attendre
+                              // une requête Firestore avant d'ouvrir le
+                              // détail (l'ancien FutureBuilder bloquait
+                              // l'ouverture derrière un loader plein écran,
+                              // surtout gênant pour une vidéo qui a déjà son
+                              // propre temps de chargement réseau). Le
+                              // rafraîchissement au retour (PopScope) reste
+                              // inchangé.
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => FutureBuilder<Post?>(
-                                    future: _getPostFuture,
-                                    builder: (BuildContext context,
-                                        AsyncSnapshot<Post?> snapshot) {
-                                      if (snapshot.connectionState ==
-                                          ConnectionState.waiting) {
-                                        return const AppLoader();
-                                      } else if (snapshot.hasError) {
-                                        return Text('Error: ${snapshot.error}');
-                                      } else {
-                                        final postUpdated = snapshot.data;
-                                        if (postUpdated != null) {
-                                          return PopScope(
-                                            onPopInvokedWithResult:
-                                                (didPop, result) async {
-                                              Post? postChanges = await dbService
-                                                  .getUpdatePost(
-                                                      widget.residence,
-                                                      widget.post.id)
-                                                  .then((result) => result.when(
-                                                      success: (v) => v,
-                                                      failure: (_) => null));
+                                  builder: (context) => PopScope(
+                                    onPopInvokedWithResult:
+                                        (didPop, result) async {
+                                      Post? postChanges = await dbService
+                                          .getUpdatePost(
+                                              widget.residence, widget.post.id)
+                                          .then((result) => result.when(
+                                              success: (v) => v,
+                                              failure: (_) => null));
 
-                                              setState(() {
-                                                widget.post = postChanges!;
-                                              });
-                                            },
-                                            child: PostView(
-                                              postOrigin: postUpdated,
-                                              residence: widget.residence,
-                                              uid: widget.uid,
-                                              scrollController:
-                                                  widget.scrollController,
-                                              postSelected: postSelected,
-                                              returnHomePage: true,
-                                            ),
-                                          );
-                                        } else {
-                                          return const Text(
-                                              'No data available');
-                                        }
+                                      if (postChanges != null && mounted) {
+                                        setState(() {
+                                          widget.post = postChanges;
+                                        });
                                       }
                                     },
+                                    child: PostView(
+                                      postOrigin: postSelected,
+                                      residence: widget.residence,
+                                      uid: widget.uid,
+                                      scrollController:
+                                          widget.scrollController,
+                                      postSelected: postSelected,
+                                      returnHomePage: true,
+                                    ),
                                   ),
                                 ),
                               );

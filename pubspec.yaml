@@ -79,6 +79,9 @@ dependencies:
   google_mlkit_document_scanner: ^0.4.0
   file_picker: ^10.1.2
   firebase_messaging: ^15.2.6
+  video_player: ^2.9.2
+  chewie: ^1.8.5
+  visibility_detector: ^0.4.0+2
   #flutter_appauth: ^8.0.3
   
  

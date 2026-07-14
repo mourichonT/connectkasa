@@ -9,6 +9,7 @@ import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/models/pages_models/residence.dart';
+import 'package:konodal/vues/widget_view/components/network_video_player.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -47,6 +48,10 @@ class ModifyPostFormState extends State<ModifyPostForm> {
   TextEditingController title = TextEditingController();
   TextEditingController desc = TextEditingController();
   String imagePath = "";
+  // Ce formulaire ne permet de remplacer l'image que par une autre image
+  // (ImagePicker.pickImage, jamais de vidéo) : préservé tel quel tant que
+  // l'utilisateur ne remplace pas le média, remis à false s'il le fait.
+  bool isVideoMedia = false;
   bool anonymPost = false;
   bool showAllFilters = false;
   bool removeImage = false;
@@ -104,6 +109,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
     title = TextEditingController(text: widget.post.title);
     desc = TextEditingController(text: widget.post.description);
     imagePath = widget.post.pathImage ?? "";
+    isVideoMedia = widget.post.isVideo;
     anonymPost = widget.post.hideUser;
   }
 
@@ -374,10 +380,12 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                       SizedBox(
                         width: width,
                         height: 250,
-                        child: Image.network(
-                          imagePath,
-                          fit: BoxFit.cover,
-                        ),
+                        child: isVideoMedia
+                            ? NetworkVideoPlayer(url: imagePath)
+                            : Image.network(
+                                imagePath,
+                                fit: BoxFit.cover,
+                              ),
                       ),
                       Positioned(
                         top: 10,
@@ -434,6 +442,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                     idPost: widget.post.id,
                     selectedLabel: type!,
                     imagePath: imagePath,
+                    isVideo: isVideoMedia,
                     title: capitalizeFirstLetter(title.text),
                     desc: capitalizeFirstLetter(desc.text),
                     anonymPost: anonymPost,
@@ -506,6 +515,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
     setState(() {
       // oldImagePath = imagePath;
       imagePath = newImagePath;
+      isVideoMedia = false;
 
       _storageServices.removeFileFromUrl(widget.post.pathImage!);
       //oldImagePath = "";

@@ -3,6 +3,7 @@ import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
+import 'package:konodal/vues/widget_view/components/feed_video_post.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 
@@ -32,10 +33,12 @@ class SignalementTile extends StatelessWidget {
           child: Stack(
             children: [
               Positioned.fill(
-                child: Image.network(
-                  post.pathImage ?? "pas d'image",
-                  fit: BoxFit.cover,
-                ),
+                child: post.isVideo
+                    ? FeedVideoPost(url: post.pathImage ?? "")
+                    : Image.network(
+                        post.pathImage ?? "pas d'image",
+                        fit: BoxFit.cover,
+                      ),
               ),
               if (post.hideUser == false)
                 Positioned(

@@ -31,6 +31,13 @@ class FirestoreStorageRepository implements IStorageRepository {
         case 'pdf':
           mimeType = 'application/pdf';
           break;
+        case 'mp4':
+        case 'm4v':
+          mimeType = 'video/mp4';
+          break;
+        case 'mov':
+          mimeType = 'video/quicktime';
+          break;
         default:
           throw UnsupportedError(
               'Extension de fichier non prise en charge: $extension');

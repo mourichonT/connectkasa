@@ -47,7 +47,9 @@
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Konodal a besoin d'accéder à vos photos pour importer une photo de profil, illustrer vos annonces et publications, ou joindre vos documents depuis votre galerie.</string>
 		<key>NSCameraUsageDescription</key>
-		<string>Konodal a besoin d'accéder à votre appareil photo pour photographier vos documents d'identité, ajouter des photos à vos annonces et publications, ou changer votre photo de profil.</string>
+		<string>Konodal a besoin d'accéder à votre appareil photo pour photographier vos documents d'identité, ajouter des photos ou vidéos à vos annonces et publications, ou changer votre photo de profil.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Konodal a besoin d'accéder à votre microphone pour filmer une vidéo avec le son dans vos publications.</string>
 		<key>UILaunchStoryboardName</key>
 		<string>LaunchScreen</string>
 		<key>UIMainStoryboardFile</key>
