@@ -28,6 +28,11 @@ class User {
   String? pseudo;
   String? bio;
   bool private;
+  // Numéro de contact du compte (saisi manuellement, aucune pièce
+  // d'identité ne le fournit) - modifiable depuis "Modifier mes
+  // informations", à ne pas confondre avec une adresse ou une autre donnée
+  // propre à un dossier de location particulier.
+  String phone;
 
   User({
     required this.privacyPolicy,
@@ -45,6 +50,7 @@ class User {
     required this.isApproved,
     this.createdDate,
     this.bio,
+    this.phone = "",
     this.isInfoCorrect = false,
     Map<String, bool>? notificationPrefs,
   }) : notificationPrefs = notificationPrefs ?? NotificationType.defaultPrefs {
@@ -93,6 +99,7 @@ class User {
       pseudo: profilGroup['pseudo'] ?? "",
       uid: map['uid'] ?? "",
       bio: profilGroup['bio'] ?? "",
+      phone: profilGroup['phone'] ?? "",
       private: profilGroup['private'] ?? false,
       // Fusionne avec les valeurs par défaut (tout activé) pour couvrir les
       // utilisateurs existants qui n'ont pas encore ce champ, ou les
@@ -127,6 +134,7 @@ class User {
         'bio': bio,
         'private': private,
         'profilPic': profilPic,
+        'phone': phone,
       },
     };
   }

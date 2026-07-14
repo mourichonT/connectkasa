@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:konodal/controllers/features/dependent_entry.dart';
 import 'package:konodal/controllers/features/job_entry.dart';
 import 'package:konodal/controllers/features/justif_document.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
@@ -13,10 +14,13 @@ import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/controllers/features/income_entry.dart';
 import 'package:konodal/models/enum/icons_extension.dart';
+import 'package:konodal/models/enum/nationality_list.dart';
 import 'package:konodal/models/enum/tenant_list.dart';
 import 'package:konodal/models/enum/type_list.dart';
+import 'package:konodal/models/pages_models/address.dart';
 import 'package:konodal/models/pages_models/document_model.dart';
 import 'package:konodal/models/pages_models/guarantor_info.dart';
+import 'package:konodal/vues/widget_view/components/address_search_field.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:konodal/vues/widget_view/components/import_docs.dart';
@@ -55,12 +59,29 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
   TextEditingController birthday = TextEditingController();
   TextEditingController birthdayController = TextEditingController();
   TextEditingController placeOfBorn = TextEditingController();
-  TextEditingController nationality = TextEditingController();
   TextEditingController mail = TextEditingController();
   TextEditingController phone = TextEditingController();
 
+  // Adresse actuelle du garant (dossier de location) : contrôleurs
+  // persistants, comme pour l'adresse du locataire dans my_infos_rent.dart.
+  final TextEditingController _addressStreetController =
+      TextEditingController();
+  // "00" (RNVP) si _addressStreetController a été rempli en sélectionnant
+  // une suggestion de l'API Adresse, "60" si saisie/modifiée manuellement.
+  String _addressCodeQualite = '60';
+  final TextEditingController _addressComplementController =
+      TextEditingController();
+  final TextEditingController _addressZipCodeController =
+      TextEditingController();
+  final TextEditingController _addressCityController =
+      TextEditingController();
+
   Timestamp? birthdayValue;
   String sex = "";
+  String _nationality = "";
+  String _familySituation = "";
+  String _relationToTenant = "";
+  List<DependentEntry> _dependents = [];
   String fileExtension = "";
   String docUrl = "";
 
@@ -96,9 +117,12 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
     birthday.dispose();
     birthdayController.dispose();
     placeOfBorn.dispose();
-    nationality.dispose();
     mail.dispose();
     phone.dispose();
+    _addressStreetController.dispose();
+    _addressComplementController.dispose();
+    _addressZipCodeController.dispose();
+    _addressCityController.dispose();
 
     super.dispose();
   }
@@ -118,10 +142,18 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
       birthdayController.text =
           DateFormat('dd/MM/yyyy').format(user.birthday.toDate());
       placeOfBorn.text = user.placeOfborn;
-      nationality.text = user.nationality;
+      _nationality = user.nationality;
       sex = user.sex;
       mail.text = user.email;
       phone.text = user.phone;
+      _relationToTenant = user.relationToTenant;
+      _familySituation = user.familySituation;
+      _dependents = List<DependentEntry>.from(user.dependents);
+      _addressStreetController.text = user.address.street;
+      _addressCodeQualite = user.address.codeQualite;
+      _addressComplementController.text = user.address.complement ?? '';
+      _addressZipCodeController.text = user.address.zipCode;
+      _addressCityController.text = user.address.city;
 
       appLog("Incomes length: ${incomeEntries.length}");
       appLog("Job incomes length: ${jobEntries.length}");
@@ -139,7 +171,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
         incomes: [],
         jobIncomes: [],
         familySituation: '',
-        dependent: 0,
+        dependents: [],
       );
     }
 
@@ -266,11 +298,15 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
                 ),
                 Expanded(
                   flex: 1,
-                  child: CustomTextFieldWidget(
-                    label: "Nationnalité",
-                    text: nationality.text,
-                    controller: nationality,
-                    isEditable: true,
+                  child: MyDropDownMenu(
+                    width,
+                    "Nationalité",
+                    _nationality.isEmpty ? "Nationalité" : _nationality,
+                    false,
+                    items: NationalityList.all(),
+                    onValueChanged: (value) {
+                      setState(() => _nationality = value);
+                    },
                   ),
                 ),
               ],
@@ -286,12 +322,100 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
               controller: mail,
               isEditable: true,
             ),
+            SizedBox(height: 20),
             CustomTextFieldWidget(
               keyboardType: TextInputType.phone,
               label: "Téléphone principal",
               text: phone.text,
               controller: phone,
               isEditable: true,
+            ),
+            SizedBox(height: 20),
+            AddressSearchField(
+              controller: _addressStreetController,
+              onManualEdit: () => _addressCodeQualite = '60',
+              onSelected: (suggestion) {
+                setState(() {
+                  _addressCodeQualite = '00';
+                  _addressZipCodeController.text = suggestion.postcode;
+                  _addressCityController.text = suggestion.city;
+                });
+              },
+            ),
+            CustomTextFieldWidget(
+              label: "Complément d'adresse",
+              controller: _addressComplementController,
+              isEditable: true,
+              onChanged: (_) {},
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomTextFieldWidget(
+                    keyboardType: TextInputType.number,
+                    label: "Code postal",
+                    controller: _addressZipCodeController,
+                    isEditable: true,
+                    onChanged: (_) {},
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CustomTextFieldWidget(
+                    label: "Ville",
+                    controller: _addressCityController,
+                    isEditable: true,
+                    onChanged: (_) {},
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 30),
+            MyTextStyle.lotName(
+                "Situation du garant", Colors.black, SizeFont.h2.size),
+            const SizedBox(height: 20),
+            MyDropDownMenu(
+              width,
+              "Lien avec le locataire",
+              _relationToTenant.isEmpty
+                  ? "Lien avec le locataire"
+                  : _relationToTenant,
+              false,
+              items: TenantList.liensGarantLocataire(),
+              onValueChanged: (value) {
+                setState(() => _relationToTenant = value);
+              },
+            ),
+            SizedBox(height: 20),
+            MyDropDownMenu(
+              width,
+              "Situation familiale",
+              _familySituation.isEmpty
+                  ? "Situation familiale"
+                  : _familySituation,
+              false,
+              items: TenantList.situationsFamiliales(),
+              onValueChanged: (value) {
+                setState(() => _familySituation = value);
+              },
+            ),
+            SizedBox(height: 30),
+            MyTextStyle.lotName(
+                "Personnes à charge", Colors.black, SizeFont.h2.size),
+            const SizedBox(height: 30),
+            ..._buildDependentsSection(width),
+            Center(
+              child: ButtonAdd(
+                color: Colors.transparent,
+                icon: Icons.add,
+                text: "Ajouter une personne à charge",
+                size: SizeFont.h3.size,
+                horizontal: 20,
+                vertical: 10,
+                colorText: widget.color,
+                borderColor: Colors.transparent,
+                function: _addDependent,
+              ),
             ),
             const SizedBox(height: 30),
             MyTextStyle.lotName(
@@ -558,11 +682,15 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomTextFieldWidget(
-                    label: "Activité professionnelle",
-                    controller: TextEditingController(text: job.profession),
-                    isEditable: true,
-                    onChanged: (val) => job.profession = val,
+                  MyDropDownMenu(
+                    width,
+                    "Activité professionnelle",
+                    job.profession,
+                    false,
+                    items: TenantList.secteursActivite(),
+                    onValueChanged: (value) {
+                      setState(() => job.profession = value);
+                    },
                   ),
                   const SizedBox(height: 10),
                   MyDropDownMenu(
@@ -619,7 +747,6 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
           Row(
             children: [
               Expanded(
-                flex: 2,
                 child: MyDropDownMenu(
                   width,
                   height: 90,
@@ -637,10 +764,10 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
               ),
               const SizedBox(width: 10),
               Expanded(
-                flex: 1,
                 child: CustomTextFieldWidget(
                   keyboardType: TextInputType.number,
                   label: "Montant",
+                  suffixText: "€",
                   controller: TextEditingController(text: income.amount),
                   isEditable: true,
                   onChanged: (val) {
@@ -692,6 +819,67 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
     });
   }
 
+  void _addDependent() {
+    setState(() => _dependents.add(DependentEntry(type: '', count: '')));
+  }
+
+  void _removeDependent(int index) {
+    setState(() => _dependents.removeAt(index));
+  }
+
+  List<Widget> _buildDependentsSection(double width) {
+    return _dependents.asMap().entries.map((entry) {
+      final index = entry.key;
+      final dependent = entry.value;
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: MyDropDownMenu(
+                    width,
+                    "Catégorie",
+                    dependent.type.isEmpty ? "Catégorie" : dependent.type,
+                    false,
+                    items: TenantList.typesPersonneCharge(),
+                    onValueChanged: (value) {
+                      setState(() => _dependents[index] =
+                          DependentEntry(type: value, count: dependent.count));
+                    },
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  flex: 1,
+                  child: CustomTextFieldWidget(
+                    text: "Nombre",
+                    keyboardType: TextInputType.number,
+                    controller: TextEditingController(text: dependent.count),
+                    isEditable: true,
+                    onChanged: (val) {
+                      _dependents[index] =
+                          DependentEntry(type: dependent.type, count: val);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            TextButton(
+              onPressed: () => _removeDependent(index),
+              child: const Text("Supprimer cette catégorie"),
+            ),
+          ],
+        ),
+      );
+    }).toList();
+  }
+
   void saveGarantInfo() async {
     FocusScope.of(context).unfocus();
 
@@ -700,7 +888,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
         mail.text.isEmpty ||
         birthdayValue == null ||
         sex.isEmpty ||
-        nationality.text.isEmpty ||
+        _nationality.isEmpty ||
         placeOfBorn.text.isEmpty ||
         phone.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -716,7 +904,6 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
 
     final formattedName = capitalizeFirstLetter(name.text);
     final formattedSurname = capitalizeFirstLetter(surname.text);
-    final formattedNationality = capitalizeFirstLetter(nationality.text);
     final formattedPlaceOfBorn = capitalizeFirstLetter(placeOfBorn.text);
     for (final job in jobEntries) {
       job.profession = capitalizeFirstLetter(job.profession);
@@ -731,13 +918,23 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
         surname: formattedSurname,
         birthday: birthdayValue!,
         sex: sex,
-        nationality: formattedNationality,
+        nationality: _nationality,
         placeOfborn: formattedPlaceOfBorn,
         incomes: incomeEntries,
         jobIncomes: jobEntries,
-        dependent: 0,
-        familySituation: '',
+        dependents: _dependents,
+        familySituation: _familySituation,
+        relationToTenant: _relationToTenant,
         phone: phone.text,
+        address: Address(
+          street: _addressStreetController.text,
+          complement: _addressComplementController.text.isEmpty
+              ? null
+              : _addressComplementController.text,
+          zipCode: _addressZipCodeController.text,
+          city: _addressCityController.text,
+          codeQualite: _addressCodeQualite,
+        ),
       );
 
       newGarantId = await _userServices
@@ -756,13 +953,23 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
         surname: formattedSurname,
         birthday: birthdayValue!,
         sex: sex,
-        nationality: formattedNationality,
+        nationality: _nationality,
         placeOfborn: formattedPlaceOfBorn,
         incomes: incomeEntries,
         jobIncomes: jobEntries,
-        dependent: 0,
-        familySituation: '',
+        dependents: _dependents,
+        familySituation: _familySituation,
+        relationToTenant: _relationToTenant,
         phone: phone.text,
+        address: Address(
+          street: _addressStreetController.text,
+          complement: _addressComplementController.text.isEmpty
+              ? null
+              : _addressComplementController.text,
+          zipCode: _addressZipCodeController.text,
+          city: _addressCityController.text,
+          codeQualite: _addressCodeQualite,
+        ),
       );
 
       newGarantId = await _userServices
@@ -815,13 +1022,23 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
         surname: formattedSurname,
         birthday: birthdayValue!,
         sex: sex,
-        nationality: formattedNationality,
+        nationality: _nationality,
         placeOfborn: formattedPlaceOfBorn,
         incomes: incomeEntries,
         jobIncomes: jobEntries,
-        dependent: 0,
-        familySituation: '',
+        dependents: _dependents,
+        familySituation: _familySituation,
+        relationToTenant: _relationToTenant,
         phone: phone.text,
+        address: Address(
+          street: _addressStreetController.text,
+          complement: _addressComplementController.text.isEmpty
+              ? null
+              : _addressComplementController.text,
+          zipCode: _addressZipCodeController.text,
+          city: _addressCityController.text,
+          codeQualite: _addressCodeQualite,
+        ),
       );
 
       documents.clear();

@@ -7,9 +7,9 @@ import 'package:konodal/models/pages_models/structure_residence.dart';
 class Residence {
   String name;
   // Regroupés sous 'address' côté Firestore (évite la duplication avec
-  // Agency, qui a les 5 mêmes champs) ; getters/setters ci-dessous pour
+  // Agency, qui a les mêmes champs) ; getters/setters ci-dessous pour
   // ne pas casser tous les appelants existants qui lisent/écrivent
-  // .numero/.avenue/.street/.zipCode/.city directement.
+  // .street/.zipCode/.city directement.
   Address address;
   String? mailContact;
   String id;
@@ -27,24 +27,21 @@ class Residence {
   /// Plusieurs bâtiments identifiés par leur nom (ex: 'batA')
   Map<String, StructureResidence>? structures;
 
-  String get numero => address.numero;
-  set numero(String value) => address.numero = value;
-  String get avenue => address.avenue;
-  set avenue(String value) => address.avenue = value;
   String get street => address.street;
   set street(String value) => address.street = value;
   String get zipCode => address.zipCode;
   set zipCode(String value) => address.zipCode = value;
   String get city => address.city;
   set city(String value) => address.city = value;
+  String get codeQualite => address.codeQualite;
+  set codeQualite(String value) => address.codeQualite = value;
 
   Residence({
     required this.name,
-    required String numero,
-    required String avenue,
     required String street,
     required String zipCode,
     required String city,
+    String codeQualite = '60',
     required this.id,
     this.mailContact,
     this.csmembers,
@@ -53,11 +50,10 @@ class Residence {
     this.geranceRef,
     this.structures,
   }) : address = Address(
-          numero: numero,
-          avenue: avenue,
           street: street,
           zipCode: zipCode,
           city: city,
+          codeQualite: codeQualite,
         );
 
   /// Création à partir d'un JSON
@@ -67,11 +63,10 @@ class Residence {
 
     return Residence(
       name: json['name'] ?? '',
-      numero: address.numero,
-      avenue: address.avenue,
       street: address.street,
       zipCode: address.zipCode,
       city: address.city,
+      codeQualite: address.codeQualite,
       id: json['id'] ?? '',
       mailContact: json['mail_contact'],
       csmembers: (json['csmembers'] as List?)?.cast<String>(),
@@ -98,11 +93,10 @@ class Residence {
 
     return Residence(
       name: data?['name'] ?? '',
-      numero: address.numero,
-      avenue: address.avenue,
       street: address.street,
       zipCode: address.zipCode,
       city: address.city,
+      codeQualite: address.codeQualite,
       id: snapshot.id,
       mailContact: data?['mail_contact'],
       csmembers: (data?['csmembers'] as List?)?.cast<String>(),

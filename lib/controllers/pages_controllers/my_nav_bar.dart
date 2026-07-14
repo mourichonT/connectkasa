@@ -10,17 +10,13 @@ import '../../models/enum/set_logo_color.dart';
 
 import 'package:konodal/controllers/providers/color_provider.dart';
 import 'package:konodal/controllers/features/load_prefered_data.dart';
-import 'package:konodal/controllers/features/load_user_controller.dart';
-import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/core/repositories/lot_repository.dart';
 import 'package:konodal/core/repositories/firestore_lot_repository.dart';
 import 'package:konodal/controllers/features/route_controller.dart';
 import 'package:konodal/controllers/pages_controllers/post_form_controller.dart';
-import 'package:konodal/models/enum/font_setting.dart';
 
-import 'package:konodal/vues/pages_vues/no_lot/attach_existing_lot_page.dart';
+import 'package:konodal/vues/pages_vues/no_lot/no_lot_page.dart';
 import 'package:konodal/vues/pages_vues/pages_tabs/home_view.dart';
-import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/pages_vues/pages_tabs/sinistres_page_view.dart';
 import 'package:konodal/vues/pages_vues/pages_tabs/event_page_view.dart';
 import 'package:konodal/vues/pages_vues/pages_tabs/annonces_page_view.dart';
@@ -30,6 +26,7 @@ import 'package:konodal/vues/widget_view/page_widget/my_bottomnavbar_view.dart';
 import 'package:konodal/vues/widget_view/page_widget/lot_bottom_sheet.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/core/utils/app_logger.dart';
 
 class MyNavBar extends StatefulWidget {
   final String uid;
@@ -49,7 +46,6 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
       GlobalKey<EventPageViewState>();
   final ILotRepository _databasesLotServices = FirestoreLotRepository();
   final _loadPreferedData = LoadPreferedData();
-  final _loadUserController = LoadUserController();
   late final MyTabBarController tabController;
   double _calculatedAppBarHeight = 0;
   List<Lot>? _lotsList;
@@ -98,49 +94,78 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   }
 
   Future<void> _initializeLot() async {
-    _lotsList = await _fetchApprovedLots();
-    _preferedLot = await _loadPreferedData.loadPreferedLot(widget.uid);
-    if (_preferedLot != null &&
-        _preferedLot!.userLotDetails['isApprovedLot'] != true) {
-      _preferedLot = null;
-    }
+    try {
+      _lotsList = await _fetchApprovedLots();
 
-    // Aucun lot approuvé du tout (ni préféré, ni dans la liste) : rien à
-    // afficher dans les onglets habituels.
-    if (_preferedLot == null && (_lotsList?.isEmpty ?? true)) {
+      // Le cache local (SharedPreferences) peut contenir un JSON dans un
+      // ancien format (avant un renommage/regroupement de champs sur Lot/
+      // Agency/Address) : Lot.fromJson() peut alors lever une exception.
+      // Sans ce try/catch, cette exception remontait hors de
+      // _initializeLot() (appelée en fire-and-forget depuis initState()),
+      // jamais rattrapée nulle part.
+      Lot? cachedPreferedLot;
+      try {
+        cachedPreferedLot = await _loadPreferedData.loadPreferedLot(widget.uid);
+      } catch (e) {
+        appLog("Lot préféré en cache illisible (format obsolète ?), ignoré : $e");
+        cachedPreferedLot = null;
+      }
+
+      // Ne fait confiance au cache que si ce lot est toujours présent dans
+      // la liste fraîchement lue depuis Firestore : un lot peut avoir été
+      // révoqué, supprimé, ou repassé à isApprovedLot: false depuis la
+      // dernière mise en cache - sans cette vérification, un utilisateur
+      // pouvait rester bloqué sur un lot fantôme au lieu de retomber sur
+      // l'écran "aucun lot".
+      _preferedLot = cachedPreferedLot != null &&
+              (_lotsList?.any((lot) => lot.id == cachedPreferedLot!.id) ??
+                  false)
+          ? cachedPreferedLot
+          : null;
+
+      // Aucun lot approuvé du tout (ni préféré, ni dans la liste) : rien à
+      // afficher dans les onglets habituels.
+      if (_preferedLot == null && (_lotsList?.isEmpty ?? true)) {
+        if (mounted) setState(() => _hasNoLot = true);
+        return;
+      }
+
+      if (_preferedLot == null) {
+        _defaultLot = _lotsList!.first;
+      }
+
+      // Applique la couleur du lot actif (préféré si connu, sinon le
+      // premier lot de l'utilisateur) - avant, cet appel était fait
+      // uniquement dans le cas "pas de lot préféré" ci-dessus, donc la
+      // couleur restait celle par défaut (#48775B) dès qu'un lot préféré
+      // était résolu depuis le cache (SharedPreferences) - le cas normal
+      // après une reconnexion, une fois "lot préféré" scopé par uid et
+      // persistant entre les sessions.
+      final activeLot = _preferedLot ?? _defaultLot;
+      final color = activeLot.userLotDetails['colorSelected'];
+      if (color != null && mounted) {
+        Provider.of<ColorProvider>(context, listen: false).updateColor(color);
+      }
+
+      _updateCsMemberStatus(activeLot);
+      setState(() => _hasNoLot = false);
+
+      // Lance l'écoute des messages ici, une fois résidence connue
+      final residenceId = (_preferedLot ?? _defaultLot).residenceId;
+      if (residenceId.isNotEmpty && mounted) {
+        final messageProvider =
+            Provider.of<MessageProvider>(context, listen: false);
+        messageProvider.listenForMessages(
+          residenceId: residenceId,
+          currentUserId: widget.uid,
+        );
+      }
+    } catch (e) {
+      // Filet de sécurité : une erreur inattendue ici ne doit jamais laisser
+      // l'app figée sur le loader - on retombe sur l'écran "aucun lot"
+      // plutôt que de bloquer l'accès complet à l'application.
+      appLog("Erreur lors de l'initialisation du lot actif : $e");
       if (mounted) setState(() => _hasNoLot = true);
-      return;
-    }
-
-    if (_preferedLot == null) {
-      _defaultLot = _lotsList!.first;
-    }
-
-    // Applique la couleur du lot actif (préféré si connu, sinon le
-    // premier lot de l'utilisateur) - avant, cet appel était fait
-    // uniquement dans le cas "pas de lot préféré" ci-dessus, donc la
-    // couleur restait celle par défaut (#48775B) dès qu'un lot préféré
-    // était résolu depuis le cache (SharedPreferences) - le cas normal
-    // après une reconnexion, une fois "lot préféré" scopé par uid et
-    // persistant entre les sessions.
-    final activeLot = _preferedLot ?? _defaultLot;
-    final color = activeLot.userLotDetails['colorSelected'];
-    if (color != null && mounted) {
-      Provider.of<ColorProvider>(context, listen: false).updateColor(color);
-    }
-
-    _updateCsMemberStatus(activeLot);
-    setState(() => _hasNoLot = false);
-
-    // Lance l'écoute des messages ici, une fois résidence connue
-    final residenceId = (_preferedLot ?? _defaultLot).residenceId;
-    if (residenceId.isNotEmpty && mounted) {
-      final messageProvider =
-          Provider.of<MessageProvider>(context, listen: false);
-      messageProvider.listenForMessages(
-        residenceId: residenceId,
-        currentUserId: widget.uid,
-      );
     }
   }
 
@@ -190,71 +215,6 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildNoLotScreen(BuildContext context) {
-    final width = MediaQuery.of(context).size.width;
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 80),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Center(
-                child: Image.asset(
-                  "images/assets/logo_by_colors/logoVert72.119.91.png",
-                  width: width / 1.5,
-                ),
-              ),
-              const Spacer(),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: MyTextStyle.lotDesc(
-                  "Vous n'êtes pour l'instant rattaché à aucun lot.",
-                  SizeFont.h2.size,
-                ),
-              ),
-              const Spacer(),
-              ButtonAdd(
-                text: "Rechercher ma résidence et mon lot",
-                color: const Color.fromRGBO(72, 119, 91, 1.0),
-                horizontal: 30,
-                vertical: 10,
-                size: SizeFont.h3.size,
-                function: () async {
-                  final attached = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(
-                      builder: (_) => AttachExistingLotPage(uid: widget.uid),
-                    ),
-                  );
-                  if (attached == true) {
-                    _initializeLot();
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-              ButtonAdd(
-                text: "Se déconnecter",
-                color: Colors.transparent,
-                colorText: const Color.fromRGBO(72, 119, 91, 1.0),
-                borderColor: const Color.fromRGBO(72, 119, 91, 1.0),
-                horizontal: 30,
-                vertical: 10,
-                size: SizeFont.h3.size,
-                function: () async {
-                  context.read<MessageProvider>().reset();
-                  await _loadUserController.handleGoogleSignOut();
-                  if (!context.mounted) return;
-                  Navigator.popUntil(context, ModalRoute.withName('/'));
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   void _navigateToPostForm() async {
     await Navigator.of(context).push(
       RouteController().createRoute(
@@ -276,7 +236,10 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     if (_hasNoLot) {
-      return _buildNoLotScreen(context);
+      // Filet de sécurité seulement : LoginTransitionPage résout déjà ce cas
+      // avant même de monter MyNavBar. Ne peut se produire ici que si un lot
+      // a été révoqué/repassé à isApprovedLot: false pendant la session.
+      return NoLotPage(uid: widget.uid);
     }
 
     //final double appBarHeight = MediaQuery.of(context).size.height * 0.26;

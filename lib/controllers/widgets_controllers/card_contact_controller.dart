@@ -64,8 +64,6 @@ class CardContactController extends StatelessWidget {
         accountantFonction: 'syndic',
         agencyName: resolvedAgency.name,
         agencystreet: resolvedAgency.street,
-        agencyNum: resolvedAgency.numeros,
-        agencyAvenue: resolvedAgency.avenue,
         agencyZIPCode: resolvedAgency.zipCode,
         agencyCity: resolvedAgency.city,
         uid: uid,

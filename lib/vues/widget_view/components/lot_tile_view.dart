@@ -78,14 +78,6 @@ class _LotTileViewState extends State<LotTileView> {
                     Row(
                       children: [
                         MyTextStyle.lotDesc(
-                            widget.lot.residenceAddress["numero"] ?? "",
-                            SizeFont.h3.size),
-                        Container(padding: const EdgeInsets.only(left: 2)),
-                        MyTextStyle.lotDesc(
-                            widget.lot.residenceAddress["avenue"] ?? "",
-                            SizeFont.h3.size),
-                        Container(padding: const EdgeInsets.only(left: 2)),
-                        MyTextStyle.lotDesc(
                             widget.lot.residenceAddress["street"] ?? "",
                             SizeFont.h3.size),
                         Container(padding: const EdgeInsets.only(left: 2)),

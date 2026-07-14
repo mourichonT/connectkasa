@@ -2,6 +2,7 @@ import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/vues/pages_vues/manage_app/management_garants.dart';
 import 'package:konodal/vues/pages_vues/manage_app/my_infos_rent.dart';
+import 'package:konodal/vues/pages_vues/manage_app/my_situation_personnelle.dart';
 import 'package:konodal/vues/pages_vues/profil_page/new_page_menu.dart';
 import 'package:flutter/material.dart';
 
@@ -51,6 +52,25 @@ class _ManagementFolderRentState extends State<ManagementFolderRent> {
                       ),
                     );
                   }, // Utilisation de la fonction pour naviguer et récupérer les données mises à jour
+                  isLogOut: false,
+                ),
+                ProfileMenu(
+                  uid: widget.uid,
+                  color: widget.color,
+                  idLot: "",
+                  text: "Ma situation personnelle",
+                  icon: const Icon(Icons.family_restroom_outlined, size: 22),
+                  press: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MySituationPersonnelle(
+                          uid: widget.uid,
+                          color: widget.color,
+                        ),
+                      ),
+                    );
+                  },
                   isLogOut: false,
                 ),
                 ProfileMenu(

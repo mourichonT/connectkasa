@@ -81,8 +81,8 @@ class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
             _buildReadOnlyTextField('Référence Lot', widget.lot.refLot),
             _buildReadOnlyTextField('Bâtiment', widget.lot.batiment),
             _buildReadOnlyTextField('Lot', widget.lot.lot),
-            _buildReadOnlyTextField('Adresse',
-                "${widget.lot.residenceAddress["numero"]} ${widget.lot.residenceAddress["avenue"]} ${widget.lot.residenceAddress["street"]}"),
+            _buildReadOnlyTextField(
+                'Adresse', widget.lot.residenceAddress["street"]),
             _buildReadOnlyTextField(
                 'Code Postal', widget.lot.residenceAddress["zipCode"]),
             _buildReadOnlyTextField('Ville', widget.lot.residenceAddress["city"]),

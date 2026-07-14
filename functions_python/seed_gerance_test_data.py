@@ -1,7 +1,8 @@
 """
-Script one-shot : crée 3 documents Gerance de test (2 syndics, 1 agence de
-location) au nouveau format `services` (MODEL 1). À exécuter une seule fois,
-en local, avec les credentials admin.
+Script one-shot : crée 3 documents gerances de test (2 syndics, 1 agence de
+location) au format `services` + `address` uniformisé (même forme que
+Residence/Agency : {street, complement, zipCode, city, codeQualite}).
+À exécuter une seule fois, en local, avec les credentials admin.
 
 Prérequis : télécharger une clé de service account depuis la console
 Firebase (Paramètres du projet > Comptes de service > Générer une nouvelle
@@ -26,11 +27,13 @@ GERANCE_DOCS = [
     # de mail direct par agent).
     {
         "name": "Cabinet Dupont",
-        "numeros": "12",
-        "voie": "rue",
-        "street": "des Lilas",
-        "zipCode": "75011",
-        "city": "Paris",
+        "address": {
+            "street": "12 rue des Lilas",
+            "complement": None,
+            "zipCode": "75011",
+            "city": "Paris",
+            "codeQualite": "60",
+        },
         "services": {
             "serviceSyndic": {
                 "mail": "contact@cabinet-dupont.fr",
@@ -45,11 +48,13 @@ GERANCE_DOCS = [
     # plus du contact général du service.
     {
         "name": "Groupe Immo Martin",
-        "numeros": "45",
-        "voie": "avenue",
-        "street": "Victor Hugo",
-        "zipCode": "69003",
-        "city": "Lyon",
+        "address": {
+            "street": "45 avenue Victor Hugo",
+            "complement": None,
+            "zipCode": "69003",
+            "city": "Lyon",
+            "codeQualite": "60",
+        },
         "services": {
             "serviceSyndic": {
                 "mail": "syndic@immo-martin.fr",
@@ -69,11 +74,13 @@ GERANCE_DOCS = [
     # Agence de location uniquement (aucun service syndic).
     {
         "name": "Agence Location Plus",
-        "numeros": "8",
-        "voie": "boulevard",
-        "street": "Gambetta",
-        "zipCode": "33000",
-        "city": "Bordeaux",
+        "address": {
+            "street": "8 boulevard Gambetta",
+            "complement": None,
+            "zipCode": "33000",
+            "city": "Bordeaux",
+            "codeQualite": "60",
+        },
         "services": {
             "geranceLocative": {
                 "mail": "location@location-plus.fr",
@@ -92,9 +99,9 @@ GERANCE_DOCS = [
 ]
 
 for data in GERANCE_DOCS:
-    doc_ref = db.collection("Gerance").document()  # ID auto-généré
+    doc_ref = db.collection("gerances").document()  # ID auto-généré
     doc_ref.set(data)
-    print(f"Créé : Gerance/{doc_ref.id} ({data['name']}, {list(data['services'].keys())})")
+    print(f"Créé : gerances/{doc_ref.id} ({data['name']}, {list(data['services'].keys())})")
 
 print("\nTerminé. sync_gerance_contacts doit être déployée AVANT ce script "
-      "pour que l'index Gerance/{id}/contacts soit généré automatiquement.")
+      "pour que l'index gerances/{id}/contacts soit généré automatiquement.")

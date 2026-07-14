@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:konodal/controllers/features/dependent_entry.dart';
 import 'package:konodal/controllers/features/income_entry.dart';
 import 'package:konodal/controllers/features/job_entry.dart';
+import 'package:konodal/models/pages_models/address.dart';
+import 'package:konodal/models/pages_models/conjoint_info.dart';
 import 'package:konodal/models/pages_models/user.dart';
 import 'package:intl/intl.dart';
 
@@ -8,18 +11,31 @@ import 'package:intl/intl.dart';
 class UserInfo extends User {
   final List<IncomeEntry> incomes;
   final List<JobEntry> jobIncomes;
+  // Une entrée par catégorie de personne à charge (cf. TenantList.
+  // typesPersonneCharge, calquée sur le formulaire de déclaration de
+  // revenus) plutôt qu'un simple compteur global.
+  final List<DependentEntry> dependents;
 
-  int dependent;
   String familySituation;
-  String phone;
+  // Adresse actuelle du locataire pour le dossier de location : propre au
+  // dossier (comme dependent/familySituation), pas au compte de base (User
+  // n'a pas d'adresse - celle-ci n'a rien à voir avec un lot/résidence).
+  // phone en revanche est un champ de compte (super.phone) - modifiable
+  // depuis "Modifier mes informations", pas propre au dossier locataire.
+  Address address;
+  // Renseigné seulement si familySituation l'implique (marié, pacsé,
+  // concubinage) - cf. MySituationPersonnelle.
+  ConjointInfo conjoint;
 
   UserInfo({
     this.incomes = const [],
     this.jobIncomes = const [],
-    this.dependent = 0,
+    this.dependents = const [],
     this.familySituation = "",
     required super.nationality,
-    this.phone = "",
+    super.phone,
+    Address? address,
+    ConjointInfo? conjoint,
     required super.email,
     required super.privacyPolicy,
     required super.name,
@@ -34,7 +50,8 @@ class UserInfo extends User {
     super.createdDate,
     super.bio,
     super.profilPic,
-  });
+  })  : address = address ?? Address(),
+        conjoint = conjoint ?? ConjointInfo();
 
   factory UserInfo.fromMap(Map<String, dynamic> map) {
     final List incomesFromMap = map['revenus'] ?? [];
@@ -57,9 +74,13 @@ class UserInfo extends User {
       createdDate: map['createdDate'] as Timestamp?,
       profilPic: profilGroup['profilPic'] ?? "",
       birthday: userGroup['birthday'] as Timestamp,
-      dependent: map['dependent'] ?? 0,
+      dependents: ((map['dependents'] as List<dynamic>?) ?? [])
+          .map((entry) => DependentEntry.fromMap(Map<String, dynamic>.from(entry)))
+          .toList(),
       familySituation: map['familySituation'] ?? "",
-      phone: map['phone'] ?? "",
+      phone: profilGroup['phone'] ?? "",
+      address: Address.fromJson(map['address'] as Map<String, dynamic>?),
+      conjoint: ConjointInfo.fromJson(map['conjoint'] as Map<String, dynamic>?),
       privacyPolicy: map['privacyPolicy'] ?? false,
       jobIncomes: jobIncomesFromMap
           .map((entry) => JobEntry.fromMap(Map<String, dynamic>.from(entry)))
@@ -74,9 +95,10 @@ class UserInfo extends User {
   Map<String, dynamic> toMap() {
     return {
       ...super.toMap(),
-      'dependent': dependent,
+      'dependents': dependents.map((entry) => entry.toMap()).toList(),
       'familySituation': familySituation,
-      'phone': phone,
+      'address': address.toJson(),
+      'conjoint': conjoint.toJson(),
       // Clés alignées sur fromMap() ci-dessus et sur le format réellement
       // écrit en Firestore (databases_user_services.dart, updateUserInfo) :
       // "revenus"/"activities", pas "incomes"/"jobIncomes".
@@ -100,10 +122,12 @@ class UserInfo extends User {
       'bio': bio,
       'private': private,
       'birthday': DateFormat('dd/MM/yyyy').format(birthday.toDate()),
-      'dependent': dependent,
+      'dependents': dependents.map((entry) => entry.toMap()).toList(),
       'familySituation': familySituation,
       'nationality': nationality,
       'phone': phone,
+      'address': address.toJson(),
+      'conjoint': conjoint.toJson(),
       'incomes': incomes.map((entry) => entry.toMap()).toList(),
       'jobIncomes': jobIncomes.map((entry) => entry.toMap()).toList(),
     };
@@ -113,9 +137,11 @@ class UserInfo extends User {
     String? email,
     List<IncomeEntry>? incomes,
     List<JobEntry>? jobIncomes,
-    int? dependent,
+    List<DependentEntry>? dependents,
     String? familySituation,
     String? phone,
+    Address? address,
+    ConjointInfo? conjoint,
     String? typeContract,
     Timestamp? entryJobDate,
     String? profession,
@@ -130,6 +156,7 @@ class UserInfo extends User {
     String? pseudo,
     bool? private,
     bool? isApproved,
+    Timestamp? createdDate,
     String? bio,
     String? profilPic,
   }) {
@@ -137,9 +164,11 @@ class UserInfo extends User {
       email: email ?? this.email,
       incomes: incomes ?? this.incomes,
       jobIncomes: jobIncomes ?? this.jobIncomes,
-      dependent: dependent ?? this.dependent,
+      dependents: dependents ?? this.dependents,
       familySituation: familySituation ?? this.familySituation,
       phone: phone ?? this.phone,
+      address: address ?? this.address,
+      conjoint: conjoint ?? this.conjoint,
       privacyPolicy: privacyPolicy ?? this.privacyPolicy,
       name: name ?? this.name,
       surname: surname ?? this.surname,
@@ -151,7 +180,7 @@ class UserInfo extends User {
       pseudo: pseudo ?? this.pseudo,
       private: private ?? this.private,
       isApproved: isApproved ?? this.isApproved,
-      createdDate: createdDate ?? createdDate,
+      createdDate: createdDate ?? this.createdDate,
       bio: bio ?? this.bio,
       profilPic: profilPic ?? this.profilPic ?? '',
     );

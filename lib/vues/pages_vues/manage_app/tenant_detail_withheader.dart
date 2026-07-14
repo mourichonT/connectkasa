@@ -220,9 +220,24 @@ class TenantDetailState extends State<TenantDetailWithHeader> {
                       Icons.flag, "Nationalité", widget.tenant.nationality),
                   lineToWrite(Icons.diamond, "Situation",
                       widget.tenant.familySituation),
-                  if (widget.tenant.dependent != 0)
-                    lineToWrite(Icons.favorite_outlined, "Personne à charge",
-                        widget.tenant.dependent.toString()),
+                  if (!widget.tenant.conjoint.isEmpty)
+                    lineToWrite(
+                        Icons.favorite,
+                        "Conjoint(e)",
+                        "${widget.tenant.conjoint.name} ${widget.tenant.conjoint.surname}"
+                            .trim()),
+                  for (final dependent in widget.tenant.dependents)
+                    if (dependent.type.isNotEmpty)
+                      lineToWrite(Icons.favorite_outlined, dependent.type,
+                          dependent.count),
+                  if (widget.tenant.address.city.isNotEmpty)
+                    lineToWrite(
+                        Icons.home_outlined,
+                        "Adresse",
+                        "${widget.tenant.address.street}"
+                                "${widget.tenant.address.complement?.isNotEmpty == true ? ', ${widget.tenant.address.complement}' : ''}"
+                                ", ${widget.tenant.address.zipCode} ${widget.tenant.address.city}"
+                            .trim()),
 
                   //contact
                   _buildSectionHeader("Contact locataire"),

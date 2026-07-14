@@ -3,6 +3,7 @@ import 'package:konodal/controllers/services/firestore_paths.dart';
 import 'package:konodal/core/errors/app_exceptions.dart';
 import 'package:konodal/core/repositories/agency_repository.dart';
 import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/address.dart';
 import 'package:konodal/models/pages_models/agency.dart';
 import 'package:konodal/models/pages_models/agency_dept.dart';
 import 'package:konodal/models/pages_models/gerance_ref.dart';
@@ -62,14 +63,14 @@ class FirestoreAgencyRepository implements IAgencyRepository {
         final serviceData = services?[serviceType] as Map<String, dynamic>?;
         if (serviceData == null) continue;
 
+        final address = Address.fromJson(geranceData['address']);
         results.add(Agency(
           id: geranceId,
           name: geranceData['name'] ?? '',
-          city: geranceData['city'] ?? '',
-          numeros: geranceData['numeros'] ?? '',
-          street: geranceData['street'] ?? '',
-          avenue: geranceData['avenue'] ?? '',
-          zipCode: geranceData['zipCode'] ?? '',
+          city: address.city,
+          street: address.street,
+          zipCode: address.zipCode,
+          codeQualite: address.codeQualite,
           syndic: AgencyDept.fromJson(serviceData),
         ));
       }
@@ -109,14 +110,14 @@ class FirestoreAgencyRepository implements IAgencyRepository {
         }
       }
 
+      final address = Address.fromJson(data['address']);
       return Result.success(Agency(
         id: ref.geranceId,
         name: data['name'] ?? '',
-        city: data['city'] ?? '',
-        numeros: data['numeros'] ?? '',
-        street: data['street'] ?? '',
-        avenue: data['avenue'] ?? '',
-        zipCode: data['zipCode'] ?? '',
+        city: address.city,
+        street: address.street,
+        zipCode: address.zipCode,
+        codeQualite: address.codeQualite,
         syndic: AgencyDept(
           agents: agentsJson
               .map((a) => Agent.fromJson(a as Map<String, dynamic>))

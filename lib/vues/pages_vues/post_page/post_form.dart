@@ -83,14 +83,6 @@ class PostFormState extends State<PostForm> {
                   mainAxisSize: MainAxisSize.max,
                   children: [
                     MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceAddress["numero"],
-                        SizeFont.h3.size),
-                    Container(padding: const EdgeInsets.only(left: 4)),
-                    MyTextStyle.lotDesc(
-                        widget.preferedLot.residenceAddress["avenue"],
-                        SizeFont.h3.size),
-                    Container(padding: const EdgeInsets.only(left: 4)),
-                    MyTextStyle.lotDesc(
                         widget.preferedLot.residenceAddress["street"],
                         SizeFont.h3.size),
                     Container(padding: const EdgeInsets.only(left: 4)),

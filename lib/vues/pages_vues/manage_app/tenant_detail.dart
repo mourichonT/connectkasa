@@ -179,9 +179,22 @@ class TenantDetail extends ConsumerWidget {
               lineToWrite(Icons.flag, "Nationalité", tenant.nationality),
               lineToWrite(
                   Icons.diamond, "Situation", tenant.familySituation),
-              if (tenant.dependent != 0)
-                lineToWrite(Icons.favorite_outlined, "Personne à charge",
-                    tenant.dependent.toString()),
+              if (!tenant.conjoint.isEmpty)
+                lineToWrite(Icons.favorite, "Conjoint(e)",
+                    "${tenant.conjoint.name} ${tenant.conjoint.surname}"
+                        .trim()),
+              for (final dependent in tenant.dependents)
+                if (dependent.type.isNotEmpty)
+                  lineToWrite(
+                      Icons.favorite_outlined, dependent.type, dependent.count),
+              if (tenant.address.city.isNotEmpty)
+                lineToWrite(
+                    Icons.home_outlined,
+                    "Adresse",
+                    "${tenant.address.street}"
+                            "${tenant.address.complement?.isNotEmpty == true ? ', ${tenant.address.complement}' : ''}"
+                            ", ${tenant.address.zipCode} ${tenant.address.city}"
+                        .trim()),
 
               //contact
               _buildSectionHeader("Contact locataire"),

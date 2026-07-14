@@ -17,6 +17,7 @@ class CustomTextFieldWidget extends StatelessWidget {
   final int minLines;
   final Function(String value)? onChanged;
   final TextInputType? keyboardType;
+  final String? suffixText;
 
   const CustomTextFieldWidget({
     super.key,
@@ -34,6 +35,7 @@ class CustomTextFieldWidget extends StatelessWidget {
     this.pickDate,
     this.onChanged,
     this.keyboardType,
+    this.suffixText,
   });
 
   @override
@@ -85,9 +87,28 @@ class CustomTextFieldWidget extends StatelessWidget {
                   prefixIcon: isReadOnlyTapField
                       ? const Icon(Icons.calendar_today, size: 14)
                       : null,
-                  suffixIcon: isReadOnlyTapField
-                      ? const Icon(Icons.arrow_drop_down, size: 23)
-                      : null,
+                  // suffixIcon (plutôt que suffixText) : reste ancré au bord
+                  // droit du champ quel que soit le nombre de caractères
+                  // saisis, contrairement à suffixText qui suit le texte.
+                  suffixIcon: suffixText != null
+                      ? Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            widthFactor: 1,
+                            child: Text(
+                              suffixText!,
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontSize: SizeFont.h3.size,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ),
+                        )
+                      : (isReadOnlyTapField
+                          ? const Icon(Icons.arrow_drop_down, size: 23)
+                          : null),
                   // ❌ PAS DE label NI hint pour les champs date
                 ),
                 style: TextStyle(

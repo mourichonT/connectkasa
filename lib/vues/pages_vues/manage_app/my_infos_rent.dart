@@ -14,9 +14,11 @@ import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/controllers/features/income_entry.dart';
 import 'package:konodal/models/enum/icons_extension.dart';
 import 'package:konodal/models/enum/tenant_list.dart';
+import 'package:konodal/models/pages_models/address.dart';
 import 'package:konodal/models/pages_models/demande_loc.dart';
 import 'package:konodal/models/pages_models/document_model.dart';
 import 'package:konodal/models/pages_models/user_info.dart';
+import 'package:konodal/vues/widget_view/components/address_search_field.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:konodal/vues/widget_view/components/import_docs.dart';
@@ -65,6 +67,21 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
   // Liste des documents & justificatifs
   List<JustifDocument> documents = [];
 
+  // Adresse actuelle du locataire (dossier de location) : contrôleurs
+  // persistants, comme dans my_info_garant.dart, plutôt que recréés à
+  // chaque build() (ce qui ferait perdre le focus/la sélection en cours).
+  final TextEditingController _addressStreetController =
+      TextEditingController();
+  // "00" (RNVP) si _addressStreetController a été rempli en sélectionnant
+  // une suggestion de l'API Adresse, "60" si saisie/modifiée manuellement.
+  String _addressCodeQualite = '60';
+  final TextEditingController _addressComplementController =
+      TextEditingController();
+  final TextEditingController _addressZipCodeController =
+      TextEditingController();
+  final TextEditingController _addressCityController =
+      TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -87,6 +104,12 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
       if (tenantUser != null) {
         jobEntries = List<JobEntry>.from(tenantUser!.jobIncomes);
         incomeEntries = List<IncomeEntry>.from(tenantUser!.incomes);
+        _addressStreetController.text = tenantUser!.address.street;
+        _addressCodeQualite = tenantUser!.address.codeQualite;
+        _addressComplementController.text =
+            tenantUser!.address.complement ?? '';
+        _addressZipCodeController.text = tenantUser!.address.zipCode;
+        _addressCityController.text = tenantUser!.address.city;
       }
     }
   }
@@ -123,6 +146,53 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+            MyTextStyle.lotName(
+              "Adresse actuelle",
+              Colors.black,
+              SizeFont.h2.size,
+            ),
+            const SizedBox(height: 20),
+            AddressSearchField(
+              controller: _addressStreetController,
+              onManualEdit: () => _addressCodeQualite = '60',
+              onSelected: (suggestion) {
+                setState(() {
+                  _addressCodeQualite = '00';
+                  _addressZipCodeController.text = suggestion.postcode;
+                  _addressCityController.text = suggestion.city;
+                });
+              },
+            ),
+            CustomTextFieldWidget(
+              label: "Complément d'adresse",
+              controller: _addressComplementController,
+              isEditable: true,
+              onChanged: (_) {},
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomTextFieldWidget(
+                    keyboardType: TextInputType.number,
+                    label: "Code postal",
+                    controller: _addressZipCodeController,
+                    isEditable: true,
+                    onChanged: (_) {},
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CustomTextFieldWidget(
+                    label: "Ville",
+                    controller: _addressCityController,
+                    isEditable: true,
+                    onChanged: (_) {},
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 30),
             MyTextStyle.lotName(
               "Mon emploi actuel",
               Colors.black,
@@ -163,7 +233,6 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
                   Row(
                     children: [
                       Expanded(
-                        flex: 2,
                         child: MyDropDownMenu(
                           width,
                           height: 90,
@@ -184,10 +253,10 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        flex: 1,
                         child: CustomTextFieldWidget(
                           keyboardType: TextInputType.number,
                           label: "Montant",
+                          suffixText: "€",
                           controller:
                               TextEditingController(text: income.amount),
                           isEditable: true,
@@ -369,6 +438,7 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
       surname: tenantUser!.surname,
       pseudo: tenantUser!.pseudo,
       isApproved: tenantUser!.isApproved,
+      createdDate: tenantUser!.createdDate,
       profilPic: tenantUser!.profilPic ?? '',
       privacyPolicy: tenantUser!.privacyPolicy,
       birthday: tenantUser!.birthday,
@@ -377,9 +447,19 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
       placeOfborn: tenantUser!.placeOfborn,
       incomes: incomeEntries,
       jobIncomes: jobEntries,
-      dependent: tenantUser!.dependent,
+      dependents: tenantUser!.dependents,
       familySituation: tenantUser!.familySituation,
       phone: tenantUser!.phone,
+      address: Address(
+        street: _addressStreetController.text,
+        complement: _addressComplementController.text.isEmpty
+            ? null
+            : _addressComplementController.text,
+        zipCode: _addressZipCodeController.text,
+        city: _addressCityController.text,
+        codeQualite: _addressCodeQualite,
+      ),
+      conjoint: tenantUser!.conjoint,
     );
 
     bool success = await _userServices
@@ -401,6 +481,10 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
 
   @override
   void dispose() {
+    _addressStreetController.dispose();
+    _addressComplementController.dispose();
+    _addressZipCodeController.dispose();
+    _addressCityController.dispose();
     super.dispose();
   }
 
@@ -462,11 +546,15 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomTextFieldWidget(
-                    label: "Activité professionnelle",
-                    controller: TextEditingController(text: job.profession),
-                    isEditable: true,
-                    onChanged: (val) => job.profession = val,
+                  MyDropDownMenu(
+                    width,
+                    "Activité professionnelle",
+                    job.profession,
+                    false,
+                    items: TenantList.secteursActivite(),
+                    onValueChanged: (value) {
+                      setState(() => job.profession = value);
+                    },
                   ),
                   const SizedBox(height: 10),
                   MyDropDownMenu(

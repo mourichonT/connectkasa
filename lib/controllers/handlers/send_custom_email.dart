@@ -24,8 +24,6 @@ Future<void> sendCustomEmail({
     'email': email,
     'subjectMail': subjectMail,
     "residenceName": lot.residenceData['name'],
-    "residenceNumero": lot.residenceAddress['numero'],
-    "residenceAvenue": lot.residenceAddress['avenue'],
     "residenceStreet": lot.residenceAddress['street'],
     "residenceZipcode": lot.residenceAddress['zipCode'],
     "residenceCity": lot.residenceAddress['city'],

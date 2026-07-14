@@ -37,6 +37,7 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
   TextEditingController pseudo = TextEditingController();
   TextEditingController bio = TextEditingController();
   TextEditingController profession = TextEditingController();
+  TextEditingController phone = TextEditingController();
   String? profilPic = "";
 
   FocusNode nameFocusNode = FocusNode();
@@ -45,6 +46,7 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
   FocusNode pseudoFocusNode = FocusNode();
   FocusNode bioFocusNode = FocusNode();
   FocusNode professionFocusNode = FocusNode();
+  FocusNode phoneFocusNode = FocusNode();
 
   bool privateAccount = true;
 
@@ -61,6 +63,7 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
     birthday.text = DateFormat('dd/MM/yyyy').format(birthDate);
       bio.text = widget.user.bio!;
     profilPic = widget.user.profilPic;
+    phone.text = widget.user.phone;
     privateAccount = widget.user.private; // Met à jour l'état du compte privé
 
     nameFocusNode.addListener(() => setState(() {}));
@@ -68,6 +71,7 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
     pseudoFocusNode.addListener(() => setState(() {}));
     bioFocusNode.addListener(() => setState(() {}));
     professionFocusNode.addListener(() => setState(() {}));
+    phoneFocusNode.addListener(() => setState(() {}));
   }
 
   @override
@@ -76,11 +80,13 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
     surnameFocusNode.dispose();
     pseudoFocusNode.dispose();
     bioFocusNode.dispose();
+    phoneFocusNode.dispose();
 
     name.dispose();
     surname.dispose();
     pseudo.dispose();
     bio.dispose();
+    phone.dispose();
 
     super.dispose();
   }
@@ -159,6 +165,25 @@ class _InfoPersoPageModifyState extends State<InfoPersoPageModify> {
                     field: field,
                     label: label,
                     value: capitalizeFirstLetter(value),
+                  );
+                  widget.refresh();
+                },
+                refresh: () => setState(() {}),
+              ),
+              CustomTextFieldWidget(
+                label: "Téléphone",
+                field: "phone",
+                keyboardType: TextInputType.phone,
+                controller: phone,
+                focusNode: phoneFocusNode,
+                isEditable: true,
+                onSubmit: (field, label, value) {
+                  SubmitUser.updateUser(
+                    context: context,
+                    uid: widget.uid,
+                    field: field,
+                    label: label,
+                    value: value,
                   );
                   widget.refresh();
                 },

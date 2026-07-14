@@ -61,15 +61,27 @@ class GuarantorDetailState extends ConsumerState<GuarantorDetail> {
                     DateFormat('dd/MM/yyyy').format(g.birthday.toDate())),
                 lineToWrite(Icons.flag, "Nationalité", g.nationality),
                 lineToWrite(Icons.diamond, "Situation", g.familySituation),
-                if (g.dependent != 0)
-                  lineToWrite(Icons.favorite_outlined, "Personne à charge",
-                      g.dependent.toString()),
+                for (final dependent in g.dependents)
+                  if (dependent.type.isNotEmpty)
+                    lineToWrite(
+                        Icons.favorite_outlined, dependent.type, dependent.count),
+                if (g.relationToTenant.isNotEmpty)
+                  lineToWrite(Icons.people_outline, "Lien avec le locataire",
+                      g.relationToTenant),
                 _buildSectionHeader("Contact du garant"),
                 InkWell(
                   onTap: () => ContactFeatures.launchPhoneCall(g.phone),
                   child: lineToWrite(Icons.phone, "Téléphone", g.phone),
                 ),
                 lineToWrite(Icons.email, "Mail", g.email),
+                if (g.address.city.isNotEmpty)
+                  lineToWrite(
+                      Icons.home_outlined,
+                      "Adresse",
+                      "${g.address.street}"
+                              "${g.address.complement?.isNotEmpty == true ? ', ${g.address.complement}' : ''}"
+                              ", ${g.address.zipCode} ${g.address.city}"
+                          .trim()),
                 _buildSectionHeader("Activités & emplois"),
                 if (g.jobIncomes.isEmpty)
                   const Text("Aucune activité renseignée")

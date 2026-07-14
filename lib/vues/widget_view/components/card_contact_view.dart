@@ -19,8 +19,6 @@ class CardContactView extends StatefulWidget {
   final String accountantMail;
   final String agencyName;
   final String agencystreet;
-  final String agencyNum;
-  final String agencyAvenue;
   final String agencyZIPCode;
   final String agencyCity;
   final String uid;
@@ -34,8 +32,6 @@ class CardContactView extends StatefulWidget {
     required this.accountantPhone,
     required this.agencyName,
     required this.agencystreet,
-    required this.agencyNum,
-    required this.agencyAvenue,
     required this.agencyZIPCode,
     required this.agencyCity,
     required this.uid,
@@ -85,7 +81,7 @@ class _CardContactViewState extends State<CardContactView> {
   @override
   Widget build(BuildContext context) {
     final address =
-        '${widget.agencyNum} ${widget.agencyAvenue} ${widget.agencystreet}, ${widget.agencyZIPCode} ${widget.agencyCity}';
+        '${widget.agencystreet}, ${widget.agencyZIPCode} ${widget.agencyCity}';
 
     return FutureBuilder<List<Mail>>(
       future: _mailsFuture,
@@ -227,22 +223,6 @@ class _CardContactViewState extends State<CardContactView> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      "${widget.agencyNum} ",
-                                      style: const TextStyle(
-                                        color: Colors.black87,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      "${widget.agencyAvenue} ",
-                                      style: const TextStyle(
-                                        color: Colors.black87,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
                                     Text(
                                       "${widget.agencystreet} ",
                                       style: const TextStyle(

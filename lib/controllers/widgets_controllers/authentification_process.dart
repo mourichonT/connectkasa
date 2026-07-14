@@ -5,9 +5,7 @@ import 'package:konodal/core/errors/app_exceptions.dart';
 import 'package:konodal/core/repositories/user_repository.dart';
 import 'package:konodal/core/repositories/firestore_user_repository.dart';
 import 'package:konodal/core/result/result.dart';
-import 'package:konodal/vues/pages_vues/no_approval_page.dart';
 import 'package:konodal/vues/pages_vues/login_transition_page.dart';
-import 'package:konodal/controllers/handlers/progress_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -191,79 +189,27 @@ class AuthentificationProcess {
   //   }
   // }
 
-  Future signInWithMail(UserCredential userCredential) async {
-    User checkUser = userCredential.user!;
-
-    // Récupérer les données de l'utilisateur à partir de la base de données
-    var userData = await _userDataBases
-        .getUserById(checkUser.uid)
-        .then((result) => result.when(success: (v) => v, failure: (_) => null));
-
-    if (userData?.uid == checkUser.uid && userData?.isApproved == true) {
-      // Si l'utilisateur existe dans la base de données, naviguer vers MyApp
-      navigateToMyApp(userData!.uid, firestore);
-      return Future.value(checkUser);
-    } else if (userData?.uid == checkUser.uid && userData?.isApproved == false) {
-      if (!context.mounted) return null;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => NoApprovalPage(),
-        ),
-      );
-    } else {
-      loadUserController.handleGoogleSignOut();
-
-      navigateToStep0(checkUser);
-      appLog(
-          "Les données utilisateur ne sont pas disponibles dans la base de données.");
-      // Gérer le cas où les données utilisateur ne sont pas disponibles dans la base de données
-      // Peut-être afficher un message d'erreur ou effectuer une autre action appropriée
-      return null;
-    }
-  }
-
-  void navigateToMyApp(String userID, FirebaseFirestore firestore,
-      {String? email}) {
+  /// Ne fait plus sa propre lecture Firestore/vérification d'approbation :
+  /// pousse directement LoginTransitionPage (comme fluttLogInWithGoogle),
+  /// qui est l'unique responsable de cette résolution depuis son
+  /// introduction. Avant ce correctif, les deux méthodes dupliquaient la
+  /// même logique (lecture getUserById + branches isApproved/NotFound),
+  /// avec le risque réel qu'elles divergent (ex: le renommage
+  /// approved -> isApproved n'aurait mis à jour qu'un seul des deux
+  /// endroits) - et un aller-retour Firestore inutile à chaque connexion.
+  Future<void> signInWithMail(UserCredential userCredential) async {
+    final checkUser = userCredential.user!;
+    if (!context.mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => LoginTransitionPage(
           firestore: firestore,
-          uid: userID,
-          emailUser: email,
+          uid: checkUser.uid,
+          emailUser: checkUser.email,
         ),
       ),
     );
-  }
-
-  void navigateToStep0(User user) {
-    bool isStep0Present = false;
-
-    Navigator.of(context).popUntil((route) {
-      if (route.settings.name == '/step0') {
-        isStep0Present = true;
-      }
-      return true;
-    });
-
-    if (!isStep0Present) {
-      final providerData = FirebaseAuth.instance.currentUser?.providerData;
-      final providerId = (providerData != null && providerData.isNotEmpty)
-          ? providerData.first.providerId
-          : null;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProgressWidget(
-            userId: user.uid,
-            emailUser: user.email,
-            providerId: providerId,
-          ),
-        ),
-      );
-    }
   }
 
   void initUserFcmToken(uid) async {

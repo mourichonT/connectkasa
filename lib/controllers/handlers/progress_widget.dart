@@ -458,8 +458,6 @@ class ProgressWidgetState extends State<ProgressWidget>
               residence: residence ??
                   Residence(
                     name: '',
-                    numero: '',
-                    avenue: '',
                     street: '',
                     zipCode: '',
                     city: '',
@@ -492,8 +490,6 @@ class ProgressWidgetState extends State<ProgressWidget>
               residence: residence ??
                   Residence(
                     name: '',
-                    numero: '',
-                    avenue: '',
                     street: '',
                     zipCode: '',
                     city: '',

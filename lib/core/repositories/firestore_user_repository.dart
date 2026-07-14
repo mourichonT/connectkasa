@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:konodal/controllers/features/dependent_entry.dart';
 import 'package:konodal/controllers/features/generate_ref_user_app.dart';
 import 'package:konodal/controllers/features/income_entry.dart';
 import 'package:konodal/controllers/features/job_entry.dart';
 import 'package:konodal/core/errors/app_exceptions.dart';
 import 'package:konodal/core/repositories/user_repository.dart';
 import 'package:konodal/core/result/result.dart';
+import 'package:konodal/models/pages_models/address.dart';
+import 'package:konodal/models/pages_models/conjoint_info.dart';
 import 'package:konodal/models/pages_models/demande_loc.dart';
 import 'package:konodal/models/pages_models/guarantor_info.dart';
 import 'package:konodal/models/pages_models/user.dart';
@@ -138,7 +141,25 @@ class FirestoreUserRepository implements IUserRepository {
             UnknownException('Aucune valeur spécifiée pour la mise à jour.'));
       }
 
-      await _firestore.collection('users').doc(uid).update({field: newValue});
+      // users/{uid} regroupe name/surname/... sous 'user' et pseudo/bio/
+      // private/profilPic/phone sous 'profil' (cf. User.fromMap/toMap) :
+      // une clé plate ("pseudo", "bio"...) ne correspond à aucun champ relu
+      // nulle part et restait donc silencieusement sans effet une fois
+      // écrite. On cible ici le bon sous-champ via la notation pointée.
+      const profilGroupFields = {
+        'pseudo', 'bio', 'private', 'profilPic', 'phone'
+      };
+      const userGroupFields = {
+        'name', 'surname', 'birthday', 'sex', 'nationality', 'placeOfborn',
+        'isInfoCorrect'
+      };
+      final key = profilGroupFields.contains(field)
+          ? 'profil.$field'
+          : userGroupFields.contains(field)
+              ? 'user.$field'
+              : field;
+
+      await _firestore.collection('users').doc(uid).update({key: newValue});
       return const Result.success(null);
     } catch (e) {
       return Result.failure(AppException.from(e));
@@ -229,10 +250,17 @@ class FirestoreUserRepository implements IUserRepository {
                 ?.map((e) => JobEntry.fromMap(Map<String, dynamic>.from(e)))
                 .toList() ??
             [],
-        dependent: userInfoMap['dependent'] ?? 0,
+        dependents: ((userInfoMap['dependents'] as List<dynamic>?) ?? [])
+            .map((entry) => DependentEntry.fromMap(Map<String, dynamic>.from(entry)))
+            .toList(),
         familySituation: userInfoMap['familySituation'] ?? "",
         nationality: user.nationality,
-        phone: userInfoMap['phone'] ?? "",
+        // phone est un champ de compte (users/{uid}.profil.phone), pas du
+        // dossier locataire - cf. User.phone, modifié depuis "Modifier mes
+        // informations".
+        phone: user.phone,
+        address: Address.fromJson(userInfoMap['address'] as Map<String, dynamic>?),
+        conjoint: ConjointInfo.fromJson(userInfoMap['conjoint'] as Map<String, dynamic>?),
         sex: user.sex,
         placeOfborn: user.placeOfborn,
       ));
@@ -299,15 +327,26 @@ class FirestoreUserRepository implements IUserRepository {
       Map<String, dynamic> profilLocataireData = {
         "revenus": updatedUser.incomes.map((e) => e.toMap()).toList(),
         "activities": updatedUser.jobIncomes.map((e) => e.toMap()).toList(),
-        "dependent": updatedUser.dependent,
+        "dependents": updatedUser.dependents.map((e) => e.toMap()).toList(),
         "familySituation": updatedUser.familySituation,
-        "phone": updatedUser.phone,
+        "address": updatedUser.address.toJson(),
+        "conjoint": updatedUser.conjoint.toJson(),
       };
 
-      await userDocRef
-          .collection("private")
-          .doc("profilLocataire")
-          .set(profilLocataireData, SetOptions(merge: true));
+      // Distinct de users/{uid}.createdDate (date de création du compte) :
+      // ce createdDate marque la création du profil locataire lui-même
+      // (revenus/activités), qui peut arriver bien après la création du
+      // compte. Écrit une seule fois - si le document ou le champ existe
+      // déjà, on ne le touche pas, pour ne jamais l'écraser lors des
+      // sauvegardes suivantes.
+      final profilLocataireRef =
+          userDocRef.collection("private").doc("profilLocataire");
+      final existingProfilLocataire = await profilLocataireRef.get();
+      if (existingProfilLocataire.data()?["createdDate"] == null) {
+        profilLocataireData["createdDate"] = FieldValue.serverTimestamp();
+      }
+
+      await profilLocataireRef.set(profilLocataireData, SetOptions(merge: true));
 
       return const Result.success(true);
     } catch (e) {

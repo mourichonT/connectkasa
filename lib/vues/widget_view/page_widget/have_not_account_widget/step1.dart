@@ -96,7 +96,7 @@ class _Step1State extends State<Step1> {
                               visible = true;
                               selectedResidence = residencesTrouvees.firstWhere(
                                   (residence) =>
-                                      "${residence.name} - ${residence.numero} ${residence.street} ${residence.zipCode} ${residence.city}" ==
+                                      "${residence.name} - ${residence.street} ${residence.zipCode} ${residence.city}" ==
                                       item);
                             });
                           },
@@ -200,7 +200,7 @@ class _Step1State extends State<Step1> {
     // Convertir les objets Residence en noms de résidence
     List<String> nomsResidences = residencesTrouvees
         .map((residence) =>
-            "${residence.name} - ${residence.numero} ${residence.street} ${residence.zipCode} ${residence.city}")
+            "${residence.name} - ${residence.street} ${residence.zipCode} ${residence.city}")
         .toList();
 
     return nomsResidences;

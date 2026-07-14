@@ -125,16 +125,6 @@ class ManagementPropertyState extends ConsumerState<ManagementProperty> {
                           Row(
                             children: [
                               MyTextStyle.lotDesc(
-                                  lot.residenceAddress["numero"] ?? "",
-                                  SizeFont.h3.size),
-                              Container(
-                                  padding: const EdgeInsets.only(left: 4)),
-                              MyTextStyle.lotDesc(
-                                  lot.residenceAddress["avenue"] ?? "",
-                                  SizeFont.h3.size),
-                              Container(
-                                  padding: const EdgeInsets.only(left: 4)),
-                              MyTextStyle.lotDesc(
                                   lot.residenceAddress["street"] ?? "",
                                   SizeFont.h3.size),
                               Container(

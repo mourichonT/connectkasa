@@ -4,11 +4,14 @@ import 'package:konodal/controllers/handlers/progress_widget.dart';
 import 'package:konodal/controllers/pages_controllers/my_app.dart';
 import 'package:konodal/controllers/providers/color_provider.dart';
 import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/repositories/firestore_lot_repository.dart';
 import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/core/repositories/lot_repository.dart';
 import 'package:konodal/core/repositories/user_repository.dart';
 import 'package:konodal/core/result/result.dart';
 import 'package:konodal/core/utils/app_logger.dart';
 import 'package:konodal/vues/pages_vues/no_approval_page.dart';
+import 'package:konodal/vues/pages_vues/no_lot/no_lot_page.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -50,6 +53,7 @@ class LoginTransitionPage extends StatefulWidget {
 
 class _LoginTransitionPageState extends State<LoginTransitionPage> {
   final IUserRepository _userRepository = FirestoreUserRepository();
+  final ILotRepository _lotRepository = FirestoreLotRepository();
   late String _uid;
   String? _emailUser;
 
@@ -138,9 +142,27 @@ class _LoginTransitionPageState extends State<LoginTransitionPage> {
     if (!mounted) return;
 
     result.when(
-      success: (userData) {
-        if (userData.isApproved) {
-          _initUserFcmToken(_uid);
+      success: (userData) async {
+        if (!userData.isApproved) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => NoApprovalPage()),
+          );
+          return;
+        }
+
+        // Un lot nouvellement rattaché reste bloqué tant qu'une personne n'a
+        // pas revérifié les documents déposés (isApprovedLot, cf.
+        // AttachExistingLotPage/sync_lot_approval) : on ne considère donc que
+        // les lots déjà approuvés pour décider de l'accès à l'app.
+        final lots = await _lotRepository.getLotByIdUser(_uid).then(
+            (result) => result.when(success: (v) => v, failure: (_) => []));
+        if (!mounted) return;
+
+        final hasApprovedLot =
+            lots.any((lot) => lot.userLotDetails['isApprovedLot'] == true);
+
+        _initUserFcmToken(_uid);
+        if (hasApprovedLot) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => MyApp2(
@@ -151,7 +173,7 @@ class _LoginTransitionPageState extends State<LoginTransitionPage> {
           );
         } else {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => NoApprovalPage()),
+            MaterialPageRoute(builder: (context) => NoLotPage(uid: _uid)),
           );
         }
       },

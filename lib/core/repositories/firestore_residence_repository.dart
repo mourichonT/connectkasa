@@ -55,7 +55,6 @@ class FirestoreResidenceRepository implements IResidenceRepository {
 
         if ((residence.name.toLowerCase().contains(saisie.toLowerCase())) ||
             (residence.street.toLowerCase().contains(saisie.toLowerCase())) ||
-            (residence.numero.toLowerCase().contains(saisie.toLowerCase())) ||
             (residence.city.toLowerCase().contains(saisie.toLowerCase())) ||
             (residence.zipCode
                 .toLowerCase()

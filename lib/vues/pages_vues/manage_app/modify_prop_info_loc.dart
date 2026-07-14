@@ -83,8 +83,6 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
 
       // Agence
       "agencyName",
-      "agenceNumero",
-      "agenceAvenue",
       "agenceStreet",
       "agenceZipCodeVille",
       "agenceZipCode",
@@ -132,13 +130,10 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
 
         // Remplir les contrôleurs dérivés
         _controllers["agencyName"]!.text = newAgency.name;
-        _controllers["agenceNumero"]!.text = newAgency.numeros;
-        _controllers["agenceAvenue"]!.text = newAgency.avenue;
         _controllers["agenceStreet"]!.text = newAgency.street;
         _controllers["agenceZipCode"]!.text = newAgency.zipCode;
         _controllers["agenceCity"]!.text = newAgency.city;
-        _controllers["address"]!.text =
-            "${newAgency.numeros} ${newAgency.avenue} ${newAgency.street}".trim();
+        _controllers["address"]!.text = newAgency.street;
         _controllers["zipCodeVille"]!.text =
             "${newAgency.zipCode} ${newAgency.city}".trim();
       } else {
@@ -226,8 +221,6 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
                         // Vider aussi les contrôleurs locaux pour éviter affichage résiduel
                         for (final k in [
                           "agencyName",
-                          "agenceNumero",
-                          "agenceAvenue",
                           "agenceStreet",
                           "agenceZipCode",
                           "agenceCity",
@@ -258,17 +251,12 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
                     widget.lot.geranceRef = _flow.refFor(agency);
                     searchResults.clear();
                     _controllers["agencyName"]!.text = agency.name;
-                    _controllers["agenceNumero"]!.text =
-                        agency.numeros; // <-- fix
-                    _controllers["agenceAvenue"]!.text = agency.avenue;
                     _controllers["agenceStreet"]!.text = agency.street;
                     _controllers["agenceZipCode"]!.text = agency.zipCode;
                     _controllers["agenceCity"]!.text = agency.city;
                     _controllers["mail_contact"]!.text =
                         agency.syndic?.mail ?? "";
-                    _controllers["address"]!.text =
-                        "${agency.numeros} ${agency.avenue} ${agency.street}"
-                            .trim();
+                    _controllers["address"]!.text = agency.street;
                     _controllers["zipCodeVille"]!.text =
                         "${agency.zipCode} ${agency.city}".trim();
                   });
@@ -283,8 +271,6 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
                       // vider affichage agence
                       for (final k in [
                         "agencyName",
-                        "agenceNumero",
-                        "agenceAvenue",
                         "agenceStreet",
                         "agenceZipCode",
                         "agenceCity",
@@ -313,20 +299,7 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
                   // Mail non trouvé dans la liste → champs éditables
                   ...[
                   buildField("Nom de l'agence", "agencyName", editable: true),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: buildField("Numéro", "agenceNumero",
-                            editable: true),
-                      )),
-                      Expanded(
-                          child:
-                              buildField("Voie", "agenceAvenue", editable: true)),
-                    ],
-                  ),
-                  buildField("Libelé", "agenceStreet", editable: true),
+                  buildField("Adresse", "agenceStreet", editable: true),
                   Row(
                     children: [
                       Expanded(
@@ -453,15 +426,11 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
     final agency = widget.lot.syndicAgency;
 
     _controllers["agencyName"]?.text = agency?.name ?? '';
-    _controllers["agenceNumero"]?.text = agency?.numeros ?? '';
-    _controllers["agenceAvenue"]?.text = agency?.avenue ?? '';
     _controllers["agenceStreet"]?.text = agency?.street ?? '';
     _controllers["agenceZipCode"]?.text = agency?.zipCode ?? '';
     _controllers["agenceCity"]?.text = agency?.city ?? '';
     _controllers["mail_contact"]?.text = agency?.syndic?.mail ?? '';
-    _controllers["address"]?.text = agency == null
-        ? ''
-        : "${agency.numeros} ${agency.avenue} ${agency.street}".trim();
+    _controllers["address"]?.text = agency?.street ?? '';
     _controllers["zipCodeVille"]?.text =
         agency == null ? '' : "${agency.zipCode} ${agency.city}".trim();
 
@@ -496,11 +465,10 @@ class ModifyPropInfoLocState extends ConsumerState<ModifyPropInfoLoc> {
       final selectedAgency = Agency(
         id: widget.lot.syndicAgency?.id ?? '',
         name: capitalizeFirstLetter(_controllers["agencyName"]!.text),
-        numeros: _controllers["agenceNumero"]!.text,
-        avenue: capitalizeFirstLetter(_controllers["agenceAvenue"]!.text),
         street: capitalizeFirstLetter(_controllers["agenceStreet"]!.text),
         zipCode: _controllers["agenceZipCode"]!.text,
         city: capitalizeFirstLetter(_controllers["agenceCity"]!.text),
+        codeQualite: widget.lot.syndicAgency?.codeQualite ?? '60',
         syndic: AgencyDept(
           agents: widget.lot.syndicAgency?.syndic?.agents ?? [],
           mail: _controllers["mail_contact"]!.text,

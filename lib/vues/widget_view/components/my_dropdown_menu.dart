@@ -39,12 +39,13 @@ class MyDropDownMenuState extends State<MyDropDownMenu> {
   Widget build(BuildContext context) {
     return Container(
       height: widget.height,
+      margin: const EdgeInsets.symmetric(vertical: 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15),
         color: widget.inverseColor ? Colors.white : const Color(0xFFF5F6F9),
       ),
       child: Padding(
-        padding: const EdgeInsets.only(left: 20),
+        padding: const EdgeInsets.only(left: 10),
         child: Center(
           child: DropdownMenu<String>(
             initialSelection: selectedValue,
@@ -60,6 +61,13 @@ class MyDropDownMenuState extends State<MyDropDownMenu> {
               fontSize: SizeFont.h3.size,
               fontWeight: FontWeight.w400,
             ), // Affiché quand initialSelection est null
+            // Sans hauteur maximale, le menu se dimensionne pour afficher
+            // tous les items (jusqu'à 21 pour les secteurs d'activité) et
+            // Flutter le repositionne alors au-dessus du champ dès qu'il n'y
+            // a pas assez de place en dessous - donnant l'impression qu'il
+            // recouvre toute la page. Une hauteur fixe force un menu
+            // scrollable qui reste ancré sous le champ.
+            menuHeight: 300,
             onSelected: (String? value) {
               if (value != null) {
                 setState(() {

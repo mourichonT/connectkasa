@@ -704,8 +704,6 @@ def send_custom_email(req: https_fn.Request) -> https_fn.Response:
     try:
         residence_id = data["residenceId"]
         residence_name = data["residenceName"]
-        residence_numero = data["residenceNumero"]
-        residence_avenue = data["residenceAvenue"]
         residence_street = data["residenceStreet"]
         residence_zipcode = data["residenceZipcode"]
         residence_city = data["residenceCity"]
@@ -727,7 +725,7 @@ def send_custom_email(req: https_fn.Request) -> https_fn.Response:
         )
 
     url = f"{TRIGGER_REPORT_BY_URL_URL}?postId={post_id}&residenceId={residence_id}"
-    residence_address = f"{residence_numero} {residence_avenue} {residence_street}"
+    residence_address = residence_street
     residence_zipcity = f"{residence_zipcode} {residence_city}"
     declarant_html = (
         f'<p><strong>Déclarant :</strong> {declarant_status}</p>' if declarant_status else ''
@@ -1061,7 +1059,7 @@ class _ReportGenerator:
             draw_spacer(space_para)
 
             residence_address = residence_data.get('address') or {}
-            address_line = f"{residence_address.get('numero', '')} {residence_address.get('avenue', '')} {residence_address.get('street', '')}"
+            address_line = residence_address.get('street', '')
             buffer_draw(draw_header, address_line.strip(), 14, (1, 1, 1), True, False, True)
             draw_spacer(space_para)
 
