@@ -128,6 +128,14 @@ class TenantDetail extends ConsumerWidget {
                   await ShareRentFolder.showLotSelectionDialog(
                       context, senderUid, tenant.uid,
                       demandeId: demandeId);
+                  // Sans ça, "Actuels" (nouveau locataire) et "Demande" (la
+                  // demande acceptée est supprimée, cf. _addTenantToLot) de
+                  // ManagementTenant ne se mettent à jour qu'après un
+                  // rechargement complet de l'app.
+                  refreshTenants?.call();
+                  if (refreshUnseeCounter != null) {
+                    refreshUnseeCounter!();
+                  }
                 }
               },
               color: isCurrentTenant

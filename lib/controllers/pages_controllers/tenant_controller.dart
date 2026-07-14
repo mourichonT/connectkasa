@@ -1,9 +1,8 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:konodal/core/repositories/firestore_user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/models/enum/font_setting.dart';
-import 'package:konodal/models/pages_models/demande_loc.dart';
+import 'package:konodal/models/pages_models/guarantor_info.dart';
 import 'package:konodal/models/pages_models/user_info.dart';
 import 'package:konodal/vues/pages_vues/manage_app/guarantor_detail.dart';
 import 'package:konodal/vues/pages_vues/manage_app/tenant_detail.dart';
@@ -44,12 +43,20 @@ class TenantController extends StatefulWidget {
 }
 
 class _TenantControllerState extends State<TenantController> {
-  late Future<List<DemandeLoc>> _demandesFuture;
+  // Garants du LOCATAIRE lui-même (users/{tenant.uid}/garants), pas dérivés
+  // de demandes_loc.garantId : cette dernière est supprimée dès qu'une
+  // demande est acceptée (cf. _addTenantToLot) et n'est de toute façon pas
+  // scopée à un tenant précis (fetchDemandesLoc lisait TOUTES les demandes
+  // du bailleur et prenait arbitrairement la première) - une fois le
+  // locataire accepté, ses garants disparaissaient donc des onglets.
+  late Future<List<GuarantorInfo>> _garantsFuture;
 
   @override
   void initState() {
     super.initState();
-    _demandesFuture = fetchDemandesLoc();
+    _garantsFuture = FirestoreUserRepository()
+        .getGarants(widget.tenant.uid)
+        .then((result) => result.when(success: (v) => v, failure: (_) => []));
     if (widget.demandeId != null && widget.demandeId!.isNotEmpty) {
       openDemande();
       appLog("demandeID : ${widget.demandeId}");
@@ -66,22 +73,10 @@ class _TenantControllerState extends State<TenantController> {
     widget.refreshUnseeCounter?.call(); // Appelle la fonction callback du parent
   }
 
-  Future<List<DemandeLoc>> fetchDemandesLoc() async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(widget.uid)
-        .collection('demandes_loc')
-        .get();
-
-    return snapshot.docs.map((doc) {
-      return DemandeLoc.fromJson(doc.data(), id: doc.id);
-    }).toList();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<DemandeLoc>>(
-      future: _demandesFuture,
+    return FutureBuilder<List<GuarantorInfo>>(
+      future: _garantsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -95,10 +90,10 @@ class _TenantControllerState extends State<TenantController> {
           );
         }
 
-        final demandes = snapshot.data ?? [];
-        final DemandeLoc? firstDemande =
-            demandes.isNotEmpty ? demandes.first : null;
-        final List<String> garants = firstDemande?.garantId ?? [];
+        final List<String> garants = (snapshot.data ?? [])
+            .map((g) => g.id)
+            .whereType<String>()
+            .toList();
 
         // hasGarant1/hasGarant2 pilotent à la fois `tabs` et `tabViews` : ces
         // deux listes doivent impérativement avoir la même longueur, sinon

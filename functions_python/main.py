@@ -413,21 +413,27 @@ def _recompute_tenant_denormalization(db, uid, lot_id_just_removed=None):
 
     remaining_lots = list(user_ref.collection("lots").stream())
 
+    # DocumentSnapshot.get(field) lève KeyError si le champ est absent
+    # (contrairement à .get() sur un dict) - un lot jamais occupé n'a par
+    # exemple pas encore de idLocataire. to_dict().get(field, default) est
+    # sans risque, cf. le même correctif côté Dart (firestore_lot_repository.
+    # addTenant, "Bad state: field does not exist").
     residence_ids = sorted({
-        lot.get("residenceId") for lot in remaining_lots
-        if lot.get("residenceId")
+        (lot.to_dict() or {}).get("residenceId") for lot in remaining_lots
+        if (lot.to_dict() or {}).get("residenceId")
     })
     user_ref.set({"residencesIds": residence_ids}, merge=True)
 
     landlord_uids = set()
     for remaining_lot in remaining_lots:
-        residence_id = remaining_lot.get("residenceId")
+        residence_id = (remaining_lot.to_dict() or {}).get("residenceId")
         if not residence_id:
             continue
         remote_lot = db.collection("residences").document(residence_id) \
             .collection("lots").document(remaining_lot.id).get()
-        if remote_lot.exists and uid in (remote_lot.get("idLocataire") or []):
-            landlord_uids.update(remote_lot.get("idProprietaire") or [])
+        remote_lot_data = remote_lot.to_dict() or {}
+        if remote_lot.exists and uid in (remote_lot_data.get("idLocataire") or []):
+            landlord_uids.update(remote_lot_data.get("idProprietaire") or [])
     user_ref.set({"sharedWithLandlords": sorted(landlord_uids)}, merge=True)
 
 
@@ -436,8 +442,10 @@ def sync_lot_tenants(event: firestore_fn.Event) -> None:
     before = event.data.before
     after = event.data.after
 
-    before_tenants = set((before.get("idLocataire") or []) if before and before.exists else [])
-    after_tenants = set((after.get("idLocataire") or []) if after and after.exists else [])
+    before_data = (before.to_dict() or {}) if before and before.exists else {}
+    after_data = (after.to_dict() or {}) if after and after.exists else {}
+    before_tenants = set(before_data.get("idLocataire") or [])
+    after_tenants = set(after_data.get("idLocataire") or [])
 
     removed_tenants = before_tenants - after_tenants
     added_tenants = after_tenants - before_tenants
@@ -457,9 +465,27 @@ def sync_lot_tenants(event: firestore_fn.Event) -> None:
         # motif de permission quand ce n'est pas le locataire lui-même qui
         # l'appelle) : sans ce doc, le recalcul ci-dessous ne verrait pas ce
         # lot et laisserait residencesIds/sharedWithLandlords incomplets.
-        db.collection("users").document(uid).collection("lots").document(lot_id).set({
-            "residenceId": residence_id,
-        }, merge=True)
+        # Mêmes champs/valeurs par défaut que addLotToUser côté Dart -
+        # statutResident vaut toujours "Locataire" ici : ce déclencheur ne
+        # réagit qu'aux ajouts dans idLocataire (jamais idProprietaire).
+        # isApprovedLot: True (contrairement au défaut False d'addLotToUser,
+        # pensé pour le rattachement auto-déclaré à l'inscription) : ce
+        # document n'est créé ici QUE lorsque idLocataire vient de changer
+        # côté résidence, c'est-à-dire après qu'un bailleur a lui-même
+        # validé le dossier (accepté une demande) - la vérification humaine
+        # a donc déjà eu lieu, pas besoin d'une seconde validation Console.
+        lot_ref = db.collection("users").document(uid).collection("lots").document(lot_id)
+        if not lot_ref.get().exists:
+            lot_ref.set({
+                "residenceId": residence_id,
+                "colorSelected": "ff48775b",
+                "nameLot": "",
+                "statutResident": "Locataire",
+                "entryDate": firestore.SERVER_TIMESTAMP,
+                "isApprovedLot": True,
+            }, merge=True)
+        else:
+            lot_ref.set({"residenceId": residence_id}, merge=True)
         _recompute_tenant_denormalization(db, uid)
 
 

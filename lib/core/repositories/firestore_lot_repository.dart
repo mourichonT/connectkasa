@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:konodal/core/repositories/firestore_user_repository.dart';
 import 'package:konodal/core/errors/app_exceptions.dart';
 import 'package:konodal/core/repositories/lot_repository.dart';
 import 'package:konodal/core/result/result.dart';
@@ -206,19 +205,19 @@ class FirestoreLotRepository implements ILotRepository {
     }
   }
 
-  // Applique la décision de remplacement ou d'ajout de locataire au lot
+  // Applique la décision de remplacement ou d'ajout de locataire au lot.
+  // N'écrit QUE sur residences/{id}/lots/{lotId} (idLocataire), seul champ
+  // qu'un propriétaire non CS member a le droit de modifier - cf.
+  // firestore.rules. Comme pour _removeIdLocataireInternal (retrait), la
+  // création de users/{tenantId}/lots/{lotId} et le recalcul de
+  // residencesIds/sharedWithLandlords sont entièrement délégués à la Cloud
+  // Function sync_lot_tenants (functions_python/main.py), déclenchée par
+  // cette écriture avec les privilèges Admin : un propriétaire n'a pas le
+  // droit d'écrire directement sur le document User d'un tiers (d'où le
+  // PermissionDeniedException si on tentait addLotToUser/
+  // _recomputeSharedWithLandlords ici).
   Future<void> _applyTenantChange(DocumentReference lotRef, String residenceId,
       String idLot, String tenantId, bool replace) async {
-    await FirestoreUserRepository()
-        .addLotToUser(
-            userId: tenantId,
-            lotId: idLot,
-            residenceId: residenceId,
-            statutResident: "Locataire",
-            entryDate: Timestamp.now())
-        .then((result) => result.when(
-            success: (_) {}, failure: (error) => throw error));
-
     if (replace) {
       await lotRef.update({
         'idLocataire': [tenantId]
@@ -228,10 +227,6 @@ class FirestoreLotRepository implements ILotRepository {
         'idLocataire': FieldValue.arrayUnion([tenantId])
       });
     }
-
-    // Dénormalisé pour firestore.rules : permet au(x) propriétaire(s) de ce
-    // lot de consulter le dossier locataire (identité, profil, garants).
-    await _recomputeSharedWithLandlords(tenantId);
   }
 
   // Reconstruit entièrement users/{tenantId}.sharedWithLandlords à partir des
@@ -289,8 +284,11 @@ class FirestoreLotRepository implements ILotRepository {
         return const Result.success(AddTenantOutcome.alreadyPresent);
       }
 
+      // lotDoc.get('idLocataire') lève une StateError ("Bad state: field
+      // does not exist") si le champ est absent du document (lot jamais
+      // occupé) plutôt que de renvoyer null - data()?[...] est sans risque.
       final currentLocataires =
-          List<dynamic>.from(lotDoc.get('idLocataire') ?? []);
+          List<dynamic>.from(lotDoc.data()?['idLocataire'] ?? []);
 
       if (currentLocataires.contains(tenantId)) {
         return const Result.success(AddTenantOutcome.alreadyPresent);

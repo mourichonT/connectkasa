@@ -435,6 +435,7 @@ class ManagementTenantState extends State<ManagementTenant>
                                     residenceId: '',
                                     refreshUnseeCounter:
                                         refreshUnseenDemandCount,
+                                    refreshTenants: refreshTenantsList,
                                     demandeId: demandeId,
                                   ),
                                 ),
