@@ -11,6 +11,10 @@ class Step2 extends StatefulWidget {
   final PageController progressController;
   final Function(bool) onCameraStateChanged;
   final String userId;
+  // ID du document Firestore du lot déjà sélectionné (Step3 s'exécute
+  // désormais avant Step2) : permet de ranger le Kbis dans son sous-dossier
+  // de lot dans Storage.
+  final String? lotId;
 
   const Step2({
     super.key,
@@ -19,6 +23,7 @@ class Step2 extends StatefulWidget {
     required this.progressController,
     required this.onCameraStateChanged,
     required this.userId,
+    this.lotId,
   });
 
   @override
@@ -115,6 +120,7 @@ class _Step2State extends State<Step2> {
                         racineFolder: 'user',
                         residence: widget.userId,
                         folderName: 'compagnyDoc',
+                        lotId: widget.lotId,
                         title: pathKbis ?? "",
                         onImageUploaded: (downloadUrl) {
                           setState(() {

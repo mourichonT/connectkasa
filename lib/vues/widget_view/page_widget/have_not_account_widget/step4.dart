@@ -31,6 +31,11 @@ class Step4 extends StatefulWidget {
   final bool compagnyBuy;
   final String intendedFor;
   final String refLot;
+  // ID du document Firestore residences/{id}/lots/{lotDocId}, résolu par
+  // Step3 (getUniqueLot) - à ne pas confondre avec refLot (référence
+  // métier) : sert à ranger le justificatif de domicile dans son
+  // sous-dossier de lot dans Storage.
+  final String? lotDocId;
   final String typeLot;
   final String kbisPath;
   final String kbisExtension;
@@ -61,6 +66,7 @@ class Step4 extends StatefulWidget {
     required this.kbisExtension,
     required this.intendedFor,
     required this.refLot,
+    this.lotDocId,
     required this.userId,
     required this.typeLot,
     required this.emailUser,
@@ -148,6 +154,7 @@ class _Step4State extends State<Step4> {
                           racineFolder: 'user',
                           residence: widget.userId,
                           folderName: 'justificatifDom',
+                          lotId: widget.lotDocId,
                           title: justifChoice,
                           onCameraStateChanged: (bool isOpen) {
                             widget.onCameraStateChanged(isOpen);

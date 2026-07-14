@@ -121,6 +121,20 @@ service cloud.firestore {
         }
       }
 
+      // Archive d'un lot quitté (retrait ou auto-détachement), copie à plat
+      // écrite par sync_lot_tenants (privilèges Admin) - cf. commentaire de
+      // _recompute_tenant_denormalization. Lecture seule pour l'intéressé,
+      // jamais écrite depuis le client.
+      match /lotsOld/{lotId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+
+        match /documents/{docId} {
+          allow read: if isOwner(uid);
+          allow write: if false;
+        }
+      }
+
       // Documents d'identité.
       match /documents/{docId} {
         allow read: if isOwner(uid) || isSharedTenantDoc(uid) || isPendingDemandeLandlord(uid);
@@ -187,6 +201,21 @@ service cloud.firestore {
         // locataires révoqués, écrit dans la même requête).
         allow update: if isCsMember(residenceId) ||
           (isSignedIn() && request.auth.uid in resource.data.idProprietaire &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['idLocataire', 'idLocataireOld'])) ||
+          // "Détacher ce lot" (ModifyProperty) : l'inverse du rattachement -
+          // un propriétaire ou un locataire peut se retirer LUI-MÊME (jamais
+          // quelqu'un d'autre), sans rien modifier d'autre. sync_lot_tenants
+          // se charge du nettoyage dénormalisé (users/{uid}/lots,
+          // residencesIds, sharedWithLandlords) déclenché par cette écriture.
+          (isSignedIn() &&
+           request.auth.uid in resource.data.idProprietaire &&
+           !(request.auth.uid in request.resource.data.idProprietaire) &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['idProprietaire'])) ||
+          (isSignedIn() &&
+           request.auth.uid in resource.data.idLocataire &&
+           !(request.auth.uid in request.resource.data.idLocataire) &&
            request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['idLocataire', 'idLocataireOld']));
       }

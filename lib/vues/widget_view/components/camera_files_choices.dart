@@ -16,6 +16,10 @@ class CameraOrFiles extends ConsumerStatefulWidget {
   final String residence;
   final String folderName;
   final String? fileName;
+  // Sous-dossier lot (refLot), pour les documents dépendant d'un lot
+  // (justificatif de domicile, Kbis) - contrairement à une pièce d'identité
+  // ou une photo de profil, qui restent au niveau de l'utilisateur.
+  final String? lotId;
   final String title;
   final Function(bool)? onCameraStateChanged;
   final Function(String) onImageUploaded;
@@ -39,6 +43,7 @@ class CameraOrFiles extends ConsumerStatefulWidget {
     required this.residence,
     required this.folderName,
     this.fileName,
+    this.lotId,
     required this.title,
     required this.onImageUploaded,
     required this.cardOverlay,
@@ -65,12 +70,21 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
     _storageServices = ref.read(storageRepositoryProvider);
   }
 
-  /// Dossier Storage effectif : ajoute widget.fileName comme sous-dossier
-  /// de widget.folderName quand il est fourni (ex: id du post), pour isoler
+  /// Dossier Storage effectif : ajoute widget.lotId (ex: user/{uid}/
+  /// justificatifDom/{refLot}/...) quand fourni, pour ranger les documents
+  /// dépendant d'un lot par lot, puis widget.fileName comme sous-dossier
+  /// supplémentaire quand il est fourni (ex: id du post), pour isoler
   /// les fichiers d'une même publication (residences/{residence}/annonces/{idPost}/...).
-  String get _storageFolder => widget.fileName != null && widget.fileName!.isNotEmpty
-      ? "${widget.folderName}/${widget.fileName}"
-      : widget.folderName;
+  String get _storageFolder {
+    String folder = widget.folderName;
+    if (widget.lotId != null && widget.lotId!.isNotEmpty) {
+      folder = "$folder/${widget.lotId}";
+    }
+    if (widget.fileName != null && widget.fileName!.isNotEmpty) {
+      folder = "$folder/${widget.fileName}";
+    }
+    return folder;
+  }
 
   @override
   void dispose() {

@@ -1,6 +1,7 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/core/providers/post_providers.dart';
 import 'package:konodal/core/providers/user_by_id_provider.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/vues/pages_vues/annonces_page/annonce_page_details.dart';
 import 'package:konodal/vues/pages_vues/chat_page/chat_page.dart';
@@ -107,26 +108,44 @@ class ShowProfilPage extends ConsumerWidget {
                           FontStyle.italic,
                           FontWeight.normal,
                         ),
+                      // "Ecrire" ne doit rester possible que si ce profil est
+                      // toujours membre de CETTE résidence aujourd'hui - un
+                      // ancien post reste consultable après le départ de son
+                      // auteur (ex-propriétaire détaché, ex-locataire...),
+                      // mais il ne doit plus pouvoir être recontacté depuis
+                      // ici pour autant. Requête fraîche (pas de cache),
+                      // cohérente avec le retrait dénormalisé côté résidence.
                       if (!isOwnProfile)
-                        Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: ButtonAdd(
-                            text: "Ecrire",
-                            color: Theme.of(context).primaryColor,
-                            horizontal: 30,
-                            vertical: 5,
-                            size: SizeFont.h3.size,
-                            function: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => ChatPage(
-                                        idUserFrom: currentUid,
-                                        idUserTo: uid,
-                                        residence: refLot)),
-                              );
-                            }),
-                      ),
+                        FutureBuilder<List<String>>(
+                          future: FirestoreUserRepository()
+                              .getNumUsersByResidence(refLot, currentUid)
+                              .then((result) => result.when(
+                                  success: (v) => v, failure: (_) => <String>[])),
+                          builder: (context, snapshot) {
+                            final isStillResident =
+                                snapshot.data?.contains(uid) ?? false;
+                            if (!isStillResident) return const SizedBox.shrink();
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: ButtonAdd(
+                                  text: "Ecrire",
+                                  color: Theme.of(context).primaryColor,
+                                  horizontal: 30,
+                                  vertical: 5,
+                                  size: SizeFont.h3.size,
+                                  function: () async {
+                                    await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => ChatPage(
+                                              idUserFrom: currentUid,
+                                              idUserTo: uid,
+                                              residence: refLot)),
+                                    );
+                                  }),
+                            );
+                          },
+                        ),
                       Padding(
                         padding: const EdgeInsets.only(top: 20),
                         child: Row(

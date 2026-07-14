@@ -405,11 +405,35 @@ def _recompute_tenant_denormalization(db, uid, lot_id_just_removed=None):
     """Reconstruit User/{uid}.residencesIds et .sharedWithLandlords à partir
     de users/{uid}/lots, comme _recomputeResidencesIds/
     _recomputeSharedWithLandlords côté Dart. lot_id_just_removed, si fourni,
-    est supprimé de User/{uid}/lots avant reconstruction (retrait)."""
+    est archivé dans users/{uid}/lotsOld (copie à plat du document + date de
+    départ) puis supprimé de users/{uid}/lots avant reconstruction (retrait,
+    qu'il s'agisse d'une révocation ou d'un auto-détachement) - sans cette
+    archive, l'utilisateur perdait toute trace de ses anciens biens/lots dès
+    qu'il n'y était plus rattaché, contrairement au bailleur qui garde son
+    propre historique (idLocataireOld) pour ses ex-locataires."""
     user_ref = db.collection("users").document(uid)
 
     if lot_id_just_removed is not None:
-        user_ref.collection("lots").document(lot_id_just_removed).delete()
+        old_lot_ref = user_ref.collection("lots").document(lot_id_just_removed)
+        old_lot_snap = old_lot_ref.get()
+        if old_lot_snap.exists:
+            old_lot_data = old_lot_snap.to_dict() or {}
+            new_lot_old_ref = user_ref.collection("lotsOld").document(lot_id_just_removed)
+            new_lot_old_ref.set({
+                **old_lot_data,
+                "lotId": lot_id_just_removed,
+                "leftAt": firestore.SERVER_TIMESTAMP,
+            })
+            # Justificatifs attachés à ce lot (Kbis, attestation de
+            # propriété...) : Firestore ne supprime jamais les sous-
+            # collections en cascade avec leur document parent - sans ce
+            # transfert, ils restaient orphelins et inaccessibles sous
+            # l'ancien chemin une fois users/{uid}/lots/{lotId} supprimé.
+            for doc_snap in old_lot_ref.collection("documents").stream():
+                new_lot_old_ref.collection("documents").document(doc_snap.id).set(
+                    doc_snap.to_dict() or {})
+                doc_snap.reference.delete()
+        old_lot_ref.delete()
 
     remaining_lots = list(user_ref.collection("lots").stream())
 
@@ -446,10 +470,17 @@ def sync_lot_tenants(event: firestore_fn.Event) -> None:
     after_data = (after.to_dict() or {}) if after and after.exists else {}
     before_tenants = set(before_data.get("idLocataire") or [])
     after_tenants = set(after_data.get("idLocataire") or [])
+    before_owners = set(before_data.get("idProprietaire") or [])
+    after_owners = set(after_data.get("idProprietaire") or [])
 
     removed_tenants = before_tenants - after_tenants
     added_tenants = after_tenants - before_tenants
-    if not removed_tenants and not added_tenants:
+    # Retrait seulement : l'ajout d'un propriétaire passe par un autre
+    # parcours (createOrUpdateLot, géré par un CS member) qui a sa propre
+    # dénormalisation - "Détacher ce lot" (auto-retrait) est le seul cas
+    # géré ici.
+    removed_owners = before_owners - after_owners
+    if not removed_tenants and not added_tenants and not removed_owners:
         return
 
     db = firestore.client()
@@ -487,6 +518,17 @@ def sync_lot_tenants(event: firestore_fn.Event) -> None:
         else:
             lot_ref.set({"residenceId": residence_id}, merge=True)
         _recompute_tenant_denormalization(db, uid)
+
+    for uid in removed_owners:
+        # Nettoie la dénormalisation de l'ex-propriétaire lui-même (comme
+        # pour un locataire retiré - même fonction générique).
+        _recompute_tenant_denormalization(db, uid, lot_id_just_removed=lot_id)
+
+    if removed_owners:
+        # Les locataires actuels de ce lot ne doivent plus voir l'ex-
+        # propriétaire dans leur sharedWithLandlords.
+        for tenant_uid in after_tenants:
+            _recompute_tenant_denormalization(db, tenant_uid)
 
 
 # ---------------------------------------------------------------------------

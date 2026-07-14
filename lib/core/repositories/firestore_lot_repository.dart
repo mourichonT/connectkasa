@@ -229,26 +229,6 @@ class FirestoreLotRepository implements ILotRepository {
     }
   }
 
-  // Reconstruit entièrement users/{tenantId}.sharedWithLandlords à partir des
-  // lots où tenantId est effectivement dans idLocataire, plutôt qu'un
-  // arrayUnion/Remove incrémental : évite les incohérences si un même
-  // propriétaire partage plusieurs lots avec ce locataire.
-  Future<void> _recomputeSharedWithLandlords(String tenantId) async {
-    final lots = await _fetchLotsByUser(tenantId);
-    final Set<String> landlordUids = {};
-
-    for (final lot in lots) {
-      final isTenantHere = lot.idLocataire?.contains(tenantId) ?? false;
-      if (isTenantHere && lot.idProprietaire != null) {
-        landlordUids.addAll(lot.idProprietaire!);
-      }
-    }
-
-    await _firestore.collection("users").doc(tenantId).set({
-      "sharedWithLandlords": landlordUids.toList(),
-    }, SetOptions(merge: true));
-  }
-
   // Reconstruit entièrement users/{userId}.residencesIds à partir de
   // users/{userId}/lots, pour rester cohérent avec firestore.rules après un
   // retrait de lot (voir removeIdLocataire / removeIdProprietaire /
@@ -400,14 +380,15 @@ class FirestoreLotRepository implements ILotRepository {
       final lotData = lotSnapshot.data() as Map<String, dynamic>;
       final idProprietaires = List.from(lotData['idProprietaire'] ?? []);
       idProprietaires.remove(idProprietaireToRemove);
+      // Seul idProprietaire est modifiable ici par l'intéressé lui-même
+      // (auto-détachement, cf. firestore.rules) - le nettoyage dénormalisé
+      // des locataires actuels de ce lot (sharedWithLandlords ne doit plus
+      // lister cet ex-propriétaire) est fait côté serveur par la Cloud
+      // Function sync_lot_tenants, déclenchée par cette écriture : un
+      // propriétaire n'a pas le droit d'écrire directement sur le document
+      // User d'un tiers (même trou de permission que pour _applyTenantChange/
+      // _removeIdLocataireInternal, cf. leurs commentaires).
       await lotRef.update({'idProprietaire': idProprietaires});
-
-      // Dénormalisé pour firestore.rules : les locataires actuels de ce lot
-      // ne doivent plus voir ce propriétaire dans sharedWithLandlords.
-      final idLocataires = List<String>.from(lotData['idLocataire'] ?? []);
-      for (final tenantId in idLocataires) {
-        await _recomputeSharedWithLandlords(tenantId);
-      }
     }
   }
 

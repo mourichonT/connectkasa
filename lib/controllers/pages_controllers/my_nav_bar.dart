@@ -116,12 +116,20 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
       // révoqué, supprimé, ou repassé à isApprovedLot: false depuis la
       // dernière mise en cache - sans cette vérification, un utilisateur
       // pouvait rester bloqué sur un lot fantôme au lieu de retomber sur
-      // l'écran "aucun lot".
-      _preferedLot = cachedPreferedLot != null &&
-              (_lotsList?.any((lot) => lot.id == cachedPreferedLot!.id) ??
-                  false)
-          ? cachedPreferedLot
-          : null;
+      // l'écran "aucun lot". Utilise l'objet FRAIS de _lotsList (pas
+      // cachedPreferedLot lui-même) : sinon idProprietaire/idLocataire
+      // restaient ceux du cache, par exemple un propriétaire déjà détaché
+      // continuait d'apparaître comme destinataire de messages ("Mon
+      // proprio.") jusqu'à ce que le cache expire.
+      _preferedLot = null;
+      if (cachedPreferedLot != null) {
+        for (final lot in _lotsList ?? <Lot>[]) {
+          if (lot.id == cachedPreferedLot.id) {
+            _preferedLot = lot;
+            break;
+          }
+        }
+      }
 
       // Aucun lot approuvé du tout (ni préféré, ni dans la liste) : rien à
       // afficher dans les onglets habituels.

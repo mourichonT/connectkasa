@@ -63,6 +63,11 @@ class ProgressWidgetState extends State<ProgressWidget>
   String typeLot = "";
   String batType = "";
   String lotChoice = "";
+  // ID du document Firestore residences/{id}/lots/{lotDocId}, résolu par
+  // Step3 (getUniqueLot) - à ne pas confondre avec refLot (référence
+  // métier) : sert à ranger les documents dépendant du lot dans Storage
+  // (justificatifDom/compagnyDoc) par leur vrai identifiant.
+  String? lotDocId = "";
   String idType = "";
   String pathIdRect = "";
   String pathIdVers = "";
@@ -352,15 +357,16 @@ class ProgressWidgetState extends State<ProgressWidget>
   }
 
   void getInformationsStep3(String newTypeLot, String newBatType,
-      String newLotChoice, String newrefLot) {
+      String newLotChoice, String newrefLot, String newLotDocId) {
     // Faites ce que vous voulez avec les valeurs récupérées
     appLog(
-        'Type resident: $newTypeLot, achat par société: $newBatType, destiné a : $newLotChoice, refLOT $newrefLot');
+        'Type resident: $newTypeLot, achat par société: $newBatType, destiné a : $newLotChoice, refLOT $newrefLot, lotDocId $newLotDocId');
 
     typeLot = newTypeLot;
     batType = newBatType;
     lotChoice = newLotChoice;
     refLot = newrefLot;
+    lotDocId = newLotDocId;
   }
 
   void getInformationsStep4(bool newIsUserCompleted) {
@@ -446,15 +452,7 @@ class ProgressWidgetState extends State<ProgressWidget>
               currentPage: currentPage,
               progressController: _progressController,
             ),
-            Step2(
-              recupererInformationsStep2: getInformationsStep2,
-              currentPage: currentPage,
-              progressController: _progressController,
-              onCameraStateChanged: _handleCameraState,
-              userId: widget.userId,
-            ),
             Step3(
-              typeResident: residentType,
               residence: residence ??
                   Residence(
                     name: '',
@@ -466,6 +464,14 @@ class ProgressWidgetState extends State<ProgressWidget>
               recupererInformationsStep3: getInformationsStep3,
               currentPage: currentPage,
               progressController: _progressController,
+            ),
+            Step2(
+              recupererInformationsStep2: getInformationsStep2,
+              currentPage: currentPage,
+              progressController: _progressController,
+              onCameraStateChanged: _handleCameraState,
+              userId: widget.userId,
+              lotId: lotDocId,
             ),
             Step4(
               informationsCorrectes: informationsCorrectes,
@@ -496,6 +502,7 @@ class ProgressWidgetState extends State<ProgressWidget>
                     id: '',
                   ),
               refLot: refLot!,
+              lotDocId: lotDocId,
               recupererInformationsStep4: getInformationsStep4,
               currentPage: currentPage,
               progressController: _progressController,

@@ -11,14 +11,17 @@ import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class Step3 extends ConsumerStatefulWidget {
   final Residence residence;
-  final String typeResident;
-  final Function(String, String, String, String) recupererInformationsStep3;
+  // typeBien, batiment, numLot, refLot (référence métier), lotDocId (ID du
+  // document Firestore residences/{id}/lots/{lotDocId}, pour tout ce qui
+  // doit ranger/retrouver des données PAR CE LOT précisément, ex: chemin
+  // Storage des justificatifs - à ne pas confondre avec refLot).
+  final Function(String, String, String, String, String)
+      recupererInformationsStep3;
   final int currentPage;
   final PageController progressController;
 
   const Step3({
     super.key,
-    required this.typeResident,
     required this.residence,
     required this.recupererInformationsStep3,
     required this.currentPage,
@@ -33,11 +36,11 @@ class _Step3State extends ConsumerState<Step3> {
   late final ILotRepository _lotRepository;
   bool visible = false;
   late List<Lot?> lotsTrouves;
-  late String expressionTypeChoice;
   String typeChoice = "";
   String? batChoice = "";
   String? lotChoice = "";
   String? refLot = "";
+  String? lotDocId = "";
   late Future<List<String>> _typeLotFuture;
   late Future<List<String>> _typeBatFuture;
   late Future<List<String>> _numLotFuture;
@@ -54,17 +57,16 @@ class _Step3State extends ConsumerState<Step3> {
     return lotChoice!;
   }
 
-  Future<String?> getRefLot() async {
-    refLot = await getlot(widget.residence.id, batChoice!, lotChoice!);
-    return refLot;
+  Future<void> resolveLot() async {
+    final lot = await getlot(widget.residence.id, batChoice!, lotChoice!);
+    refLot = lot?.refLot;
+    lotDocId = lot?.id;
   }
 
   @override
   void initState() {
     super.initState();
     _lotRepository = ref.read(lotRepositoryProvider);
-    expressionTypeChoice =
-        widget.typeResident == "Locataire" ? "loué" : "acheté";
     _typeLotFuture = getTypeLot(widget.residence);
     _typeBatFuture = getBatimentLot(widget.residence);
     _numLotFuture = getSpecificLot(widget.residence);
@@ -82,7 +84,7 @@ class _Step3State extends ConsumerState<Step3> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             MyTextStyle.lotName(
-                "Selectionnez le type de bien que vous avez $expressionTypeChoice",
+                "Selectionnez le type de bien concerné",
                 Colors.black54),
             const SizedBox(
               height: 30,
@@ -211,9 +213,9 @@ class _Step3State extends ConsumerState<Step3> {
                       String typeBien = getTypeChoice();
                       String batiment = getBatiment();
                       String numLot = getNumLot();
-                      String? lotId = await getRefLot();
+                      await resolveLot();
                       widget.recupererInformationsStep3(
-                          typeBien, batiment, numLot, lotId!);
+                          typeBien, batiment, numLot, refLot!, lotDocId!);
                       if (widget.currentPage < 5) {
                         widget.progressController.nextPage(
                           duration: const Duration(milliseconds: 500),
@@ -283,18 +285,17 @@ class _Step3State extends ConsumerState<Step3> {
     return typeLots;
   }
 
-  Future<String?> getlot(String residenceId, String bat, String numlot) async {
+  Future<Lot?> getlot(String residenceId, String bat, String numlot) async {
     try {
       Lot? specificLot = await _lotRepository
           .getUniqueLot(residenceId, bat, numlot)
           .then((result) =>
               result.when(success: (v) => v, failure: (error) => throw error));
 
-      if (specificLot != null) {
-        return specificLot.refLot;
-      } else {
+      if (specificLot == null) {
         appLog("No lot found for the given parameters.");
       }
+      return specificLot;
     } catch (e) {
       appLog("Error occurred while fetching lot: $e");
     }

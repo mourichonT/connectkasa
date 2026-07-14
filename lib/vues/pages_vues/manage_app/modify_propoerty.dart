@@ -304,12 +304,69 @@ class _ModifyPropertyState extends ConsumerState<ModifyProperty> {
       color: Colors.transparent,
       child: SizedBox(
         child: ButtonAdd(
-          function: () {}, // À implémenter : suppression
-          text: "Supprimer ce lot",
+          function: _detachLot,
+          text: "Détacher ce lot",
           color: Colors.black26,
           horizontal: 30,
           vertical: 10,
           size: SizeFont.h3.size,
+        ),
+      ),
+    );
+  }
+
+  // L'inverse du rattachement (attach_existing_lot_page.dart) : l'utilisateur
+  // se retire lui-même de ce lot (déménagement, vente...), il ne le supprime
+  // pas - la suppression du lot reste réservée à un CS member/admin depuis
+  // Gestion résidence > Gestion des lots.
+  Future<void> _detachLot() async {
+    final residenceName = widget.lot.residenceData['name'] ?? 'cette résidence';
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: MyTextStyle.lotName(
+            "Détacher ce lot", Colors.black87, SizeFont.h2.size),
+        content: MyTextStyle.postDesc(
+          "Si vous déménagez ou avez vendu ce bien, vous pouvez vous en "
+          "détacher : vous perdrez immédiatement l'accès à $residenceName. "
+          "Cette action est définitive. Confirmez-vous ce détachement ?",
+          SizeFont.h3.size,
+          Colors.black54,
+          fontweight: FontWeight.normal,
+          textAlign: TextAlign.justify,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: MyTextStyle.lotName(
+                "Annuler", Colors.black54, SizeFont.h3.size, FontWeight.normal),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: MyTextStyle.lotName("Détacher", Colors.red[800]!,
+                SizeFont.h3.size, FontWeight.normal),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    if (!mounted) return;
+
+    final result = isProprietaire
+        ? await lotServices.removeIdProprietaire(
+            widget.lot.residenceId, widget.lot.id!, widget.uid)
+        : await lotServices.removeIdLocataire(
+            widget.lot.residenceId, widget.lot.id!, widget.uid);
+
+    if (!mounted) return;
+
+    result.when(
+      success: (_) => Navigator.pop(context),
+      failure: (error) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erreur lors du détachement : $error"),
+          backgroundColor: Colors.red,
         ),
       ),
     );

@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/core/providers/current_user_provider.dart';
 import 'package:konodal/core/providers/docs_repository_provider.dart';
-import 'package:konodal/core/providers/lot_repository_provider.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/document_model.dart';
@@ -61,6 +60,12 @@ class _AttachExistingLotPageState
   String _kbisExtension = "";
   String _batiment = "";
   String _numLot = "";
+  String _refLot = "";
+  // ID du document Firestore residences/{id}/lots/{lotDocId}, résolu par
+  // Step3 (getUniqueLot) - à ne pas confondre avec _refLot (référence
+  // métier) : sert à ranger les documents dans leur sous-dossier de lot
+  // dans Storage, et à rattacher directement le lot sans re-résolution.
+  String _lotDocId = "";
   bool _isSaving = false;
 
   @override
@@ -84,42 +89,26 @@ class _AttachExistingLotPageState
     });
   }
 
-  void _onLotFound(
-      String typeBien, String batiment, String numLot, String refLot) {
+  void _onLotFound(String typeBien, String batiment, String numLot,
+      String refLot, String lotDocId) {
     setState(() {
       _batiment = batiment;
       _numLot = numLot;
+      _refLot = refLot;
+      _lotDocId = lotDocId;
     });
   }
 
   Future<void> _submit(
       String docTypeJustif, String justifPath, String justifExtension) async {
-    if (_residence == null || _isSaving) return;
+    if (_residence == null || _isSaving || _lotDocId.isEmpty) return;
     setState(() => _isSaving = true);
-
-    // Step3 ne renvoie que le refLot (référence métier), pas l'ID Firestore
-    // du document nécessaire à addLotToUser/setDocument : on le retrouve ici.
-    final lot = await ref
-        .read(lotRepositoryProvider)
-        .getUniqueLot(_residence!.id, _batiment, _numLot)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (_) => null));
-
-    if (lot?.id == null) {
-      if (mounted) {
-        setState(() => _isSaving = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Lot introuvable, réessayez.")),
-        );
-      }
-      return;
-    }
 
     await ref
         .read(userRepositoryProvider)
         .addLotToUser(
           userId: widget.uid,
-          lotId: lot!.id!,
+          lotId: _lotDocId,
           residenceId: _residence!.id,
           intendedFor: _intendedFor,
           statutResident: _typeResident,
@@ -144,10 +133,10 @@ class _AttachExistingLotPageState
           residenceId: _residence!.id,
           timeStamp: Timestamp.now(),
           documentPathRecto: justifPath,
-          lotId: lot.refLot,
+          lotId: _refLot,
         ),
         widget.uid,
-        lot.id,
+        _lotDocId,
       );
     }
 
@@ -159,10 +148,10 @@ class _AttachExistingLotPageState
           residenceId: _residence!.id,
           timeStamp: Timestamp.now(),
           documentPathRecto: _kbisPath,
-          lotId: lot.refLot,
+          lotId: _refLot,
         ),
         widget.uid,
-        lot.id,
+        _lotDocId,
       );
     }
 
@@ -232,29 +221,30 @@ class _AttachExistingLotPageState
                   showNoResidenceOption: false,
                 ),
                 if (_residence != null)
-                  Step2(
-                    currentPage: 1,
-                    progressController: _pageController,
-                    onCameraStateChanged: (_) {},
-                    recupererInformationsStep2: _onRoleDefined,
-                    userId: widget.uid,
-                  )
-                else
-                  const SizedBox.shrink(),
-                if (_residence != null && _typeResident.isNotEmpty)
                   Step3(
                     residence: _residence!,
-                    typeResident: _typeResident,
-                    currentPage: 2,
+                    currentPage: 1,
                     progressController: _pageController,
                     recupererInformationsStep3: _onLotFound,
                   )
                 else
                   const SizedBox.shrink(),
                 if (_batiment.isNotEmpty && _numLot.isNotEmpty)
+                  Step2(
+                    currentPage: 2,
+                    progressController: _pageController,
+                    onCameraStateChanged: (_) {},
+                    recupererInformationsStep2: _onRoleDefined,
+                    userId: widget.uid,
+                    lotId: _lotDocId,
+                  )
+                else
+                  const SizedBox.shrink(),
+                if (_typeResident.isNotEmpty)
                   _JustificatifStep(
                     typeResident: _typeResident,
                     userId: widget.uid,
+                    lotId: _lotDocId,
                     onSubmit: _submit,
                   )
                 else
@@ -272,12 +262,14 @@ class _AttachExistingLotPageState
 class _JustificatifStep extends StatefulWidget {
   final String typeResident;
   final String userId;
+  final String lotId;
   final Future<void> Function(
       String docTypeJustif, String justifPath, String justifExtension) onSubmit;
 
   const _JustificatifStep({
     required this.typeResident,
     required this.userId,
+    required this.lotId,
     required this.onSubmit,
   });
 
@@ -335,6 +327,7 @@ class _JustificatifStepState extends State<_JustificatifStep> {
                   racineFolder: 'user',
                   residence: widget.userId,
                   folderName: 'justificatifDom',
+                  lotId: widget.lotId,
                   title: justifChoice,
                   cardOverlay: true,
                   onCameraStateChanged: (_) {},
