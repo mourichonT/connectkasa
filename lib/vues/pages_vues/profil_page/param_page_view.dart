@@ -119,18 +119,6 @@ class _ParamPageState extends ConsumerState<ParamPage> {
                       _navigateToModifyPage, // Utilisation de la fonction pour naviguer et récupérer les données mises à jour
                   isLogOut: false,
                 ),
-                Visibility(
-                  visible: false,
-                  child: ProfileMenu(
-                    uid: widget.uid,
-                    color: widget.color,
-                    idLot: widget.idLot,
-                    text: "Paiements & versements",
-                    icon: const Icon(Icons.euro, size: 22),
-                    press: () {},
-                    isLogOut: false,
-                  ),
-                ),
                 ProfileMenu(
                   uid: widget.uid,
                   color: widget.color,

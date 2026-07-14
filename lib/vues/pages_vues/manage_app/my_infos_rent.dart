@@ -330,7 +330,7 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
                         ImportDocs(
                           racineFolder: "user",
                           filename: [widget.uid],
-                          folderName: "doc&justif",
+                          folderName: "dossierLocataire",
                           title: "",
                           onDocumentUploaded: (downloadUrl, extension) async {
                             if (doc.docType.isNotEmpty) {

@@ -564,7 +564,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
                         ImportDocs(
                           racineFolder: "user",
                           filename: [widget.uid],
-                          folderName: "doc&justif",
+                          folderName: "dossierLocataire",
                           title: "",
                           onDocumentUploaded: (downloadUrl, extension) async {
                             if (doc.docType.isEmpty) return;

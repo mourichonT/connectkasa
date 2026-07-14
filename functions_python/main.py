@@ -406,11 +406,13 @@ def _recompute_tenant_denormalization(db, uid, lot_id_just_removed=None):
     de users/{uid}/lots, comme _recomputeResidencesIds/
     _recomputeSharedWithLandlords côté Dart. lot_id_just_removed, si fourni,
     est archivé dans users/{uid}/lotsOld (copie à plat du document + date de
-    départ) puis supprimé de users/{uid}/lots avant reconstruction (retrait,
-    qu'il s'agisse d'une révocation ou d'un auto-détachement) - sans cette
-    archive, l'utilisateur perdait toute trace de ses anciens biens/lots dès
-    qu'il n'y était plus rattaché, contrairement au bailleur qui garde son
-    propre historique (idLocataireOld) pour ses ex-locataires."""
+    départ, y compris sa sous-collection documents et un instantané du
+    dossier locataire/garant générique users/{uid}/documents) puis supprimé
+    de users/{uid}/lots avant reconstruction (retrait, qu'il s'agisse d'une
+    révocation ou d'un auto-détachement) - sans cette archive, l'utilisateur
+    perdait toute trace de ses anciens biens/lots dès qu'il n'y était plus
+    rattaché, contrairement au bailleur qui garde son propre historique
+    (idLocataireOld) pour ses ex-locataires."""
     user_ref = db.collection("users").document(uid)
 
     if lot_id_just_removed is not None:
@@ -433,6 +435,15 @@ def _recompute_tenant_denormalization(db, uid, lot_id_just_removed=None):
                 new_lot_old_ref.collection("documents").document(doc_snap.id).set(
                     doc_snap.to_dict() or {})
                 doc_snap.reference.delete()
+            # Dossier locataire/garant générique (users/{uid}/documents,
+            # "Mes infos locataire"/"Mes infos garant") : pas lié à un lot
+            # précis (partagé entre tous les lots de l'utilisateur), donc
+            # jamais supprimé ni déplacé ici - seulement copié en instantané
+            # dans l'archive de CE lot, pour garder une trace de ce qui était
+            # sur son dossier au moment du départ.
+            for doc_snap in user_ref.collection("documents").stream():
+                new_lot_old_ref.collection("documents").document(doc_snap.id).set(
+                    doc_snap.to_dict() or {})
         old_lot_ref.delete()
 
     remaining_lots = list(user_ref.collection("lots").stream())
