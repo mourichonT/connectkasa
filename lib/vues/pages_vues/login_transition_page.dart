@@ -12,6 +12,7 @@ import 'package:konodal/core/result/result.dart';
 import 'package:konodal/core/utils/app_logger.dart';
 import 'package:konodal/vues/pages_vues/no_approval_page.dart';
 import 'package:konodal/vues/pages_vues/no_lot/no_lot_page.dart';
+import 'package:konodal/vues/pages_vues/wrong_account_type_page.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -143,6 +144,16 @@ class _LoginTransitionPageState extends State<LoginTransitionPage> {
 
     result.when(
       success: (userData) async {
+        // Cette app est l'interface résident uniquement : un compte
+        // 'professionnel'/'superAdmin' (créé hors-app, futur backoffice
+        // web) n'a pas sa place ici.
+        if (userData.accountType != 'utilisateur') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const WrongAccountTypePage()),
+          );
+          return;
+        }
+
         if (!userData.isApproved) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => NoApprovalPage()),

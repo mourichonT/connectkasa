@@ -631,6 +631,63 @@ def sync_lot_tenants(event: firestore_fn.Event) -> None:
 # vérifié pourrait obtenir un accès réel via un lot approuvé seul.
 # ---------------------------------------------------------------------------
 
+def _process_pending_child_lots(db, residence_id, user_id, parent_lot_id,
+                                 parent_after_data, pending_child_lot_ids):
+    """Traite les lots enfants candidats en attente (cf. Step2 / project note
+    lot enfant). Pour chaque enfant valide :
+      1) lie le lot côté résidence (parentLotId + groupedWithParent=True) -
+         re-déclenche sync_lot_tenants, qui recopie idProprietaire/
+         idLocataire depuis le parent avec des privilèges Admin.
+      2) crée/complète le document individuel users/{uid}/lots/{childLotId},
+         avec les mêmes champs que ceux écrits pour le lot principal par
+         setUser/addLotToUser côté Dart : chaque lot (parent ET enfant) doit
+         être une entité individuelle complète en base, même si elle reste
+         masquée de "Gestion des biens" tant que groupedWithParent est True
+         (cf. management_property.dart/_onlyApprovedLots, my_nav_bar.dart/
+         _fetchApprovedLots, déjà filtrées sur ce champ).
+    isApprovedLot est écrit directement à True (pas de transition à
+    observer) : on est déjà côté Admin SDK, et isLinkable + l'approbation
+    déjà accordée au lot PARENT sont jugés des garde-fous suffisants - pas de
+    revalidation humaine distincte pour un lot enfant (décision produit).
+    """
+    lots_ref = db.collection("residences").document(residence_id).collection("lots")
+    user_lots_ref = db.collection("users").document(user_id).collection("lots")
+
+    for child_lot_id in pending_child_lot_ids or []:
+        child_ref = lots_ref.document(child_lot_id)
+        child_snap = child_ref.get()
+        if not child_snap.exists:
+            continue
+        child_data = child_snap.to_dict() or {}
+
+        # Sécurité serveur, ne fait pas confiance au client : isLinkable a pu
+        # changer entre la sélection (Step2) et cette approbation.
+        if not bool(child_data.get("isLinkable")):
+            continue
+        if child_data.get("residenceId") != residence_id:
+            continue
+        if child_data.get("parentLotId"):
+            continue  # déjà lié (par ce parent ou un autre) : ne pas écraser
+
+        # 1) Lien côté résidence.
+        child_ref.update({
+            "parentLotId": parent_lot_id,
+            "groupedWithParent": True,
+        })
+
+        # 2) Document individuel côté utilisateur.
+        user_lots_ref.document(child_lot_id).set({
+            "colorSelected": "ff48775b",
+            "nameLot": "",
+            "residenceId": residence_id,
+            "statutResident": parent_after_data.get("statutResident"),
+            "companyName": parent_after_data.get("companyName"),
+            "intendedFor": parent_after_data.get("intendedFor"),
+            "entryDate": firestore.SERVER_TIMESTAMP,
+            "isApprovedLot": True,
+        }, merge=True)
+
+
 @firestore_fn.on_document_written(document="users/{userId}/lots/{lotId}")
 def sync_lot_approval(event: firestore_fn.Event) -> None:
     after = event.data.after
@@ -645,8 +702,9 @@ def sync_lot_approval(event: firestore_fn.Event) -> None:
 
     user_id = event.params["userId"]
     lot_id = event.params["lotId"]
-    residence_id = after.get("residenceId")
-    statut_resident = after.get("statutResident")
+    after_data = after.to_dict() or {}
+    residence_id = after_data.get("residenceId")
+    statut_resident = after_data.get("statutResident")
     if not residence_id or not statut_resident:
         return
 
@@ -660,6 +718,17 @@ def sync_lot_approval(event: firestore_fn.Event) -> None:
         .collection("lots").document(lot_id).update({
             field: firestore.ArrayUnion([user_id]),
         })
+
+    # Traite les lots enfants en attente (uniquement pour un propriétaire -
+    # un locataire n'a pas de notion de lot enfant rattaché).
+    if statut_resident == "Propriétaire":
+        pending_child_lot_ids = after_data.get("pendingChildLotIds") or []
+        if pending_child_lot_ids:
+            _process_pending_child_lots(
+                db, residence_id, user_id, lot_id, after_data, pending_child_lot_ids)
+            # Nettoyage : évite un retraitement si isApprovedLot repasse un
+            # jour false -> true (compte suspendu puis réapprouvé).
+            after.reference.update({"pendingChildLotIds": firestore.DELETE_FIELD})
 
 
 # ---------------------------------------------------------------------------
@@ -1077,6 +1146,136 @@ def send_demande_email(req: https_fn.Request) -> https_fn.Response:
     try:
         message = MIMEMultipart("alternative")
         message["Subject"] = "Nouvelle demande de location KONODAL"
+        message["From"] = EMAIL_ADDRESS
+        message["To"] = to_email
+        message.attach(MIMEText(html, "html"))
+
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD.value)
+            server.sendmail(EMAIL_ADDRESS, to_email, message.as_string())
+
+        return https_fn.Response(
+            json.dumps({"success": True, "message": "Email envoyé"}),
+            status=200,
+            content_type="application/json",
+        )
+    except Exception as e:
+        return https_fn.Response(
+            json.dumps({"error": str(e)}),
+            status=500,
+            content_type="application/json",
+        )
+
+
+@https_fn.on_request(
+    cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]),
+    secrets=[EMAIL_PASSWORD],
+)
+def send_modification_request_email(req: https_fn.Request) -> https_fn.Response:
+    """Email envoyé au contact de la résidence (mail_contact, repli sur
+    EMAIL_ADDRESS résolu côté Dart) suite à une demande de modification des
+    informations d'un ou plusieurs lots par un propriétaire, depuis
+    ModifyPropDetails ("Demander une modification") - modèle adapté de
+    send_demande_email. Aucune donnée Firestore n'est modifiée par cette
+    fonction : notification pure, à charge d'un CS member d'appliquer le
+    changement via manage_list_lot.dart."""
+    if req.method != "POST":
+        return https_fn.Response(
+            json.dumps({"error": "Méthode non autorisée"}),
+            status=405,
+            content_type="application/json",
+        )
+
+    data = req.get_json(silent=True) or {}
+    try:
+        to_email = data["email"]
+        requester_name = data["requesterName"]
+        requester_surname = data["requesterSurname"]
+        requester_email = data["requesterEmail"]
+        changes = data["changes"]
+    except KeyError as e:
+        return https_fn.Response(
+            json.dumps({"error": f"Champ manquant : {e}"}),
+            status=400,
+            content_type="application/json",
+        )
+
+    residence_name = data.get("residenceName", "")
+    lots_summary = data.get("lotsSummary", "")
+
+    rows_html = "".join(
+        f"""
+        <tr>
+          <td style="padding:8px;border:1px solid #ddd;">{c.get('cle', '')}</td>
+          <td style="padding:8px;border:1px solid #ddd;">{c.get('ancienne_valeur', '') or '—'}</td>
+          <td style="padding:8px;border:1px solid #ddd;">{c.get('nouvelle_valeur', '')}</td>
+        </tr>"""
+        for c in changes
+    )
+
+    table_html = f"""
+    <table style="width:100%;border-collapse:collapse;margin-top:20px;">
+      <tr style="background-color:#48775B;color:white;">
+        <th style="padding:8px;border:1px solid #ddd;text-align:left;">Champ</th>
+        <th style="padding:8px;border:1px solid #ddd;text-align:left;">Ancienne valeur</th>
+        <th style="padding:8px;border:1px solid #ddd;text-align:left;">Nouvelle valeur</th>
+      </tr>
+      {rows_html}
+    </table>
+    """
+
+    html = f"""
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+    <meta charset="UTF-8">
+    <title>KONODAL - Notification</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
+    <table align="center" width="600" style="background-color: #ffffff; border-collapse: collapse; margin-top: 20px;">
+        <!-- Header -->
+        <tr>
+        <td style="background-color: #48775B; color: white; text-align: center; padding: 30px 20px;">
+            <img src="{REPORT_LOGO_URL}" alt="KONODAL-Logo" width="250" style="max-width: 100%;" />
+            <p style="margin: 5px 0 0;font-size: 16px">Demande de modification de lot</p>
+        </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+        <td style="padding: 20px 20px; color: #333333;">
+            <div style="text-align: center;">
+                <p>{requester_name} {requester_surname} ({requester_email}) demande la
+                modification des informations suivantes{" pour la résidence " + residence_name if residence_name else ""} :</p>
+                <p>{lots_summary}</p>
+            </div>
+
+            {table_html}
+
+        <p style="font-size: 12px; color: #666; text-align: center; margin-top: 20px;">
+            En cas de difficultés, merci de contacter nos services via :
+            <a href="mailto:admin.konodal@gmail.com" style="color: #48775B; font-size: 12px;">
+                admin.konodal@gmail.com
+            </a>
+        </p>
+        </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+        <td style="background-color: #e0e0e0; text-align: center; padding: 20px;">
+            <p style="margin: 10px 0;">KONODAL</p>
+            <p style="font-size: 12px; color: #777;">Copyright © 2023</p>
+        </td>
+        </tr>
+    </table>
+    </body>
+    </html>
+    """
+
+    try:
+        message = MIMEMultipart("alternative")
+        message["Subject"] = "Demande de modification de lot KONODAL"
         message["From"] = EMAIL_ADDRESS
         message["To"] = to_email
         message.attach(MIMEText(html, "html"))

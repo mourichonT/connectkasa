@@ -4,6 +4,7 @@ import 'package:konodal/core/repositories/storage_repository.dart';
 import 'package:konodal/core/result/result.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:uuid/uuid.dart';
 
 class FirestoreStorageRepository implements IStorageRepository {
   final Reference _storageRef;
@@ -85,6 +86,44 @@ class FirestoreStorageRepository implements IStorageRepository {
         SettableMetadata(contentType: mimeType),
       );
 
+      final snapshot = await uploadTask.whenComplete(() {});
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+
+      return Result.success(downloadUrl);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<String>> copyFile({
+    required String sourceUrl,
+    required String racine,
+    required String residence,
+    required String folderName,
+    required String lotId,
+    required String extension,
+  }) async {
+    try {
+      final sourceRef = FirebaseStorage.instance.refFromURL(sourceUrl);
+      final bytes = await sourceRef.getData(20 * 1024 * 1024); // 20 Mo max
+      if (bytes == null) {
+        throw Exception("Fichier source introuvable pour la duplication.");
+      }
+
+      final mimeType = switch (extension.toLowerCase()) {
+        'pdf' => 'application/pdf',
+        'jpg' || 'jpeg' => 'image/jpeg',
+        'png' => 'image/png',
+        _ => 'application/octet-stream',
+      };
+
+      final fileName = const Uuid().v4();
+      final destRef = _storageRef
+          .child("$racine/$residence/$folderName/$lotId/$fileName.$extension");
+
+      final uploadTask =
+          destRef.putData(bytes, SettableMetadata(contentType: mimeType));
       final snapshot = await uploadTask.whenComplete(() {});
       final downloadUrl = await snapshot.ref.getDownloadURL();
 

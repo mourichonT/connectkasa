@@ -193,7 +193,8 @@ class ManagementPropertyState extends ConsumerState<ManagementProperty> {
                   _refreshData();
                 }
               },
-              text: "Rattacher un lot",
+              icon: Icons.add,
+              text: "Ajouter un lot",
               color: Theme.of(context).primaryColor,
               horizontal: 30,
               vertical: 10,

@@ -74,6 +74,7 @@ class ProgressWidgetState extends State<ProgressWidget>
   String justifType = "";
   String pathJustif = "";
   String? refLot = "";
+  List<String> pendingChildLotIds = [];
   bool isUserCompleted = false;
   Timer? _deleteTimer;
   bool isCameraOpen = false;
@@ -344,7 +345,8 @@ class ProgressWidgetState extends State<ProgressWidget>
   }
 
   void getInformationsStep2(String newResidentType, bool newCompagnyBuy,
-      String newIntendedFor, String newKbisPath, String newKbisExtension) {
+      String newIntendedFor, String newKbisPath, String newKbisExtension,
+      List<String> newPendingChildLotIds) {
     // Faites ce que vous voulez avec les valeurs récupérées
     appLog(
         'Type resident: $newResidentType, achat par société: $newCompagnyBuy, destiné a : $newIntendedFor');
@@ -354,6 +356,7 @@ class ProgressWidgetState extends State<ProgressWidget>
     intendedFor = newIntendedFor;
     kbisPath = newKbisPath;
     kbisExtension = newKbisExtension;
+    pendingChildLotIds = newPendingChildLotIds;
   }
 
   void getInformationsStep3(String newTypeLot, String newBatType,
@@ -472,6 +475,14 @@ class ProgressWidgetState extends State<ProgressWidget>
               onCameraStateChanged: _handleCameraState,
               userId: widget.userId,
               lotId: lotDocId,
+              residence: residence ??
+                  Residence(
+                    name: '',
+                    street: '',
+                    zipCode: '',
+                    city: '',
+                    id: '',
+                  ),
             ),
             Step4(
               informationsCorrectes: informationsCorrectes,
@@ -503,6 +514,7 @@ class ProgressWidgetState extends State<ProgressWidget>
                   ),
               refLot: refLot!,
               lotDocId: lotDocId,
+              pendingChildLotIds: pendingChildLotIds,
               recupererInformationsStep4: getInformationsStep4,
               currentPage: currentPage,
               progressController: _progressController,

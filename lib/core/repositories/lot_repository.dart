@@ -14,6 +14,12 @@ abstract interface class ILotRepository {
   Future<Result<Lot?>> getUniqueLot(
       String residenceId, String bat, String numlot);
 
+  /// Lecture directe par ID (pas de résolution bat/numLot) - utilisée par
+  /// Step2 pour récupérer idLocataire du lot principal déjà résolu par
+  /// Step3, et par le sélecteur de lot enfant pour lire idLocataire du
+  /// candidat sélectionné.
+  Future<Result<Lot?>> getLotById(String residenceId, String lotId);
+
   Future<Result<int>> countLocatairesExcludingUser(String numUser);
 
   Future<Result<void>> updateLotColor(

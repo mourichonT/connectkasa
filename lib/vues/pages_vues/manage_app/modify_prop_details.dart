@@ -3,8 +3,10 @@ import 'package:konodal/core/providers/lot_repository_provider.dart';
 import 'package:konodal/core/repositories/lot_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/vues/pages_vues/manage_app/request_lot_modification_page.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -96,7 +98,21 @@ class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
         color: Colors.transparent,
         child: Center(
           child: ButtonAdd(
-              function: () {},
+              function: () async {
+                final children =
+                    await (_childLotsFuture ?? Future.value(<Lot>[]));
+                if (!context.mounted) return;
+                Navigator.push(
+                  context,
+                  CupertinoPageRoute(
+                    builder: (_) => RequestLotModificationPage(
+                      uid: widget.uid,
+                      mainLot: widget.lot,
+                      childLots: children,
+                    ),
+                  ),
+                );
+              },
               text: "Demander une modification",
               color: Colors.black26,
               horizontal: 30,

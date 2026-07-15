@@ -1,6 +1,7 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/core/providers/lot_repository_provider.dart';
 import 'package:konodal/core/repositories/lot_repository.dart';
+import 'package:konodal/core/utils/lot_cascade_helper.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:konodal/models/pages_models/residence.dart';
 import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
@@ -247,78 +248,29 @@ class _Step3State extends ConsumerState<Step3> {
     );
   }
 
-  Future<List<String>> getBatimentLot(Residence residence) async {
-    List<Lot> lotsTrouves = await _lotRepository
-        .getLotByResidence(residence.id)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (_) => <Lot>[]));
-
-    Set<String> batimentsUniques = {};
-
+  Future<List<String>> getBatimentLot(Residence residence) {
     // Filtré par type de bien sélectionné : évite de proposer/résoudre le
     // mauvais lot si deux types partagent un jour le même bâtiment/numéro.
-    for (Lot lot in lotsTrouves) {
-      if (lot.typeLot == typeChoice && lot.batiment != null) {
-        batimentsUniques.add(lot.batiment!);
-      }
-    }
-
-    List<String> batimentLots = batimentsUniques.toList();
-    return batimentLots;
+    return LotCascadeHelper.batiments(_lotRepository, residence, typeChoice);
   }
 
   Future<List<String>> getSpecificLot(Residence residence,
-      [String? batiment]) async {
-    List<Lot> lotsTrouves = await _lotRepository
-        .getLotByResidence(residence.id)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (_) => <Lot>[]));
-
-    Set<String> lotsUniques = {};
-
+      [String? batiment]) {
     // Filtré par type de bien sélectionné, comme getBatimentLot ci-dessus.
-    for (Lot lot in lotsTrouves) {
-      if (lot.typeLot == typeChoice &&
-          lot.lot != null &&
-          (batiment == null || lot.batiment == batiment)) {
-        lotsUniques.add(lot.lot!);
-      }
-    }
-
-    List<String> lotLots = lotsUniques.toList();
-    return lotLots;
+    return LotCascadeHelper.numeros(
+        _lotRepository, residence, typeChoice, batiment);
   }
 
-  Future<List<String>> getTypeLot(Residence residence) async {
-    List<Lot> lotsTrouves = await _lotRepository
-        .getLotByResidence(residence.id)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (_) => <Lot>[]));
-
-    Set<String> typeLot = {};
-
-    for (Lot lot in lotsTrouves) {
-      typeLot.add(lot.typeLot);
-    }
-
-    List<String> typeLots = typeLot.toList();
-    return typeLots;
+  Future<List<String>> getTypeLot(Residence residence) {
+    return LotCascadeHelper.typeLots(_lotRepository, residence);
   }
 
   Future<Lot?> getlot(String residenceId, String bat, String numlot) async {
-    try {
-      Lot? specificLot = await _lotRepository
-          .getUniqueLot(residenceId, bat, numlot)
-          .then((result) =>
-              result.when(success: (v) => v, failure: (error) => throw error));
-
-      if (specificLot == null) {
-        appLog("No lot found for the given parameters.");
-      }
-      return specificLot;
-    } catch (e) {
-      appLog("Error occurred while fetching lot: $e");
+    final specificLot =
+        await LotCascadeHelper.resolveLot(_lotRepository, residenceId, bat, numlot);
+    if (specificLot == null) {
+      appLog("No lot found for the given parameters.");
     }
-    return null;
+    return specificLot;
   }
 }

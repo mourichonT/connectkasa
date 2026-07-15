@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/core/providers/current_user_provider.dart';
 import 'package:konodal/core/providers/docs_repository_provider.dart';
+import 'package:konodal/core/providers/storage_repository_provider.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/document_model.dart';
@@ -66,6 +67,7 @@ class _AttachExistingLotPageState
   // métier) : sert à ranger les documents dans leur sous-dossier de lot
   // dans Storage, et à rattacher directement le lot sans re-résolution.
   String _lotDocId = "";
+  List<String> _pendingChildLotIds = [];
   bool _isSaving = false;
 
   @override
@@ -79,13 +81,15 @@ class _AttachExistingLotPageState
   }
 
   void _onRoleDefined(String typeResident, bool compagnyBuy,
-      String intendedFor, String kbisPath, String kbisExtension) {
+      String intendedFor, String kbisPath, String kbisExtension,
+      List<String> pendingChildLotIds) {
     setState(() {
       _typeResident = typeResident;
       _compagnyBuy = compagnyBuy;
       _intendedFor = intendedFor;
       _kbisPath = kbisPath;
       _kbisExtension = kbisExtension;
+      _pendingChildLotIds = pendingChildLotIds;
     });
   }
 
@@ -112,6 +116,8 @@ class _AttachExistingLotPageState
           residenceId: _residence!.id,
           intendedFor: _intendedFor,
           statutResident: _typeResident,
+          pendingChildLotIds: _pendingChildLotIds,
+          compagnyBuy: _compagnyBuy,
         )
         .then((result) => result.when(
             success: (_) {}, failure: (error) => throw error));
@@ -153,6 +159,67 @@ class _AttachExistingLotPageState
         widget.uid,
         _lotDocId,
       );
+    }
+
+    // Duplique physiquement le justificatif (et le Kbis) sur chaque lot
+    // enfant retenu : chaque lot reste une entité individuelle complète,
+    // même détaché plus tard (cf. project note lot enfant).
+    if (_pendingChildLotIds.isNotEmpty) {
+      final storageRepository = ref.read(storageRepositoryProvider);
+
+      for (final childLotId in _pendingChildLotIds) {
+        if (docTypeJustif.isNotEmpty && justifPath.isNotEmpty) {
+          final copiedUrl = await storageRepository
+              .copyFile(
+                sourceUrl: justifPath,
+                racine: 'user',
+                residence: widget.uid,
+                folderName: 'justificatifDom',
+                lotId: childLotId,
+                extension: justifExtension,
+              )
+              .then((r) => r.when(success: (v) => v, failure: (e) => throw e));
+
+          await docsRepository.setDocument(
+            DocumentModel(
+              type: docTypeJustif,
+              extension: justifExtension,
+              residenceId: _residence!.id,
+              timeStamp: Timestamp.now(),
+              documentPathRecto: copiedUrl,
+              lotId: childLotId,
+            ),
+            widget.uid,
+            childLotId,
+          );
+        }
+
+        if (_compagnyBuy && _kbisPath.isNotEmpty) {
+          final copiedKbisUrl = await storageRepository
+              .copyFile(
+                sourceUrl: _kbisPath,
+                racine: 'user',
+                residence: widget.uid,
+                folderName: 'compagnyDoc',
+                lotId: childLotId,
+                extension: _kbisExtension,
+              )
+              .then((r) => r.when(success: (v) => v, failure: (e) => throw e));
+
+          await docsRepository.setDocument(
+            DocumentModel(
+              type: "Kbis",
+              extension: _kbisExtension,
+              residenceId: _residence!.id,
+              timeStamp: Timestamp.now(),
+              documentPathRecto: copiedKbisUrl,
+              lotId: childLotId,
+            ),
+            widget.uid,
+            childLotId,
+          );
+        }
+      }
     }
 
     // Le lot part avec isApprovedLot: false (cf. addLotToUser) : pas de
@@ -237,6 +304,7 @@ class _AttachExistingLotPageState
                     recupererInformationsStep2: _onRoleDefined,
                     userId: widget.uid,
                     lotId: _lotDocId,
+                    residence: _residence!,
                   )
                 else
                   const SizedBox.shrink(),

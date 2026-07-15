@@ -3,6 +3,7 @@ import 'package:konodal/core/repositories/docs_repository.dart';
 import 'package:konodal/core/repositories/firestore_docs_repository.dart';
 import 'package:konodal/core/repositories/user_repository.dart';
 import 'package:konodal/core/repositories/firestore_user_repository.dart';
+import 'package:konodal/core/repositories/firestore_storage_repository.dart';
 import 'package:konodal/models/pages_models/document_model.dart';
 import 'package:konodal/models/pages_models/user_info.dart';
 import 'package:konodal/models/pages_models/user_temp.dart';
@@ -40,6 +41,7 @@ class SubmitUser {
     String? kbisExtension,
     bool? informationsCorrectes,
     String? fcmToken,
+    List<String>? pendingChildLotIds,
   }) async {
     final IUserRepository dataBasesUserServices = FirestoreUserRepository();
     final IDocsRepository docsRepository = FirestoreDocsRepository();
@@ -76,7 +78,6 @@ class SubmitUser {
       nationality: nationality,
       placeOfborn: placeOfborn,
       isInfoCorrect: informationsCorrectes ?? false,
-      compagnyBuy: compagnyBuy,
     );
 
     await dataBasesUserServices
@@ -87,7 +88,9 @@ class SubmitUser {
             companyName,
             intendedFor,
             statutResident,
-            fcmToken)
+            fcmToken,
+            pendingChildLotIds,
+            compagnyBuy)
         .then((result) => result.when(
             success: (_) {}, failure: (error) => throw error));
 
@@ -133,6 +136,68 @@ class SubmitUser {
       );
       await docsRepository.setDocument(
           newDocKbis, newUserId, realLotId);
+    }
+
+    // Duplique physiquement le justificatif (et le Kbis) sur chaque lot
+    // enfant retenu : chaque lot reste une entité individuelle complète,
+    // même détaché plus tard (cf. project note lot enfant) - un enfant ne
+    // doit pas dépendre du document du parent pour avoir sa propre preuve.
+    if (pendingChildLotIds != null && pendingChildLotIds.isNotEmpty) {
+      final storageRepository = FirestoreStorageRepository();
+
+      for (final childLotId in pendingChildLotIds) {
+        if (docTypeJustif != null && imagepathJustif != null) {
+          final copiedUrl = await storageRepository
+              .copyFile(
+                sourceUrl: imagepathJustif,
+                racine: 'user',
+                residence: newUserId,
+                folderName: 'justificatifDom',
+                lotId: childLotId,
+                extension: justifExtension ?? '',
+              )
+              .then((r) => r.when(success: (v) => v, failure: (e) => throw e));
+
+          await docsRepository.setDocument(
+            DocumentModel(
+              type: docTypeJustif,
+              extension: justifExtension,
+              residenceId: residence?.id,
+              timeStamp: Timestamp.now(),
+              documentPathRecto: copiedUrl,
+              lotId: childLotId,
+            ),
+            newUserId,
+            childLotId,
+          );
+        }
+
+        if (compagnyBuy && kbisPath != null) {
+          final copiedKbisUrl = await storageRepository
+              .copyFile(
+                sourceUrl: kbisPath,
+                racine: 'user',
+                residence: newUserId,
+                folderName: 'compagnyDoc',
+                lotId: childLotId,
+                extension: kbisExtension ?? '',
+              )
+              .then((r) => r.when(success: (v) => v, failure: (e) => throw e));
+
+          await docsRepository.setDocument(
+            DocumentModel(
+              type: "Kbis",
+              extension: kbisExtension,
+              residenceId: residence?.id,
+              timeStamp: Timestamp.now(),
+              documentPathRecto: copiedKbisUrl,
+              lotId: childLotId,
+            ),
+            newUserId,
+            childLotId,
+          );
+        }
+      }
     }
   }
 

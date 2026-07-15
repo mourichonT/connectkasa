@@ -1,12 +1,19 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/lot_repository_provider.dart';
 import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/pages_models/lot.dart';
+import 'package:konodal/models/pages_models/residence.dart';
 import 'package:konodal/vues/widget_view/components/camera_files_choices.dart';
 import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
+import 'package:konodal/vues/widget_view/page_widget/have_not_account_widget/child_lot_picker_sheet.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:konodal/models/enum/statut_list.dart';
 
-class Step2 extends StatefulWidget {
-  final Function(String, bool, String, String, String) recupererInformationsStep2;
+class Step2 extends ConsumerStatefulWidget {
+  final Function(String, bool, String, String, String, List<String>)
+      recupererInformationsStep2;
   final int currentPage;
   final PageController progressController;
   final Function(bool) onCameraStateChanged;
@@ -15,6 +22,9 @@ class Step2 extends StatefulWidget {
   // désormais avant Step2) : permet de ranger le Kbis dans son sous-dossier
   // de lot dans Storage.
   final String? lotId;
+  // Résidence du lot principal - utilisée pour proposer les lots enfants
+  // (parking/cave...) de la même résidence à rattacher.
+  final Residence residence;
 
   const Step2({
     super.key,
@@ -23,20 +33,65 @@ class Step2 extends StatefulWidget {
     required this.progressController,
     required this.onCameraStateChanged,
     required this.userId,
+    required this.residence,
     this.lotId,
   });
 
   @override
-  State<Step2> createState() => _Step2State();
+  ConsumerState<Step2> createState() => _Step2State();
 }
 
-class _Step2State extends State<Step2> {
+class _Step2State extends ConsumerState<Step2> {
   bool compagnyBuy = false;
   bool visible = false;
   String typeResident = "";
   String? intendedFor = "";
   String? pathKbis = "";
   String kbisExtension = "";
+  Lot? _principalLot;
+  final List<Lot> _pendingChildLots = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.lotId != null && widget.lotId!.isNotEmpty) {
+      ref
+          .read(lotRepositoryProvider)
+          .getLotById(widget.residence.id, widget.lotId!)
+          .then((result) => result.when(
+                success: (lot) {
+                  if (mounted) setState(() => _principalLot = lot);
+                },
+                failure: (_) {},
+              ));
+    }
+  }
+
+  Future<void> _addChildLot() async {
+    final candidate = await showChildLotPicker(context, widget.residence);
+    if (candidate == null) return;
+
+    final mainIds = <String>{...?_principalLot?.idLocataire};
+    final childIds = <String>{...?candidate.idLocataire};
+    final conflict =
+        mainIds.isNotEmpty && childIds.isNotEmpty && !setEquals(mainIds, childIds);
+
+    if (conflict) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text(
+          "Un locataire différent est présent, les lots ne peuvent être "
+          "rattachés. Ajoutez votre lot principal, puis une fois connecté "
+          "ajoutez un lot supplémentaire depuis votre espace "
+          "'Gestion des biens'.",
+        ),
+      ));
+      return;
+    }
+
+    if (_pendingChildLots.any((l) => l.id == candidate.id)) return;
+    setState(() => _pendingChildLots.add(candidate));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -155,6 +210,30 @@ class _Step2State extends State<Step2> {
                         });
                       },
                     ),
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: MyTextStyle.lotName(
+                          "Un lot (parking, cave, garage) est rattaché à ce bien ?",
+                          Colors.black54),
+                    ),
+                    const SizedBox(height: 10),
+                    for (final childLot in _pendingChildLots)
+                      ListTile(
+                        dense: true,
+                        title: Text(
+                            "${childLot.typeLot} - ${childLot.batiment ?? ''} ${childLot.lot ?? ''}"),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => setState(
+                              () => _pendingChildLots.remove(childLot)),
+                        ),
+                      ),
+                    TextButton.icon(
+                      onPressed: _addChildLot,
+                      icon: const Icon(Icons.add),
+                      label: const Text("Ajouter un lot"),
+                    ),
                   ],
                 ),
               ),
@@ -179,6 +258,7 @@ class _Step2State extends State<Step2> {
                     intendedFor ?? "",
                     pathKbis ?? "",
                     kbisExtension,
+                    _pendingChildLots.map((l) => l.id!).toList(),
                   );
                   if (widget.currentPage < 5) {
                     widget.progressController.nextPage(

@@ -132,6 +132,25 @@ class FirestoreLotRepository implements ILotRepository {
   }
 
   @override
+  Future<Result<Lot?>> getLotById(String residenceId, String lotId) async {
+    try {
+      final lotSnapshot = await _firestore
+          .collection("residences")
+          .doc(residenceId)
+          .collection("lots")
+          .doc(lotId)
+          .get();
+
+      if (!lotSnapshot.exists || lotSnapshot.data() == null) {
+        return const Result.success(null);
+      }
+      return Result.success(Lot.fromMap(lotSnapshot.data()!));
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
   Future<Result<int>> countLocatairesExcludingUser(String numUser) async {
     try {
       final lots = await _fetchLotsByUser(numUser);

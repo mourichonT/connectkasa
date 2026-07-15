@@ -57,8 +57,10 @@ class FirestoreUserRepository implements IUserRepository {
     String? companyName,
     String? intentedFor,
     String? statutResident,
-    String? fcmToken,
-  ) async {
+    String? fcmToken, [
+    List<String>? pendingChildLotIds,
+    bool? compagnyBuy,
+  ]) async {
     try {
       String refUserApp = await generateUniqueRefUserApp(_firestore, newUser);
 
@@ -90,6 +92,15 @@ class FirestoreUserRepository implements IUserRepository {
           // Tant qu'une personne n'a pas revérifié les documents déposés
           // pour ce lot, il reste bloqué (cf. isApprovedLot dans Lot).
           "isApprovedLot": false,
+          // Lots enfants (parking/cave...) sélectionnés en même temps que ce
+          // lot principal, en attente de rattachement effectif - traité côté
+          // serveur (sync_lot_approval) une fois ce lot validé.
+          if (pendingChildLotIds != null && pendingChildLotIds.isNotEmpty)
+            "pendingChildLotIds": pendingChildLotIds,
+          // Achat par société : propriété de CE lot précisément (un même
+          // utilisateur peut posséder plusieurs lots, achetés ou non via une
+          // société) - jamais sur users/{uid} lui-même.
+          if (compagnyBuy != null) "compagnyBuy": compagnyBuy,
         }, SetOptions(merge: true));
 
         if (residenceId != null) {
@@ -676,6 +687,8 @@ class FirestoreUserRepository implements IUserRepository {
     Timestamp? entryDate,
     String colorSelected = "ff48775b",
     String nameLot = "",
+    List<String>? pendingChildLotIds,
+    bool? compagnyBuy,
   }) async {
     try {
       final userLotRef = _firestore
@@ -695,6 +708,17 @@ class FirestoreUserRepository implements IUserRepository {
         // Tant qu'une personne n'a pas revérifié les documents déposés
         // pour ce lot, il reste bloqué (cf. isApprovedLot dans Lot).
         "isApprovedLot": false,
+        // Lots enfants (parking/cave...) sélectionnés en même temps que ce
+        // lot principal, en attente de rattachement effectif - traité côté
+        // serveur (sync_lot_approval, functions_python/main.py) une fois ce
+        // lot validé (isApprovedLot: true), pas avant (cf. project note lot
+        // enfant : l'utilisateur n'est encore propriétaire de rien tant que
+        // ce lot n'est pas validé).
+        if (pendingChildLotIds != null && pendingChildLotIds.isNotEmpty)
+          "pendingChildLotIds": pendingChildLotIds,
+        // Achat par société : propriété de CE lot précisément, jamais de
+        // users/{uid} lui-même.
+        if (compagnyBuy != null) "compagnyBuy": compagnyBuy,
       };
 
       await userLotRef.set(lotData, SetOptions(merge: true));

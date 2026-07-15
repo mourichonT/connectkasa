@@ -24,8 +24,10 @@ abstract interface class IUserRepository {
     String? companyName,
     String? intentedFor,
     String? statutResident,
-    String? fcmToken,
-  );
+    String? fcmToken, [
+    List<String>? pendingChildLotIds,
+    bool? compagnyBuy,
+  ]);
 
   Future<Result<void>> updateFcmToken({
     required String uid,
@@ -111,6 +113,8 @@ abstract interface class IUserRepository {
     Timestamp? entryDate,
     String colorSelected,
     String nameLot,
+    List<String>? pendingChildLotIds,
+    bool? compagnyBuy,
   });
 
   Future<Result<void>> markDemandeAsRead(String userId, String demandeId);

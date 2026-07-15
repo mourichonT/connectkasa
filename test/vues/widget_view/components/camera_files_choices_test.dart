@@ -36,6 +36,18 @@ class _FakeStorageRepository implements IStorageRepository {
   }
 
   @override
+  Future<Result<String>> copyFile({
+    required String sourceUrl,
+    required String racine,
+    required String residence,
+    required String folderName,
+    required String lotId,
+    required String extension,
+  }) async {
+    return const Result.success('https://example.com/fake-copy.png');
+  }
+
+  @override
   Future<Result<void>> removeFolder(String racine, String folder) async {
     return const Result.success(null);
   }

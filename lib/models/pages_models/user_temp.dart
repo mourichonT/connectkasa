@@ -4,7 +4,6 @@ import 'package:konodal/models/pages_models/user.dart';
 class UserTemp extends User {
   // String statutResident;
   String typeLot;
-  bool? compagnyBuy;
 
   UserTemp({
     required super.privacyPolicy,
@@ -22,7 +21,6 @@ class UserTemp extends User {
     //required this.statutResident,
     required this.typeLot,
     required super.birthday,
-    this.compagnyBuy,
   });
 
   factory UserTemp.fromMap(Map<String, dynamic> map) {
@@ -41,7 +39,6 @@ class UserTemp extends User {
         isApproved: map['isApproved'] ?? false,
         //statutResident: map['statutResident'],
         typeLot: map['typeLot'],
-        compagnyBuy: map['compagnyBuy'] ?? false,
         );
   }
 
@@ -50,7 +47,6 @@ class UserTemp extends User {
     var map = super.toMap();
     map['email'] = email;
     // map['statutResident'] = statutResident;
-    map['compagnyBuy'] = compagnyBuy ?? false;
     map['createdDate'] = createdDate ?? Timestamp.now();
     return map;
   }

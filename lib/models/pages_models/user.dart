@@ -23,6 +23,13 @@ class User {
   bool isApproved;
   bool privacyPolicy;
   Map<String, bool> notificationPrefs;
+  // 'utilisateur' | 'professionnel' | 'superAdmin' - cette app (résident)
+  // ne crée jamais que des comptes 'utilisateur' ; les deux autres types
+  // sont créés hors-app (futur backoffice web) et n'ont pas leur place
+  // dans cette interface, cf. LoginTransitionPage qui bloque l'accès si
+  // ce n'est pas 'utilisateur'. Verrouillé côté firestore.rules comme
+  // isApproved (non modifiable par le client une fois créé).
+  String accountType;
 
   // Regroupés sous 'profil' côté Firestore ; getters/setters ci-dessous.
   String? pseudo;
@@ -52,6 +59,7 @@ class User {
     this.bio,
     this.phone = "",
     this.isInfoCorrect = false,
+    this.accountType = 'utilisateur',
     Map<String, bool>? notificationPrefs,
   }) : notificationPrefs = notificationPrefs ?? NotificationType.defaultPrefs {
     _profilPic = profilPic;
@@ -96,6 +104,7 @@ class User {
       nationality: userGroup['nationality'] ?? "",
       placeOfborn: userGroup['placeOfborn'] ?? "",
       isInfoCorrect: userGroup['isInfoCorrect'] ?? false,
+      accountType: map['accountType'] ?? 'utilisateur',
       pseudo: profilGroup['pseudo'] ?? "",
       uid: map['uid'] ?? "",
       bio: profilGroup['bio'] ?? "",
@@ -116,6 +125,7 @@ class User {
     return {
       'privacyPolicy': privacyPolicy,
       'isApproved': isApproved,
+      'accountType': accountType,
       'createdDate': createdDate,
       'uid': uid,
       'email': email,

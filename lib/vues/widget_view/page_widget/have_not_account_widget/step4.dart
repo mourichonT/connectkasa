@@ -36,6 +36,9 @@ class Step4 extends StatefulWidget {
   // métier) : sert à ranger le justificatif de domicile dans son
   // sous-dossier de lot dans Storage.
   final String? lotDocId;
+  // Lots enfants (parking/cave...) sélectionnés sur Step2, en attente de
+  // rattachement effectif une fois ce lot principal validé.
+  final List<String> pendingChildLotIds;
   final String typeLot;
   final String kbisPath;
   final String kbisExtension;
@@ -67,6 +70,7 @@ class Step4 extends StatefulWidget {
     required this.intendedFor,
     required this.refLot,
     this.lotDocId,
+    this.pendingChildLotIds = const [],
     required this.userId,
     required this.typeLot,
     required this.emailUser,
@@ -255,6 +259,7 @@ class _Step4State extends State<Step4> {
                           birthday: widget.birthday,
                           informationsCorrectes: widget.informationsCorrectes,
                           fcmToken: fmcToken,
+                          pendingChildLotIds: widget.pendingChildLotIds,
                         );
                       } catch (e) {
                         if (!context.mounted) return;

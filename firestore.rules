@@ -62,11 +62,18 @@ service cloud.firestore {
       // Recherche par email/refApp (ajout locataire/garant), affichage
       // profil (ProfilTile) dans posts/chat/commentaires partout dans l'app.
       allow read: if isSignedIn();
-      allow create: if isOwner(uid) && request.resource.data.isApproved == false;
-      // isApproved ne doit jamais être modifiable par le client une fois créé
-      // (seule une approbation manuelle hors-app doit pouvoir le faire).
+      allow create: if isOwner(uid) && request.resource.data.isApproved == false &&
+        request.resource.data.accountType == 'utilisateur';
+      // isApproved/accountType ne doivent jamais être modifiables par le
+      // client une fois créés (seule une approbation manuelle hors-app, ou
+      // le futur backoffice web pour accountType, peut les changer). Les
+      // comptes créés avant l'ajout d'accountType n'ont pas ce champ :
+      // traité comme 'utilisateur' par défaut des deux côtés de la
+      // comparaison, pour ne pas bloquer leurs mises à jour normales.
       allow update: if isOwner(uid) &&
-        request.resource.data.isApproved == resource.data.isApproved;
+        request.resource.data.isApproved == resource.data.isApproved &&
+        (('accountType' in request.resource.data) ? request.resource.data.accountType : 'utilisateur') ==
+        (('accountType' in resource.data) ? resource.data.accountType : 'utilisateur');
       // Suppression gérée par le flux dédié (Auth supprimé d'abord, puis
       // purge des données), jamais par un delete direct depuis le client.
       allow delete: if false;

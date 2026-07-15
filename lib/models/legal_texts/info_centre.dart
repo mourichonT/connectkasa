@@ -5,4 +5,6 @@ class InfoCentre {
       """Ces informations sont extraites des documents d'identité que vous avez transmis, elles ne peuvent pas être modifiées.""";
   static const String noApprovalAccount =
       """Votre compte est en cours de création. Nos équipes vérifient actuellement les documents envoyés. Dès que cette étape sera terminée, vous recevrez un e-mail confirmant l'activation de votre espace.""";
+  static const String wrongAccountType =
+      """Ce compte n'est pas un compte résident. Merci d'utiliser l'espace dédié à votre profil.""";
 }
