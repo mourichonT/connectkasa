@@ -479,6 +479,59 @@ def sync_lot_tenants(event: firestore_fn.Event) -> None:
 
     before_data = (before.to_dict() or {}) if before and before.exists else {}
     after_data = (after.to_dict() or {}) if after and after.exists else {}
+
+    db = firestore.client()
+    residence_id = event.params["residenceId"]
+    lot_id = event.params["lotId"]
+    lots_ref = db.collection("residences").document(residence_id).collection("lots")
+
+    # --- Lot enfant (ex: parking rattaché à un appartement) ---
+    # Si le lien (parentLotId) vient d'être créé, ou que groupedWithParent
+    # vient de changer, on aligne CE lot sur l'état actuel de son parent
+    # avant toute autre logique : idProprietaire toujours (tant que
+    # parentLotId est défini, jamais de divergence), idLocataire seulement
+    # si groupedWithParent est vrai. On n'écrit que ce qui diffère
+    # réellement (sinon ce trigger se re-déclencherait indéfiniment une fois
+    # convergé), et on s'arrête là : l'écriture ci-dessous re-déclenche ce
+    # même trigger, qui fera alors la dénormalisation users/{uid}/lots
+    # normalement (comme n'importe quel autre changement d'idLocataire/
+    # idProprietaire).
+    parent_lot_id = after_data.get("parentLotId")
+    link_just_changed = (
+        parent_lot_id != before_data.get("parentLotId")
+        or bool(after_data.get("groupedWithParent"))
+        != bool(before_data.get("groupedWithParent"))
+    )
+    if parent_lot_id and link_just_changed and after is not None and after.exists:
+        parent_snap = lots_ref.document(parent_lot_id).get()
+        parent_data = parent_snap.to_dict() or {} if parent_snap.exists else {}
+        # Garde-fous : lot parent introuvable, dans une autre résidence, ou
+        # lui-même enfant d'un autre lot (pas de chaîne à plus d'un niveau) ;
+        # et CE lot (l'enfant) doit être isLinkable=true - décidé par un CS
+        # member à la création (manage_list_lot.dart), jamais par le
+        # propriétaire, pour empêcher qu'un propriétaire lie un logement
+        # principal à un autre pour s'y ajouter sans fournir de justificatif.
+        # A faire respecter surtout côté UI/règles Firestore, ceci n'est
+        # qu'un filet de sécurité serveur supplémentaire.
+        valid_parent = (
+            parent_snap.exists
+            and parent_data.get("residenceId") == residence_id
+            and not parent_data.get("parentLotId")
+            and bool(after_data.get("isLinkable"))
+        )
+        if valid_parent:
+            child_updates = {}
+            parent_owners = sorted(parent_data.get("idProprietaire") or [])
+            if parent_owners != sorted(after_data.get("idProprietaire") or []):
+                child_updates["idProprietaire"] = parent_owners
+            if after_data.get("groupedWithParent"):
+                parent_tenants = sorted(parent_data.get("idLocataire") or [])
+                if parent_tenants != sorted(after_data.get("idLocataire") or []):
+                    child_updates["idLocataire"] = parent_tenants
+            if child_updates:
+                after.reference.update(child_updates)
+                return
+
     before_tenants = set(before_data.get("idLocataire") or [])
     after_tenants = set(after_data.get("idLocataire") or [])
     before_owners = set(before_data.get("idProprietaire") or [])
@@ -491,12 +544,16 @@ def sync_lot_tenants(event: firestore_fn.Event) -> None:
     # dénormalisation - "Détacher ce lot" (auto-retrait) est le seul cas
     # géré ici.
     removed_owners = before_owners - after_owners
-    if not removed_tenants and not added_tenants and not removed_owners:
+    owners_changed = before_owners != after_owners
+    tenants_changed = before_tenants != after_tenants
+    if (
+        not removed_tenants
+        and not added_tenants
+        and not removed_owners
+        and not owners_changed
+        and not tenants_changed
+    ):
         return
-
-    db = firestore.client()
-    residence_id = event.params["residenceId"]
-    lot_id = event.params["lotId"]
 
     for uid in removed_tenants:
         _recompute_tenant_denormalization(db, uid, lot_id_just_removed=lot_id)
@@ -540,6 +597,27 @@ def sync_lot_tenants(event: firestore_fn.Event) -> None:
         # propriétaire dans leur sharedWithLandlords.
         for tenant_uid in after_tenants:
             _recompute_tenant_denormalization(db, tenant_uid)
+
+    # --- Répercute vers les lots enfants rattachés à CE lot ---
+    # idProprietaire est toujours répercuté (tant que parentLotId est
+    # défini côté enfant, jamais de propriétaire différent) ; idLocataire
+    # seulement vers les enfants groupés (groupedWithParent=true). Chaque
+    # écriture ci-dessous re-déclenche ce même trigger pour l'enfant
+    # concerné, qui gère alors users/{uid}/lots normalement.
+    if owners_changed or tenants_changed:
+        for child_snap in lots_ref.where("parentLotId", "==", lot_id).stream():
+            child_data = child_snap.to_dict() or {}
+            child_updates = {}
+            if owners_changed:
+                new_owners = sorted(after_owners)
+                if new_owners != sorted(child_data.get("idProprietaire") or []):
+                    child_updates["idProprietaire"] = new_owners
+            if tenants_changed and child_data.get("groupedWithParent"):
+                new_tenants = sorted(after_tenants)
+                if new_tenants != sorted(child_data.get("idLocataire") or []):
+                    child_updates["idLocataire"] = new_tenants
+            if child_updates:
+                child_snap.reference.update(child_updates)
 
 
 # ---------------------------------------------------------------------------

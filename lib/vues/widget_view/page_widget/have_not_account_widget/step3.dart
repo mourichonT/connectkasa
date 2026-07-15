@@ -109,6 +109,17 @@ class _Step3State extends ConsumerState<Step3> {
                       setState(() {
                         appLog(value);
                         typeChoice = value;
+                        // Les listes bâtiment/numéro sont filtrées par type
+                        // de bien (évite de résoudre le mauvais lot si deux
+                        // types partagent un jour le même bâtiment/numéro) -
+                        // il faut donc les recharger à chaque changement de
+                        // type, comme _numLotFuture l'est déjà au choix du
+                        // bâtiment.
+                        batChoice = "";
+                        lotChoice = "";
+                        visible = false;
+                        _typeBatFuture = getBatimentLot(widget.residence);
+                        _numLotFuture = getSpecificLot(widget.residence);
                       });
                     },
                   );
@@ -116,7 +127,11 @@ class _Step3State extends ConsumerState<Step3> {
               },
             ),
             Visibility(
-              visible: typeChoice == "Appartement",
+              // Bâtiment/numéro s'appliquent à tout type de bien (parking,
+              // cave...), pas seulement "Appartement" - sans quoi aucun
+              // autre type ne pouvait jamais aller plus loin (le bouton
+              // "Suivant" dépend de ce numéro, jamais renseignable).
+              visible: typeChoice.isNotEmpty,
               child: Column(children: [
                 Padding(
                   padding:
@@ -174,7 +189,7 @@ class _Step3State extends ConsumerState<Step3> {
                         } else {
                           return MyDropDownMenu(
                             width,
-                            "Numéro d'appartement",
+                            "Numéro",
                             lotChoice == ""
                                 ? "Sélectionnez le numéro"
                                 : lotChoice!,
@@ -240,8 +255,10 @@ class _Step3State extends ConsumerState<Step3> {
 
     Set<String> batimentsUniques = {};
 
+    // Filtré par type de bien sélectionné : évite de proposer/résoudre le
+    // mauvais lot si deux types partagent un jour le même bâtiment/numéro.
     for (Lot lot in lotsTrouves) {
-      if (lot.batiment != null) {
+      if (lot.typeLot == typeChoice && lot.batiment != null) {
         batimentsUniques.add(lot.batiment!);
       }
     }
@@ -259,8 +276,11 @@ class _Step3State extends ConsumerState<Step3> {
 
     Set<String> lotsUniques = {};
 
+    // Filtré par type de bien sélectionné, comme getBatimentLot ci-dessus.
     for (Lot lot in lotsTrouves) {
-      if (lot.lot != null && (batiment == null || lot.batiment == batiment)) {
+      if (lot.typeLot == typeChoice &&
+          lot.lot != null &&
+          (batiment == null || lot.batiment == batiment)) {
         lotsUniques.add(lot.lot!);
       }
     }

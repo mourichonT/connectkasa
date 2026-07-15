@@ -462,4 +462,74 @@ class FirestoreLotRepository implements ILotRepository {
       return Result.failure(AppException.from(e));
     }
   }
+
+  @override
+  Future<Result<void>> linkLotToParent(
+      String residenceId, String idLot, String parentLotId) async {
+    try {
+      await _firestore
+          .collection("residences")
+          .doc(residenceId)
+          .collection("lots")
+          .doc(idLot)
+          .update({
+        "parentLotId": parentLotId,
+        "groupedWithParent": true,
+      });
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> unlinkLot(String residenceId, String idLot) async {
+    try {
+      await _firestore
+          .collection("residences")
+          .doc(residenceId)
+          .collection("lots")
+          .doc(idLot)
+          .update({
+        "parentLotId": FieldValue.delete(),
+        "groupedWithParent": false,
+      });
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> setGroupedWithParent(
+      String residenceId, String idLot, bool grouped) async {
+    try {
+      await _firestore
+          .collection("residences")
+          .doc(residenceId)
+          .collection("lots")
+          .doc(idLot)
+          .update({"groupedWithParent": grouped});
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<List<Lot>>> getChildLots(
+      String residenceId, String idLot) async {
+    try {
+      final query = await _firestore
+          .collection("residences")
+          .doc(residenceId)
+          .collection("lots")
+          .where("parentLotId", isEqualTo: idLot)
+          .get();
+      return Result.success(
+          query.docs.map((doc) => Lot.fromMap(doc.data())).toList());
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
 }

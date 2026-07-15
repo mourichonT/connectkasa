@@ -4,6 +4,7 @@ import 'package:konodal/core/repositories/lot_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,6 +30,7 @@ class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
   TextEditingController name = TextEditingController();
   String? selectedStatut;
   bool isProprietaire = false;
+  Future<List<Lot>>? _childLotsFuture;
 
   FocusNode nameFocusNode = FocusNode();
 
@@ -40,6 +42,9 @@ class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
     nameFocusNode.addListener(() => setState(() {}));
     name.addListener(_handleTextChange);
     _loadProperty();
+    _childLotsFuture = lotServices
+        .getChildLots(widget.lot.residenceId, widget.lot.id!)
+        .then((result) => result.when(success: (v) => v, failure: (_) => <Lot>[]));
   }
 
   @override
@@ -72,20 +77,12 @@ class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         child: Column(
           children: <Widget>[
-            _buildReadOnlyTextField('Type', widget.lot.typeLot),
-            _buildReadOnlyTextField(
-                'Residence', widget.lot.residenceData['name']),
-            _buildReadOnlyTextField('Référence Lot', widget.lot.refLot),
-            _buildReadOnlyTextField('Bâtiment', widget.lot.batiment),
-            _buildReadOnlyTextField('Lot', widget.lot.lot),
-            _buildReadOnlyTextField(
-                'Adresse', widget.lot.residenceAddress["street"]),
-            _buildReadOnlyTextField(
-                'Code Postal', widget.lot.residenceAddress["zipCode"]),
-            _buildReadOnlyTextField('Ville', widget.lot.residenceAddress["city"]),
+            _buildLotCard("Lot principal", widget.lot,
+                includeResidenceInfo: true),
+            _buildChildLotsSection(),
             const SizedBox(
               height: 80,
             )
@@ -110,28 +107,67 @@ class ModifyPropDetailsState extends ConsumerState<ModifyPropDetails> {
     );
   }
 
-  Widget _buildReadOnlyTextField(String label, String? value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: TextField(
-        controller: TextEditingController(text: value ?? ''),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(
-            color: Colors.black54,
-            fontWeight: FontWeight.w400,
-          ),
-          enabled: false,
-          border: const UnderlineInputBorder(
-            borderSide: BorderSide(
-              color: Colors.grey,
-              width: 1.0,
-            ),
-          ),
-        ),
-        style: TextStyle(
-          color: Colors.black54,
-          fontSize: SizeFont.h3.size,
+  // Un lot rattaché (parentLotId pointant vers widget.lot) partage le même
+  // propriétaire (toujours) et, si groupé, le même locataire : sa fiche
+  // reste consultable ici plutôt que par sa propre page, potentiellement
+  // inatteignable tant qu'il reste groupé (cf. project_lot_parent_child).
+  Widget _buildChildLotsSection() {
+    return FutureBuilder<List<Lot>>(
+      future: _childLotsFuture,
+      builder: (context, snapshot) {
+        final children = snapshot.data ?? <Lot>[];
+        if (children.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (final child in children)
+              _buildLotCard("Lot rattaché", child,
+                  includeResidenceInfo: false),
+          ],
+        );
+      },
+    );
+  }
+
+  // Même regroupement par carte que la gestion des lots (manage_list_lot.dart)
+  // et la gestion de la résidence (management_res_info_g.dart) : un Card
+  // (élévation 2, coins arrondis) contenant les champs en lecture seule
+  // (CustomTextFieldWidget, isEditable: false) - includeResidenceInfo est
+  // omis pour un lot rattaché, déjà dans la même résidence que le principal.
+  Widget _buildLotCard(String title, Lot lot,
+      {required bool includeResidenceInfo}) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            MyTextStyle.lotName(title, Colors.black87, SizeFont.h3.size),
+            const SizedBox(height: 10),
+            CustomTextFieldWidget(label: 'Type', value: lot.typeLot),
+            if (includeResidenceInfo)
+              CustomTextFieldWidget(
+                  label: 'Résidence',
+                  value: lot.residenceData['name']?.toString() ?? ''),
+            CustomTextFieldWidget(label: 'Référence Lot', value: lot.refLot),
+            CustomTextFieldWidget(label: 'Bâtiment', value: lot.batiment ?? ''),
+            CustomTextFieldWidget(label: 'Lot', value: lot.lot ?? ''),
+            if (includeResidenceInfo) ...[
+              CustomTextFieldWidget(
+                  label: 'Adresse',
+                  value: lot.residenceAddress['street']?.toString() ?? ''),
+              CustomTextFieldWidget(
+                  label: 'Code Postal',
+                  value: lot.residenceAddress['zipCode']?.toString() ?? ''),
+              CustomTextFieldWidget(
+                  label: 'Ville',
+                  value: lot.residenceAddress['city']?.toString() ?? ''),
+            ],
+          ],
         ),
       ),
     );

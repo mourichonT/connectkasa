@@ -217,7 +217,29 @@ service cloud.firestore {
            request.auth.uid in resource.data.idLocataire &&
            !(request.auth.uid in request.resource.data.idLocataire) &&
            request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['idLocataire', 'idLocataireOld']));
+             .hasOnly(['idLocataire', 'idLocataireOld'])) ||
+          // Lier/délier/regrouper (ModifyProperty) : réservé au propriétaire
+          // de CE lot. Déliaison (parentLotId absent/null dans la nouvelle
+          // valeur) toujours autorisée. Liaison/regroupement : CE lot
+          // (l'enfant) doit être isLinkable=true (décidé par un CS member à
+          // la création, jamais par le propriétaire - empêche de lier un
+          // logement principal entier à un autre pour s'y ajouter sans
+          // justificatif), ET le propriétaire doit aussi posséder le lot
+          // parent visé (jamais de transfert de propriété involontaire -
+          // sync_lot_tenants aligne ensuite idProprietaire/idLocataire de
+          // l'enfant sur le parent avec des privilèges admin).
+          (isSignedIn() &&
+           request.auth.uid in resource.data.idProprietaire &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['parentLotId', 'groupedWithParent']) &&
+           (
+             !('parentLotId' in request.resource.data) ||
+             request.resource.data.parentLotId == null ||
+             (
+               resource.data.isLinkable == true &&
+               request.auth.uid in get(/databases/$(database)/documents/residences/$(residenceId)/lots/$(request.resource.data.parentLotId)).data.idProprietaire
+             )
+           ));
       }
 
       match /posts/{postId} {

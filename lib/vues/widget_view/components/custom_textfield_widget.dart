@@ -147,7 +147,7 @@ class CustomTextFieldWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (label != null && label!.isEmpty)
+        if (label != null && label!.isNotEmpty)
           MyTextStyle.lotName(label!, Colors.black45),
         Padding(
           padding: const EdgeInsets.only(left: 0.0, top: 10, bottom: 10),

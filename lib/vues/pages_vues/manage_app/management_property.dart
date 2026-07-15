@@ -37,16 +37,30 @@ class ManagementPropertyState extends ConsumerState<ManagementProperty> {
     _databasesLotServices = ref.read(lotRepositoryProvider);
     _lotByUser = _databasesLotServices
         .getLotByIdUser(widget.uid)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (_) => <Lot>[]));
+        .then((result) => result.when(
+            success: _onlyApprovedLots, failure: (_) => <Lot>[]));
     super.initState();
   }
+
+  // Un lot dont isApprovedLot est encore false n'a pas été vérifié
+  // (justificatifs non validés) : il ne doit pas apparaître ici comme un
+  // bien accessible, sous peine de laisser croire à un accès approuvé alors
+  // qu'aucun contrôle n'a eu lieu. Un lot enfant groupé (groupedWithParent)
+  // est fusionné avec son parent (même propriétaire ET même locataire) :
+  // il ne doit plus apparaître comme un bien distinct tant qu'il reste
+  // groupé (cf. project_lot_parent_child) - sa page de gestion propre
+  // n'est alors plus atteignable, cette liste étant l'unique point d'entrée.
+  List<Lot> _onlyApprovedLots(List<Lot> lots) => lots
+      .where((lot) =>
+          lot.userLotDetails['isApprovedLot'] == true &&
+          !lot.groupedWithParent)
+      .toList();
 
   Future<List<Lot?>> _fetchLotsByUser() async {
     _lotByUser = _databasesLotServices
         .getLotByIdUser(widget.uid)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (_) => <Lot>[]));
+        .then((result) => result.when(
+            success: _onlyApprovedLots, failure: (_) => <Lot>[]));
 
     return await _lotByUser;
   }

@@ -83,13 +83,20 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
   // reste bloqué tant qu'une personne n'a pas revérifié les documents
   // déposés (isApprovedLot, cf. addLotToUser/setUser) : on ne le propose
   // donc ni comme lot par défaut, ni dans la liste soumise au sélecteur.
+  // Un lot enfant groupé (groupedWithParent=true) est fusionné avec son
+  // parent (même propriétaire ET même locataire) : l'afficher séparément
+  // ferait doublon, exactement ce que le rattachement parent-enfant visait
+  // à éviter - masqué tant qu'il reste groupé, ré-affiché dès qu'il est
+  // dégroupé (locataire potentiellement distinct, cf. project_lot_parent_child).
   Future<List<Lot>> _fetchApprovedLots() async {
     final allLots = await _databasesLotServices
         .getLotByIdUser(widget.uid)
         .then((result) =>
             result.when(success: (v) => v, failure: (_) => <Lot>[]));
     return allLots
-        .where((lot) => lot.userLotDetails['isApprovedLot'] == true)
+        .where((lot) =>
+            lot.userLotDetails['isApprovedLot'] == true &&
+            !lot.groupedWithParent)
         .toList();
   }
 

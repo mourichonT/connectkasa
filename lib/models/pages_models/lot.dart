@@ -16,6 +16,24 @@ class Lot {
   // Historique des locataires révoqués de ce lot (onglet "Historique" de
   // ManagementTenant) - jamais null, [] par défaut.
   List<FormerTenant> idLocataireOld;
+  // Lien parent-enfant entre lots d'une même résidence (ex: un parking
+  // rattaché à un appartement) - cf. project_lot_parent_child (mémoire) :
+  // parentLotId est permanent (idProprietaire du parent toujours recopié
+  // vers l'enfant, tant qu'il est défini) ; groupedWithParent est une
+  // bascule indépendante (idLocataire recopié seulement si true - locataire
+  // indépendant possible sinon). Géré côté serveur par sync_lot_tenants,
+  // jamais modifié directement par le client ailleurs que via l'action de
+  // liaison/déliaison dédiée.
+  String? parentLotId;
+  bool groupedWithParent;
+  // Un lot ne peut devenir enfant (parentLotId) que si isLinkable est vrai -
+  // décidé par un CS member à la création du lot (manage_list_lot.dart),
+  // jamais par le propriétaire : empêche qu'un propriétaire lie un
+  // appartement entier à un autre pour s'y ajouter sans fournir aucun
+  // justificatif. Défaut par type (defaultIsLinkableForType) : faux pour un
+  // logement principal (appartement, maison/villa...), vrai pour un lot
+  // dépendant (parking, cave...).
+  bool isLinkable;
   String residenceId;
   Map<String, dynamic> residenceData;
   Map<String, dynamic> userLotDetails;
@@ -42,6 +60,21 @@ class Lot {
   /// référencée dans gerances (pas encore résolue localement) ou custom.
   bool get hasAgency => syndicAgency != null || geranceRef != null;
 
+  /// Valeur par défaut suggérée pour isLinkable selon le type de bien -
+  /// utilisée pour pré-remplir le switch dans manage_list_lot.dart,
+  /// librement ajustable ensuite par le CS member.
+  static bool defaultIsLinkableForType(String typeLot) {
+    const mainDwellingTypes = {
+      "Appartement",
+      "Maison/Villa",
+      "Local commercial",
+      "Bureau",
+      "Terrain nu",
+      "Hangar/Entrepôt",
+    };
+    return !mainDwellingTypes.contains(typeLot);
+  }
+
   Lot({
     String nameProp = "",
     String nameLoc = "",
@@ -55,6 +88,9 @@ class Lot {
     required this.idProprietaire,
     this.idLocataire,
     this.idLocataireOld = const [],
+    this.parentLotId,
+    this.groupedWithParent = false,
+    this.isLinkable = false,
     required this.residenceId,
     required this.residenceData,
     required this.userLotDetails,
@@ -95,6 +131,9 @@ class Lot {
                       ))
                   .toList()
               : [],
+      parentLotId: json["parentLotId"],
+      groupedWithParent: json["groupedWithParent"] ?? false,
+      isLinkable: json["isLinkable"] ?? false,
       residenceId: json["residenceId"] ?? "",
       residenceData: json["residenceData"] != null
           ? Map<String, dynamic>.from(json["residenceData"])
@@ -132,6 +171,9 @@ class Lot {
                 'leftAt': e.leftAt.millisecondsSinceEpoch,
               })
           .toList(),
+      "parentLotId": parentLotId,
+      "groupedWithParent": groupedWithParent,
+      "isLinkable": isLinkable,
       "residenceId": residenceId,
       "residenceData": residenceData,
       'userLotDetails': userLotDetails,
@@ -177,6 +219,9 @@ class Lot {
               .map((e) => FormerTenant.fromMap(Map<String, dynamic>.from(e)))
               .toList()
           : [],
+      parentLotId: map['parentLotId'],
+      groupedWithParent: map['groupedWithParent'] ?? false,
+      isLinkable: map['isLinkable'] ?? false,
       residenceId: map["residenceId"] ?? "",
       residenceData: map["residenceData"] != null
           ? Map<String, dynamic>.from(map["residenceData"])
@@ -202,6 +247,7 @@ class Lot {
       if (lot != null) "lot": lot,
       if (typeLot.isNotEmpty) "typeLot": typeLot,
       if (type.isNotEmpty) "type": type,
+      "isLinkable": isLinkable,
       if (idProprietaire != null) "idProprietaire": idProprietaire,
       if (syndicAgency != null) "syndicAgency": syndicAgency!.toJson(),
       if (geranceRef != null) "geranceRef": geranceRef!.toJson(),

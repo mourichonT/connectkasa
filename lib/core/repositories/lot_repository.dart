@@ -45,4 +45,23 @@ abstract interface class ILotRepository {
   Future<Result<void>> createOrUpdateLot(String residenceId, Lot lot);
 
   Future<Result<void>> deleteLot(String residenceId, String idLot);
+
+  /// Rattache idLot à parentLotId (même résidence) - idProprietaire/
+  /// idLocataire sont ensuite alignés sur le parent côté serveur
+  /// (sync_lot_tenants). Démarre toujours groupé (locataire commun) ;
+  /// utiliser setGroupedWithParent pour dégrouper ensuite.
+  Future<Result<void>> linkLotToParent(
+      String residenceId, String idLot, String parentLotId);
+
+  /// Supprime le lien de parenté - idProprietaire/idLocataire actuels sont
+  /// conservés tels quels, mais redeviennent gérables indépendamment.
+  Future<Result<void>> unlinkLot(String residenceId, String idLot);
+
+  /// Bascule le partage du locataire avec le lot parent (idProprietaire
+  /// reste toujours aligné, indépendamment de cette bascule).
+  Future<Result<void>> setGroupedWithParent(
+      String residenceId, String idLot, bool grouped);
+
+  /// Lots de la résidence ayant idLot comme parentLotId.
+  Future<Result<List<Lot>>> getChildLots(String residenceId, String idLot);
 }

@@ -284,8 +284,35 @@ class _ManageListLotState extends State<ManageListLot> {
                                   onValueChanged: (value) {
                                     setState(() {
                                       lot.typeLot = value;
+                                      // Suggestion par défaut selon le type -
+                                      // ajustable ensuite via le switch
+                                      // ci-dessous (ex: un local commercial
+                                      // exceptionnellement rattachable).
+                                      lot.isLinkable =
+                                          Lot.defaultIsLinkableForType(value);
                                     });
                                   },
+                                ),
+                                const SizedBox(height: 10),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: MyTextStyle.lotDesc(
+                                        "Rattachable à un autre lot (ex: parking, cave)",
+                                        SizeFont.h3.size,
+                                      ),
+                                    ),
+                                    Switch(
+                                      value: lot.isLinkable,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          lot.isLinkable = value;
+                                        });
+                                      },
+                                    ),
+                                  ],
                                 ),
                                 const SizedBox(height: 10),
                                 MyDropDownMenu(
