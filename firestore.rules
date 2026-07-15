@@ -246,8 +246,9 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow update: if isCsMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
       // Création/suppression d'une résidence hors périmètre de l'app
-      // (fait manuellement, accès privilégié via Console).
-      allow create, delete: if false;
+      // résident : réservée au backoffice web (konodal_bo), donc gatée sur
+      // isSuperAdmin() plutôt que bloquée totalement.
+      allow create, delete: if isSuperAdmin();
 
       match /lots/{lotId} {
         // Comme pour residences/{id} : un nouvel utilisateur doit pouvoir
