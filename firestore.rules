@@ -57,6 +57,58 @@ service cloud.firestore {
         request.auth.uid in get(/databases/$(database)/documents/residences/$(residenceId)/lots/$(lotId)).data.idProprietaire;
     }
 
+    // ---------- Rôles de compte (accountType) : préparation backoffice web ----------
+    // accountType ('utilisateur'|'professionnel'|'superAdmin') est verrouillé
+    // côté client (cf. règle users/{uid} plus bas) : seul le futur backoffice
+    // web (Admin SDK, hors règles) peut le positionner à autre chose que
+    // 'utilisateur'. Ces helpers restent inertes tant qu'aucun compte de ce
+    // type n'existe - cf. project note "rôles de compte".
+
+    // Super Admin plateforme : accès complet à toute résidence/lot. Ajouté en
+    // || sur les règles ci-dessous plutôt qu'un bypass global en tête de
+    // fichier, pour rester visible collection par collection.
+    function isSuperAdmin() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.accountType == 'superAdmin';
+    }
+
+    // Agent d'une gérance pour un service donné (serviceSyndic ou
+    // geranceLocative) : dénormalisé sur gerances/{id}.serviceSyndicAgentUids
+    // / geranceLocativeAgentUids (tableaux plats d'UIDs, à maintenir par le
+    // futur backoffice web à partir de services.<type>.agents[].uid - les
+    // règles ne peuvent pas vérifier l'appartenance à un tableau d'objets).
+    // 'in' sur un champ absent lève une erreur : gardé par 'x in gerance'.
+    function isSyndicAgent(geranceId) {
+      let gerance = get(/databases/$(database)/documents/gerances/$(geranceId)).data;
+      return isSignedIn() && 'serviceSyndicAgentUids' in gerance &&
+        request.auth.uid in gerance.serviceSyndicAgentUids;
+    }
+
+    function isGeranceLocativeAgent(geranceId) {
+      let gerance = get(/databases/$(database)/documents/gerances/$(geranceId)).data;
+      return isSignedIn() && 'geranceLocativeAgentUids' in gerance &&
+        request.auth.uid in gerance.geranceLocativeAgentUids;
+    }
+
+    // Un Professionnel "serviceSyndic" a accès à TOUTE la résidence (le
+    // syndic gère l'immeuble entier) ; un Professionnel "geranceLocative"
+    // n'a accès qu'au(x) LOT(S) précis référençant sa gérance (cf.
+    // isProfessionnelLot), jamais à toute la résidence - granularité validée
+    // avec l'utilisateur (project note "rôles de compte").
+    function isProfessionnelResidence(residenceId) {
+      let residence = get(/databases/$(database)/documents/residences/$(residenceId)).data;
+      return isSignedIn() && 'geranceRef' in residence &&
+        residence.geranceRef.serviceType == 'serviceSyndic' &&
+        isSyndicAgent(residence.geranceRef.geranceId);
+    }
+
+    function isProfessionnelLot(residenceId, lotId) {
+      let lot = get(/databases/$(database)/documents/residences/$(residenceId)/lots/$(lotId)).data;
+      return isSignedIn() && 'geranceRef' in lot &&
+        lot.geranceRef.serviceType == 'geranceLocative' &&
+        isGeranceLocativeAgent(lot.geranceRef.geranceId);
+    }
+
     // ---------- users ----------
     match /users/{uid} {
       // Recherche par email/refApp (ajout locataire/garant), affichage
@@ -65,15 +117,17 @@ service cloud.firestore {
       allow create: if isOwner(uid) && request.resource.data.isApproved == false &&
         request.resource.data.accountType == 'utilisateur';
       // isApproved/accountType ne doivent jamais être modifiables par le
-      // client une fois créés (seule une approbation manuelle hors-app, ou
-      // le futur backoffice web pour accountType, peut les changer). Les
-      // comptes créés avant l'ajout d'accountType n'ont pas ce champ :
-      // traité comme 'utilisateur' par défaut des deux côtés de la
-      // comparaison, pour ne pas bloquer leurs mises à jour normales.
-      allow update: if isOwner(uid) &&
+      // propriétaire du compte lui-même (seule une approbation manuelle
+      // hors-app, ou le futur backoffice web pour accountType, peut les
+      // changer) - mais un Super Admin, lui, DOIT pouvoir le faire : c'est
+      // précisément son rôle (remplacer l'approbation manuelle Console par
+      // une vraie UI). Les comptes créés avant l'ajout d'accountType n'ont
+      // pas ce champ : traité comme 'utilisateur' par défaut des deux côtés
+      // de la comparaison, pour ne pas bloquer les mises à jour normales.
+      allow update: if isSuperAdmin() || (isOwner(uid) &&
         request.resource.data.isApproved == resource.data.isApproved &&
         (('accountType' in request.resource.data) ? request.resource.data.accountType : 'utilisateur') ==
-        (('accountType' in resource.data) ? resource.data.accountType : 'utilisateur');
+        (('accountType' in resource.data) ? resource.data.accountType : 'utilisateur'));
       // Suppression gérée par le flux dédié (Auth supprimé d'abord, puis
       // purge des données), jamais par un delete direct depuis le client.
       allow delete: if false;
@@ -101,18 +155,18 @@ service cloud.firestore {
       }
 
       match /lots/{lotId} {
-        allow read: if isOwner(uid) || isCsMember(resource.data.residenceId);
+        allow read: if isOwner(uid) || isCsMember(resource.data.residenceId) || isSuperAdmin();
         allow create: if isOwner(uid) && request.resource.data.isApprovedLot == false;
-        // isApprovedLot ne doit jamais être modifiable par le client (même
-        // logique que users/{uid}.isApproved) : seule une validation manuelle
-        // (Console, après vérification humaine des documents déposés) peut
-        // le repasser à true.
-        allow update: if (isOwner(uid) || isCsMember(resource.data.residenceId)) &&
-          request.resource.data.isApprovedLot == resource.data.isApprovedLot;
-        allow delete: if isOwner(uid) || isCsMember(resource.data.residenceId);
+        // isApprovedLot ne doit jamais être modifiable par le propriétaire du
+        // compte (même logique que users/{uid}.isApproved) : seul un Super
+        // Admin peut le repasser à true (remplace la validation manuelle
+        // Console après vérification humaine des documents déposés).
+        allow update: if isSuperAdmin() || ((isOwner(uid) || isCsMember(resource.data.residenceId)) &&
+          request.resource.data.isApprovedLot == resource.data.isApprovedLot);
+        allow delete: if isOwner(uid) || isCsMember(resource.data.residenceId) || isSuperAdmin();
 
         match /documents/{docId} {
-          allow read: if isOwner(uid) || isSharedTenantDoc(uid) ||
+          allow read: if isOwner(uid) || isSharedTenantDoc(uid) || isSuperAdmin() ||
             isCsMember(get(/databases/$(database)/documents/users/$(uid)/lots/$(lotId)).data.residenceId);
           // isLotOwner résout residenceId depuis le lot du PROPRIÉTAIRE
           // AGISSANT (request.auth.uid), pas celui du destinataire {uid} :
@@ -190,7 +244,7 @@ service cloud.firestore {
       // utilisateur n'a encore aucun users/{uid} ni aucune appartenance —
       // il doit pouvoir lister/lire residences pour choisir la sienne.
       allow read: if isSignedIn();
-      allow update: if isCsMember(residenceId);
+      allow update: if isCsMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
       // Création/suppression d'une résidence hors périmètre de l'app
       // (fait manuellement, accès privilégié via Console).
       allow create, delete: if false;
@@ -201,12 +255,20 @@ service cloud.firestore {
         // (step3.dart, getLotByResidence), avant d'être membre de la
         // résidence (isResidenceMember serait toujours faux à ce stade).
         allow read: if isSignedIn();
-        allow create, delete: if isCsMember(residenceId);
+        allow create, delete: if isCsMember(residenceId) || isSuperAdmin();
         // Le propriétaire du lot peut ajouter/retirer des locataires
         // (addTenant / removeIdLocataire) sans être CS member, mais
         // uniquement sur idLocataire (+ idLocataireOld, l'historique des
         // locataires révoqués, écrit dans la même requête).
-        allow update: if isCsMember(residenceId) ||
+        allow update: if isCsMember(residenceId) || isSuperAdmin() ||
+          // Professionnel (syndic sur toute la résidence, gérance locative
+          // sur CE lot précisément) : uniquement les champs descriptifs,
+          // jamais idProprietaire/idLocataire/parentLotId/isLinkable (gérés
+          // exclusivement par CS member/Super Admin ou par le propriétaire
+          // lui-même via les branches dédiées ci-dessous).
+          ((isProfessionnelResidence(residenceId) || isProfessionnelLot(residenceId, lotId)) &&
+           request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['typeLot', 'batiment', 'lot', 'refLot', 'type'])) ||
           (isSignedIn() && request.auth.uid in resource.data.idProprietaire &&
            request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['idLocataire', 'idLocataireOld'])) ||
@@ -260,18 +322,20 @@ service cloud.firestore {
         // seul champ modifié est "like" (même pattern que les commentaires).
         allow update: if isResidenceMember(residenceId) &&
           (resource.data.user == request.auth.uid || isCsMember(residenceId) ||
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like']));
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like'])) ||
+          isSuperAdmin();
         allow delete: if isResidenceMember(residenceId) &&
-          (resource.data.user == request.auth.uid || isCsMember(residenceId));
+          (resource.data.user == request.auth.uid || isCsMember(residenceId)) ||
+          isSuperAdmin();
 
         match /signalements/{id} {
           allow create: if isResidenceMember(residenceId);
           // Affiché à tout résident de la résidence (carrousel de
           // doublons sur un post dans Homeview, "Voir plus (N)" sur les
           // tuiles sinistres/incivilités/annonces) - la modération
-          // (update/delete) reste réservée aux CS members.
+          // (update/delete) reste réservée aux CS members (+ Super Admin).
           allow read: if isResidenceMember(residenceId);
-          allow update, delete: if isCsMember(residenceId);
+          allow update, delete: if isCsMember(residenceId) || isSuperAdmin();
         }
 
         match /comments/{id} {
@@ -281,16 +345,18 @@ service cloud.firestore {
           // update() Firestore - autorisé séparément à tout résident du
           // groupe, uniquement si le seul champ modifié est "like".
           allow update: if resource.data.user == request.auth.uid || isCsMember(residenceId) ||
+            isSuperAdmin() ||
             (isResidenceMember(residenceId) &&
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like']));
-          allow delete: if resource.data.user == request.auth.uid || isCsMember(residenceId);
+          allow delete: if resource.data.user == request.auth.uid || isCsMember(residenceId) || isSuperAdmin();
 
           match /replies/{id} {
             allow read, create: if isResidenceMember(residenceId);
             allow update: if resource.data.user == request.auth.uid || isCsMember(residenceId) ||
+              isSuperAdmin() ||
               (isResidenceMember(residenceId) &&
                 request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like']));
-            allow delete: if resource.data.user == request.auth.uid || isCsMember(residenceId);
+            allow delete: if resource.data.user == request.auth.uid || isCsMember(residenceId) || isSuperAdmin();
           }
         }
       }
@@ -315,31 +381,36 @@ service cloud.firestore {
       }
 
       match /contacts/{id} {
-        allow read: if isResidenceMember(residenceId);
-        allow write: if isCsMember(residenceId);
+        // Professionnel : lecture seule (annuaire de contacts de sa
+        // résidence gérée), pas d'écriture - réservée au CS member/Admin.
+        allow read: if isResidenceMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
+        allow write: if isCsMember(residenceId) || isSuperAdmin();
       }
 
       match /structures/{id} {
-        allow read: if isResidenceMember(residenceId);
-        allow write: if isCsMember(residenceId);
+        allow read: if isResidenceMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
+        allow write: if isCsMember(residenceId) || isSuperAdmin();
       }
 
       match /documents_copro/{id} {
-        allow read: if isResidenceMember(residenceId);
-        allow write: if isCsMember(residenceId);
+        allow read: if isResidenceMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
+        allow write: if isCsMember(residenceId) || isSuperAdmin();
       }
 
       match /mail/{id} {
-        allow read, write: if isResidenceMember(residenceId);
+        allow read, write: if isResidenceMember(residenceId) || isSuperAdmin();
       }
 
       match /events/{id} {
-        allow read: if isResidenceMember(residenceId);
+        // Professionnel : volontairement AUCUN accès (communications/
+        // événements résidents hors périmètre du CS, cf. project note
+        // "rôles de compte" - décision produit explicite).
+        allow read: if isResidenceMember(residenceId) || isSuperAdmin();
         // Un non-CS ne peut créer qu'un événement de type "evenement"
         // (event_form.dart) ; un CS member peut créer tous les types.
         allow create: if isResidenceMember(residenceId) &&
           (isCsMember(residenceId) || request.resource.data.type == "evenement");
-        allow update, delete: if isCsMember(residenceId);
+        allow update, delete: if isCsMember(residenceId) || isSuperAdmin();
       }
     }
 
@@ -406,11 +477,14 @@ service cloud.firestore {
     // côté app, non sensible.
     match /gerances/{id} {
       allow read: if isSignedIn();
-      allow write: if false;
+      // Annuaire syndic/agences : édition réservée au Super Admin (futur
+      // backoffice web) - un Professionnel ne gère pas sa propre fiche
+      // gérance depuis cette app résident.
+      allow write: if isSuperAdmin();
 
       match /{document=**} {
         allow read: if isSignedIn();
-        allow write: if false;
+        allow write: if isSuperAdmin();
       }
     }
   }
