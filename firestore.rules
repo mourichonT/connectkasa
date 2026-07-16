@@ -313,7 +313,7 @@ service cloud.firestore {
       }
 
       match /posts/{postId} {
-        allow read: if isResidenceMember(residenceId);
+        allow read: if isResidenceMember(residenceId) || isSuperAdmin();
         allow create: if isResidenceMember(residenceId) &&
           request.resource.data.user == request.auth.uid;
         // Modération : un CS member peut éditer/supprimer n'importe quel
@@ -335,7 +335,7 @@ service cloud.firestore {
           // doublons sur un post dans Homeview, "Voir plus (N)" sur les
           // tuiles sinistres/incivilités/annonces) - la modération
           // (update/delete) reste réservée aux CS members (+ Super Admin).
-          allow read: if isResidenceMember(residenceId);
+          allow read: if isResidenceMember(residenceId) || isSuperAdmin();
           allow update, delete: if isCsMember(residenceId) || isSuperAdmin();
         }
 

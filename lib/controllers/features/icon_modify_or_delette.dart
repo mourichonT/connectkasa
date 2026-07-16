@@ -151,10 +151,13 @@ Widget iconModifyOrDelette(
                     Future<void> handleContinue() async {
                       try {
                         if (currentStep == 0) {
+                          // Non envoyé -> Transmis : c'est ce déclencheur
+                          // précis qui notifie la gérance par mail (une seule
+                          // fois, au moment exact de l'envoi).
                           await SubmitPostController.updatePost(
                             like: post.like,
                             uid: post.user,
-                            statut: "Prise en compte",
+                            statut: "Transmis",
                             timeStamp: post.timeStamp,
                             idPost: post.id,
                             selectedLabel: post.type,
@@ -185,9 +188,32 @@ Widget iconModifyOrDelette(
 
                           setState(() {
                             currentStep = 1;
-                            post.statut = "Prise en compte";
+                            post.statut = "Transmis";
                           });
                         } else if (currentStep == 1) {
+                          // Transmis -> En cours
+                          await SubmitPostController.updatePost(
+                            like: post.like,
+                            uid: post.user,
+                            statut: "En cours",
+                            idPost: post.id,
+                            selectedLabel: post.type,
+                            imagePath: post.pathImage,
+                            title: post.title,
+                            timeStamp: post.timeStamp,
+                            desc: post.description,
+                            anonymPost: post.hideUser,
+                            docRes: post.refResidence,
+                            localisation: post.locationElement,
+                            etage: post.locationFloor,
+                            element: post.locationDetails,
+                          );
+                          setState(() {
+                            currentStep = 2;
+                            post.statut = "En cours";
+                          });
+                        } else if (currentStep == 2) {
+                          // En cours -> Terminé
                           await SubmitPostController.updatePost(
                             like: post.like,
                             uid: post.user,
@@ -205,7 +231,7 @@ Widget iconModifyOrDelette(
                             element: post.locationDetails,
                           );
                           setState(() {
-                            currentStep = 2;
+                            currentStep = 3;
                             post.statut = "Terminé";
                           });
                         }
@@ -216,33 +242,15 @@ Widget iconModifyOrDelette(
 
                     Future<void> handleCanceled() async {
                       try {
-                        if (currentStep == 1) {
+                        // Réouverture depuis Terminé uniquement (même
+                        // restriction que l'ancien workflow à 3 étapes : le
+                        // bouton "Retour" n'est visible que sur la dernière
+                        // étape, cf. Visibility ci-dessous).
+                        if (currentStep == 3) {
                           await SubmitPostController.updatePost(
                             like: post.like,
                             uid: post.user,
-                            statut: "En attente",
-                            idPost: post.id,
-                            selectedLabel: post.type,
-                            imagePath: post.pathImage,
-                            title: post.title,
-                            timeStamp: post.timeStamp,
-                            desc: post.description,
-                            anonymPost: post.hideUser,
-                            docRes: post.refResidence,
-                            localisation: post.locationElement,
-                            etage: post.locationFloor,
-                            element: post.locationDetails,
-                          );
-
-                          setState(() {
-                            currentStep = 0;
-                            post.statut = "En attente";
-                          });
-                        } else if (currentStep == 2) {
-                          await SubmitPostController.updatePost(
-                            like: post.like,
-                            uid: post.user,
-                            statut: "Prise en compte",
+                            statut: "En cours",
                             timeStamp: post.timeStamp,
                             idPost: post.id,
                             selectedLabel: post.type,
@@ -254,11 +262,10 @@ Widget iconModifyOrDelette(
                             localisation: post.locationElement,
                             etage: post.locationFloor,
                             element: post.locationDetails,
-                            declaredDate: Timestamp.now(),
                           );
                           setState(() {
-                            currentStep = 0;
-                            post.statut = "Prise en compte";
+                            currentStep = 2;
+                            post.statut = "En cours";
                           });
                         }
                       } catch (e) {
@@ -299,7 +306,7 @@ Widget iconModifyOrDelette(
                                         child: Row(
                                           children: <Widget>[
                                             Visibility(
-                                              visible: currentStep != 2,
+                                              visible: currentStep != 3,
                                               child: ElevatedButton(
                                                 onPressed:
                                                     details.onStepContinue,
@@ -322,8 +329,7 @@ Widget iconModifyOrDelette(
                                             ),
                                             const SizedBox(width: 8),
                                             Visibility(
-                                              visible: currentStep != 1 &&
-                                                  currentStep != 0,
+                                              visible: currentStep == 3,
                                               child: TextButton(
                                                 onPressed: details.onStepCancel,
                                                 child: MyTextStyle.postDesc(
@@ -351,7 +357,7 @@ Widget iconModifyOrDelette(
                                       Step(
                                         isActive: currentStep == 0,
                                         title: MyTextStyle.postDesc(
-                                          "En attente",
+                                          "Non envoyé",
                                           SizeFont.h3.size,
                                           currentStep == 0
                                               ? Theme.of(context)
@@ -368,7 +374,7 @@ Widget iconModifyOrDelette(
                                       Step(
                                         isActive: currentStep == 1,
                                         title: MyTextStyle.postDesc(
-                                            "Prise en compte",
+                                            "Transmis",
                                             SizeFont.h3.size,
                                             currentStep == 1
                                                 ? Theme.of(context)
@@ -376,7 +382,7 @@ Widget iconModifyOrDelette(
                                                     .primary
                                                 : Colors.black54),
                                         content: MyTextStyle.lotDesc(
-                                          "Votre gestionnaire a reçu votre déclaration. Le prestataire a réalisé les travaux liés au sinistre.",
+                                          "Votre gestionnaire a reçu votre déclaration.",
                                           SizeFont.para.size,
                                           FontStyle.italic,
                                         ),
@@ -384,9 +390,25 @@ Widget iconModifyOrDelette(
                                       Step(
                                         isActive: currentStep == 2,
                                         title: MyTextStyle.postDesc(
-                                            "Terminé",
+                                            "En cours",
                                             SizeFont.h3.size,
                                             currentStep == 2
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                : Colors.black54),
+                                        content: MyTextStyle.lotDesc(
+                                          "Le prestataire réalise les travaux liés au sinistre.",
+                                          SizeFont.para.size,
+                                          FontStyle.italic,
+                                        ),
+                                      ),
+                                      Step(
+                                        isActive: currentStep == 3,
+                                        title: MyTextStyle.postDesc(
+                                            "Terminé",
+                                            SizeFont.h3.size,
+                                            currentStep == 3
                                                 ? Theme.of(context)
                                                     .colorScheme
                                                     .primary
@@ -446,12 +468,14 @@ Widget iconModifyOrDelette(
 
 int _getCurrentStep(String? statut) {
   switch (statut) {
-    case "En attente":
+    case "Non envoyé":
       return 0;
-    case "Prise en compte":
+    case "Transmis":
       return 1;
-    case "Terminé":
+    case "En cours":
       return 2;
+    case "Terminé":
+      return 3;
     default:
       return 0;
   }

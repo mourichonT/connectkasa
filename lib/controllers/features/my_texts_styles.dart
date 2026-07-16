@@ -302,10 +302,12 @@ class MyTextStyle {
 
   static Color _getColorForStatus(StatutPostList status, colorTheme) {
     switch (status) {
-      case StatutPostList.enAttente:
+      case StatutPostList.nonEnvoye:
         return Colors.grey;
-      case StatutPostList.priseEnCompte:
+      case StatutPostList.transmis:
         return Colors.orange;
+      case StatutPostList.enCours:
+        return Colors.blue;
       case StatutPostList.termine:
         return colorTheme;
       default:

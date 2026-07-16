@@ -1,7 +1,8 @@
 enum StatutPostList {
-  enAttente('En attente'), // En attente
-  priseEnCompte("Prise en compte"), // Prise en compte
-  termine("Terminé"),
+  nonEnvoye('Non envoyé'),
+  transmis('Transmis'),
+  enCours('En cours'),
+  termine('Terminé'),
   empty('');
 
   final String label;
@@ -11,10 +12,12 @@ enum StatutPostList {
   // Méthode de conversion de chaîne de caractères en élément de l'énumération
   static StatutPostList fromString(String statusString) {
     switch (statusString) {
-      case 'En attente':
-        return StatutPostList.enAttente;
-      case 'Prise en compte':
-        return StatutPostList.priseEnCompte;
+      case 'Non envoyé':
+        return StatutPostList.nonEnvoye;
+      case 'Transmis':
+        return StatutPostList.transmis;
+      case 'En cours':
+        return StatutPostList.enCours;
       case 'Terminé':
         return StatutPostList.termine;
       default:

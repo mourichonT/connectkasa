@@ -42,7 +42,7 @@ class SubmitPostController {
       pathImage: imagePath ?? "",
       isVideo: isVideo ?? false,
       refResidence: docRes,
-      statut: selectedLabel == "sinistres" ? "En attente" : "",
+      statut: selectedLabel == "sinistres" ? "Non envoyé" : "",
       timeStamp: Timestamp.now(),
       title: capitalizeFirstLetter(title?.text ?? ""),
       type: selectedLabel,
