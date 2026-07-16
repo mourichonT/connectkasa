@@ -393,19 +393,25 @@ class _ManageListLotState extends State<ManageListLot> {
   }
 
   Widget _removeLotButton(int index, Lot lot) {
+    final hasProprietaire =
+        lot.idProprietaire != null && lot.idProprietaire!.isNotEmpty;
+    final hasLocataire = lot.idLocataire != null && lot.idLocataire!.isNotEmpty;
+
     return Align(
       alignment: Alignment.centerRight,
       child: TextButton.icon(
         onPressed: () {
-          lot.idProprietaire == null || lot.idProprietaire!.isEmpty
+          !hasProprietaire && !hasLocataire
               ? _removeLot(index, lot.id)
               : ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
+                  SnackBar(
                     content: Text(
-                      "Le lot est déjà rattaché à un propriétaire, il n'est plus possible de le supprimer.",
+                      hasProprietaire
+                          ? "Le lot est déjà rattaché à un propriétaire, il n'est plus possible de le supprimer."
+                          : "Le lot est déjà rattaché à un locataire, il n'est plus possible de le supprimer.",
                     ),
                     backgroundColor: Colors.orange,
-                    duration: Duration(seconds: 3),
+                    duration: const Duration(seconds: 3),
                   ),
                 );
         },

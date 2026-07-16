@@ -694,11 +694,15 @@ def sync_lot_approval(event: firestore_fn.Event) -> None:
     if after is None or not after.exists:
         return
 
-    before = event.data.before
-    was_approved = bool(before.get("isApprovedLot")) if before and before.exists else False
-    is_approved = bool(after.get("isApprovedLot"))
-    if was_approved or not is_approved:
-        return  # ne réagit qu'à la transition false -> true
+    # Ne se limite plus à la transition false -> true : residenceId,
+    # statutResident et isApproved (compte) sont susceptibles d'être
+    # renseignés dans des écritures séparées (validation manuelle en
+    # plusieurs étapes) - se limiter à la transition faisait manquer la
+    # synchro si l'un de ces champs arrivait après isApprovedLot. ArrayUnion
+    # étant idempotent, réévaluer à chaque écriture tant que isApprovedLot
+    # est true est sans effet de bord.
+    if not bool(after.get("isApprovedLot")):
+        return
 
     user_id = event.params["userId"]
     lot_id = event.params["lotId"]

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
@@ -587,9 +588,12 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
     );
   }
 
+  // p.extension gère aussi bien '/' que '\' (chemins Windows) - un split
+  // manuel sur '/' échouait sur desktop Windows et faisait passer les
+  // vidéos pour des images (isVideoMedia resté à false après upload).
   String _getFileExtension(File file) {
-    final filename = file.path.split('/').last;
-    return filename.contains('.') ? filename.split('.').last.toLowerCase() : '';
+    final ext = p.extension(file.path);
+    return ext.isEmpty ? '' : ext.substring(1).toLowerCase();
   }
 
   IconData _getIconForExtension(String ext) {
