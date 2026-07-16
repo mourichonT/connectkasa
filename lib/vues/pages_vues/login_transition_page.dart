@@ -156,7 +156,10 @@ class _LoginTransitionPageState extends State<LoginTransitionPage> {
 
         if (!userData.isApproved) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (context) => NoApprovalPage()),
+            MaterialPageRoute(
+              builder: (context) =>
+                  NoApprovalPage(rejectionReason: userData.rejectionReason),
+            ),
           );
           return;
         }

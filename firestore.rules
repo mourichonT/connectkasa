@@ -198,7 +198,7 @@ service cloud.firestore {
 
       // Documents d'identité.
       match /documents/{docId} {
-        allow read: if isOwner(uid) || isSharedTenantDoc(uid) || isPendingDemandeLandlord(uid);
+        allow read: if isOwner(uid) || isSharedTenantDoc(uid) || isPendingDemandeLandlord(uid) || isSuperAdmin();
         allow write: if isOwner(uid);
       }
 

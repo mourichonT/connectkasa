@@ -5,11 +5,17 @@ import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:flutter/material.dart';
 
 class NoApprovalPage extends StatelessWidget {
-  const NoApprovalPage({super.key});
+  // Renseigné uniquement en cas de refus explicite depuis le backoffice web
+  // (konodal_bo) - absent tant que le compte est simplement "pas encore
+  // examiné", auquel cas on garde le message générique existant.
+  final String? rejectionReason;
+
+  const NoApprovalPage({super.key, this.rejectionReason});
 
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
+    final hasRejectionReason = rejectionReason != null && rejectionReason!.trim().isNotEmpty;
     return Scaffold(
         body: SafeArea(
             child: Padding(
@@ -31,7 +37,10 @@ class NoApprovalPage extends StatelessWidget {
               horizontal: 20,
             ),
             child: MyTextStyle.lotDesc(
-                InfoCentre.noApprovalAccount, SizeFont.h2.size),
+                hasRejectionReason
+                    ? "Votre inscription a été refusée. Motif : $rejectionReason"
+                    : InfoCentre.noApprovalAccount,
+                SizeFont.h2.size),
           ),
           Spacer(),
           ButtonAdd(

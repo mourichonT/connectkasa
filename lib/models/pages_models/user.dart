@@ -40,6 +40,12 @@ class User {
   // informations", à ne pas confondre avec une adresse ou une autre donnée
   // propre à un dossier de location particulier.
   String phone;
+  // Motif de refus d'identité, saisi par un Super Admin depuis le backoffice
+  // web (konodal_bo) quand isApproved est mis/remis à false après un refus
+  // explicite (par opposition à "pas encore examiné"). Jamais réécrit par
+  // cette app : volontairement absent de toMap() pour ne pas l'écraser au
+  // premier merge d'un profil résident (cf. commentaire toMap() ci-dessous).
+  final String? rejectionReason;
 
   User({
     required this.privacyPolicy,
@@ -60,6 +66,7 @@ class User {
     this.phone = "",
     this.isInfoCorrect = false,
     this.accountType = 'utilisateur',
+    this.rejectionReason,
     Map<String, bool>? notificationPrefs,
   }) : notificationPrefs = notificationPrefs ?? NotificationType.defaultPrefs {
     _profilPic = profilPic;
@@ -105,6 +112,7 @@ class User {
       placeOfborn: userGroup['placeOfborn'] ?? "",
       isInfoCorrect: userGroup['isInfoCorrect'] ?? false,
       accountType: map['accountType'] ?? 'utilisateur',
+      rejectionReason: map['rejectionReason'],
       pseudo: profilGroup['pseudo'] ?? "",
       uid: map['uid'] ?? "",
       bio: profilGroup['bio'] ?? "",
