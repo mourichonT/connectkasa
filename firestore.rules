@@ -355,17 +355,28 @@ service cloud.firestore {
 
       match /posts/{postId} {
         allow read: if isResidenceMember(residenceId) || isSuperAdmin();
-        allow create: if isResidenceMember(residenceId) &&
-          request.resource.data.user == request.auth.uid;
+        // isSuperAdmin() en création : le backoffice crée des events
+        // "prestation" pour une résidence dont il n'est pas forcément
+        // membre - même bypass que read/update/delete ci-dessous.
+        allow create: if (isResidenceMember(residenceId) &&
+          request.resource.data.user == request.auth.uid) || isSuperAdmin();
         // Modération : un CS member peut éditer/supprimer n'importe quel
         // post, pas seulement les siens (comportement actuel de l'app).
         // Liker le post de quelqu'un d'autre est aussi un update() Firestore
         // - autorisé séparément à tout résident du groupe, uniquement si le
         // seul champ modifié est "like" (même pattern que les commentaires).
-        allow update: if isResidenceMember(residenceId) &&
-          (resource.data.user == request.auth.uid || isCsMember(residenceId) ||
-            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like'])) ||
-          isSuperAdmin();
+        // Une fois declaredDate posé (transmission à la gérance), impossible
+        // de repasser le statut à "Non envoyé" - règle absolue, y compris
+        // pour isSuperAdmin.
+        allow update: if (
+          (isResidenceMember(residenceId) &&
+            (resource.data.user == request.auth.uid || isCsMember(residenceId) ||
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like']))) ||
+          isSuperAdmin()
+        ) && !(
+          resource.data.get('declaredDate', null) != null &&
+          request.resource.data.statut == 'Non envoyé'
+        );
         allow delete: if isResidenceMember(residenceId) &&
           (resource.data.user == request.auth.uid || isCsMember(residenceId)) ||
           isSuperAdmin();
