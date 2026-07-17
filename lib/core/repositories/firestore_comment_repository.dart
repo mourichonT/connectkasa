@@ -10,54 +10,84 @@ class FirestoreCommentRepository implements ICommentRepository {
   FirestoreCommentRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  @override
-  Future<Result<List<Comment>>> getComments(
+  /// Résout le document Firestore du post (business `id` -> doc Firestore),
+  /// nécessaire une seule fois avant d'ouvrir un stream sur ses sous-
+  /// collections - contrairement à getComments/addComment, ce n'est fait
+  /// qu'une fois par ouverture de stream, pas à chaque emission.
+  Future<DocumentReference?> _resolvePostRef(
       String docRes, String postId) async {
-    List<Comment> comments = [];
+    final postQuery = await _firestore
+        .collection("residences")
+        .doc(docRes)
+        .collection("posts")
+        .where("id", isEqualTo: postId)
+        .limit(1)
+        .get();
+    if (postQuery.docs.isEmpty) return null;
+    return postQuery.docs.first.reference;
+  }
 
-    try {
-      QuerySnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-          .collection("residences")
-          .doc(docRes)
-          .collection("posts")
-          .where("id", isEqualTo: postId)
-          .get();
+  @override
+  Stream<List<Comment>> watchComments(String docRes, String postId) async* {
+    final postRef = await _resolvePostRef(docRes, postId);
+    if (postRef == null) {
+      yield [];
+      return;
+    }
+    yield* postRef
+        .collection("comments")
+        .orderBy("timestamp", descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Comment.fromMap(doc.data()))
+            .toList());
+  }
 
-      for (var postSnapshot in querySnapshot.docs) {
-        QuerySnapshot<Map<String, dynamic>> commentsSnapshot = await _firestore
-            .collection("residences")
-            .doc(docRes)
-            .collection("posts")
-            .doc(postSnapshot.id)
-            .collection("comments")
-            .get();
+  @override
+  Stream<List<Comment>> watchReplies(
+      String docRes, String postId, String commentId) async* {
+    final postRef = await _resolvePostRef(docRes, postId);
+    if (postRef == null) {
+      yield [];
+      return;
+    }
+    final commentQuery = await postRef
+        .collection("comments")
+        .where("id", isEqualTo: commentId)
+        .limit(1)
+        .get();
+    if (commentQuery.docs.isEmpty) {
+      yield [];
+      return;
+    }
+    yield* commentQuery.docs.first.reference
+        .collection("replies")
+        .orderBy("timestamp", descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Comment.fromMap(doc.data()))
+            .toList());
+  }
 
-        List<Comment> postComments = [];
-        for (var commentSnapshot in commentsSnapshot.docs) {
-          Comment comment = Comment.fromMap(commentSnapshot.data());
+  @override
+  Stream<int> watchTotalCommentCount(String docRes, String postId) async* {
+    final postRef = await _resolvePostRef(docRes, postId);
+    if (postRef == null) {
+      yield 0;
+      return;
+    }
+    final commentsRef = postRef.collection("comments");
 
-          // Récupérer directement les replies sans recharger le document parent
-          QuerySnapshot<Map<String, dynamic>> repliesQuerySnapshot =
-              await commentSnapshot.reference.collection('replies').get();
-
-          if (repliesQuerySnapshot.docs.isNotEmpty) {
-            List<Comment> replies = [];
-            for (var replySnapshot in repliesQuerySnapshot.docs) {
-              Map<String, dynamic> replyData = replySnapshot.data();
-              replies.add(Comment.fromMap(replyData));
-              replies.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-            }
-            comment.replies = replies;
-          }
-          postComments.add(comment);
-        }
-        postComments.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-        comments.addAll(postComments);
-      }
-
-      return Result.success(comments);
-    } catch (e) {
-      return Result.failure(AppException.from(e));
+    await for (final snapshot in commentsRef.snapshots()) {
+      // Une requête d'agrégation par commentaire, mais en parallèle : un
+      // post avec plusieurs commentaires attendait sinon chaque comptage
+      // l'un après l'autre (latence perceptible au chargement du fil,
+      // cumulée sur tous les posts affichés en même temps).
+      final repliesCounts = await Future.wait(snapshot.docs.map(
+          (commentDoc) => commentDoc.reference.collection("replies").count().get()));
+      final total = snapshot.docs.length +
+          repliesCounts.fold<int>(0, (acc, c) => acc + (c.count ?? 0));
+      yield total;
     }
   }
 

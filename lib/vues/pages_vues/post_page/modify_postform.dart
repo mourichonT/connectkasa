@@ -450,6 +450,16 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                     localisation: localisation,
                     etage: etage,
                     element: widget.post.locationDetails!,
+                    // Ce formulaire ne permet pas d'éditer le statut du
+                    // workflow (Stepper dédié, icon_modify_or_delette.dart)
+                    // ni la date de déclaration/transmission - sans les
+                    // reporter explicitement ici, updatePost() les recevait
+                    // à null puis toUpdateMap() les effaçait
+                    // (FieldValue.delete()) à chaque simple modification de
+                    // titre/description/image.
+                    statut: widget.post.statut,
+                    timeStamp: widget.post.timeStamp,
+                    declaredDate: widget.post.declaredDate,
                   );
                 } catch (e) {
                   if (!context.mounted) return;

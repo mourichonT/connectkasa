@@ -1,21 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:konodal/controllers/features/load_prefered_data.dart';
 import 'package:konodal/controllers/handlers/api/flutter_api.dart';
 import 'package:konodal/controllers/handlers/progress_widget.dart';
 import 'package:konodal/controllers/pages_controllers/my_app.dart';
 import 'package:konodal/controllers/providers/color_provider.dart';
 import 'package:konodal/core/errors/app_exceptions.dart';
+import 'package:konodal/core/providers/post_providers.dart';
 import 'package:konodal/core/repositories/firestore_lot_repository.dart';
 import 'package:konodal/core/repositories/firestore_user_repository.dart';
 import 'package:konodal/core/repositories/lot_repository.dart';
 import 'package:konodal/core/repositories/user_repository.dart';
 import 'package:konodal/core/result/result.dart';
 import 'package:konodal/core/utils/app_logger.dart';
+import 'package:konodal/models/pages_models/lot.dart';
 import 'package:konodal/vues/pages_vues/no_approval_page.dart';
 import 'package:konodal/vues/pages_vues/no_lot/no_lot_page.dart';
 import 'package:konodal/vues/pages_vues/wrong_account_type_page.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Page affichée immédiatement après une authentification Firebase
 /// réussie (Google ou email), AVANT la recherche Firestore de
@@ -34,7 +38,7 @@ import 'package:flutter/material.dart';
 /// jetons Google/Firebase, chacun un aller-retour réseau) se déroule
 /// derrière le loader plutôt que de laisser l'écran de connexion figé
 /// pendant ce temps.
-class LoginTransitionPage extends StatefulWidget {
+class LoginTransitionPage extends ConsumerStatefulWidget {
   final FirebaseFirestore firestore;
   final String? uid;
   final String? emailUser;
@@ -49,10 +53,11 @@ class LoginTransitionPage extends StatefulWidget {
   }) : assert(uid != null || googleSignInTask != null);
 
   @override
-  State<LoginTransitionPage> createState() => _LoginTransitionPageState();
+  ConsumerState<LoginTransitionPage> createState() =>
+      _LoginTransitionPageState();
 }
 
-class _LoginTransitionPageState extends State<LoginTransitionPage> {
+class _LoginTransitionPageState extends ConsumerState<LoginTransitionPage> {
   final IUserRepository _userRepository = FirestoreUserRepository();
   final ILotRepository _lotRepository = FirestoreLotRepository();
   late String _uid;
@@ -138,6 +143,29 @@ class _LoginTransitionPageState extends State<LoginTransitionPage> {
     }
   }
 
+  /// Reproduit la résolution du lot préféré de MyNavBar._initializeLot
+  /// (cache SharedPreferences croisé avec la liste fraîche de lots
+  /// approuvés, repli sur le premier lot sinon) - fait ici pour connaître
+  /// la résidence à précharger AVANT de naviguer vers MyNavBar, qui reçoit
+  /// ensuite ce résultat tout fait (initialPreferredLot) au lieu de le
+  /// recalculer.
+  Future<Lot> _resolvePreferredLot(List<Lot> approvedLots) async {
+    Lot? cachedPreferedLot;
+    try {
+      cachedPreferedLot = await LoadPreferedData().loadPreferedLot(_uid);
+    } catch (e) {
+      appLog("Lot préféré en cache illisible (format obsolète ?), ignoré : $e");
+      cachedPreferedLot = null;
+    }
+
+    if (cachedPreferedLot != null) {
+      for (final lot in approvedLots) {
+        if (lot.id == cachedPreferedLot.id) return lot;
+      }
+    }
+    return approvedLots.first;
+  }
+
   Future<void> _resolveDestination() async {
     final result = await _userRepository.getUserById(_uid);
     if (!mounted) return;
@@ -168,20 +196,47 @@ class _LoginTransitionPageState extends State<LoginTransitionPage> {
         // pas revérifié les documents déposés (isApprovedLot, cf.
         // AttachExistingLotPage/sync_lot_approval) : on ne considère donc que
         // les lots déjà approuvés pour décider de l'accès à l'app.
-        final lots = await _lotRepository.getLotByIdUser(_uid).then(
-            (result) => result.when(success: (v) => v, failure: (_) => []));
+        final lots = await _lotRepository.getLotByIdUser(_uid).then((result) =>
+            result.when(success: (v) => v, failure: (_) => <Lot>[]));
         if (!mounted) return;
 
-        final hasApprovedLot =
-            lots.any((lot) => lot.userLotDetails['isApprovedLot'] == true);
+        // Même filtre que MyNavBar._fetchApprovedLots : calculé ici pour
+        // être transmis tel quel à MyNavBar (initialLots), qui refaisait
+        // sinon la même requête getLotByIdUser juste après avoir atterri
+        // sur cette page - un aller-retour Firestore redondant.
+        final approvedLots = lots
+            .where((lot) =>
+                lot.userLotDetails['isApprovedLot'] == true &&
+                !lot.groupedWithParent)
+            .toList();
 
         _initUserFcmToken(_uid);
-        if (hasApprovedLot) {
+        if (approvedLots.isNotEmpty) {
+          final preferredLot = await _resolvePreferredLot(approvedLots);
+          if (!mounted) return;
+
+          // Préchauffe le cache du provider avec la 1re page de posts de la
+          // résidence pendant que ce loader est encore affiché : HomeView
+          // (derrière MyNavBar) l'affichera donc directement, sans son
+          // propre spinner de chargement. Best-effort : un échec ici ne
+          // doit pas empêcher la navigation, HomeView réessaiera lui-même.
+          if (preferredLot.residenceId.isNotEmpty) {
+            try {
+              await ref.read(
+                  postsByResidenceProvider(preferredLot.residenceId).future);
+            } catch (e) {
+              appLog("Préchargement des posts échoué (non bloquant) : $e");
+            }
+            if (!mounted) return;
+          }
+
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => MyApp2(
                 firestore: widget.firestore,
                 uid: _uid,
+                initialLots: approvedLots,
+                initialPreferredLot: preferredLot,
               ),
             ),
           );

@@ -1,6 +1,5 @@
-import 'package:konodal/core/providers/comment_repository_provider.dart';
+import 'package:konodal/core/providers/comment_providers.dart';
 import 'package:konodal/models/enum/font_setting.dart';
-import 'package:konodal/models/pages_models/comment.dart';
 import 'package:konodal/vues/widget_view/page_widget/section_comment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,45 +28,16 @@ class CommentButton extends ConsumerStatefulWidget {
 }
 
 class CommentButtonState extends ConsumerState<CommentButton> {
-  int commentCount = 0;
-  late Post post;
-  late String idPost;
-  late Future<List<Comment>> comment;
-  bool _isDisposed = false;
-
-  Future<List<Comment>> _fetchComments() {
-    return ref
-        .read(commentRepositoryProvider)
-        .getComments(widget.residenceSelected, widget.post.id)
-        .then((result) =>
-            result.when(success: (c) => c, failure: (error) => throw error));
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    comment = _fetchComments();
-    post = widget.post;
-    idPost = widget.post.id;
-
-    comment.then((commentList) {
-      if (mounted) {
-        // ✅ Vérification avant setState()
-        setState(() {
-          processComments(commentList);
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _isDisposed = true;
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
+    final commentCount = ref
+            .watch(commentCountStreamProvider((
+              residenceId: widget.residenceSelected,
+              postId: widget.post.id,
+            )))
+            .valueOrNull ??
+        0;
+
     return InkWell(
       onTap: () {
         showModalBottomSheet(
@@ -88,11 +58,9 @@ class CommentButtonState extends ConsumerState<CommentButton> {
                             'Commentaires', Colors.black87, SizeFont.h1.size)),
                     const Divider(),
                     SectionComment(
-                      comment: comment,
                       residenceSelected: widget.residenceSelected,
-                      postSelected: idPost,
+                      postSelected: widget.post.id,
                       uid: widget.uid,
-                      onCommentAdded: () => _onCommentAdded(),
                     ),
                   ],
                 ),
@@ -120,50 +88,10 @@ class CommentButtonState extends ConsumerState<CommentButton> {
           const SizedBox(
             width: 15,
           ),
-          MyTextStyle.iconText(post.setComments(commentCount),
+          MyTextStyle.iconText(widget.post.setComments(commentCount),
               color: widget.colorText)
         ],
       ),
     );
-  }
-
-  // Callback function to be called when a comment is added
-  void _onCommentAdded() {
-    if (_isDisposed) return;
-
-    if (mounted) {
-      setState(() {
-        comment = _fetchComments();
-      });
-
-      if (_isDisposed) return;
-      comment.then((commentList) {
-        if (mounted) {
-          // ✅ Vérification avant setState()
-          setState(() {
-            processComments(commentList);
-          });
-        }
-      });
-    }
-  }
-
-  void processComments(List<Comment> comments) async {
-    int totalCount = await getTotalComment(comments, 0);
-    if (mounted) {
-      // ✅ Vérification avant setState()
-      setState(() {
-        commentCount = totalCount;
-      });
-    }
-  }
-
-  Future<int> getTotalComment(List<Comment> comments, int count) async {
-    for (var comment in comments) {
-      count++; // Compte le commentaire
-      count += await getTotalComment(
-          comment.replies, 0); // Compte les réponses récursivement
-    }
-    return count;
   }
 }

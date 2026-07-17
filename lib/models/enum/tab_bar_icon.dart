@@ -13,8 +13,8 @@ class IconTabBar {
 
   List<List<dynamic>> listIconsBottom() {
     return [
-      [Icons.list_alt_outlined, "Contact"],
-      [Icons.messenger_outline, "Message"],
+      [Icons.list_alt_outlined, "Contacts"],
+      [Icons.messenger_outline, "Messages"],
     ];
   }
 }

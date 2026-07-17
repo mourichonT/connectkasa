@@ -4,7 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/pages_models/post.dart';
 
-class LikePostButton extends ConsumerStatefulWidget {
+/// alreadyLiked/likeCount sont dérivés de widget.post.like à chaque build,
+/// jamais recopiés dans un state local : widget.post vient déjà d'un
+/// provider temps réel (postsByResidenceProvider et consorts), donc un like
+/// posé par quelqu'un d'autre pendant que ce bouton est affiché se reflète
+/// automatiquement - un state local figé à l'initState (l'ancienne
+/// implémentation) l'aurait ignoré, comme observé sur CommentTile avant son
+/// correctif.
+class LikePostButton extends ConsumerWidget {
   final Post post;
   final String residence;
   final String uid;
@@ -22,64 +29,28 @@ class LikePostButton extends ConsumerStatefulWidget {
       this.colorText});
 
   @override
-  LikePostButtonState createState() => LikePostButtonState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final like = post.like ?? [];
+    final alreadyLiked = like.contains(uid);
+    final likeCount = like.length;
 
-class LikePostButtonState extends ConsumerState<LikePostButton> {
-  bool alreadyLiked = false;
-  int likeCount = 0;
-  @override
-  void initState() {
-    super.initState();
-    alreadyLiked = widget.post.like!.contains(widget.uid);
-    likeCount = widget.post.like!.length;
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Row(
       children: [
         IconButton(
           icon: alreadyLiked
-              ? Icon(Icons.thumb_up, color: widget.colorIcon, size: 20)
+              ? Icon(Icons.thumb_up, color: colorIcon, size: 20)
               : Icon(Icons.thumb_up_alt_outlined,
-                  color: widget.colorIconUnselected, size: 20),
+                  color: colorIconUnselected, size: 20),
           onPressed: () async {
-            //Appeler la méthode pour mettre à jour les likes dans la base de données
-            if (!alreadyLiked) {
-              await ref
-                  .read(postRepositoryProvider)
-                  .updatePostLikes(
-                    widget.residence,
-                    widget.post.id,
-                    widget.uid,
-                  )
-                  .then((result) => result.when(
-                      success: (_) {}, failure: (error) => throw error));
-              setState(() {
-                alreadyLiked = true;
-                likeCount++; // Incrémentez likeCount après l'ajout de like
-              });
-            } else {
-              await ref
-                  .read(postRepositoryProvider)
-                  .removePostLike(
-                    widget.residence,
-                    widget.post.id,
-                    widget.uid,
-                  )
-                  .then((result) => result.when(
-                      success: (_) {}, failure: (error) => throw error));
-
-              setState(() {
-                alreadyLiked = false;
-                likeCount--; // Décrémentez likeCount après la suppression de like
-              });
-            }
+            final repository = ref.read(postRepositoryProvider);
+            final result = alreadyLiked
+                ? await repository.removePostLike(residence, post.id, uid)
+                : await repository.updatePostLikes(residence, post.id, uid);
+            result.when(
+                success: (_) {}, failure: (error) => throw error);
           },
         ),
-        MyTextStyle.iconText(widget.post.setLike(likeCount),
-            color: widget.colorText),
+        MyTextStyle.iconText(post.setLike(likeCount), color: colorText),
       ],
     );
   }

@@ -4,7 +4,11 @@ import 'package:konodal/models/pages_models/comment.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LikeButtonComment extends ConsumerStatefulWidget {
+/// alreadyLiked/likeCount sont dérivés de widget.comment.like à chaque
+/// build, jamais recopiés dans un state local - widget.comment vient déjà
+/// de commentsStreamProvider/repliesStreamProvider (temps réel), cf.
+/// LikePostButton pour le même principe côté posts.
+class LikeButtonComment extends ConsumerWidget {
   final Comment comment;
   final String residence;
   final String uid;
@@ -20,63 +24,30 @@ class LikeButtonComment extends ConsumerStatefulWidget {
       required this.color});
 
   @override
-  LikeButtonPostState createState() => LikeButtonPostState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final alreadyLiked = comment.like.contains(uid);
+    final likeCount = comment.like.length;
 
-class LikeButtonPostState extends ConsumerState<LikeButtonComment> {
-  bool alreadyLiked = false;
-  int likeCount = 0;
-  @override
-  void initState() {
-    super.initState();
-    alreadyLiked = widget.comment.like.contains(widget.uid);
-    likeCount = widget.comment.like.length;
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Row(
       children: [
         IconButton(
           icon: Icon(
             alreadyLiked ? Icons.thumb_up : Icons.thumb_up_alt_outlined,
-            color: alreadyLiked ? widget.color : null,
+            color: alreadyLiked ? color : null,
             size: 20,
           ),
           onPressed: () async {
-            //Appeler la méthode pour mettre à jour les likes dans la base de données
+            final repository = ref.read(commentRepositoryProvider);
             if (!alreadyLiked) {
-              final result =
-                  await ref.read(commentRepositoryProvider).updateCommentLikes(
-                widget.residence,
-                widget.postId,
-                widget.comment.id,
-                widget.uid,
-              );
-              if (result.isSuccess) {
-                setState(() {
-                  alreadyLiked = true;
-                  likeCount++; // Incrémentez likeCount après l'ajout de like
-                });
-              }
+              await repository.updateCommentLikes(
+                  residence, postId, comment.id, uid);
             } else {
-              final result =
-                  await ref.read(commentRepositoryProvider).removeCommentLike(
-                widget.residence,
-                widget.postId,
-                widget.comment.id,
-                widget.uid,
-              );
-              if (result.isSuccess) {
-                setState(() {
-                  alreadyLiked = false;
-                  likeCount--; // Décrémentez likeCount après la suppression de like
-                });
-              }
+              await repository.removeCommentLike(
+                  residence, postId, comment.id, uid);
             }
           },
         ),
-        MyTextStyle.iconText(widget.comment.setLike(likeCount)),
+        MyTextStyle.iconText(comment.setLike(likeCount)),
       ],
     );
   }

@@ -1,52 +1,53 @@
-// ignore_for_file: must_be_immutable, library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:konodal/core/repositories/firestore_comment_repository.dart';
+import 'package:konodal/core/providers/comment_providers.dart';
+import 'package:konodal/core/providers/comment_repository_provider.dart';
 import 'package:konodal/models/pages_models/comment.dart';
 import 'package:konodal/vues/widget_view/components/comment_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:konodal/core/utils/app_logger.dart';
 import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
-class SectionComment extends StatefulWidget {
-  String residenceSelected;
-  String postSelected;
-  String uid;
-  Future<List<Comment>> comment;
-  final void Function() onCommentAdded;
+/// Affiche et permet d'ajouter des commentaires/réponses sur un post.
+/// Les commentaires sont un flux temps réel (commentsStreamProvider) :
+/// contrairement à l'ancienne version (Future chargé une fois, refetché
+/// manuellement après chaque ajout), un nouveau commentaire/une nouvelle
+/// réponse apparaît dès son écriture en base, y compris si elle vient
+/// d'un autre utilisateur pendant que ce panneau est ouvert.
+class SectionComment extends ConsumerStatefulWidget {
+  final String residenceSelected;
+  final String postSelected;
+  final String uid;
 
-  SectionComment({
+  const SectionComment({
     super.key,
-    required this.comment,
     required this.residenceSelected,
     required this.postSelected,
     required this.uid,
-    required this.onCommentAdded,
   });
 
   @override
   _SectionCommentState createState() => _SectionCommentState();
 }
 
-class _SectionCommentState extends State<SectionComment>
+class _SectionCommentState extends ConsumerState<SectionComment>
     with WidgetsBindingObserver {
   double keyBoardHeight = 0;
   FocusNode inputFocusNode = FocusNode();
   bool focused = false;
   TextEditingController _textEditingController = TextEditingController();
-  final FirestoreCommentRepository _commentRepository =
-      FirestoreCommentRepository();
-  late Future<List<Comment>> _allComments;
   bool isReply = false;
   String commentId = "";
   String initialComment = "";
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _allComments = widget.comment;
   }
 
   @override
@@ -68,64 +69,64 @@ class _SectionCommentState extends State<SectionComment>
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Comment>>(
-      future: _allComments,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: AppLoader(),
-          );
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          List<Comment> allComments = snapshot.data!;
-          return Stack(
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.7,
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: allComments.length,
-                  itemBuilder: (context, index) {
-                    Comment comment = allComments[index];
-                    return Column(
-                      children: [
-                        CommentTile(
-                            widget.residenceSelected,
-                            comment,
-                            widget.uid,
-                            widget.postSelected,
-                            inputFocusNode,
-                            _textEditingController, onReply: (value) {
+    final commentsAsync = ref.watch(commentsStreamProvider((
+      residenceId: widget.residenceSelected,
+      postId: widget.postSelected,
+    )));
+
+    return commentsAsync.when(
+      loading: () => const Center(child: AppLoader()),
+      error: (error, _) => Text('Error: $error'),
+      data: (allComments) {
+        return Stack(
+          children: [
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const BouncingScrollPhysics(),
+                itemCount: allComments.length,
+                itemBuilder: (context, index) {
+                  final comment = allComments[index];
+                  return Column(
+                    children: [
+                      CommentTile(
+                        widget.residenceSelected,
+                        comment,
+                        widget.uid,
+                        widget.postSelected,
+                        inputFocusNode,
+                        _textEditingController,
+                        key: ValueKey(comment.id),
+                        onReply: (value) {
                           setState(() {
-                            isReply =
-                                value; // Mettre à jour isReply lorsque la valeur change
+                            isReply = value;
                           });
-                        }, getCommentId: (value) {
+                        },
+                        getCommentId: (value) {
                           setState(() {
-                            commentId =
-                                value; // Mettre à jour commentId lorsque la valeur change
+                            commentId = value;
                           });
-                        }, getUsertoreply: (value) {
+                        },
+                        getUsertoreply: (value) {
                           setState(() {
                             _textEditingController = value;
                           });
-                        }, getInitialComment: (value) {
+                        },
+                        getInitialComment: (value) {
                           setState(() {
                             initialComment = value!;
                           });
-                        })
-                      ],
-                    );
-                  },
-                ),
-                // Ajout du champ de commentaire en bas
+                        },
+                      )
+                    ],
+                  );
+                },
               ),
-              _buildCommentInput(context),
-            ],
-          );
-        }
+            ),
+            _buildCommentInput(context),
+          ],
+        );
       },
     );
   }
@@ -199,23 +200,16 @@ class _SectionCommentState extends State<SectionComment>
     );
   }
 
-  Future<List<Comment>> _fetchComments() {
-    return _commentRepository
-        .getComments(widget.residenceSelected, widget.postSelected)
-        .then((result) =>
-            result.when(success: (c) => c, failure: (error) => throw error));
-  }
-
   void _addComment(TextEditingController textEditingController, bool isReply,
       {String? commentId, required String? initialComment}) async {
-    // String commentFormatted = "";
+    final commentRepository = ref.read(commentRepositoryProvider);
     var uuid = const Uuid();
     String uniqueId = uuid.v4();
     if (isReply == true) {
       final String formattedComment =
           _formatComment(textEditingController.text);
 
-      final result = await _commentRepository.addComment(
+      final result = await commentRepository.addComment(
           widget.residenceSelected,
           widget.postSelected,
           Comment(
@@ -230,14 +224,11 @@ class _SectionCommentState extends State<SectionComment>
           commentId: commentId,
           initialComment: initialComment);
 
-      if (result.isSuccess) {
-        setState(() {
-          _allComments = _fetchComments();
-        });
+      if (!result.isSuccess) {
+        appLog("Error adding reply: ${result.errorOrNull}");
       }
-      // isReply = false;
     } else {
-      final result = await _commentRepository.addComment(
+      final result = await commentRepository.addComment(
         widget.residenceSelected,
         widget.postSelected,
         Comment(
@@ -249,16 +240,10 @@ class _SectionCommentState extends State<SectionComment>
           originalCommment: !isReply,
         ),
       );
-      if (result.isSuccess) {
-        // Actualiser la liste des commentaires
-        setState(() {
-          _allComments = _fetchComments();
-        });
-      } else {
+      if (!result.isSuccess) {
         appLog("Error adding comment: ${result.errorOrNull}");
       }
     }
-    widget.onCommentAdded();
   }
 
   String _formatComment(String comment) {

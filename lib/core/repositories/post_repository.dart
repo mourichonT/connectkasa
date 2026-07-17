@@ -58,6 +58,24 @@ abstract interface class IPostRepository {
     DocumentSnapshot? startAfter,
   });
 
+  /// Équivalent temps réel de getPostsPage : pas de startAfter, la fenêtre
+  /// affichée grandit simplement (limit croissant) à chaque loadMore(), et
+  /// se met à jour automatiquement si un post de la fenêtre change/est
+  /// ajouté/supprimé.
+  Stream<PostPage> watchPostsPage(String doc, {required int limit});
+
+  /// Équivalent temps réel de getPostsToModifyPage.
+  Stream<PostPage> watchPostsToModifyPage(String doc, {required int limit});
+
+  /// Équivalent temps réel de getAllPosts.
+  Stream<List<Post>> watchAllPosts(String doc);
+
+  /// Équivalent temps réel de getAllAnnonces.
+  Stream<List<Post>> watchAllAnnonces(String doc);
+
+  /// Équivalent temps réel de getPostsByUser.
+  Stream<List<Post>> watchPostsByUser(String residenceId, String userId);
+
   Future<Result<Post?>> addPost(Post newPost, String docRes);
 
   Future<Result<Post?>> addSignalement(
@@ -81,6 +99,13 @@ abstract interface class IPostRepository {
 
   Future<Result<Post?>> updatePost(
       Post updatedPost, String docRes, String postId);
+
+  /// Mise à jour ciblée d'un sous-ensemble de champs, sans passer par un
+  /// objet Post complet (ex: dateClosed, écrit uniquement au moment précis
+  /// où un sinistre passe en "Terminé" - pas modélisé sur Post pour éviter
+  /// tout risque qu'un autre appel à updatePost() l'efface silencieusement).
+  Future<Result<void>> updatePostFields(
+      String docRes, String postId, Map<String, dynamic> fields);
 
   Future<Result<List<Post>>> rechercheFirestore(
       String saisie, String residence);

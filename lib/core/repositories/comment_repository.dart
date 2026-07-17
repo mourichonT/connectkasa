@@ -3,7 +3,19 @@ import 'package:konodal/models/pages_models/comment.dart';
 
 /// Remplace DataBasesCommentServices (Phase 2 du chantier architecture).
 abstract interface class ICommentRepository {
-  Future<Result<List<Comment>>> getComments(String docRes, String postId);
+  /// Commentaires de premier niveau d'un post, en temps réel (sans les
+  /// réponses - cf. watchReplies, chargées séparément par CommentTile).
+  Stream<List<Comment>> watchComments(String docRes, String postId);
+
+  /// Réponses d'un commentaire donné, en temps réel.
+  Stream<List<Comment>> watchReplies(
+      String docRes, String postId, String commentId);
+
+  /// Nombre total de commentaires + réponses d'un post, en temps réel
+  /// (CommentButton). Se réévalue à chaque changement de la collection
+  /// "comments" (comptage des réponses recalculé via une requête
+  /// d'agrégation à ce moment-là).
+  Stream<int> watchTotalCommentCount(String docRes, String postId);
 
   Future<Result<void>> updateCommentLikes(String residenceId, String postId,
       String commentId, String userId);

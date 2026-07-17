@@ -162,6 +162,7 @@ Widget iconModifyOrDelette(
                             idPost: post.id,
                             selectedLabel: post.type,
                             imagePath: post.pathImage,
+                            isVideo: post.isVideo,
                             title: post.title,
                             desc: post.description,
                             anonymPost: post.hideUser,
@@ -199,6 +200,7 @@ Widget iconModifyOrDelette(
                             idPost: post.id,
                             selectedLabel: post.type,
                             imagePath: post.pathImage,
+                            isVideo: post.isVideo,
                             title: post.title,
                             timeStamp: post.timeStamp,
                             desc: post.description,
@@ -221,6 +223,7 @@ Widget iconModifyOrDelette(
                             idPost: post.id,
                             selectedLabel: post.type,
                             imagePath: post.pathImage,
+                            isVideo: post.isVideo,
                             title: post.title,
                             timeStamp: post.timeStamp,
                             desc: post.description,
@@ -229,6 +232,16 @@ Widget iconModifyOrDelette(
                             localisation: post.locationElement,
                             etage: post.locationFloor,
                             element: post.locationDetails,
+                          );
+                          // dateClosed : pas modélisé sur Post (cf.
+                          // updatePostFields) pour ne jamais risquer qu'un
+                          // futur appel à updatePost() l'efface - écrit ici en
+                          // ciblé, une seule fois, au moment exact de la
+                          // clôture.
+                          await FirestorePostRepository().updatePostFields(
+                            post.refResidence,
+                            post.id,
+                            {'dateClosed': Timestamp.now()},
                           );
                           setState(() {
                             currentStep = 3;
@@ -255,6 +268,7 @@ Widget iconModifyOrDelette(
                             idPost: post.id,
                             selectedLabel: post.type,
                             imagePath: post.pathImage,
+                            isVideo: post.isVideo,
                             title: post.title,
                             desc: post.description,
                             anonymPost: post.hideUser,

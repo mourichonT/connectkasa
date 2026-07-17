@@ -1,6 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/comment_providers.dart';
 import 'package:konodal/core/providers/user_by_id_provider.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
@@ -57,13 +58,36 @@ class CommentTileState extends ConsumerState<CommentTile> {
   }
 
   @override
+  void didUpdateWidget(covariant CommentTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Sans ça, une nouvelle réponse ajoutée à ce commentaire (SectionComment
+    // refetch et reconstruit la liste) n'apparaissait jamais : ListView.builder
+    // réutilise ce State à la même position (pas de clé), et `comment` restait
+    // figé sur la valeur d'initState, ignorant le widget.comment mis à jour.
+    comment = widget.comment;
+  }
+
+  @override
   Widget build(BuildContext context) {
     //Color colorStatut = Theme.of(context).primaryColor;
+    // Une réponse n'a jamais de réponses imbriquées (cf. addComment/
+    // _getCommentRef) - inutile d'ouvrir un stream de plus pour ces tiles.
+    final replies = widget.isReply
+        ? const <Comment>[]
+        : ref
+            .watch(repliesStreamProvider((
+              residenceId: widget.residence,
+              postId: widget.postId,
+              commentId: comment.id,
+            )))
+            .valueOrNull ??
+            const <Comment>[];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildCommentTile(comment),
-        if (comment.replies.isNotEmpty)
+        if (replies.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(
               left: 25.0,
@@ -71,15 +95,17 @@ class CommentTileState extends ConsumerState<CommentTile> {
             child: ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              itemCount: comment.replies.length,
+              itemCount: replies.length,
               itemBuilder: (context, index) {
                 return CommentTile(
                   widget.residence,
-                  comment.replies[index],
+                  replies[index],
                   widget.uid,
                   widget.postId,
                   widget.focusNode,
                   widget.textEditingController,
+                  key: ValueKey(replies[index].id),
+                  isReply: true,
                   onReply: widget.onReply,
                   getCommentId: widget.getCommentId,
                   getUsertoreply: widget.getUsertoreply,

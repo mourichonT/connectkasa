@@ -42,39 +42,45 @@ class MyBottomNavBarView extends StatelessWidget {
       // Ajouter la pastille uniquement sur l'icône de message
       if (icon == Icons.messenger_outline) {
         return BottomNavigationBarItem(
-          icon: StreamBuilder<bool>(
-            stream: context.read<MessageProvider>().hasNewMessageStream,
-            builder: (context, snapshot) {
-              final hasNewMessage = snapshot.data ?? false;
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Icon(icon, color: Colors.black54),
-                  if (hasNewMessage)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).primaryColor,
-                          shape: BoxShape.circle,
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 12,
-                          minHeight: 12,
+          icon: Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: StreamBuilder<bool>(
+              stream: context.read<MessageProvider>().hasNewMessageStream,
+              builder: (context, snapshot) {
+                final hasNewMessage = snapshot.data ?? false;
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(icon, color: Colors.black54),
+                    if (hasNewMessage)
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,
+                            shape: BoxShape.circle,
+                          ),
+                          constraints: const BoxConstraints(
+                            minWidth: 12,
+                            minHeight: 12,
+                          ),
                         ),
                       ),
-                    ),
-                ],
-              );
-            },
+                  ],
+                );
+              },
+            ),
           ),
           label: label,
         );
       } else {
         return BottomNavigationBarItem(
-          icon: Icon(icon, color: Colors.black54),
+          icon: Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: Icon(icon, color: Colors.black54),
+          ),
           label: label,
         );
       }

@@ -1,5 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
+
 import 'package:konodal/core/providers/post_repository_provider.dart';
+import 'package:konodal/core/repositories/post_repository.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -34,51 +36,67 @@ class PaginatedPosts {
 
 /// Tous les posts (sinistres/incivilités/communication/annonces/événements)
 /// d'une résidence, paginés (Homeview, onglet "Toutes" de SinistrePageView).
-/// Ré-interroge automatiquement depuis la première page quand residenceId
-/// change (nouvelle instance de famille) ;
-/// ref.invalidate(postsByResidenceProvider(residenceId)) force un
-/// rafraîchissement explicite (pull-to-refresh, retour de formulaire post),
-/// qui revient aussi à la première page.
+/// Contrairement à un simple StreamProvider, la fenêtre affichée (limit)
+/// grandit à chaque loadMore() plutôt que de dépendre d'un curseur
+/// startAfter : chaque post déjà affiché reste sur un flux temps réel
+/// (.snapshots()), donc une modification/suppression/ajout dans la fenêtre
+/// déjà chargée se répercute immédiatement, sans attendre un refetch.
+/// ref.invalidate(postsByResidenceProvider(residenceId)) revient à la
+/// première page (pull-to-refresh, retour de formulaire post).
 class PostsPaginatedNotifier extends FamilyAsyncNotifier<PaginatedPosts, String> {
-  DocumentSnapshot? _lastDocument;
+  int _limit = postsPageSize;
+  StreamSubscription<PostPage>? _subscription;
 
   @override
   Future<PaginatedPosts> build(String residenceId) async {
-    _lastDocument = null;
+    _limit = postsPageSize;
     final repository = ref.watch(postRepositoryProvider);
-    final page = await repository
-        .getPostsPage(residenceId, limit: postsPageSize)
-        .then((result) => result.when(
-            success: (v) => v, failure: (error) => throw error));
-    _lastDocument = page.lastDocument;
-    return PaginatedPosts(posts: page.posts, hasMore: page.hasMore);
+    ref.onDispose(() => _subscription?.cancel());
+    return _subscribe(repository, residenceId);
   }
 
-  /// Charge la page suivante et l'ajoute à la liste déjà affichée. Appelé
-  /// quand le scroll approche du bas de la liste.
+  Future<PaginatedPosts> _subscribe(
+      IPostRepository repository, String residenceId) {
+    final completer = Completer<PaginatedPosts>();
+    _subscription?.cancel();
+    _subscription =
+        repository.watchPostsPage(residenceId, limit: _limit).listen(
+      (page) {
+        final data = PaginatedPosts(posts: page.posts, hasMore: page.hasMore);
+        if (!completer.isCompleted) {
+          completer.complete(data);
+        } else {
+          state = AsyncData(data);
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        if (!completer.isCompleted) {
+          completer.completeError(error, stackTrace);
+        } else {
+          state = AsyncError(error, stackTrace);
+        }
+      },
+    );
+    return completer.future;
+  }
+
+  /// Élargit la fenêtre affichée. Appelé quand le scroll approche du bas de
+  /// la liste.
   Future<void> loadMore() async {
     final current = state.valueOrNull;
     if (current == null || !current.hasMore || current.isLoadingMore) return;
 
     state = AsyncData(current.copyWith(isLoadingMore: true));
+    _limit += postsPageSize;
     final repository = ref.read(postRepositoryProvider);
-    final result = await repository.getPostsPage(
-      arg,
-      limit: postsPageSize,
-      startAfter: _lastDocument,
-    );
-    result.when(
-      success: (page) {
-        _lastDocument = page.lastDocument;
-        state = AsyncData(PaginatedPosts(
-          posts: [...current.posts, ...page.posts],
-          hasMore: page.hasMore,
-        ));
-      },
+    try {
+      final data = await _subscribe(repository, arg);
+      state = AsyncData(data);
+    } catch (_) {
       // Garde la page déjà chargée affichée ; abandonne juste le
       // "chargement en cours" pour permettre de réessayer en re-scrollant.
-      failure: (_) => state = AsyncData(current.copyWith(isLoadingMore: false)),
-    );
+      state = AsyncData(current.copyWith(isLoadingMore: false));
+    }
   }
 }
 
@@ -87,21 +105,44 @@ final postsByResidenceProvider = AsyncNotifierProvider.family<
 
 /// Signalements (posts reclassés par la Cloud Function de détection de
 /// doublon) d'une résidence, paginés, consommés par l'onglet
-/// "Mes déclarations" de SinistrePageView.
+/// "Mes déclarations" de SinistrePageView. Même principe temps réel que
+/// PostsPaginatedNotifier ci-dessus.
 class SignalementsPaginatedNotifier
     extends FamilyAsyncNotifier<PaginatedPosts, String> {
-  DocumentSnapshot? _lastDocument;
+  int _limit = postsPageSize;
+  StreamSubscription<PostPage>? _subscription;
 
   @override
   Future<PaginatedPosts> build(String residenceId) async {
-    _lastDocument = null;
+    _limit = postsPageSize;
     final repository = ref.watch(postRepositoryProvider);
-    final page = await repository
-        .getPostsToModifyPage(residenceId, limit: postsPageSize)
-        .then((result) => result.when(
-            success: (v) => v, failure: (error) => throw error));
-    _lastDocument = page.lastDocument;
-    return PaginatedPosts(posts: page.posts, hasMore: page.hasMore);
+    ref.onDispose(() => _subscription?.cancel());
+    return _subscribe(repository, residenceId);
+  }
+
+  Future<PaginatedPosts> _subscribe(
+      IPostRepository repository, String residenceId) {
+    final completer = Completer<PaginatedPosts>();
+    _subscription?.cancel();
+    _subscription =
+        repository.watchPostsToModifyPage(residenceId, limit: _limit).listen(
+      (page) {
+        final data = PaginatedPosts(posts: page.posts, hasMore: page.hasMore);
+        if (!completer.isCompleted) {
+          completer.complete(data);
+        } else {
+          state = AsyncData(data);
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        if (!completer.isCompleted) {
+          completer.completeError(error, stackTrace);
+        } else {
+          state = AsyncError(error, stackTrace);
+        }
+      },
+    );
+    return completer.future;
   }
 
   Future<void> loadMore() async {
@@ -109,22 +150,14 @@ class SignalementsPaginatedNotifier
     if (current == null || !current.hasMore || current.isLoadingMore) return;
 
     state = AsyncData(current.copyWith(isLoadingMore: true));
+    _limit += postsPageSize;
     final repository = ref.read(postRepositoryProvider);
-    final result = await repository.getPostsToModifyPage(
-      arg,
-      limit: postsPageSize,
-      startAfter: _lastDocument,
-    );
-    result.when(
-      success: (page) {
-        _lastDocument = page.lastDocument;
-        state = AsyncData(PaginatedPosts(
-          posts: [...current.posts, ...page.posts],
-          hasMore: page.hasMore,
-        ));
-      },
-      failure: (_) => state = AsyncData(current.copyWith(isLoadingMore: false)),
-    );
+    try {
+      final data = await _subscribe(repository, arg);
+      state = AsyncData(data);
+    } catch (_) {
+      state = AsyncData(current.copyWith(isLoadingMore: false));
+    }
   }
 }
 
@@ -135,34 +168,30 @@ final signalementsByResidenceProvider = AsyncNotifierProvider.family<
 /// Tous les posts d'une résidence, SANS pagination (contrairement à
 /// postsByResidenceProvider) : utilisé par EventPageView, qui a besoin de
 /// l'historique complet pour construire les marqueurs du calendrier et
-/// filtrer par jour sélectionné, pas d'un défilement infini.
+/// filtrer par jour sélectionné, pas d'un défilement infini. Temps réel.
 final allPostsByResidenceProvider =
-    FutureProvider.family<List<Post>, String>((ref, residenceId) async {
+    StreamProvider.family<List<Post>, String>((ref, residenceId) {
   final repository = ref.watch(postRepositoryProvider);
-  return repository.getAllPosts(residenceId).then((result) => result.when(
-      success: (v) => v, failure: (error) => throw error));
+  return repository.watchAllPosts(residenceId);
 });
 
 /// Annonces d'une résidence, SANS pagination : AnnoncesPageView partage
 /// cette même liste entre l'onglet "Tous" (filtré par type) et l'onglet
 /// "Gérer" (filtré sur les annonces de l'utilisateur courant) - paginer
 /// masquerait ses propres annonces au-delà de la première page dans
-/// "Gérer" tant qu'il ne scrolle pas "Tous" jusque-là.
+/// "Gérer" tant qu'il ne scrolle pas "Tous" jusque-là. Temps réel.
 final annoncesByResidenceProvider =
-    FutureProvider.family<List<Post>, String>((ref, residenceId) async {
+    StreamProvider.family<List<Post>, String>((ref, residenceId) {
   final repository = ref.watch(postRepositoryProvider);
-  return repository.getAllAnnonces(residenceId).then((result) => result.when(
-      success: (v) => v, failure: (error) => throw error));
+  return repository.watchAllAnnonces(residenceId);
 });
 
 /// Publications d'un utilisateur donné dans une résidence (ShowProfilPage) :
 /// une seule requête partagée par les 3 onglets (déclarations/annonces/
 /// événements), qui filtrent ensuite côté client par type - au lieu de
-/// relancer la même requête à chaque changement d'onglet.
-final userPostsByResidenceProvider = FutureProvider.family<List<Post>,
-    ({String residenceId, String userId})>((ref, args) async {
+/// relancer la même requête à chaque changement d'onglet. Temps réel.
+final userPostsByResidenceProvider = StreamProvider.family<List<Post>,
+    ({String residenceId, String userId})>((ref, args) {
   final repository = ref.watch(postRepositoryProvider);
-  return repository
-      .getPostsByUser(args.residenceId, args.userId)
-      .then((result) => result.when(success: (v) => v, failure: (_) => <Post>[]));
+  return repository.watchPostsByUser(args.residenceId, args.userId);
 });

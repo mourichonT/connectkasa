@@ -357,6 +357,121 @@ class FirestorePostRepository implements IPostRepository {
   }
 
   @override
+  Stream<List<Post>> watchAllPosts(String doc) {
+    if (doc.isEmpty) return Stream.value(const []);
+    return _firestore
+        .collection("residences")
+        .doc(doc)
+        .collection("posts")
+        .orderBy('timeStamp', descending: true)
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((d) => Post.fromMap(d.data())).toList());
+  }
+
+  @override
+  Stream<List<Post>> watchAllAnnonces(String doc) {
+    if (doc.isEmpty) return Stream.value(const []);
+    return _firestore
+        .collection("residences")
+        .doc(doc)
+        .collection("posts")
+        .where('type', isEqualTo: 'annonces')
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((d) => Post.fromMap(d.data())).toList());
+  }
+
+  @override
+  Stream<PostPage> watchPostsPage(String doc, {required int limit}) {
+    if (doc.isEmpty) {
+      return Stream.value(
+          const PostPage(posts: [], lastDocument: null, hasMore: false));
+    }
+    return _firestore
+        .collection("residences")
+        .doc(doc)
+        .collection("posts")
+        .orderBy('timeStamp', descending: true)
+        .limit(limit + 1)
+        .snapshots()
+        .map((snapshot) {
+      final hasMore = snapshot.docs.length > limit;
+      final pageDocs =
+          hasMore ? snapshot.docs.sublist(0, limit) : snapshot.docs;
+      return PostPage(
+        posts: pageDocs.map((d) => Post.fromMap(d.data())).toList(),
+        lastDocument: pageDocs.isNotEmpty ? pageDocs.last : null,
+        hasMore: hasMore,
+      );
+    });
+  }
+
+  @override
+  Stream<PostPage> watchPostsToModifyPage(String doc, {required int limit}) {
+    if (doc.isEmpty) {
+      return Stream.value(
+          const PostPage(posts: [], lastDocument: null, hasMore: false));
+    }
+    return _firestore
+        .collection("residences")
+        .doc(doc)
+        .collection("posts")
+        .orderBy('timeStamp', descending: true)
+        .limit(limit + 1)
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final hasMore = snapshot.docs.length > limit;
+      final pageDocs =
+          hasMore ? snapshot.docs.sublist(0, limit) : snapshot.docs;
+
+      // Un post -> une requête signalements, mais toutes en parallèle -
+      // même motif que watchTotalCommentCount (comment_repository) : cumuler
+      // ces requêtes séquentiellement se sentait sur le chargement du fil,
+      // proportionnellement au nombre de posts affichés.
+      final signalementsQueries = await Future.wait(pageDocs
+          .map((docSnapshot) => docSnapshot.reference.collection("signalements").get()));
+
+      final posts = <Post>[];
+      for (var i = 0; i < pageDocs.length; i++) {
+        posts.add(Post.fromMap(pageDocs[i].data()));
+        posts.addAll(signalementsQueries[i]
+            .docs
+            .map((signalementSnapshot) => Post.fromMap(signalementSnapshot.data())));
+      }
+      return PostPage(
+        posts: posts,
+        lastDocument: pageDocs.isNotEmpty ? pageDocs.last : null,
+        hasMore: hasMore,
+      );
+    });
+  }
+
+  @override
+  Stream<List<Post>> watchPostsByUser(String residenceId, String userId) {
+    return _firestore
+        .collection("residences")
+        .doc(residenceId)
+        .collection("posts")
+        .snapshots()
+        .asyncMap((snapshot) async {
+      final signalementsQueries = await Future.wait(snapshot.docs.map((postDoc) =>
+          postDoc.reference.collection("signalements").where("user", isEqualTo: userId).get()));
+
+      final posts = <Post>[];
+      for (var i = 0; i < snapshot.docs.length; i++) {
+        final data = snapshot.docs[i].data();
+        if (data['user'] == userId) {
+          posts.add(Post.fromMap(data));
+        }
+        posts.addAll(
+            signalementsQueries[i].docs.map((sig) => Post.fromMap(sig.data())));
+      }
+      return posts;
+    });
+  }
+
+  @override
   Future<Result<Post?>> addPost(Post newPost, String docRes) async {
     try {
       await _firestore
@@ -580,6 +695,47 @@ class FirestorePostRepository implements IPostRepository {
               signalementsQuery.docs.first;
           await postWithSignalementsDoc.reference.update(updatedPost.toUpdateMap());
           return Result.success(updatedPost);
+        }
+      }
+
+      return Result.failure(NotFoundException(
+          'Aucun post correspondant trouvé ni dans la collection principale ni dans les signalements'));
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
+
+  @override
+  Future<Result<void>> updatePostFields(
+      String docRes, String postId, Map<String, dynamic> fields) async {
+    try {
+      QuerySnapshot querySnapshot = await _firestore
+          .collection("residences")
+          .doc(docRes)
+          .collection("posts")
+          .where('id', isEqualTo: postId)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        await querySnapshot.docs.first.reference.update(fields);
+        return const Result.success(null);
+      }
+
+      QuerySnapshot postsQuery = await _firestore
+          .collection("residences")
+          .doc(docRes)
+          .collection("posts")
+          .get();
+
+      for (DocumentSnapshot postDoc in postsQuery.docs) {
+        QuerySnapshot signalementsQuery = await postDoc.reference
+            .collection("signalements")
+            .where("id", isEqualTo: postId)
+            .get();
+
+        if (signalementsQuery.docs.isNotEmpty) {
+          await signalementsQuery.docs.first.reference.update(fields);
+          return const Result.success(null);
         }
       }
 

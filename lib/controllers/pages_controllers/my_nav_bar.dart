@@ -31,8 +31,22 @@ import 'package:konodal/core/utils/app_logger.dart';
 class MyNavBar extends StatefulWidget {
   final String uid;
   final double? scrollController;
+  // Déjà résolus par LoginTransitionPage avant la navigation (cf.
+  // MyApp2) : évite à _initializeLot de refaire le getLotByIdUser et la
+  // résolution du lot préféré juste après avoir atterri ici. Restent
+  // optionnels : MyNavBar peut aussi être atteint autrement (ex. retour
+  // depuis un écran enfant qui le reconstruit), auquel cas il refait la
+  // résolution normalement.
+  final List<Lot>? initialLots;
+  final Lot? initialPreferredLot;
 
-  const MyNavBar({super.key, required this.uid, this.scrollController});
+  const MyNavBar({
+    super.key,
+    required this.uid,
+    this.scrollController,
+    this.initialLots,
+    this.initialPreferredLot,
+  });
 
   @override
   State<MyNavBar> createState() => _MyNavBarState();
@@ -102,38 +116,57 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
 
   Future<void> _initializeLot() async {
     try {
-      _lotsList = await _fetchApprovedLots();
+      // Cède la main avant toute chose : appelée en fire-and-forget depuis
+      // initState(), cette méthode doit finir son build synchronement.
+      // Quand initialLots est fourni, la branche ci-dessous n'a plus aucun
+      // await avant updateColor/setState (contrairement à l'ancien chemin,
+      // qui attendait le fetch Firestore) - sans ce yield, ces appels
+      // s'exécutaient encore pendant la phase de build de initState(),
+      // provoquant "setState() or markNeedsBuild() called during build".
+      await Future<void>.delayed(Duration.zero);
+      if (!mounted) return;
 
-      // Le cache local (SharedPreferences) peut contenir un JSON dans un
-      // ancien format (avant un renommage/regroupement de champs sur Lot/
-      // Agency/Address) : Lot.fromJson() peut alors lever une exception.
-      // Sans ce try/catch, cette exception remontait hors de
-      // _initializeLot() (appelée en fire-and-forget depuis initState()),
-      // jamais rattrapée nulle part.
-      Lot? cachedPreferedLot;
-      try {
-        cachedPreferedLot = await _loadPreferedData.loadPreferedLot(widget.uid);
-      } catch (e) {
-        appLog("Lot préféré en cache illisible (format obsolète ?), ignoré : $e");
-        cachedPreferedLot = null;
-      }
+      // Déjà résolus par LoginTransitionPage (cf. commentaire sur
+      // widget.initialLots) : évite de refaire ici le getLotByIdUser et la
+      // lecture SharedPreferences déjà faits juste avant la navigation.
+      if (widget.initialLots != null) {
+        _lotsList = widget.initialLots;
+        _preferedLot = widget.initialPreferredLot;
+      } else {
+        _lotsList = await _fetchApprovedLots();
 
-      // Ne fait confiance au cache que si ce lot est toujours présent dans
-      // la liste fraîchement lue depuis Firestore : un lot peut avoir été
-      // révoqué, supprimé, ou repassé à isApprovedLot: false depuis la
-      // dernière mise en cache - sans cette vérification, un utilisateur
-      // pouvait rester bloqué sur un lot fantôme au lieu de retomber sur
-      // l'écran "aucun lot". Utilise l'objet FRAIS de _lotsList (pas
-      // cachedPreferedLot lui-même) : sinon idProprietaire/idLocataire
-      // restaient ceux du cache, par exemple un propriétaire déjà détaché
-      // continuait d'apparaître comme destinataire de messages ("Mon
-      // proprio.") jusqu'à ce que le cache expire.
-      _preferedLot = null;
-      if (cachedPreferedLot != null) {
-        for (final lot in _lotsList ?? <Lot>[]) {
-          if (lot.id == cachedPreferedLot.id) {
-            _preferedLot = lot;
-            break;
+        // Le cache local (SharedPreferences) peut contenir un JSON dans un
+        // ancien format (avant un renommage/regroupement de champs sur Lot/
+        // Agency/Address) : Lot.fromJson() peut alors lever une exception.
+        // Sans ce try/catch, cette exception remontait hors de
+        // _initializeLot() (appelée en fire-and-forget depuis initState()),
+        // jamais rattrapée nulle part.
+        Lot? cachedPreferedLot;
+        try {
+          cachedPreferedLot =
+              await _loadPreferedData.loadPreferedLot(widget.uid);
+        } catch (e) {
+          appLog("Lot préféré en cache illisible (format obsolète ?), ignoré : $e");
+          cachedPreferedLot = null;
+        }
+
+        // Ne fait confiance au cache que si ce lot est toujours présent dans
+        // la liste fraîchement lue depuis Firestore : un lot peut avoir été
+        // révoqué, supprimé, ou repassé à isApprovedLot: false depuis la
+        // dernière mise en cache - sans cette vérification, un utilisateur
+        // pouvait rester bloqué sur un lot fantôme au lieu de retomber sur
+        // l'écran "aucun lot". Utilise l'objet FRAIS de _lotsList (pas
+        // cachedPreferedLot lui-même) : sinon idProprietaire/idLocataire
+        // restaient ceux du cache, par exemple un propriétaire déjà détaché
+        // continuait d'apparaître comme destinataire de messages ("Mon
+        // proprio.") jusqu'à ce que le cache expire.
+        _preferedLot = null;
+        if (cachedPreferedLot != null) {
+          for (final lot in _lotsList ?? <Lot>[]) {
+            if (lot.id == cachedPreferedLot.id) {
+              _preferedLot = lot;
+              break;
+            }
           }
         }
       }
