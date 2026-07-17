@@ -340,7 +340,10 @@ service cloud.firestore {
         }
 
         match /comments/{id} {
-          allow read, create: if isResidenceMember(residenceId);
+          // isSuperAdmin() en lecture/création : le backoffice affiche et
+          // répond aux commentaires d'un post (ex: fil sous un sinistre) sans
+          // que ce compte soit résident de la résidence.
+          allow read, create: if isResidenceMember(residenceId) || isSuperAdmin();
           // Édition/suppression complète réservée à l'auteur (ou modération) ;
           // mais liker le commentaire de quelqu'un d'autre est aussi un
           // update() Firestore - autorisé séparément à tout résident du
@@ -352,7 +355,7 @@ service cloud.firestore {
           allow delete: if resource.data.user == request.auth.uid || isCsMember(residenceId) || isSuperAdmin();
 
           match /replies/{id} {
-            allow read, create: if isResidenceMember(residenceId);
+            allow read, create: if isResidenceMember(residenceId) || isSuperAdmin();
             allow update: if resource.data.user == request.auth.uid || isCsMember(residenceId) ||
               isSuperAdmin() ||
               (isResidenceMember(residenceId) &&
