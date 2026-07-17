@@ -2,12 +2,13 @@
 from firebase_functions import scheduler_fn, https_fn, firestore_fn, options, params
 
 # The Firebase Admin SDK to access Cloud Firestore.
-from firebase_admin import initialize_app, firestore
+from firebase_admin import initialize_app, firestore, storage
 import imaplib
 import smtplib
 import email
 import re
 import json
+import uuid
 from email.header import decode_header
 from email.utils import parsedate_to_datetime
 from email.mime.text import MIMEText
@@ -17,6 +18,7 @@ import os
 import tempfile
 from datetime import datetime, timedelta, timezone
 from io import BytesIO
+from urllib.parse import quote
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.lib.utils import ImageReader
@@ -38,6 +40,12 @@ SMTP_HOST = 'smtp.gmail.com'
 SMTP_PORT = 465
 
 EMAIL_ADDRESS = 'admin.konodal@gmail.com'
+
+# storage.bucket() sans nom explicite lève une ValueError si l'app n'a pas
+# été initialisée avec l'option "storageBucket" (ce qui n'est pas le cas ici,
+# initialize_app() est appelé sans options) - on passe donc toujours ce nom
+# explicitement (cf. _upload_shared_media).
+STORAGE_BUCKET = 'konodal-dev.firebasestorage.app'
 # Secret Firebase (jamais en clair dans le code / git) : à définir avec
 # `firebase functions:secrets:set EMAIL_PASSWORD`. Déclaré individuellement
 # sur chaque décorateur plutôt que via set_global_options(secrets=...) : le
@@ -721,6 +729,38 @@ def sync_cs_member_residences(event: firestore_fn.Event) -> None:
     db = firestore.client()
     for uid in changed_uids:
         _recompute_cs_member_residences(db, uid)
+
+
+# ---------------------------------------------------------------------------
+# Post/signalement : auto-complète le champ "id" (= l'id du document
+# lui-même) s'il est absent à l'écriture. Toute relecture par id côté app
+# (Post.fromMap, et surtout les requêtes where("id", ==, ...) de
+# updatePost/updatePostFields/updatePostLikes/getUpdatePost/...) dépend de
+# ce champ - absent sur les documents écrits par konodal_bo (backoffice web,
+# autre codebase, même base Firestore). Sans ce filet, un tel post restait
+# invisible de toute relecture par id (post.id vide côté app), jusqu'au
+# crash chez l'appelant qui suppose la relecture toujours réussie (ex:
+# EventWidget, "updatedPost!"). Se re-déclenche une fois sur sa propre
+# écriture (id absent -> présent), puis converge (id présent -> no-op).
+# ---------------------------------------------------------------------------
+
+def _backfill_id(after):
+    if after is None or not after.exists:
+        return
+    data = after.to_dict() or {}
+    if not data.get("id"):
+        after.reference.update({"id": after.id})
+
+
+@firestore_fn.on_document_written(document="residences/{residenceId}/posts/{postId}")
+def sync_post_id(event: firestore_fn.Event) -> None:
+    _backfill_id(event.data.after)
+
+
+@firestore_fn.on_document_written(
+    document="residences/{residenceId}/posts/{postId}/signalements/{signalementId}")
+def sync_signalement_id(event: firestore_fn.Event) -> None:
+    _backfill_id(event.data.after)
 
 
 @firestore_fn.on_document_written(document="users/{userId}/lots/{lotId}")
@@ -1809,6 +1849,407 @@ def trigger_report_by_url(req: https_fn.Request) -> https_fn.Response:
             "<h3>Rapport généré avec succès.</h3>",
             status=200,
             content_type="text/html",
+        )
+
+    except Exception as e:
+        return https_fn.Response(
+            json.dumps({"error": str(e)}),
+            status=500,
+            content_type="application/json",
+        )
+
+
+def _shared_intervention_payload(post_data: dict) -> dict:
+    event = post_data.get("event") or {}
+    event_date = event.get("eventDate")
+    return {
+        "title": post_data.get("title", ""),
+        "description": post_data.get("description", ""),
+        "eventDate": event_date.isoformat() if hasattr(event_date, "isoformat") else None,
+        "prestaName": event.get("prestaName", ""),
+        "pathImage": post_data.get("pathImage", ""),
+    }
+
+
+def _shared_signalement_payload(data: dict) -> dict:
+    """Un signalement (déclaration) du sinistre, sans aucune information sur
+    son déclarant (`user`/`hideUser`) - c'est tout le sens du partage limité
+    par token : le prestataire voit le contenu, jamais qui l'a écrit."""
+    dates = data.get("dates") or data
+    creation_date = dates.get("creationDate") or dates.get("timeStamp")
+    return {
+        "title": data.get("title", ""),
+        "description": data.get("description", ""),
+        "pathImage": data.get("pathImage", ""),
+        "isVideo": data.get("isVideo", False),
+        "creationDate": creation_date.isoformat() if hasattr(creation_date, "isoformat") else None,
+    }
+
+
+def _shared_sinistre_payload(sinistre_doc, posts_ref) -> dict:
+    data = sinistre_doc.to_dict() or {}
+    location = data.get("location") or data
+    signalements = [
+        _shared_signalement_payload(d.to_dict() or {})
+        for d in posts_ref.document(sinistre_doc.id).collection("signalements").stream()
+    ]
+    return {
+        "title": data.get("title", ""),
+        "description": data.get("description", ""),
+        "statut": data.get("statut", ""),
+        "locationElement": location.get("locationElements", ""),
+        "locationFloor": location.get("locationFloor", ""),
+        "pathImage": data.get("pathImage", ""),
+        "signalements": signalements,
+    }
+
+
+def _resolve_share_token(db, token: str):
+    """Retrouve (residenceId, postId, posts_ref) pour un token de partage, ou
+    une https_fn.Response d'erreur (404/403) si invalide/expiré - factorisé
+    entre get_shared_intervention (lecture) et create_shared_signalement
+    (écriture scoped), les deux seuls points d'entrée qui consultent
+    shareTokens/{token}."""
+    token_doc = db.collection("shareTokens").document(token).get()
+    if not token_doc.exists:
+        return None, https_fn.Response(
+            json.dumps({"error": "Lien invalide"}), status=404, content_type="application/json"
+        )
+
+    token_data = token_doc.to_dict() or {}
+    expires_at = token_data.get("expiresAt")
+    if expires_at is not None and expires_at < datetime.now(timezone.utc):
+        return None, https_fn.Response(
+            json.dumps({"error": "Lien expiré"}), status=403, content_type="application/json"
+        )
+
+    return token_data, None
+
+
+@https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["get"]))
+def get_shared_intervention(req: https_fn.Request) -> https_fn.Response:
+    """Résout un lien de partage (shareTokens/{token}) envoyé à un prestataire
+    sans compte BO et renvoie en JSON uniquement les champs nécessaires à
+    l'affichage de cette intervention précise (+ résidence + sinistre lié et
+    ses signalements, sans identité du déclarant) - jamais d'accès Firestore
+    direct côté client, cf. la règle shareTokens/{token} (isSuperAdmin
+    uniquement) dans firestore.rules."""
+    token = req.args.get("token")
+    if not token:
+        return https_fn.Response(
+            json.dumps({"error": "Paramètre 'token' manquant"}),
+            status=400,
+            content_type="application/json",
+        )
+
+    db = firestore.client()
+    try:
+        token_data, error_response = _resolve_share_token(db, token)
+        if error_response is not None:
+            return error_response
+
+        residence_id = token_data.get("residenceId")
+        post_id = token_data.get("postId")
+        posts_ref = db.collection("residences").document(residence_id).collection("posts")
+
+        post_doc = posts_ref.document(post_id).get()
+        if not post_doc.exists:
+            return https_fn.Response(
+                json.dumps({"error": "Intervention introuvable"}),
+                status=404,
+                content_type="application/json",
+            )
+        post_data = post_doc.to_dict() or {}
+
+        residence_doc = db.collection("residences").document(residence_id).get()
+        residence_data = residence_doc.to_dict() if residence_doc.exists else {}
+
+        sinistre_data = None
+        linked_sinistre_id = post_data.get("linkedSinistreId")
+        if linked_sinistre_id:
+            sinistre_doc = posts_ref.document(linked_sinistre_id).get()
+            if sinistre_doc.exists:
+                sinistre_data = _shared_sinistre_payload(sinistre_doc, posts_ref)
+
+        return https_fn.Response(
+            json.dumps({
+                "intervention": _shared_intervention_payload(post_data),
+                "residence": {
+                    "name": residence_data.get("name", ""),
+                    "address": residence_data.get("address", {}),
+                },
+                "sinistre": sinistre_data,
+            }),
+            status=200,
+            content_type="application/json",
+        )
+
+    except Exception as e:
+        return https_fn.Response(
+            json.dumps({"error": str(e)}),
+            status=500,
+            content_type="application/json",
+        )
+
+
+def _upload_shared_media(file_storage, residence_id: str) -> tuple[str, bool]:
+    """Upload une photo/vidéo envoyée (multipart) par le prestataire, au même
+    chemin Storage que les photos de sinistre côté app mobile
+    (residences/{residenceId}/sinistres/{uuid}.{ext}, cf. CameraOrFiles /
+    firestore_storage_repository.dart:uploadImg) - Admin SDK, donc aucune
+    règle storage.rules à ouvrir pour ce endpoint public. Le token de
+    téléchargement posé en metadata reproduit le format d'URL que le SDK
+    client Firebase Storage génère lui-même (getDownloadURL())."""
+    filename = file_storage.filename or ""
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
+    content_type = file_storage.content_type or "application/octet-stream"
+    is_video = content_type.startswith("video/") or ext in ("mp4", "m4v", "mov")
+
+    bucket = storage.bucket(STORAGE_BUCKET)
+    download_token = str(uuid.uuid4())
+    blob_path = f"residences/{residence_id}/sinistres/{uuid.uuid4()}.{ext}"
+    blob = bucket.blob(blob_path)
+    blob.metadata = {"firebaseStorageDownloadTokens": download_token}
+    blob.upload_from_file(file_storage.stream, content_type=content_type)
+
+    download_url = (
+        f"https://firebasestorage.googleapis.com/v0/b/{bucket.name}/o/"
+        f"{quote(blob_path, safe='')}?alt=media&token={download_token}"
+    )
+    return download_url, is_video
+
+
+@https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
+def create_shared_signalement(req: https_fn.Request) -> https_fn.Response:
+    """Point d'entrée en écriture pour un prestataire sans compte BO : ajoute
+    un signalement (avec photo/vidéo optionnelle) au sinistre lié à
+    l'intervention de son lien de partage. Portée strictement bornée par le
+    token (résolu comme get_shared_intervention) - ni le résidenceId ni le
+    postId ne viennent du corps de la requête, donc ce endpoint ne peut
+    jamais écrire ailleurs que sur CE sinistre précis. Toujours multipart
+    (pas de JSON) pour accepter le fichier au même titre que les champs
+    texte."""
+    token = (req.form.get("token") or "").strip()
+    title = (req.form.get("title") or "").strip()
+    description = (req.form.get("description") or "").strip()
+    file_storage = req.files.get("file")
+
+    if not token or not title:
+        return https_fn.Response(
+            json.dumps({"error": "Paramètres manquants"}),
+            status=400,
+            content_type="application/json",
+        )
+
+    db = firestore.client()
+    try:
+        token_data, error_response = _resolve_share_token(db, token)
+        if error_response is not None:
+            return error_response
+
+        residence_id = token_data.get("residenceId")
+        post_id = token_data.get("postId")
+        posts_ref = db.collection("residences").document(residence_id).collection("posts")
+
+        intervention_doc = posts_ref.document(post_id).get()
+        if not intervention_doc.exists:
+            return https_fn.Response(
+                json.dumps({"error": "Intervention introuvable"}),
+                status=404,
+                content_type="application/json",
+            )
+
+        linked_sinistre_id = (intervention_doc.to_dict() or {}).get("linkedSinistreId")
+        if not linked_sinistre_id:
+            return https_fn.Response(
+                json.dumps({"error": "Aucun sinistre lié à cette intervention"}),
+                status=400,
+                content_type="application/json",
+            )
+
+        path_image = ""
+        is_video = False
+        if file_storage is not None and file_storage.filename:
+            path_image, is_video = _upload_shared_media(file_storage, residence_id)
+
+        posts_ref.document(linked_sinistre_id).collection("signalements").add({
+            "type": "sinistres",
+            "title": title,
+            "description": description,
+            "pathImage": path_image,
+            "isVideo": is_video,
+            "user": "Prestataire (lien de partage)",
+            "hideUser": True,
+            "dates": {"creationDate": firestore.SERVER_TIMESTAMP},
+        })
+
+        return https_fn.Response(
+            json.dumps({"success": True}),
+            status=200,
+            content_type="application/json",
+        )
+
+    except Exception as e:
+        return https_fn.Response(
+            json.dumps({"error": str(e)}),
+            status=500,
+            content_type="application/json",
+        )
+
+
+@https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
+def complete_shared_intervention(req: https_fn.Request) -> https_fn.Response:
+    """Le prestataire déclare son intervention terminée depuis la page de
+    partage : fait passer le sinistre lié à "Terminé", même sémantique que
+    updateSinistreStatut côté BO (konodal_bo/src/lib/sinistres.ts)."""
+    payload = req.get_json(silent=True) or {}
+    token = payload.get("token")
+    if not token:
+        return https_fn.Response(
+            json.dumps({"error": "Paramètre 'token' manquant"}),
+            status=400,
+            content_type="application/json",
+        )
+
+    db = firestore.client()
+    try:
+        token_data, error_response = _resolve_share_token(db, token)
+        if error_response is not None:
+            return error_response
+
+        residence_id = token_data.get("residenceId")
+        post_id = token_data.get("postId")
+        posts_ref = db.collection("residences").document(residence_id).collection("posts")
+
+        intervention_doc = posts_ref.document(post_id).get()
+        if not intervention_doc.exists:
+            return https_fn.Response(
+                json.dumps({"error": "Intervention introuvable"}),
+                status=404,
+                content_type="application/json",
+            )
+
+        linked_sinistre_id = (intervention_doc.to_dict() or {}).get("linkedSinistreId")
+        if not linked_sinistre_id:
+            return https_fn.Response(
+                json.dumps({"error": "Aucun sinistre lié à cette intervention"}),
+                status=400,
+                content_type="application/json",
+            )
+
+        posts_ref.document(linked_sinistre_id).update({
+            "statut": "Terminé",
+            "dates.closedDate": firestore.SERVER_TIMESTAMP,
+        })
+
+        return https_fn.Response(
+            json.dumps({"success": True}),
+            status=200,
+            content_type="application/json",
+        )
+
+    except Exception as e:
+        return https_fn.Response(
+            json.dumps({"error": str(e)}),
+            status=500,
+            content_type="application/json",
+        )
+
+
+@https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
+def reschedule_shared_intervention(req: https_fn.Request) -> https_fn.Response:
+    """Le prestataire n'a pas terminé et reprogramme un passage depuis la
+    page de partage : crée une NOUVELLE intervention (même titre/description/
+    prestataire/photo que l'originale) liée au même sinistre, remet le
+    sinistre à "En cours" (jamais "Terminé" - cf. demande explicite) et pose
+    dates.interventionDate, comme le fait SinistreDetailPage côté BO. Comme
+    le nouveau post a un postId différent, l'ancien token ne lui donne pas
+    accès : on génère un nouveau shareTokens scoré sur cette nouvelle
+    intervention et on renvoie son id, pour que la page fasse elle-même la
+    redirection - pas besoin de renvoyer un email, le prestataire est déjà
+    sur la page."""
+    payload = req.get_json(silent=True) or {}
+    token = payload.get("token")
+    event_date_raw = payload.get("eventDate")
+    if not token or not event_date_raw:
+        return https_fn.Response(
+            json.dumps({"error": "Paramètres manquants"}),
+            status=400,
+            content_type="application/json",
+        )
+
+    try:
+        event_date = datetime.fromisoformat(event_date_raw.replace("Z", "+00:00"))
+    except ValueError:
+        return https_fn.Response(
+            json.dumps({"error": "Date invalide"}),
+            status=400,
+            content_type="application/json",
+        )
+
+    db = firestore.client()
+    try:
+        token_data, error_response = _resolve_share_token(db, token)
+        if error_response is not None:
+            return error_response
+
+        residence_id = token_data.get("residenceId")
+        post_id = token_data.get("postId")
+        posts_ref = db.collection("residences").document(residence_id).collection("posts")
+
+        intervention_doc = posts_ref.document(post_id).get()
+        if not intervention_doc.exists:
+            return https_fn.Response(
+                json.dumps({"error": "Intervention introuvable"}),
+                status=404,
+                content_type="application/json",
+            )
+        intervention_data = intervention_doc.to_dict() or {}
+        linked_sinistre_id = intervention_data.get("linkedSinistreId")
+        if not linked_sinistre_id:
+            return https_fn.Response(
+                json.dumps({"error": "Aucun sinistre lié à cette intervention"}),
+                status=400,
+                content_type="application/json",
+            )
+        event = intervention_data.get("event") or {}
+
+        new_post_ref = posts_ref.document()
+        new_post_ref.set({
+            "type": "events",
+            "refResidence": residence_id,
+            "user": "prestataire-partage",
+            "hideUser": False,
+            "title": intervention_data.get("title", ""),
+            "description": intervention_data.get("description", ""),
+            "pathImage": intervention_data.get("pathImage", ""),
+            "dates": {"creationDate": firestore.SERVER_TIMESTAMP},
+            "event": {
+                "eventDate": event_date,
+                "eventType": ["prestation"],
+                "prestaName": event.get("prestaName", ""),
+            },
+            "linkedSinistreId": linked_sinistre_id,
+        })
+
+        posts_ref.document(linked_sinistre_id).update({
+            "statut": "En cours",
+            "dates.interventionDate": event_date,
+            "dates.inProgressDate": firestore.SERVER_TIMESTAMP,
+        })
+
+        new_token = str(uuid.uuid4())
+        db.collection("shareTokens").document(new_token).set({
+            "residenceId": residence_id,
+            "postId": new_post_ref.id,
+            "createdAt": firestore.SERVER_TIMESTAMP,
+            "expiresAt": event_date + timedelta(hours=48),
+        })
+
+        return https_fn.Response(
+            json.dumps({"success": True, "newToken": new_token}),
+            status=200,
+            content_type="application/json",
         )
 
     except Exception as e:

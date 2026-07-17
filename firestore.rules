@@ -21,30 +21,18 @@ service cloud.firestore {
         residenceId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.residencesIds;
     }
 
-    // Variante multi-résidences de isResidenceMember, pour la collection
-    // racine "contacts" (Contact.residencesIds, partagé entre résidences) :
-    // au moins UNE des résidences de residencesIds fait partie de
-    // users/{uid}.residencesIds - déjà dénormalisé par sync_lot_tenants,
-    // aucune nouvelle Cloud Function nécessaire pour la lecture.
-    function isAnyResidenceMember(residencesIds) {
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return isSignedIn() && 'residencesIds' in userData &&
-        residencesIds.hasAny(userData.residencesIds);
-    }
-
-    // Variante multi-résidences de isCsMember, même collection "contacts" :
-    // dénormalisé sur users/{uid}.csMemberResidencesIds (maintenu par
-    // sync_cs_member_residences, cf. functions_python/main.py), pour qu'un
-    // CS member de N'IMPORTE LAQUELLE des résidences liées à un contact
-    // partagé puisse le créer/lier/délier, sans que les rules aient besoin
-    // de boucler sur un tableau de taille dynamique (get() par élément
-    // impossible ici). Champ absent tant que la fonction n'a pas tourné
-    // pour cet utilisateur -> gardé par 'x in ... .data', même pattern
-    // défensif que isSyndicAgent plus bas.
-    function isCsMemberOfAnyResidence(residencesIds) {
+    // Dénormalisé sur users/{uid}.csMemberResidencesIds (maintenu par
+    // sync_cs_member_residences, cf. functions_python/main.py) : "est-il CS
+    // member de N'IMPORTE QUELLE résidence" pour autoriser la création d'un
+    // contact partagé (collection racine "contacts") - le rattachement à une
+    // résidence précise vit sur residences/{id}.contactRefs, pas sur ce
+    // document, donc pas de residencesIds à comparer ici. Champ absent tant
+    // que la fonction n'a pas tourné pour cet utilisateur -> gardé par
+    // 'x in ... .data', même pattern défensif que isSyndicAgent plus bas.
+    function isCsMemberOfAnyResidenceAtAll() {
       let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
       return isSignedIn() && 'csMemberResidencesIds' in userData &&
-        residencesIds.hasAny(userData.csMemberResidencesIds);
+        userData.csMemberResidencesIds.size() > 0;
     }
 
     // csmembers est déjà le bon endroit pour ce check : c'est un champ direct
@@ -126,21 +114,6 @@ service cloud.firestore {
       return isSignedIn() && 'geranceRef' in residence &&
         residence.geranceRef.serviceType == 'serviceSyndic' &&
         isSyndicAgent(residence.geranceRef.geranceId);
-    }
-
-    // Variante multi-résidences de isProfessionnelResidence, pour la
-    // collection racine "contacts" (Contact.residencesIds) : cette dernière
-    // fait son propre get() par résidence - pas un tableau dénormalisé - et
-    // les rules n'ont pas de boucle : déroulé BORNÉ à 3 éléments. Limite
-    // connue/acceptée : un contact partagé entre plus de 3 résidences peut
-    // devenir invisible en lecture pour un Professionnel au-delà du 3e
-    // élément de residencesIds.
-    function isProfessionnelResidenceForAny(residencesIds) {
-      return isSignedIn() && (
-        (residencesIds.size() > 0 && isProfessionnelResidence(residencesIds[0])) ||
-        (residencesIds.size() > 1 && isProfessionnelResidence(residencesIds[1])) ||
-        (residencesIds.size() > 2 && isProfessionnelResidence(residencesIds[2]))
-      );
     }
 
     function isProfessionnelLot(residenceId, lotId) {
@@ -436,18 +409,6 @@ service cloud.firestore {
         }
       }
 
-      // DEPRECATED — remplacé par la collection racine /contacts/{id}
-      // ci-dessous (Contact.residencesIds, partagé entre résidences). Laissé
-      // en l'état, inerte dès que l'app ne lit/écrit plus ce chemin, à
-      // supprimer une fois residences/*/contacts/* purgé (cf.
-      // migrate_contacts_to_root.py).
-      match /contacts/{id} {
-        // Professionnel : lecture seule (annuaire de contacts de sa
-        // résidence gérée), pas d'écriture - réservée au CS member/Admin.
-        allow read: if isResidenceMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
-        allow write: if isCsMember(residenceId) || isSuperAdmin();
-      }
-
       match /structures/{id} {
         allow read: if isResidenceMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
         allow write: if isCsMember(residenceId) || isSuperAdmin();
@@ -500,36 +461,51 @@ service cloud.firestore {
     }
 
     // ---------- Root "contacts" (annuaire partagé multi-résidences) ----------
-    // Remplace residences/{id}/contacts (cf. bloc DEPRECATED ci-dessus) : un
-    // contact peut être lié à plusieurs résidences via residencesIds. Match
-    // RACINE EXPLICITE (pas {path=**}) : s'ajoute à la règle
+    // Remplace l'ancienne sous-collection residences/{id}/contacts (un
+    // contact dupliqué par résidence, supprimée depuis que plus aucun code
+    // ne la lit/l'écrit - cf. migrate_contacts_to_root.py pour la reprise de
+    // données historique). Le rattachement à une résidence ne vit PLUS ici mais
+    // sur residences/{id}.contactRefs : Firestore n'a pas de sécurité par
+    // champ, donc exposer residencesIds sur ce document partagé permettait à
+    // un Professionnel gérant UNE résidence liée de voir TOUTES les autres
+    // résidences liées (fuite cross-agence). En sortant le rattachement sur
+    // le document résidence (déjà lisible par tout isSignedIn(), une
+    // résidence à la fois), il n'y a plus de tableau cross-résidence à
+    // corréler. Match RACINE EXPLICITE (pas {path=**}) : s'ajoute à la règle
     // collectionGroup('contacts') ci-dessous (gerances/{id}/contacts, annuaire
     // d'agences sans rapport - même collision de nom déjà documentée sur
     // cette dernière), ne la remplace pas.
     match /contacts/{id} {
-      allow read: if isAnyResidenceMember(resource.data.residencesIds) ||
-        isSuperAdmin() ||
-        isProfessionnelResidenceForAny(resource.data.residencesIds);
+      // Plus rien de sensible par résidence sur ce document une fois
+      // residencesIds sorti - même niveau d'ouverture que residences/{id}.
+      allow read: if isSignedIn();
       // Une création côté app ne peut jamais s'auto-approuver (isApproved
       // doit naître à false) - seul un Super Admin (backoffice) revalide
       // ensuite. Même verrou que isApproved (users/{uid}) / isApprovedLot.
-      allow create: if (isCsMemberOfAnyResidence(request.resource.data.residencesIds) &&
+      // Plus de résidence précise à vérifier dans le payload (le
+      // rattachement se fait séparément sur residences/{id}.contactRefs).
+      allow create: if (isCsMemberOfAnyResidenceAtAll() &&
         request.resource.data.isApproved == false) || isSuperAdmin();
-      // Un CS member (de n'importe laquelle des résidences déjà liées, OU de
-      // celle en train d'être ajoutée via linkResidence) ne peut TOUCHER QUE
-      // residencesIds (rattacher/détacher sa résidence) - jamais les autres
-      // champs ni isApproved : éditer un contact partagé changerait la fiche
-      // pour toutes les résidences qui la référencent, une correction passe
-      // obligatoirement par un Super Admin (backoffice web) après revue.
-      allow update: if isSuperAdmin() ||
-        ((isCsMemberOfAnyResidence(resource.data.residencesIds) ||
-          isCsMemberOfAnyResidence(request.resource.data.residencesIds)) &&
-         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['residencesIds']) &&
-         request.resource.data.isApproved == resource.data.isApproved);
-      // Jamais de delete direct : un contact persiste même à 0 résidence
-      // liée (unlinkResidence uniquement) - réservé au Super Admin pour un
-      // nettoyage manuel futur.
+      // Plus de carve-out CS member : le rattachement/détachement résidence
+      // passe désormais par residences/{id}.contactRefs, donc toute
+      // modification de ce document (nom, service, isApproved...) est
+      // réservée au Super Admin (backoffice web) après revue.
+      allow update: if isSuperAdmin();
+      // Jamais de delete direct par l'app : réservé au Super Admin (nettoyage
+      // manuel, qui détache aussi contactRefs sur les résidences concernées).
       allow delete: if isSuperAdmin();
+    }
+
+    // ---------- Root "shareTokens" (liens de partage à portée limitée) ----------
+    // Un token = accès en LECTURE à UNE intervention précise (+ son sinistre
+    // lié), envoyé par email à un prestataire externe sans compte BO. Jamais
+    // lu ici via une requête Firestore cliente : c'est la Cloud Function
+    // get_shared_intervention (Admin SDK, functions_python/main.py) qui
+    // résout le token et sert les données, donc aucune règle "public" n'est
+    // nécessaire - seul le BO (génération du lien) a besoin d'écrire/lire ce
+    // document directement.
+    match /shareTokens/{token} {
+      allow read, write: if isSuperAdmin();
     }
 
     // Règle dédiée aux requêtes collectionGroup('contacts')
@@ -539,15 +515,16 @@ service cloud.firestore {
     // {path=**} distincte de la règle imbriquée gerances/{id}/{document=**}
     // ci-dessous (qui ne couvre que les lectures directes sous un
     // gerances/{id} déjà connu, pas une requête cross-documents).
-    // ATTENTION dette technique : "contacts" est aussi le nom (1) de
-    // l'ancienne sous-collection residences/{id}/contacts (DEPRECATED
-    // ci-dessus) et (2) de la nouvelle collection RACINE /contacts/{id}
-    // (Contact.residencesIds) définie plus haut - un match {path=**} peut
-    // matcher un préfixe vide, donc cette règle collectionGroup s'applique
-    // AUSSI aux documents racine. Sans restriction, elle les exposerait en
-    // lecture à tout utilisateur connecté via une requête
-    // collectionGroup('contacts') brute, en contournant complètement
-    // isAnyResidenceMember/isCsMemberOfAnyResidence de la règle dédiée.
+    // ATTENTION dette technique : "contacts" est aussi le nom de la nouvelle
+    // collection RACINE /contacts/{id} définie plus haut - un match
+    // {path=**} peut matcher un préfixe vide, donc cette règle
+    // collectionGroup s'applique AUSSI aux documents racine. Un contact
+    // racine est déjà lisible par isSignedIn() via la règle dédiée
+    // ci-dessus, donc l'enjeu n'est plus de le protéger lui, mais d'éviter
+    // que cette règle collectionGroup n'expose en lecture les documents
+    // gerances/{id}/contacts (annuaire d'agences, restriction propre à ce
+    // dernier) à travers une requête collectionGroup('contacts') brute qui
+    // contournerait sa règle imbriquée dédiée.
     // Tentative de restriction avec path[0] == 'gerances' testée et
     // abandonnée par le passé (provoque un PERMISSION_DENIED alors que la
     // règle compile sans erreur, comportement de path[] non élucidé) : on
