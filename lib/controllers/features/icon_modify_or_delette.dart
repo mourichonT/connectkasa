@@ -158,7 +158,7 @@ Widget iconModifyOrDelette(
                             like: post.like,
                             uid: post.user,
                             statut: "Transmis",
-                            timeStamp: post.timeStamp,
+                            timeStamp: post.creationDate,
                             idPost: post.id,
                             selectedLabel: post.type,
                             imagePath: post.pathImage,
@@ -202,7 +202,7 @@ Widget iconModifyOrDelette(
                             imagePath: post.pathImage,
                             isVideo: post.isVideo,
                             title: post.title,
-                            timeStamp: post.timeStamp,
+                            timeStamp: post.creationDate,
                             desc: post.description,
                             anonymPost: post.hideUser,
                             docRes: post.refResidence,
@@ -225,7 +225,7 @@ Widget iconModifyOrDelette(
                             imagePath: post.pathImage,
                             isVideo: post.isVideo,
                             title: post.title,
-                            timeStamp: post.timeStamp,
+                            timeStamp: post.creationDate,
                             desc: post.description,
                             anonymPost: post.hideUser,
                             docRes: post.refResidence,
@@ -241,7 +241,7 @@ Widget iconModifyOrDelette(
                           await FirestorePostRepository().updatePostFields(
                             post.refResidence,
                             post.id,
-                            {'dateClosed': Timestamp.now()},
+                            {'dates.closedDate': Timestamp.now()},
                           );
                           setState(() {
                             currentStep = 3;
@@ -264,7 +264,7 @@ Widget iconModifyOrDelette(
                             like: post.like,
                             uid: post.user,
                             statut: "En cours",
-                            timeStamp: post.timeStamp,
+                            timeStamp: post.creationDate,
                             idPost: post.id,
                             selectedLabel: post.type,
                             imagePath: post.pathImage,
@@ -276,6 +276,14 @@ Widget iconModifyOrDelette(
                             localisation: post.locationElement,
                             etage: post.locationFloor,
                             element: post.locationDetails,
+                          );
+                          // La réouverture efface dateClosed (fixé lors du
+                          // passage en Terminé) - il sera réécrit si le
+                          // ticket repasse en Terminé plus tard.
+                          await FirestorePostRepository().updatePostFields(
+                            post.refResidence,
+                            post.id,
+                            {'dates.closedDate': FieldValue.delete()},
                           );
                           setState(() {
                             currentStep = 2;

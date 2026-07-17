@@ -168,7 +168,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                                       SizeFont.h3.size)),
                                               const Spacer(),
                                               MyTextStyle.commentDate(
-                                                  widget.post.timeStamp)
+                                                  widget.post.creationDate)
                                             ])),
                                         Flexible(
                                           child: MyTextStyle.annonceDesc(

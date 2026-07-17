@@ -221,7 +221,7 @@ class SinistreTileState extends State<SinistreTile> {
                                     children: [
                                       Flexible(
                                         child: MyTextStyle.commentDate(
-                                            widget.post.timeStamp),
+                                            widget.post.creationDate),
                                       ),
                                       Flexible(
                                         child: MyTextStyle.lotDesc(

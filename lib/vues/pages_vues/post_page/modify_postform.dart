@@ -458,7 +458,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
                     // (FieldValue.delete()) à chaque simple modification de
                     // titre/description/image.
                     statut: widget.post.statut,
-                    timeStamp: widget.post.timeStamp,
+                    timeStamp: widget.post.creationDate,
                     declaredDate: widget.post.declaredDate,
                   );
                 } catch (e) {

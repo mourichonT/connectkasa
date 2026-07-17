@@ -49,7 +49,7 @@
         { "fieldPath": "location.locationElements", "order": "ASCENDING" },
         { "fieldPath": "statut", "order": "ASCENDING" },
         { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "timeStamp", "order": "ASCENDING" }
+        { "fieldPath": "dates.creationDate", "order": "ASCENDING" }
       ]
     },
     {
@@ -58,7 +58,7 @@
       "fields": [
         { "fieldPath": "location.locationElements", "order": "ASCENDING" },
         { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "timeStamp", "order": "ASCENDING" }
+        { "fieldPath": "dates.creationDate", "order": "ASCENDING" }
       ]
     },
     {
@@ -67,7 +67,7 @@
       "fields": [
         { "fieldPath": "location.locationElements", "order": "ASCENDING" },
         { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "timeStamp", "order": "ASCENDING" },
+        { "fieldPath": "dates.creationDate", "order": "ASCENDING" },
         { "fieldPath": "statut", "order": "ASCENDING" }
       ]
     },
@@ -92,7 +92,7 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "type", "order": "ASCENDING" },
-        { "fieldPath": "timeStamp", "order": "ASCENDING" }
+        { "fieldPath": "dates.creationDate", "order": "ASCENDING" }
       ]
     }
   ],

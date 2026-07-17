@@ -195,10 +195,10 @@ class FirestorePostRepository implements IPostRepository {
           query = query.where('type', isEqualTo: combo[1]);
         }
         if (combo[2] != null) {
-          query = query.where('timeStamp', isGreaterThanOrEqualTo: combo[2]);
+          query = query.where('dates.creationDate', isGreaterThanOrEqualTo: combo[2]);
         }
         if (combo[3] != null) {
-          query = query.where('timeStamp', isLessThanOrEqualTo: combo[3]);
+          query = query.where('dates.creationDate', isLessThanOrEqualTo: combo[3]);
         }
         if (combo[4] != null) {
           query = query.where('statut', isEqualTo: combo[4]);
@@ -228,7 +228,7 @@ class FirestorePostRepository implements IPostRepository {
           .collection("residences")
           .doc(doc)
           .collection("posts")
-          .orderBy('timeStamp', descending: true)
+          .orderBy('dates.creationDate', descending: true)
           .get();
       for (var docSnapshot in querySnapshot.docs) {
         posts.add(Post.fromMap(docSnapshot.data()));
@@ -252,7 +252,7 @@ class FirestorePostRepository implements IPostRepository {
           .collection("residences")
           .doc(doc)
           .collection("posts")
-          .orderBy('timeStamp', descending: true)
+          .orderBy('dates.creationDate', descending: true)
           .get();
 
       for (var docSnapshot in querySnapshot.docs) {
@@ -288,7 +288,7 @@ class FirestorePostRepository implements IPostRepository {
           .collection("residences")
           .doc(doc)
           .collection("posts")
-          .orderBy('timeStamp', descending: true)
+          .orderBy('dates.creationDate', descending: true)
           .limit(limit + 1);
       if (startAfter != null) {
         query = query.startAfterDocument(startAfter);
@@ -325,7 +325,7 @@ class FirestorePostRepository implements IPostRepository {
           .collection("residences")
           .doc(doc)
           .collection("posts")
-          .orderBy('timeStamp', descending: true)
+          .orderBy('dates.creationDate', descending: true)
           .limit(limit + 1);
       if (startAfter != null) {
         query = query.startAfterDocument(startAfter);
@@ -363,7 +363,7 @@ class FirestorePostRepository implements IPostRepository {
         .collection("residences")
         .doc(doc)
         .collection("posts")
-        .orderBy('timeStamp', descending: true)
+        .orderBy('dates.creationDate', descending: true)
         .snapshots()
         .map((snapshot) =>
             snapshot.docs.map((d) => Post.fromMap(d.data())).toList());
@@ -392,7 +392,7 @@ class FirestorePostRepository implements IPostRepository {
         .collection("residences")
         .doc(doc)
         .collection("posts")
-        .orderBy('timeStamp', descending: true)
+        .orderBy('dates.creationDate', descending: true)
         .limit(limit + 1)
         .snapshots()
         .map((snapshot) {
@@ -417,7 +417,7 @@ class FirestorePostRepository implements IPostRepository {
         .collection("residences")
         .doc(doc)
         .collection("posts")
-        .orderBy('timeStamp', descending: true)
+        .orderBy('dates.creationDate', descending: true)
         .limit(limit + 1)
         .snapshots()
         .asyncMap((snapshot) async {
@@ -817,10 +817,10 @@ class FirestorePostRepository implements IPostRepository {
           query = query.where('annonce.subType', isEqualTo: combo[0]);
         }
         if (combo[1] != null) {
-          query = query.where('timeStamp', isGreaterThanOrEqualTo: combo[1]);
+          query = query.where('dates.creationDate', isGreaterThanOrEqualTo: combo[1]);
         }
         if (combo[2] != null) {
-          query = query.where('timeStamp', isLessThanOrEqualTo: combo[2]);
+          query = query.where('dates.creationDate', isLessThanOrEqualTo: combo[2]);
         }
         if (combo[3] != null) {
           query = query.where('annonce.price', isGreaterThanOrEqualTo: combo[3]);

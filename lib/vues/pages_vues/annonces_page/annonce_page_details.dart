@@ -168,7 +168,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                 ),
                               ),
                               MyTextStyle.annonceDesc(
-                                MyTextStyle.completDate(widget.post.timeStamp),
+                                MyTextStyle.completDate(widget.post.creationDate),
                                 SizeFont.h3.size,
                                 1,
                               ),

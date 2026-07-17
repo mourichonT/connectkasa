@@ -7,7 +7,7 @@ class Post {
   String user;
   String type;
   String _subtype = "";
-  Timestamp timeStamp;
+  Timestamp creationDate;
   Timestamp? eventDate;
   Timestamp? declaredDate;
   String _statut = "";
@@ -37,7 +37,7 @@ class Post {
       required this.user,
       required this.type,
       String subtype = "",
-      required this.timeStamp,
+      required this.creationDate,
       this.eventDate,
       this.declaredDate,
       String statut = "",
@@ -86,7 +86,7 @@ class Post {
     }
   }
 
-  String setDate() => "Posté le $timeStamp";
+  String setDate() => "Posté le $creationDate";
 
   String setLike(likeCount) {
     //  final likeCount = like.length;
@@ -142,6 +142,8 @@ class Post {
         map['event'] is Map ? Map<String, dynamic>.from(map['event']) : map;
     final Map<String, dynamic> annonce =
         map['annonce'] is Map ? Map<String, dynamic>.from(map['annonce']) : map;
+    final Map<String, dynamic> dates =
+        map['dates'] is Map ? Map<String, dynamic>.from(map['dates']) : map;
 
     List<dynamic>? likeList = map['like'];
     List<String> convertedLikeList = [];
@@ -198,10 +200,16 @@ class Post {
       isVideo: map['isVideo'] ?? false,
       refResidence: map['refResidence'] ?? "",
       statut: map['statut'] ?? map['statu'] ?? "",
-      timeStamp: map['timeStamp'] ?? 0,
+      // creationDate : ancien nom "timeStamp", relu ici sous 3 formats -
+      // dates.creationDate (nouveau), dates.timeStamp (déjà migré vers
+      // "dates" mais pas encore renommé), timeStamp à plat (jamais migré).
+      creationDate: dates['creationDate'] ?? dates['timeStamp'] ?? map['timeStamp'] ?? 0,
       eventDate: event['eventDate'] != null ? event['eventDate'] as Timestamp : null,
-      declaredDate:
-          map['declaredDate'] != null ? map['declaredDate'] as Timestamp : null,
+      declaredDate: dates['declaredDate'] != null
+          ? dates['declaredDate'] as Timestamp
+          : (map['declaredDate'] != null
+              ? map['declaredDate'] as Timestamp
+              : null),
       title: map['title'] ?? "",
       type: map['type'] ?? "",
       user: map['user'] ?? "",
@@ -251,6 +259,10 @@ class Post {
       if ((subtype ?? '').isNotEmpty) 'subType': subtype,
       if (price != null && price != 0) 'price': price,
     };
+    final dates = {
+      'creationDate': creationDate,
+      if (declaredDate != null) 'declaredDate': declaredDate,
+    };
 
     return {
       'id': id,
@@ -261,8 +273,7 @@ class Post {
       'refResidence': refResidence,
       if ((statut ?? '').isNotEmpty) 'statut': statut,
       if (event.isNotEmpty) 'event': event,
-      'timeStamp': timeStamp,
-      if (declaredDate != null) 'declaredDate': declaredDate,
+      'dates': dates,
       if (title.isNotEmpty) 'title': title,
       'type': type,
       'user': user,
@@ -288,7 +299,7 @@ class Post {
       'id': id,
       'description': description,
       'refResidence': refResidence,
-      'timeStamp': timeStamp,
+      'dates.creationDate': creationDate,
       'type': type,
       'user': user,
       'hideUser': hideUser,
@@ -302,7 +313,7 @@ class Post {
     setOrClear('pathImage', pathImage, (pathImage ?? '').isEmpty);
     setOrClear('isVideo', isVideo, !isVideo);
     setOrClear('statut', statut, (statut ?? '').isEmpty);
-    setOrClear('declaredDate', declaredDate, declaredDate == null);
+    setOrClear('dates.declaredDate', declaredDate, declaredDate == null);
     setOrClear('like', like, like == null || like!.isEmpty);
     setOrClear('signalement', signalement.map((p) => p.toMap()).toList(),
         signalement.isEmpty);

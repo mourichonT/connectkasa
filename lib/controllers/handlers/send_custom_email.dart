@@ -13,7 +13,7 @@ Future<void> sendCustomEmail({
   String? declarantStatus,
 }) async {
   final formattedDate = DateFormat('dd/MM/yyyy à HH:mm').format(
-    post.timeStamp.toDate(),
+    post.creationDate.toDate(),
   );
   final url = Uri.parse(
       'https://us-central1-konodal-dev.cloudfunctions.net/send_custom_email');

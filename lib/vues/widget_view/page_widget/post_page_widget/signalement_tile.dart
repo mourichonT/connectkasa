@@ -94,7 +94,7 @@ class SignalementTile extends StatelessWidget {
                     MyTextStyle.lotName(
                         post.title, Colors.black87, SizeFont.h2.size),
                     const Spacer(),
-                    MyTextStyle.commentDate(post.timeStamp),
+                    MyTextStyle.commentDate(post.creationDate),
                   ],
                 ),
                 post.locationElement == ""

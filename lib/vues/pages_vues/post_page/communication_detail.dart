@@ -68,7 +68,7 @@ class CommunicationDetails extends StatelessWidget {
                   ),
                   Align(
                     alignment: Alignment.bottomRight,
-                    child: MyTextStyle.commentDate(post.timeStamp),
+                    child: MyTextStyle.commentDate(post.creationDate),
                   )
                 ],
               ),

@@ -154,7 +154,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                               )
                             : profilTile(widget.post.user, 22, 19, 22, true,
                                 Colors.black87, SizeFont.h2.size),
-                        MyTextStyle.commentDate(widget.post.timeStamp),
+                        MyTextStyle.commentDate(widget.post.creationDate),
                       ],
                     ),
                     const SizedBox(
