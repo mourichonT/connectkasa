@@ -180,6 +180,9 @@ class EventPageViewState extends ConsumerState<EventPageView>
                                   widget.residenceSelected, event.id)
                               .then((result) => result.when(
                                   success: (v) => v, failure: (_) => null));
+                          // Repli sur l'event déjà en main si la relecture
+                          // ne retrouve rien - cf. event_widget.dart.
+                          selectedPost ??= event;
                           if (!context.mounted) return;
                           Navigator.of(context).push(
                             CupertinoPageRoute(
@@ -411,6 +414,9 @@ class EventPageViewState extends ConsumerState<EventPageView>
                 .getUpdatePost(widget.residenceSelected, post.id)
                 .then((result) =>
                     result.when(success: (v) => v, failure: (_) => null));
+            // Repli sur le post déjà en main si la relecture ne retrouve
+            // rien (ex: post écrit sans son champ "id") - cf. event_widget.dart.
+            updatedPost ??= post;
             if (!context.mounted) return;
             Navigator.of(context).push(CupertinoPageRoute(
               builder: (context) => EventPageDetails(

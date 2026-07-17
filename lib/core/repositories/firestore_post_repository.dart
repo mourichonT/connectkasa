@@ -10,6 +10,19 @@ class FirestorePostRepository implements IPostRepository {
   FirestorePostRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  /// Reconstruit un Post en imposant l'id RÉEL du document Firestore
+  /// (doc.id), plutôt que de dépendre du champ "id" à l'intérieur du
+  /// document lui-même (Post.fromMap retombe sur "" s'il est absent). Un
+  /// document écrit hors de cette app sans ce champ (ex: konodal_bo) rendait
+  /// tout post.id vide, cassant silencieusement toute relecture par id
+  /// (getUpdatePost/updatePost/removePost/... filtrent tous sur
+  /// where("id", isEqualTo: postId)) - jusqu'au crash chez l'appelant qui
+  /// suppose la relecture toujours réussie (ex: EventWidget, "updatedPost!").
+  Post _postFromDoc(DocumentSnapshot doc) {
+    final data = (doc.data() as Map<String, dynamic>?) ?? <String, dynamic>{};
+    return Post.fromMap({...data, 'id': doc.id});
+  }
+
   @override
   Future<Result<Post>> getPost(String residenceId, String postId) async {
     try {
@@ -22,8 +35,7 @@ class FirestorePostRepository implements IPostRepository {
 
       if (postQuery.docs.isNotEmpty) {
         DocumentSnapshot postDoc = postQuery.docs.first;
-        return Result.success(
-            Post.fromMap(postDoc.data() as Map<String, dynamic>));
+        return Result.success(_postFromDoc(postDoc));
       }
 
       QuerySnapshot postsQuery = await _firestore
@@ -41,8 +53,7 @@ class FirestorePostRepository implements IPostRepository {
         if (signalementsQuery.docs.isNotEmpty) {
           DocumentSnapshot postWithSignalementsDoc =
               signalementsQuery.docs.first;
-          return Result.success(Post.fromMap(
-              postWithSignalementsDoc.data() as Map<String, dynamic>));
+          return Result.success(_postFromDoc(postWithSignalementsDoc));
         }
       }
 
@@ -94,7 +105,7 @@ class FirestorePostRepository implements IPostRepository {
           .where('type', isEqualTo: 'annonces')
           .get();
       for (var docSnapshot in querySnapshot.docs) {
-        posts.add(Post.fromMap(docSnapshot.data()));
+        posts.add(_postFromDoc(docSnapshot));
       }
       return Result.success(posts);
     } catch (e) {
@@ -114,7 +125,7 @@ class FirestorePostRepository implements IPostRepository {
           .where('type', isEqualTo: 'annonces')
           .get();
       for (var docSnapshot in querySnapshot.docs) {
-        posts.add(Post.fromMap(docSnapshot.data()));
+        posts.add(_postFromDoc(docSnapshot));
       }
       return Result.success(posts);
     } catch (e) {
@@ -206,7 +217,7 @@ class FirestorePostRepository implements IPostRepository {
 
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
         for (var docSnapshot in querySnapshot.docs) {
-          posts.add(Post.fromMap(docSnapshot.data()));
+          posts.add(_postFromDoc(docSnapshot));
         }
       }
       return Result.success(posts);
@@ -231,7 +242,7 @@ class FirestorePostRepository implements IPostRepository {
           .orderBy('dates.creationDate', descending: true)
           .get();
       for (var docSnapshot in querySnapshot.docs) {
-        posts.add(Post.fromMap(docSnapshot.data()));
+        posts.add(_postFromDoc(docSnapshot));
       }
       return Result.success(posts);
     } catch (e) {
@@ -256,14 +267,14 @@ class FirestorePostRepository implements IPostRepository {
           .get();
 
       for (var docSnapshot in querySnapshot.docs) {
-        Post post = Post.fromMap(docSnapshot.data());
+        Post post = _postFromDoc(docSnapshot);
         posts.add(post);
 
         QuerySnapshot<Map<String, dynamic>> signalementsQuery =
             await docSnapshot.reference.collection("signalements").get();
 
         for (var signalementSnapshot in signalementsQuery.docs) {
-          Post signalementPost = Post.fromMap(signalementSnapshot.data());
+          Post signalementPost = _postFromDoc(signalementSnapshot);
           posts.add(signalementPost);
         }
       }
@@ -299,7 +310,7 @@ class FirestorePostRepository implements IPostRepository {
           ? querySnapshot.docs.sublist(0, limit)
           : querySnapshot.docs;
       final posts =
-          pageDocs.map((docSnapshot) => Post.fromMap(docSnapshot.data())).toList();
+          pageDocs.map(_postFromDoc).toList();
       return Result.success(PostPage(
         posts: posts,
         lastDocument: pageDocs.isNotEmpty ? pageDocs.last : null,
@@ -338,12 +349,12 @@ class FirestorePostRepository implements IPostRepository {
 
       final posts = <Post>[];
       for (final docSnapshot in pageDocs) {
-        posts.add(Post.fromMap(docSnapshot.data()));
+        posts.add(_postFromDoc(docSnapshot));
 
         final signalementsQuery =
             await docSnapshot.reference.collection("signalements").get();
         for (final signalementSnapshot in signalementsQuery.docs) {
-          posts.add(Post.fromMap(signalementSnapshot.data()));
+          posts.add(_postFromDoc(signalementSnapshot));
         }
       }
       return Result.success(PostPage(
@@ -366,7 +377,7 @@ class FirestorePostRepository implements IPostRepository {
         .orderBy('dates.creationDate', descending: true)
         .snapshots()
         .map((snapshot) =>
-            snapshot.docs.map((d) => Post.fromMap(d.data())).toList());
+            snapshot.docs.map(_postFromDoc).toList());
   }
 
   @override
@@ -379,7 +390,7 @@ class FirestorePostRepository implements IPostRepository {
         .where('type', isEqualTo: 'annonces')
         .snapshots()
         .map((snapshot) =>
-            snapshot.docs.map((d) => Post.fromMap(d.data())).toList());
+            snapshot.docs.map(_postFromDoc).toList());
   }
 
   @override
@@ -400,7 +411,7 @@ class FirestorePostRepository implements IPostRepository {
       final pageDocs =
           hasMore ? snapshot.docs.sublist(0, limit) : snapshot.docs;
       return PostPage(
-        posts: pageDocs.map((d) => Post.fromMap(d.data())).toList(),
+        posts: pageDocs.map(_postFromDoc).toList(),
         lastDocument: pageDocs.isNotEmpty ? pageDocs.last : null,
         hasMore: hasMore,
       );
@@ -434,10 +445,8 @@ class FirestorePostRepository implements IPostRepository {
 
       final posts = <Post>[];
       for (var i = 0; i < pageDocs.length; i++) {
-        posts.add(Post.fromMap(pageDocs[i].data()));
-        posts.addAll(signalementsQueries[i]
-            .docs
-            .map((signalementSnapshot) => Post.fromMap(signalementSnapshot.data())));
+        posts.add(_postFromDoc(pageDocs[i]));
+        posts.addAll(signalementsQueries[i].docs.map(_postFromDoc));
       }
       return PostPage(
         posts: posts,
@@ -462,10 +471,9 @@ class FirestorePostRepository implements IPostRepository {
       for (var i = 0; i < snapshot.docs.length; i++) {
         final data = snapshot.docs[i].data();
         if (data['user'] == userId) {
-          posts.add(Post.fromMap(data));
+          posts.add(_postFromDoc(snapshot.docs[i]));
         }
-        posts.addAll(
-            signalementsQueries[i].docs.map((sig) => Post.fromMap(sig.data())));
+        posts.addAll(signalementsQueries[i].docs.map(_postFromDoc));
       }
       return posts;
     });
@@ -565,7 +573,7 @@ class FirestorePostRepository implements IPostRepository {
 
       for (var postSnapshot in querySnapshot.docs) {
         String postDocId = postSnapshot.id;
-        Post post = Post.fromMap(postSnapshot.data());
+        Post post = _postFromDoc(postSnapshot);
         posts.add(post);
 
         QuerySnapshot<Map<String, dynamic>> signalementsSnapshot =
@@ -578,7 +586,7 @@ class FirestorePostRepository implements IPostRepository {
                 .get();
 
         for (var signalementSnapshot in signalementsSnapshot.docs) {
-          Post signalement = Post.fromMap(signalementSnapshot.data());
+          Post signalement = _postFromDoc(signalementSnapshot);
           posts.add(signalement);
         }
       }
@@ -599,7 +607,7 @@ class FirestorePostRepository implements IPostRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        return Result.success(Post.fromMap(querySnapshot.docs.first.data()));
+        return Result.success(_postFromDoc(querySnapshot.docs.first));
       }
       return const Result.success(null);
     } catch (e) {
@@ -759,7 +767,7 @@ class FirestorePostRepository implements IPostRepository {
       QuerySnapshot querySnapshot = await collectionReference.get();
 
       for (var doc in querySnapshot.docs) {
-        Post annonce = Post.fromMap(doc.data()! as Map<String, dynamic>);
+        Post annonce = _postFromDoc(doc);
 
         if ((annonce.title.toLowerCase().contains(saisie.toLowerCase())) ||
             (annonce.description.toLowerCase().contains(saisie.toLowerCase()))) {
@@ -831,7 +839,7 @@ class FirestorePostRepository implements IPostRepository {
 
         QuerySnapshot<Map<String, dynamic>> querySnapshot = await query.get();
         for (var docSnapshot in querySnapshot.docs) {
-          annonces.add(Post.fromMap(docSnapshot.data()));
+          annonces.add(_postFromDoc(docSnapshot));
         }
       }
       return Result.success(annonces);
@@ -865,7 +873,7 @@ class FirestorePostRepository implements IPostRepository {
                 .get();
 
         for (var signalementSnapshot in signalementsSnapshot.docs) {
-          Post signalement = Post.fromMap(signalementSnapshot.data());
+          Post signalement = _postFromDoc(signalementSnapshot);
           signalements.add(signalement);
         }
       }
@@ -887,8 +895,7 @@ class FirestorePostRepository implements IPostRepository {
           .where("user", isEqualTo: userId)
           .get();
 
-      posts.addAll(postQuery.docs
-          .map((doc) => Post.fromMap(doc.data() as Map<String, dynamic>)));
+      posts.addAll(postQuery.docs.map(_postFromDoc));
 
       QuerySnapshot allPostsQuery = await _firestore
           .collection("residences")
@@ -902,8 +909,7 @@ class FirestorePostRepository implements IPostRepository {
             .where("user", isEqualTo: userId)
             .get();
 
-        posts.addAll(signalementsQuery.docs
-            .map((sig) => Post.fromMap(sig.data() as Map<String, dynamic>)));
+        posts.addAll(signalementsQuery.docs.map(_postFromDoc));
       }
 
       return Result.success(posts);
@@ -925,7 +931,7 @@ class FirestorePostRepository implements IPostRepository {
           .get();
 
       for (var docSnapshot in querySnapshot.docs) {
-        var post = Post.fromMap(docSnapshot.data());
+        var post = _postFromDoc(docSnapshot);
         if (post.price! < priceMin) {
           priceMin = post.price!;
         }

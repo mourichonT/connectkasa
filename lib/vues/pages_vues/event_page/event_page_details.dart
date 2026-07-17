@@ -10,6 +10,7 @@ import 'package:konodal/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 
 class EventPageDetails extends ConsumerStatefulWidget {
   final Post post;
@@ -69,12 +70,18 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
               top: 0,
               left: 0,
               right: 0,
-              child: Image.network(
-                widget.post.pathImage!,
-                fit: BoxFit.fill,
-                width: width,
-                height: height / 3,
-              ),
+              // pathImage peut être vide (event créé sans photo, ex. depuis
+              // konodal_bo) - Image.network("") lève une ArgumentError non
+              // rattrapée ("No host specified in URI").
+              child: (widget.post.pathImage != null &&
+                      widget.post.pathImage!.isNotEmpty)
+                  ? Image.network(
+                      widget.post.pathImage!,
+                      fit: BoxFit.fill,
+                      width: width,
+                      height: height / 3,
+                    )
+                  : imageAnnounced(context, width, height / 3),
             ),
             Positioned(
               top: 0,

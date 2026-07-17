@@ -11,6 +11,7 @@ import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/models/pages_models/user.dart';
 import 'package:konodal/vues/pages_vues/event_page/event_page_details.dart';
 import 'package:konodal/vues/widget_view/components/header_row.dart';
+import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -86,6 +87,13 @@ class _EventWidgetState extends State<EventWidget> {
                     .getUpdatePost(widget.residenceSelected, widget.post.id)
                     .then((result) => result.when(
                         success: (v) => v, failure: (_) => null));
+                // Repli sur le post déjà en main (celui de la liste, déjà
+                // affiché) si la relecture ne retrouve rien - notamment un
+                // post écrit sans son champ "id" (ex: par konodal_bo), pour
+                // qui getUpdatePost ne peut rien matcher. Sans ce repli,
+                // le "!" ci-dessous plantait l'app au lieu d'ouvrir les
+                // détails.
+                updatedPost ??= widget.post;
 
                 if (!context.mounted) return;
                 Navigator.of(context).push(CupertinoPageRoute(
@@ -106,10 +114,17 @@ class _EventWidgetState extends State<EventWidget> {
                   SizedBox(
                     height: 250,
                     width: width,
-                    child: Image.network(
-                      widget.post.pathImage!,
-                      fit: BoxFit.cover,
-                    ),
+                    // pathImage peut être vide (event créé sans photo, ex.
+                    // depuis konodal_bo) - Image.network("") lève une
+                    // ArgumentError ("No host specified in URI") non
+                    // rattrapée, cf. EventTileComp qui a déjà ce garde.
+                    child: (widget.post.pathImage != null &&
+                            widget.post.pathImage!.isNotEmpty)
+                        ? Image.network(
+                            widget.post.pathImage!,
+                            fit: BoxFit.cover,
+                          )
+                        : imageAnnounced(context, width, 250),
                   ),
                   buildListTile(),
                 ],

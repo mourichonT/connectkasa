@@ -9,6 +9,7 @@ import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/widget_view/components/comment_button.dart';
+import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:konodal/vues/widget_view/components/like_button_post.dart';
 import 'package:konodal/vues/widget_view/components/network_video_player.dart';
 import 'package:konodal/vues/widget_view/components/share_button.dart';
@@ -77,16 +78,21 @@ class PostViewState extends State<PostView> {
         child: Stack(
           children: [
             Positioned.fill(
+              // "?? ..." ne couvre que le cas null : pathImage vide (post
+              // sans photo) passait quand même "" à Image.network, qui lève
+              // une ArgumentError non rattrapée ("No host specified in URI").
               child: widget.postSelected!.isVideo
                   ? NetworkVideoPlayer(
                       url: widget.postSelected!.pathImage ?? "",
                     )
-                  : Image.network(
-                      widget.postSelected!.pathImage ?? "pas d'image",
-                      fit: BoxFit.fitWidth,
-                      width: width,
-                      height: height,
-                    ),
+                  : ((widget.postSelected!.pathImage ?? "").isNotEmpty
+                      ? Image.network(
+                          widget.postSelected!.pathImage!,
+                          fit: BoxFit.fitWidth,
+                          width: width,
+                          height: height,
+                        )
+                      : imageAnnounced(context, width, height)),
             ),
             Positioned(
               top: 0,

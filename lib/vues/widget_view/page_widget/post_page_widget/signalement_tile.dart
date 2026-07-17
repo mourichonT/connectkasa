@@ -4,6 +4,7 @@ import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:konodal/vues/widget_view/components/feed_video_post.dart';
+import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
 
@@ -33,12 +34,17 @@ class SignalementTile extends StatelessWidget {
           child: Stack(
             children: [
               Positioned.fill(
+                // "?? ..." ne couvre que le cas null : pathImage vide
+                // passait quand même "" à Image.network, qui lève une
+                // ArgumentError non rattrapée ("No host specified in URI").
                 child: post.isVideo
                     ? FeedVideoPost(url: post.pathImage ?? "")
-                    : Image.network(
-                        post.pathImage ?? "pas d'image",
-                        fit: BoxFit.cover,
-                      ),
+                    : ((post.pathImage ?? "").isNotEmpty
+                        ? Image.network(
+                            post.pathImage!,
+                            fit: BoxFit.cover,
+                          )
+                        : imageAnnounced(context, width, 250)),
               ),
               if (post.hideUser == false)
                 Positioned(
