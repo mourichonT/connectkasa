@@ -43,7 +43,7 @@ class SubmitPostController {
       isVideo: isVideo ?? false,
       refResidence: docRes,
       statut: selectedLabel == "sinistres" ? "Non envoyé" : "",
-      timeStamp: Timestamp.now(),
+      creationDate: Timestamp.now(),
       title: capitalizeFirstLetter(title?.text ?? ""),
       type: selectedLabel,
       user: uid,
@@ -241,73 +241,6 @@ class SubmitPostController {
     }
   }
 
-  // static Future<Map<String, dynamic>> checkDuplicatePost(
-  //     {required String docRes,
-  //     required String postId,
-  //     required String title,
-  //     required String description}) async {
-  //   final url = Uri.parse(
-  //       "https://check-similar-post-325705345982.us-central1.run.app"); // Remplacer par l'URL de ta Cloud Function
-  //   // Envoi de la requête à la Cloud Function
-  //   appLog("Envoi de la requête à la Cloud Function...");
-
-  //   try {
-  //     final response = await http.post(
-  //       url,
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         "Accept": "application/json"
-  //       },
-  //       body: jsonEncode({
-  //         "params": {
-  //           "docRes": docRes,
-  //           "postId": postId,
-  //           "title": title,
-  //           "description": description,
-  //         }
-  //       }),
-  //     );
-
-  //     // Vérification du code de réponse HTTP
-  //     if (response.statusCode == 200) {
-  //       appLog("Réponse de la Cloud Function reçue avec succès.");
-
-  //       final data = json.decode(response.body);
-  //       appLog("Contenu de la réponse de la Cloud Function : $data");
-
-  //       // Vérification de la présence des données nécessaires dans la réponse
-  //       if (data.containsKey('status')) {
-  //         return {
-  //           'status': data['status'] ?? "new_post_created",
-  //           'post_id': data['post_id'] ?? "",
-  //         };
-  //       } else {
-  //         appLog("La réponse ne contient pas le statut attendu.");
-  //         return {
-  //           'status':
-  //               "new_post_created", // Valeur par défaut si statut non trouvé
-  //           'post_id': ""
-  //         };
-  //       }
-  //     } else {
-  //       // Si la réponse n'est pas un code 200, gérer l'erreur
-  //       appLog("Erreur avec la Cloud Function. Code: ${response.statusCode}");
-  //       appLog("Message d'erreur : ${response.body}");
-  //       return {
-  //         'status': "new_post_created", // Valeur par défaut si erreur
-  //         'post_id': ""
-  //       };
-  //     }
-  //   } catch (e) {
-  //     // Gestion des erreurs liées à la requête (ex : pas de connexion réseau, timeout, etc.)
-  //     appLog("Erreur lors de l'envoi de la requête : $e");
-  //     return {
-  //       'status': "new_post_created", // Valeur par défaut en cas d'erreur
-  //       'post_id': ""
-  //     };
-  //   }
-  // }
-
   static Future<void> updatePost(
       {required String uid,
       required String idPost,
@@ -346,7 +279,7 @@ class SubmitPostController {
         refResidence: docRes,
         like: like ?? [],
         statut: statut ?? "",
-        timeStamp: timeStamp ?? Timestamp.now(),
+        creationDate: timeStamp ?? Timestamp.now(),
         title: title ?? "",
         type: selectedLabel,
         user: uid, // Remplacer par l'utilisateur actuel
