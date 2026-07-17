@@ -70,6 +70,10 @@ class _Step2State extends ConsumerState<Step2> {
   Future<void> _addChildLot() async {
     final candidate = await showChildLotPicker(context, widget.residence);
     if (candidate == null) return;
+    // showChildLotPicker ouvre un bottom sheet : le widget peut avoir été
+    // démonté pendant ce temps (navigation, retour en arrière) - couvre
+    // aussi bien la branche "conflit" ci-dessous que le setState final.
+    if (!mounted) return;
 
     final mainIds = <String>{...?_principalLot?.idLocataire};
     final childIds = <String>{...?candidate.idLocataire};
@@ -77,7 +81,6 @@ class _Step2State extends ConsumerState<Step2> {
         mainIds.isNotEmpty && childIds.isNotEmpty && !setEquals(mainIds, childIds);
 
     if (conflict) {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text(
           "Un locataire différent est présent, les lots ne peuvent être "

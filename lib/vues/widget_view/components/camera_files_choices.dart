@@ -159,6 +159,11 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
     final XFile? pickedFile =
         await _picker.pickImage(source: ImageSource.camera);
 
+    // L'appareil photo natif suspend Flutter le temps de la prise de vue -
+    // le widget peut avoir été démonté entre-temps (navigation, retour en
+    // arrière) : un setState() ici sans ce garde plantait l'app
+    // ("setState() called after dispose()").
+    if (!mounted) return;
     setState(() {
       isCameraOpen = false;
       widget.onCameraStateChanged?.call(false);
@@ -180,6 +185,7 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
     final XFile? pickedFile =
         await _picker.pickVideo(source: ImageSource.camera);
 
+    if (!mounted) return;
     setState(() {
       isCameraOpen = false;
       widget.onCameraStateChanged?.call(false);
@@ -203,6 +209,7 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
       allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
     );
 
+    if (!mounted) return;
     setState(() {
       isCameraOpen = false;
       widget.onCameraStateChanged?.call(false);
@@ -210,9 +217,7 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
 
     if (pickedFile == null || pickedFile.files.single.path == null) return;
 
-    if (mounted) {
-      _setSelectedFile(File(pickedFile.files.single.path!));
-    }
+    _setSelectedFile(File(pickedFile.files.single.path!));
 
     _uploadFromFilePicker(pickedFile);
   }
@@ -228,6 +233,7 @@ class CameraOrFilesState extends ConsumerState<CameraOrFiles> {
 
     final XFile? media = await _picker.pickMedia();
 
+    if (!mounted) return;
     setState(() {
       isCameraOpen = false;
       widget.onCameraStateChanged?.call(false);

@@ -72,6 +72,11 @@ class PhotoForIdState extends ConsumerState<PhotoForId>
     widget.onCameraStateChanged?.call(true);
     final XFile? pickedFile =
         await _picker.pickImage(source: ImageSource.camera);
+    // L'appareil photo natif suspend Flutter le temps de la prise de vue -
+    // le widget peut avoir été démonté entre-temps (navigation, retour en
+    // arrière) : un setState() ici sans ce garde plantait l'app
+    // ("setState() called after dispose()").
+    if (!mounted) return;
     if (pickedFile != null) {
       _processImage(File(pickedFile.path));
     }
@@ -88,6 +93,7 @@ class PhotoForIdState extends ConsumerState<PhotoForId>
       allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
     );
     // final XFile? pickedFile = await _picker.pickImage(source: source);
+    if (!mounted) return;
     if (pickedFile != null) {
       _processImage(File(pickedFile.files.single.path!));
     }
@@ -111,15 +117,18 @@ class PhotoForIdState extends ConsumerState<PhotoForId>
         await file.delete();
         appLog("🗑️ Fichier supprimé : ${file.path}");
       }
-      setState(() {
-        _selectedImage = null;
-      });
+      if (mounted) {
+        setState(() {
+          _selectedImage = null;
+        });
+      }
     } catch (e) {
       appLog("❌ Erreur suppression fichier : $e");
     }
   }
 
   Future<void> _processImage(File imageFile) async {
+    if (!mounted) return;
     setState(() {
       _selectedImage = imageFile;
       _isProcessing = true;
@@ -185,7 +194,10 @@ class PhotoForIdState extends ConsumerState<PhotoForId>
         SnackBar(content: Text('Erreur lors du traitement de l\'image: $e')),
       );
     } finally {
-      setState(() => _isProcessing = false);
+      // L'OCR (extractDataFromIdCard) et l'upload peuvent prendre plusieurs
+      // secondes : si l'utilisateur a quitté cette étape entre-temps, ce
+      // setState plantait l'app sans ce garde.
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
