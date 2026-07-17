@@ -1832,20 +1832,20 @@ def trigger_report_by_url(req: https_fn.Request) -> https_fn.Response:
 
 OPENAI_EMBEDDINGS_URL = 'https://api.openai.com/v1/embeddings'
 
-_DUPLICATE_CHECK_STOPWORDS_FR = frozenset([
-    "le", "la", "les", "un", "une", "des", "du", "de", "d", "au", "aux", "à", "dans", "par", "pour",
-    "en", "vers", "avec", "chez", "sur", "sous", "entre", "contre", "sans", "après", "avant", "près", "loin",
-    "depuis", "je", "tu", "il", "elle", "on", "nous", "vous", "ils", "elles", "lui", "leur", "moi", "toi", "se",
-    "ce", "cela", "ça", "qui", "que", "quoi", "être", "avoir", "fait", "fais", "doit", "peut", "et", "ou", "mais",
-    "donc", "or", "ni", "car", "lorsque", "quand", "comme", "puisque", "si", "notre", "votre", "leur", "mon", "ton",
-    "ma", "ta", "mes", "tes", "ses", "nos", "vos", "leurs", "même", "autre", "quel", "quelle", "quels", "quelles",
-    "truc", "chose", "genre", "type", "cas", "situation",
-])
 
-
-def _get_text_embedding(text):
-    if not text:
-        return [0.0] * 1536
+def _get_text_embeddings(texts):
+    """Calcule les embeddings d'une LISTE de textes en un seul appel OpenAI
+    (l'endpoint /embeddings accepte "input" en tant que liste) - remplace
+    l'ancien _get_text_embedding appelé une fois par texte, qui faisait
+    2N+2 requêtes HTTP séquentielles pour N candidats (le principal facteur
+    de lenteur de check_similar_post_OpenAI). Un texte vide reçoit un vecteur
+    nul sans consommer d'appel API ; retourne un vecteur nul pour chaque
+    texte en cas d'erreur (comportement de repli identique à l'ancienne
+    fonction, qui ne faisait jamais échouer l'appelant)."""
+    result = [[0.0] * 1536 for _ in texts]
+    non_empty_indices = [i for i, t in enumerate(texts) if t]
+    if not non_empty_indices:
+        return result
     try:
         response = requests.post(
             OPENAI_EMBEDDINGS_URL,
@@ -1853,14 +1853,19 @@ def _get_text_embedding(text):
                 'Authorization': f'Bearer {OPENAI_API_KEY.value}',
                 'Content-Type': 'application/json',
             },
-            json={'model': 'text-embedding-3-small', 'input': text},
+            json={
+                'model': 'text-embedding-3-small',
+                'input': [texts[i] for i in non_empty_indices],
+            },
             timeout=30,
         )
         response.raise_for_status()
-        return response.json()['data'][0]['embedding']
+        embeddings = response.json()['data']
+        for position, original_index in enumerate(non_empty_indices):
+            result[original_index] = embeddings[position]['embedding']
     except Exception as e:
-        print(f"Erreur lors de la génération de l'embedding : {e}")
-        return [0.0] * 1536
+        print(f"Erreur lors de la génération des embeddings (batch de {len(non_empty_indices)}) : {e}")
+    return result
 
 
 def _cosine_similarity(vec1, vec2):
@@ -1879,18 +1884,6 @@ def _normalize_text(text):
     text = re.sub(r"[^\w\s]", "", text)
     text = re.sub(r"\s+", " ", text)
     return text
-
-
-def _extract_keywords(text):
-    words = re.findall(r'\b\w{3,}\b', text.lower())
-    return [word for word in words if word not in _DUPLICATE_CHECK_STOPWORDS_FR]
-
-
-def _keyword_overlap(kw1, kw2):
-    if not kw1 or not kw2:
-        return 0
-    set1, set2 = set(kw1), set(kw2)
-    return len(set1 & set2) / max(len(set1), 1)
 
 
 @https_fn.on_request(
@@ -1916,56 +1909,62 @@ def check_similar_post_OpenAI(req: https_fn.Request) -> https_fn.Response:
     if not doc_res or not post_id or not title or not description:
         return https_fn.Response('Bad Request', status=400)
 
-    title_norm = _normalize_text(title)
-    description_norm = _normalize_text(description)
     location_element_norm = _normalize_text(location_element)
     location_floor_norm = _normalize_text(location_floor)
-
-    title_embed = _get_text_embedding(title_norm)
-    desc_embed = _get_text_embedding(description_norm)
-    keywords_new = _extract_keywords(f"{title_norm} {description_norm}")
+    # Titre + description combinés en UN SEUL texte/embedding par post,
+    # plutôt que deux embeddings séparés comparés indépendamment : un
+    # doublon reformulé peut déplacer du contenu entre titre et description
+    # sans que ce soit une raison de le manquer.
+    new_text = _normalize_text(f"{title} {description}")
 
     db = firestore.client()
     twenty_four_hours_ago = datetime.now(timezone.utc) - timedelta(hours=24)
 
-    posts_ref = db.collection("residences").document(doc_res).collection("posts").where("type", "==", "sinistres")
+    # Filtré par date directement dans la requête (index composite
+    # (type, dates.creationDate) déjà existant) plutôt que de tout charger
+    # puis filtrer côté client : réduit le nombre de candidats, donc de
+    # textes à embedder, à chaque appel.
+    candidates_query = (
+        db.collection("residences").document(doc_res).collection("posts")
+        .where("type", "==", "sinistres")
+        .where("dates.creationDate", ">=", twenty_four_hours_ago)
+    )
 
-    for doc in posts_ref.stream():
+    candidates = []
+    for doc in candidates_query.stream():
         existing = doc.to_dict()
-        existing_id = doc.id
-
-        existing_dates = existing.get('dates', {}) or {}
-        existing_timestamp = existing_dates.get('creationDate') or existing_dates.get('timeStamp') or existing.get('timeStamp')
-        if not existing_timestamp or existing_timestamp < twenty_four_hours_ago:
-            continue
-
         existing_location = existing.get("location") or {}
         if _normalize_text(existing_location.get("locationElements", existing.get("location_element", ""))) != location_element_norm:
             continue
         if _normalize_text(existing_location.get("locationFloor", existing.get("location_floor", ""))) != location_floor_norm:
             continue
+        existing_text = _normalize_text(f"{existing.get('title', '')} {existing.get('description', '')}")
+        candidates.append((doc.id, existing_text))
 
-        existing_title = _normalize_text(existing.get("title", ""))
-        existing_desc = _normalize_text(existing.get("description", ""))
+    if candidates:
+        # Un seul appel OpenAI pour le nouveau post ET tous les candidats à
+        # la fois (cf. _get_text_embeddings), au lieu d'un appel par texte.
+        all_embeddings = _get_text_embeddings([new_text] + [text for _, text in candidates])
+        new_embed = all_embeddings[0]
 
-        existing_title_embed = _get_text_embedding(existing_title)
-        existing_desc_embed = _get_text_embedding(existing_desc)
-        keywords_existing = _extract_keywords(f"{existing_title} {existing_desc}")
+        best_match_id = None
+        best_similarity = 0.0
+        for (candidate_id, _), candidate_embed in zip(candidates, all_embeddings[1:]):
+            similarity = _cosine_similarity(new_embed, candidate_embed)
+            if similarity > best_similarity:
+                best_similarity = similarity
+                best_match_id = candidate_id
 
-        sim_title = _cosine_similarity(title_embed, existing_title_embed)
-        sim_desc = _cosine_similarity(desc_embed, existing_desc_embed)
-        sim_kw = _keyword_overlap(keywords_new, keywords_existing)
-
-        if sim_title > 0.5 and sim_desc > 0.5 and sim_kw >= 0.2:
+        # Similarité sémantique seule : l'ancien filtre exigeait EN PLUS un
+        # chevauchement littéral de mots-clés, ce qui ratait les doublons
+        # reformulés avec des mots différents (embeddings proches malgré
+        # tout) - cf. discussion, seuil à réajuster avec l'usage réel.
+        if best_match_id and best_similarity > 0.80:
             return https_fn.Response(
                 json.dumps({
                     "status": "duplicate_found",
-                    "post_id": existing_id,
-                    "similarity_score": {
-                        "title": round(sim_title, 3),
-                        "description": round(sim_desc, 3),
-                        "keywords": round(sim_kw, 3),
-                    },
+                    "post_id": best_match_id,
+                    "similarity_score": round(best_similarity, 3),
                 }),
                 status=200,
                 content_type='application/json',
