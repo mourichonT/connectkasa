@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/controllers/features/submit_post_controller.dart';
 import 'package:konodal/core/repositories/contact_repository.dart';
@@ -17,6 +18,43 @@ import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:uuid/uuid.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
+
+// Icône par catégorie de prestation (cf. TypeList.servicePrestaList) ->
+// nom de fichier dans Storage gs://konodal-dev.firebasestorage.app/
+// assets/icones_presta/ - même liste de services que _iconForService dans
+// contact_view.dart, mais résolue ici vers une image plutôt qu'une IconData
+// Material, pour illustrer automatiquement l'événement "Prestation externe"
+// par le service du prestataire choisi.
+String? _prestaIconFileName(String service) {
+  switch (service) {
+    case "Nettoyage":
+      return "nettoyage.png";
+    case "Espaces verts":
+      return "espaces-verts.png";
+    case "Électricité":
+      return "electricite.png";
+    case "Entretiens Ascenseur":
+      return "entretien-ascenseur.png";
+    case "Chauffage collectif":
+      return "chauffage-collectif.png";
+    case "Plomberie":
+      return "plomberie.png";
+    case "Ventilation (VMC)":
+      return "ventilation-vmc.png";
+    case "Portes et portails":
+      return "portes-portails.png";
+    case "Vidéosurveillance":
+      return "videosurveillance.png";
+    case "Sécurité incendie":
+      return "securite-incendie.png";
+    case "Gestion administrative":
+      return "gestion-administrative.png";
+    case "Toiture / étanchéité":
+      return "toiture-etancheite.png";
+    default:
+      return null;
+  }
+}
 
 class EventForm extends StatefulWidget {
   final String residence;
@@ -58,11 +96,49 @@ class EventFormState extends State<EventForm> {
   List<String> itemsCSMembers = [];
   late Future<List<Contact>> itemsPresta;
   String? presta;
+  // Résolu automatiquement depuis le service du prestataire sélectionné
+  // (cf. _prestaIconFileName) - remplace le choix manuel de photo
+  // (CameraOrFiles) tant qu'un prestataire avec un service reconnu est
+  // sélectionné, cf. build().
+  String? _prestaIconUrl;
+  bool _resolvingPrestaIcon = false;
 
   void updateItem(String updatedElement) {
     setState(() {
       presta = updatedElement;
     });
+  }
+
+  Future<void> _applyPrestaIcon(String service) async {
+    final fileName = _prestaIconFileName(service);
+    if (fileName == null) {
+      setState(() => _prestaIconUrl = null);
+      return;
+    }
+
+    setState(() => _resolvingPrestaIcon = true);
+    try {
+      // Timeout explicite : un souci de connectivité (Play Services,
+      // réseau) ne doit jamais laisser cet appel - et le loader qui va
+      // avec - bloqués indéfiniment.
+      final url = await FirebaseStorage.instance
+          .ref('assets/icones_presta/$fileName')
+          .getDownloadURL()
+          .timeout(const Duration(seconds: 10));
+      if (!mounted) return;
+      setState(() {
+        _prestaIconUrl = url;
+        imagePath = url;
+      });
+    } catch (e) {
+      // Icône introuvable/erreur réseau/timeout : on retombe sur le choix
+      // manuel (CameraOrFiles) plutôt que de bloquer la création de
+      // l'événement.
+      if (!mounted) return;
+      setState(() => _prestaIconUrl = null);
+    } finally {
+      if (mounted) setState(() => _resolvingPrestaIcon = false);
+    }
   }
 
   @override
@@ -312,8 +388,15 @@ class EventFormState extends State<EventForm> {
                                               .add(EventType.prestation);
                                         } else {
                                           // Retire EventType.prestation de l'ensemble
+                                          // et la sélection de prestataire/
+                                          // icône associée (redevient un
+                                          // événement classique, avec choix
+                                          // de photo manuel).
                                           _selectedEventTypes
                                               .remove(EventType.prestation);
+                                          presta = null;
+                                          _prestaIconUrl = null;
+                                          imagePath = "";
                                         }
                                       });
                                     },
@@ -342,8 +425,8 @@ class EventFormState extends State<EventForm> {
                                     return const Text(
                                         "Aucun prestataire trouvé.");
                                   } else {
-                                    List<String> prestataireNoms = snapshot
-                                        .data!
+                                    final contacts = snapshot.data!;
+                                    List<String> prestataireNoms = contacts
                                         .map((contact) => contact.name)
                                         .toList();
 
@@ -358,6 +441,12 @@ class EventFormState extends State<EventForm> {
                                           presta = value;
                                           updateItem(presta!);
                                         });
+                                        final selectedContact =
+                                            contacts.firstWhere(
+                                                (c) => c.name == value,
+                                                orElse: () => contacts.first);
+                                        _applyPrestaIcon(
+                                            selectedContact.service);
                                       },
                                     );
                                   }
@@ -394,14 +483,47 @@ class EventFormState extends State<EventForm> {
                             minLines: 6,
                             maxLines: 6,
                             text: "Donnez des précisions sur la déclaration"),
-                        CameraOrFiles(
-                          racineFolder: "residences",
-                          residence: widget.residence,
-                          folderName: "events",
-                          title: title.text,
-                          onImageUploaded: downloadImagePath,
-                          cardOverlay: false,
-                        ),
+                        // Tant qu'un prestataire avec un service reconnu est
+                        // sélectionné (cf. _applyPrestaIcon), la photo de
+                        // l'événement est automatiquement celle du service
+                        // - pas de choix manuel dans ce cas. Sinon
+                        // (événement classique, ou service non reconnu),
+                        // CameraOrFiles reste le moyen de choisir une photo.
+                        if (_resolvingPrestaIcon)
+                          const Center(child: AppLoader())
+                        else if (_selectedEventTypes
+                                .contains(EventType.prestation) &&
+                            _prestaIconUrl != null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Column(
+                              children: [
+                                MyTextStyle.lotDesc(
+                                  "Photo utilisée automatiquement pour ce service :",
+                                  SizeFont.h3.size,
+                                  FontStyle.italic,
+                                ),
+                                const SizedBox(height: 10),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: Image.network(
+                                    _prestaIconUrl!,
+                                    height: 120,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          CameraOrFiles(
+                            racineFolder: "residences",
+                            residence: widget.residence,
+                            folderName: "events",
+                            title: title.text,
+                            onImageUploaded: downloadImagePath,
+                            cardOverlay: false,
+                          ),
                       ],
                     ),
                   ),
