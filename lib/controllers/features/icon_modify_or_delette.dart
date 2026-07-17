@@ -309,13 +309,32 @@ Widget iconModifyOrDelette(
                                   title: Padding(
                                     padding: const EdgeInsets.only(bottom: 20),
                                     child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        const Icon(Icons.edit),
-                                        const SizedBox(width: 15),
-                                        MyTextStyle.postDesc(
-                                          'Modifier le statut',
-                                          SizeFont.h3.size,
-                                          Colors.black87,
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.edit),
+                                            const SizedBox(width: 15),
+                                            MyTextStyle.postDesc(
+                                              'Modifier le statut',
+                                              SizeFont.h3.size,
+                                              Colors.black87,
+                                            ),
+                                          ],
+                                        ),
+                                        // Remonté ici (au lieu d'en bas de la
+                                        // liste des 4 étapes du Stepper,
+                                        // entièrement dépliées) : sinon
+                                        // "Supprimer" se retrouve hors de la
+                                        // zone visible du bottom sheet
+                                        // (initialChildSize 0.6), sans scroll
+                                        // évident pour l'atteindre.
+                                        IconButton(
+                                          icon: const Icon(Icons.delete),
+                                          tooltip: 'Supprimer',
+                                          onPressed: () => showAlertDialog(
+                                              post, context, updatePostsList),
                                         ),
                                       ],
                                     ),
@@ -444,27 +463,9 @@ Widget iconModifyOrDelette(
                                     ],
                                   ),
                                 ),
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                SafeArea(
+                                const SafeArea(
                                   top: false,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 12),
-                                    child: ListTile(
-                                      leading: const Icon(Icons.delete),
-                                      title: MyTextStyle.postDesc(
-                                        'Supprimer',
-                                        SizeFont.h3.size,
-                                        Colors.black87,
-                                      ),
-                                      onTap: () {
-                                        showAlertDialog(
-                                            post, context, updatePostsList);
-                                      },
-                                    ),
-                                  ),
+                                  child: SizedBox(height: 20),
                                 ),
                               ],
                             ),
