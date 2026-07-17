@@ -1,4 +1,4 @@
-# ConnectKasa
+# Konodal
 
 Application Flutter de gestion de résidence (copropriété/syndic) : annonces entre voisins,
 signalements, messagerie, documents, contacts, gestion locative. Backend Firebase

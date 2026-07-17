@@ -94,7 +94,7 @@ BEGIN
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "konodal" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.konodal.app. All rights reserved." "\0"
-            VALUE "OriginalFilename", "connect_kasa.exe" "\0"
+            VALUE "OriginalFilename", "konodal.exe" "\0"
             VALUE "ProductName", "konodal" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
