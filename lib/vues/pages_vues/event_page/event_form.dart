@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/controllers/features/submit_post_controller.dart';
-import 'package:konodal/core/repositories/residence_repository.dart';
-import 'package:konodal/core/repositories/firestore_residence_repository.dart';
+import 'package:konodal/core/repositories/contact_repository.dart';
+import 'package:konodal/core/repositories/firestore_contact_repository.dart';
 import 'package:konodal/models/enum/event_type.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/contact.dart';
@@ -39,8 +39,8 @@ class EventForm extends StatefulWidget {
 }
 
 class EventFormState extends State<EventForm> {
-  final IResidenceRepository _databaseContactServices =
-      FirestoreResidenceRepository();
+  final IContactRepository _databaseContactServices =
+      FirestoreContactRepository();
 
   TextEditingController title = TextEditingController();
   TextEditingController desc = TextEditingController();
@@ -74,7 +74,7 @@ class EventFormState extends State<EventForm> {
     _selectedEventTypes =
         !itemsCSMembers.contains(widget.uid) ? {EventType.evenement} : {};
     itemsPresta = _databaseContactServices
-        .getContactByResidence(widget.residence)
+        .getContactsByResidence(widget.residence)
         .then((result) =>
             result.when(success: (v) => v, failure: (error) => throw error));
   }

@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:konodal/core/errors/app_exceptions.dart';
 import 'package:konodal/core/repositories/residence_repository.dart';
 import 'package:konodal/core/result/result.dart';
-import 'package:konodal/models/pages_models/contact.dart';
 import 'package:konodal/models/pages_models/residence.dart';
 import 'package:konodal/models/pages_models/structure_residence.dart';
 
@@ -11,37 +10,6 @@ class FirestoreResidenceRepository implements IResidenceRepository {
 
   FirestoreResidenceRepository({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
-
-  @override
-  Future<Result<List<Contact>>> getEmergenciesContacts() async {
-    try {
-      final querySnapshot =
-          await _firestore.collection("emergencyContactsFr").get();
-      final contacts = querySnapshot.docs
-          .map((docSnapshot) => Contact.fromJson(docSnapshot.data()))
-          .toList();
-      return Result.success(contacts);
-    } catch (e) {
-      return Result.failure(AppException.from(e));
-    }
-  }
-
-  @override
-  Future<Result<List<Contact>>> getContactByResidence(String residence) async {
-    try {
-      final querySnapshot = await _firestore
-          .collection("residences")
-          .doc(residence)
-          .collection("contacts")
-          .get();
-      final contacts = querySnapshot.docs
-          .map((docSnapshot) => Contact.fromJson(docSnapshot.data()))
-          .toList();
-      return Result.success(contacts);
-    } catch (e) {
-      return Result.failure(AppException.from(e));
-    }
-  }
 
   @override
   Future<Result<List<Residence>>> rechercheFirestore(String saisie) async {
@@ -226,62 +194,6 @@ class FirestoreResidenceRepository implements IResidenceRepository {
       await _firestore.collection('residences').doc(residenceId).update({
         'csmembers': FieldValue.arrayUnion([uidToAdd])
       });
-      return const Result.success(null);
-    } catch (e) {
-      return Result.failure(AppException.from(e));
-    }
-  }
-
-  @override
-  Future<Result<void>> addContact(String residenceId, Contact contact) async {
-    try {
-      final docRef = await _firestore
-          .collection("residences")
-          .doc(residenceId)
-          .collection("contacts")
-          .add(contact.toJson());
-
-      contact.id = docRef.id;
-      await docRef.update({'id': contact.id});
-
-      return const Result.success(null);
-    } catch (e) {
-      return Result.failure(AppException.from(e));
-    }
-  }
-
-  @override
-  Future<Result<void>> updateContact(
-      String residenceId, Contact contact) async {
-    try {
-      if (contact.id!.isEmpty) {
-        return Result.failure(
-            const UnknownException("L'identifiant du contact est manquant."));
-      }
-
-      await _firestore
-          .collection("residences")
-          .doc(residenceId)
-          .collection("contacts")
-          .doc(contact.id)
-          .update(contact.toJson());
-
-      return const Result.success(null);
-    } catch (e) {
-      return Result.failure(AppException.from(e));
-    }
-  }
-
-  @override
-  Future<Result<void>> removeContact(
-      String residenceId, String contactDocId) async {
-    try {
-      await _firestore
-          .collection("residences")
-          .doc(residenceId)
-          .collection("contacts")
-          .doc(contactDocId)
-          .delete();
       return const Result.success(null);
     } catch (e) {
       return Result.failure(AppException.from(e));

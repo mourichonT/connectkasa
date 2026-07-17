@@ -1,9 +1,9 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
-import 'package:konodal/core/providers/residence_repository_provider.dart';
-import 'package:konodal/core/repositories/residence_repository.dart';
+import 'package:konodal/core/providers/contact_repository_provider.dart';
+import 'package:konodal/core/repositories/contact_repository.dart';
+import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
-import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/pages_models/address.dart';
 import 'package:konodal/models/pages_models/contact.dart'; // Importez votre modèle Contact
 import 'package:konodal/models/pages_models/residence.dart';
@@ -27,7 +27,7 @@ class ManageContact extends ConsumerStatefulWidget {
 class ManageContactState extends ConsumerState<ManageContact> {
   // Liste des contacts à gérer. Initialisez-la avec des données si vous en chargez depuis une base.
   List<Contact> contacts = [];
-  late final IResidenceRepository _residenceServices;
+  late final IContactRepository _contactRepository;
 
   // État d'ouverture des cartes : purement local (UI), jamais persisté en
   // base. Basé sur l'identité de l'objet (comme ObjectKey ci-dessous), donc
@@ -41,7 +41,7 @@ class ManageContactState extends ConsumerState<ManageContact> {
   @override
   void initState() {
     super.initState();
-    _residenceServices = ref.read(residenceRepositoryProvider);
+    _contactRepository = ref.read(contactRepositoryProvider);
     _loadContacts();
     // Vous pouvez initialiser 'contacts' ici avec des données existantes si vous en avez.
     // Par exemple: contacts = await _contactService.getContacts();
@@ -49,8 +49,8 @@ class ManageContactState extends ConsumerState<ManageContact> {
 
   Future<void> _loadContacts() async {
     // Récupère les structures en utilisant la nouvelle fonction du service
-    final fetchedBuildings = await _residenceServices
-        .getContactByResidence(widget.residence.id)
+    final fetchedBuildings = await _contactRepository
+        .getContactsByResidence(widget.residence.id)
         .then((result) =>
             result.when(success: (v) => v, failure: (_) => <Contact>[]));
     setState(() {
@@ -82,7 +82,9 @@ class ManageContactState extends ConsumerState<ManageContact> {
     });
   }
 
-  // Supprime un contact de la liste et dispose de ses contrôleurs
+  // Détache un contact de CETTE résidence (jamais un delete : un contact
+  // partagé avec d'autres résidences doit y rester visible - cf.
+  // IContactRepository.unlinkResidence).
   void removeContact(int index, String contact) async {
     setState(() {
       final contactPrefix = 'contact_$index';
@@ -128,11 +130,86 @@ class ManageContactState extends ConsumerState<ManageContact> {
       _focusNodes.remove('${contactPrefix}_web');
       contacts.removeAt(index);
     });
-    await _residenceServices.removeContact(widget.residence.id, contact);
+    await _contactRepository.unlinkResidence(contact, widget.residence.id);
+  }
+
+  /// Champs comparés entre la saisie et un candidat de rapprochement (hors
+  /// nom, déjà garanti identique par nameNormalized) - un champ ne compte
+  /// que s'il est NON VIDE des deux côtés. Sert de preuve à l'appui dans la
+  /// modale de confirmation ("les deux ont : ...").
+  List<String> _matchingFieldLabels(Contact input, Contact candidate) {
+    String norm(String? s) => (s ?? '').trim().toLowerCase();
+    final labels = <String>[];
+    if (norm(input.phone).isNotEmpty && norm(input.phone) == norm(candidate.phone)) {
+      labels.add('téléphone');
+    }
+    if (norm(input.mail).isNotEmpty && norm(input.mail) == norm(candidate.mail)) {
+      labels.add('email');
+    }
+    if (norm(input.service).isNotEmpty && norm(input.service) == norm(candidate.service)) {
+      labels.add('service');
+    }
+    if (norm(input.address.city).isNotEmpty &&
+        norm(input.address.city) == norm(candidate.address.city)) {
+      labels.add('ville');
+    }
+    if (norm(input.address.zipCode).isNotEmpty &&
+        norm(input.address.zipCode) == norm(candidate.address.zipCode)) {
+      labels.add('code postal');
+    }
+    if (norm(input.web).isNotEmpty && norm(input.web) == norm(candidate.web)) {
+      labels.add('site web');
+    }
+    return labels;
+  }
+
+  /// Plusieurs homonymes possibles (rare) : un seul dialog, pour le candidat
+  /// ayant le plus de champs en commun avec la saisie - simplicité UX plutôt
+  /// qu'exhaustivité pour ce cas marginal.
+  Contact _pickBestMatch(Contact input, List<Contact> candidates) {
+    candidates.sort((a, b) => _matchingFieldLabels(input, b)
+        .length
+        .compareTo(_matchingFieldLabels(input, a).length));
+    return candidates.first;
+  }
+
+  Future<bool> _showDuplicateConfirmDialog(
+      Contact candidate, List<String> matchingLabels) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        content: MyTextStyle.lotDesc(
+          "Un contact similaire à ${candidate.name} a été trouvé en base. "
+          "Les deux ont : ${matchingLabels.isEmpty ? 'le même nom' : matchingLabels.join(', ')}. "
+          "Est-ce le même contact ?",
+          SizeFont.h2.size,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text("Non"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text("Oui"),
+          ),
+        ],
+      ),
+    );
+    // Un dismiss (tap en dehors) équivaut à "Non" - jamais de rattachement
+    // accidentel à un contact qui n'est peut-être pas le bon.
+    return result ?? false;
   }
 
   void saveContacts() async {
-    for (var contact in contacts) {
+    // Un contact déjà persisté (id != null) est verrouillé : un CS member ne
+    // peut plus modifier ses champs une fois créé (ça changerait la fiche
+    // pour toutes les résidences qui la partagent) - seule la création de
+    // nouveaux contacts passe par cette sauvegarde. Cf. firestore.rules et
+    // Contact.isApproved.
+    final newContacts = contacts.where((contact) => contact.id == null).toList();
+
+    for (var contact in newContacts) {
       if ((contact.name.trim().isEmpty ||
           contact.phone.trim().isEmpty ||
           contact.service.trim().isEmpty)) {
@@ -153,23 +230,52 @@ class ManageContactState extends ConsumerState<ManageContact> {
       if (contact.address.city.isNotEmpty) {
         contact.address.city = capitalizeFirstLetter(contact.address.city);
       }
+      if ((contact.address.complement ?? '').isNotEmpty) {
+        contact.address.complement =
+            capitalizeFirstLetter(contact.address.complement!);
+      }
+      // mail et phone : jamais capitalizeFirstLetter (décision produit).
 
-      final result = contact.id == null
-          // Nouveau contact : ajouter
-          ? await _residenceServices.addContact(widget.residence.id, contact)
-          // Contact existant : mettre à jour. widget.residence.id (pas
-          // contact.id!, qui pointait vers un chemin résidence inexistant
-          // et faisait échouer la mise à jour silencieusement - le résultat
-          // n'était jamais vérifié ci-dessous).
-          : await _residenceServices.updateContact(
-              widget.residence.id, contact);
+      // Recherche d'un contact déjà existant portant le même nom (comparaison
+      // insensible à la casse via nameNormalized) avant de créer un doublon.
+      final nameNormalized = contact.name.trim().toLowerCase();
+      final candidates = await _contactRepository
+          .findContactsByNameNormalized(nameNormalized)
+          .then((result) => result.when(success: (v) => v, failure: (_) => <Contact>[]));
 
-      if (result.isFailure) {
+      if (candidates.isNotEmpty) {
+        final best = _pickBestMatch(contact, candidates);
+        final matchingLabels = _matchingFieldLabels(contact, best);
+        if (!mounted) return;
+        final sameContact = await _showDuplicateConfirmDialog(best, matchingLabels);
+        if (sameContact) {
+          final linkResult =
+              await _contactRepository.linkResidence(best.id!, widget.residence.id);
+          if (linkResult.isFailure) {
+            if (!mounted) return;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                    "Erreur lors du rattachement de ${best.name} : ${linkResult.errorOrNull}"),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
+          continue; // Rattaché à l'existant : pas de nouvelle fiche créée.
+        }
+        // "Non" : l'utilisateur confirme qu'il s'agit d'un contact distinct
+        // malgré le nom identique -> tombe dans la création ci-dessous.
+      }
+
+      final createResult =
+          await _contactRepository.createContact(widget.residence.id, contact);
+      if (createResult.isFailure) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                "Erreur lors de l'enregistrement de ${contact.name} : ${result.errorOrNull}"),
+                "Erreur lors de l'enregistrement de ${contact.name} : ${createResult.errorOrNull}"),
             backgroundColor: Colors.red,
           ),
         );
@@ -220,24 +326,12 @@ class ManageContactState extends ConsumerState<ManageContact> {
             ...contacts.asMap().entries.map((entry) {
               final index = entry.key;
               final contact = entry.value;
+              // Un contact déjà persisté est partagé entre résidences et
+              // verrouillé : lecture seule ici, seul un Super Admin (BO) peut
+              // corriger ses champs après validation (contact.isApproved).
+              final isLocked = contact.id != null;
               final contactPrefix =
                   'contact_$index'; // Préfixe unique pour les clés des contrôleurs
-
-              // Initialisation des contrôleurs pour ce contact spécifique
-              final nameController =
-                  _initAndGetController('${contactPrefix}_name', contact.name);
-              final phoneController = _initAndGetController(
-                  '${contactPrefix}_phone', contact.phone);
-              final mailController =
-                  _initAndGetController('${contactPrefix}_mail', contact.mail);
-              final streetController = _initAndGetController(
-                  '${contactPrefix}_street', contact.address.street);
-              final cityController = _initAndGetController(
-                  '${contactPrefix}_city', contact.address.city);
-              final zipcodeController = _initAndGetController(
-                  '${contactPrefix}_zipcode', contact.address.zipCode);
-              final webController =
-                  _initAndGetController('${contactPrefix}_web', contact.web);
 
               return Card(
                 margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -281,127 +375,34 @@ class ManageContactState extends ConsumerState<ManageContact> {
                                 "Service: ${contact.service}",
                                 SizeFont.h3.size,
                               ),
+                            if (isLocked && !contact.isApproved)
+                              MyTextStyle.lotDesc(
+                                "En attente de validation",
+                                SizeFont.h3.size,
+                                null,
+                                null,
+                                Colors.orange,
+                              ),
                           ],
                         ),
                       ),
                     ],
                   ),
                   children: [
-                    // Contenu détaillé du contact, déplacé à l'intérieur du ExpansionTile
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomTextFieldWidget(
-                            label: "Nom",
-                            controller: nameController,
-                            isEditable: true,
-                            onChanged: (val) => contact.name = val,
-                          ),
-                          const SizedBox(height: 10),
-
-                          MyDropDownMenu(
-                            height: 90,
-                            width,
-                            "Service",
-                            contact
-                                .service, // Utilise la propriété 'type' du bâtiment
-                            false,
-                            items: TypeList.servicePrestaList,
-                            onValueChanged: (value) {
-                              setState(() {
-                                contact.service =
-                                    value; // Met à jour la propriété 'type' du bâtiment
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          CustomTextFieldWidget(
-                            label: "Téléphone",
-                            controller: phoneController,
-                            isEditable: true,
-                            keyboardType: TextInputType
-                                .phone, // Type de clavier téléphone
-                            onChanged: (val) => contact.phone = val,
-                          ),
-                          const SizedBox(height: 10),
-                          CustomTextFieldWidget(
-                            label: "Email",
-                            controller: mailController,
-                            isEditable: true,
-                            keyboardType: TextInputType
-                                .emailAddress, // Type de clavier email
-                            onChanged: (val) => contact.mail = val,
-                          ),
-                          const SizedBox(height: 10),
-                          // Bloc d'adresse
-                          MyTextStyle.lotName(
-                            "Adresse",
-                            Colors.black87,
-                            SizeFont.h3.size,
-                          ),
-                          const SizedBox(height: 10),
-                          AddressSearchField(
-                            label: "Adresse",
-                            controller: streetController,
-                            onManualEdit: () {
-                              contact.address.codeQualite = '60';
-                              contact.address.street = streetController.text;
-                            },
-                            onSelected: (suggestion) {
-                              setState(() {
-                                contact.address.codeQualite = '00';
-                                contact.address.street = streetController.text;
-                                cityController.text = suggestion.city;
-                                zipcodeController.text = suggestion.postcode;
-                                contact.address.city = suggestion.city;
-                                contact.address.zipCode = suggestion.postcode;
-                              });
-                            },
-                          ),
-                          const SizedBox(height: 10),
-                          Row(
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: CustomTextFieldWidget(
-                                  label: "Ville",
-                                  controller: cityController,
-                                  isEditable: true,
-                                  onChanged: (val) => contact.address.city = val,
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                flex: 1,
-                                child: CustomTextFieldWidget(
-                                  label: "Code Postal",
-                                  controller: zipcodeController,
-                                  isEditable: true,
-                                  keyboardType: TextInputType
-                                      .number, // Type de clavier numérique
-                                  onChanged: (val) =>
-                                      contact.address.zipCode = val,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          CustomTextFieldWidget(
-                            label: "Site Web",
-                            controller: webController,
-                            isEditable: true,
-                            keyboardType:
-                                TextInputType.url, // Type de clavier URL
-                            onChanged: (val) => contact.web = val,
-                          ),
-                          const SizedBox(height: 20),
-                          _removeContactButton(
-                              index,
-                              contact
-                                  .id), // Bouton supprimer pour chaque contact
-                        ],
+                        children: isLocked
+                            ? _lockedFields(contact)
+                            : _editableFields(contactPrefix, contact, width),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 16, bottom: 8),
+                        child: _removeContactButton(index, contact.id),
                       ),
                     ),
                   ],
@@ -450,7 +451,155 @@ class ManageContactState extends ConsumerState<ManageContact> {
     );
   }
 
-  // Widget utilitaire pour le bouton de suppression
+  /// Contact pas encore créé (id == null) : formulaire éditable, identique au
+  /// comportement historique de cet écran.
+  List<Widget> _editableFields(String contactPrefix, Contact contact, double width) {
+    final nameController =
+        _initAndGetController('${contactPrefix}_name', contact.name);
+    final phoneController =
+        _initAndGetController('${contactPrefix}_phone', contact.phone);
+    final mailController =
+        _initAndGetController('${contactPrefix}_mail', contact.mail);
+    final streetController =
+        _initAndGetController('${contactPrefix}_street', contact.address.street);
+    final cityController =
+        _initAndGetController('${contactPrefix}_city', contact.address.city);
+    final zipcodeController =
+        _initAndGetController('${contactPrefix}_zipcode', contact.address.zipCode);
+    final webController =
+        _initAndGetController('${contactPrefix}_web', contact.web);
+
+    return [
+      CustomTextFieldWidget(
+        label: "Nom",
+        controller: nameController,
+        isEditable: true,
+        onChanged: (val) => contact.name = val,
+      ),
+      const SizedBox(height: 10),
+      MyDropDownMenu(
+        height: 90,
+        width,
+        "Service",
+        contact.service,
+        false,
+        items: TypeList.servicePrestaList,
+        onValueChanged: (value) {
+          setState(() {
+            contact.service = value;
+          });
+        },
+      ),
+      const SizedBox(height: 10),
+      CustomTextFieldWidget(
+        label: "Téléphone",
+        controller: phoneController,
+        isEditable: true,
+        keyboardType: TextInputType.phone,
+        onChanged: (val) => contact.phone = val,
+      ),
+      const SizedBox(height: 10),
+      CustomTextFieldWidget(
+        label: "Email",
+        controller: mailController,
+        isEditable: true,
+        keyboardType: TextInputType.emailAddress,
+        onChanged: (val) => contact.mail = val,
+      ),
+      const SizedBox(height: 10),
+      MyTextStyle.lotName("Adresse", Colors.black87, SizeFont.h3.size),
+      const SizedBox(height: 10),
+      AddressSearchField(
+        label: "Adresse",
+        controller: streetController,
+        onManualEdit: () {
+          contact.address.codeQualite = '60';
+          contact.address.street = streetController.text;
+        },
+        onSelected: (suggestion) {
+          setState(() {
+            contact.address.codeQualite = '00';
+            contact.address.street = streetController.text;
+            cityController.text = suggestion.city;
+            zipcodeController.text = suggestion.postcode;
+            contact.address.city = suggestion.city;
+            contact.address.zipCode = suggestion.postcode;
+          });
+        },
+      ),
+      const SizedBox(height: 10),
+      Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: CustomTextFieldWidget(
+              label: "Ville",
+              controller: cityController,
+              isEditable: true,
+              onChanged: (val) => contact.address.city = val,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            flex: 1,
+            child: CustomTextFieldWidget(
+              label: "Code Postal",
+              controller: zipcodeController,
+              isEditable: true,
+              keyboardType: TextInputType.number,
+              onChanged: (val) => contact.address.zipCode = val,
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      CustomTextFieldWidget(
+        label: "Site Web",
+        controller: webController,
+        isEditable: true,
+        keyboardType: TextInputType.url,
+        onChanged: (val) => contact.web = val,
+      ),
+    ];
+  }
+
+  /// Contact déjà persisté : lecture seule (potentiellement partagé avec
+  /// d'autres résidences - cf. commentaire saveContacts).
+  List<Widget> _lockedFields(Contact contact) {
+    return [
+      CustomTextFieldWidget(label: "Nom", value: contact.name),
+      const SizedBox(height: 10),
+      CustomTextFieldWidget(label: "Service", value: contact.service),
+      const SizedBox(height: 10),
+      CustomTextFieldWidget(label: "Téléphone", value: contact.phone),
+      const SizedBox(height: 10),
+      CustomTextFieldWidget(label: "Email", value: contact.mail),
+      const SizedBox(height: 10),
+      MyTextStyle.lotName("Adresse", Colors.black87, SizeFont.h3.size),
+      const SizedBox(height: 10),
+      CustomTextFieldWidget(label: "Adresse", value: contact.address.street),
+      const SizedBox(height: 10),
+      Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: CustomTextFieldWidget(
+                label: "Ville", value: contact.address.city),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            flex: 1,
+            child: CustomTextFieldWidget(
+                label: "Code Postal", value: contact.address.zipCode),
+          ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      CustomTextFieldWidget(label: "Site Web", value: contact.web),
+    ];
+  }
+
+  // Widget utilitaire pour le bouton de suppression/détachement
   Widget _removeContactButton(int index, String? contactId) {
     return Align(
       alignment: Alignment.centerRight,

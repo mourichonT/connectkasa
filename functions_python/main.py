@@ -688,6 +688,41 @@ def _process_pending_child_lots(db, residence_id, user_id, parent_lot_id,
         }, merge=True)
 
 
+# ---------------------------------------------------------------------------
+# Résidence : dénormalisation "je suis CS member de quelles résidences ?" sur
+# users/{uid}.csMemberResidencesIds, utilisée par isCsMemberOfAnyResidence
+# (firestore.rules) pour autoriser la création/le rattachement/le
+# détachement d'un contact partagé entre résidences (collection racine
+# contacts/{id}.residencesIds) sans que les rules aient besoin de boucler sur
+# un tableau de taille dynamique - même principe que sync_lot_tenants
+# ci-dessus pour users/{uid}.residencesIds.
+# ---------------------------------------------------------------------------
+
+def _recompute_cs_member_residences(db, uid):
+    residences = db.collection("residences") \
+        .where("csmembers", "array_contains", uid).stream()
+    residence_ids = sorted(doc.id for doc in residences)
+    db.collection("users").document(uid).set(
+        {"csMemberResidencesIds": residence_ids}, merge=True)
+
+
+@firestore_fn.on_document_written(document="residences/{residenceId}")
+def sync_cs_member_residences(event: firestore_fn.Event) -> None:
+    before = event.data.before
+    after = event.data.after
+
+    before_members = set((before.to_dict() or {}).get("csmembers", [])) if before and before.exists else set()
+    after_members = set((after.to_dict() or {}).get("csmembers", [])) if after and after.exists else set()
+
+    changed_uids = before_members.symmetric_difference(after_members)
+    if not changed_uids:
+        return  # écriture qui ne touche pas csmembers : rien à recalculer
+
+    db = firestore.client()
+    for uid in changed_uids:
+        _recompute_cs_member_residences(db, uid)
+
+
 @firestore_fn.on_document_written(document="users/{userId}/lots/{lotId}")
 def sync_lot_approval(event: firestore_fn.Event) -> None:
     after = event.data.after
@@ -1505,9 +1540,10 @@ class _ReportGenerator:
             except Exception:
                 return "Date format error"
 
-        declared_timestamp = structured_data[0]["data"].get("declaredDate")
+        post_dates = structured_data[0]["data"].get("dates", {}) or {}
+        declared_timestamp = post_dates.get("declaredDate") or structured_data[0]["data"].get("declaredDate")
         formatted_declared_timestamp = format_date(declared_timestamp)
-        post_timestamp = structured_data[0]["data"].get("timeStamp")
+        post_timestamp = post_dates.get("creationDate") or post_dates.get("timeStamp") or structured_data[0]["data"].get("timeStamp")
         formatted_post_timestamp = format_date(post_timestamp)
 
         # === DÉBUT DU CADRE VERT ===
@@ -1625,7 +1661,8 @@ class _ReportGenerator:
             for sig in structured_data[0]["signalements"]:
                 draw_spacer(1)
                 i += 1
-                sig_timestamp = sig.get("timeStamp")
+                sig_dates = sig.get("dates", {}) or {}
+                sig_timestamp = sig_dates.get("creationDate") or sig_dates.get("timeStamp") or sig.get("timeStamp")
                 formatted_sig_timestamp = format_date(sig_timestamp)
                 draw_header(f"Signalement N°{i} :", font_size=14, color=(72 / 255, 119 / 255, 91 / 255), is_bold=True)
                 draw_spacer(space_header)
@@ -1897,7 +1934,9 @@ def check_similar_post_OpenAI(req: https_fn.Request) -> https_fn.Response:
         existing = doc.to_dict()
         existing_id = doc.id
 
-        if not existing.get('timeStamp') or existing['timeStamp'] < twenty_four_hours_ago:
+        existing_dates = existing.get('dates', {}) or {}
+        existing_timestamp = existing_dates.get('creationDate') or existing_dates.get('timeStamp') or existing.get('timeStamp')
+        if not existing_timestamp or existing_timestamp < twenty_four_hours_ago:
             continue
 
         existing_location = existing.get("location") or {}

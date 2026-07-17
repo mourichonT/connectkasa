@@ -68,12 +68,15 @@ class DefaultFirebaseOptions {
     storageBucket: 'konodal-dev.firebasestorage.app',
     iosBundleId: 'com.konodal.app',
   );
+
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyCoPcPqDlkgqOXxTQqFyfyuj8zlEDszOCE',
     appId: '1:814247048228:ios:55cf43dc725f3f77cd94b1',
     messagingSenderId: '814247048228',
     projectId: 'konodal-dev',
     storageBucket: 'konodal-dev.firebasestorage.app',
+    androidClientId: '814247048228-75t4h1qbkjgggu3kjfn0djf3octkmu1c.apps.googleusercontent.com',
+    iosClientId: '814247048228-tij2dai582mtif0e01h2s544elve8de1.apps.googleusercontent.com',
     iosBundleId: 'com.konodal.app',
   );
 }

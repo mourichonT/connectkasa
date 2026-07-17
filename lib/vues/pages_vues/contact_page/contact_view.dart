@@ -1,7 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:konodal/controllers/features/my_texts_styles.dart';
-import 'package:konodal/core/providers/residence_providers.dart';
+import 'package:konodal/core/providers/contact_providers.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/contact.dart';
 import 'package:konodal/vues/pages_vues/contact_page/detail_contact_view.dart';

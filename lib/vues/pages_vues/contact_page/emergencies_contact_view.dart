@@ -2,8 +2,8 @@
 
 import 'package:konodal/controllers/features/contact_features.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
-import 'package:konodal/core/repositories/residence_repository.dart';
-import 'package:konodal/core/repositories/firestore_residence_repository.dart';
+import 'package:konodal/core/repositories/contact_repository.dart';
+import 'package:konodal/core/repositories/firestore_contact_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/contact.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +24,8 @@ IconData _iconForService(String service) {
 }
 
 class EmergenciesContactsView extends StatelessWidget {
-  final IResidenceRepository _databaseContactServices =
-      FirestoreResidenceRepository();
+  final IContactRepository _databaseContactServices =
+      FirestoreContactRepository();
   late Future<List<Contact>> allEmergenciesContactsFuture;
 
   EmergenciesContactsView({super.key});

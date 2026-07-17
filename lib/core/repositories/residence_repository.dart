@@ -1,14 +1,9 @@
 import 'package:konodal/core/result/result.dart';
-import 'package:konodal/models/pages_models/contact.dart';
 import 'package:konodal/models/pages_models/residence.dart';
 import 'package:konodal/models/pages_models/structure_residence.dart';
 
 /// Remplace DataBasesResidenceServices (Phase 2 du chantier architecture).
 abstract interface class IResidenceRepository {
-  Future<Result<List<Contact>>> getEmergenciesContacts();
-
-  Future<Result<List<Contact>>> getContactByResidence(String residence);
-
   Future<Result<List<Residence>>> rechercheFirestore(String saisie);
 
   Future<Result<Residence>> getResidenceByRef(String residenceId);
@@ -31,12 +26,6 @@ abstract interface class IResidenceRepository {
   Future<Result<void>> removeCsMember(String residenceId, String uidToRemove);
 
   Future<Result<void>> addCsMember(String residenceId, String uidToAdd);
-
-  Future<Result<void>> addContact(String residenceId, Contact contact);
-
-  Future<Result<void>> updateContact(String residenceId, Contact contact);
-
-  Future<Result<void>> removeContact(String residenceId, String contactDocId);
 
   Future<Result<void>> saveStructure(
       String residenceId, StructureResidence structure);
