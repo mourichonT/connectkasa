@@ -253,6 +253,87 @@ Widget iconModifyOrDelette(
                       }
                     }
 
+                    // Raccourci "Non envoyé" -> "Terminé" directement, sans
+                    // passer par "Transmis"/"En cours" : couvre le cas d'un
+                    // sinistre qui s'est résolu de lui-même ou qui ne
+                    // nécessite pas l'intervention du gestionnaire. Ne
+                    // notifie jamais la gérance et n'écrit volontairement
+                    // pas declaredDate (jamais transmis) - contrairement au
+                    // parcours normal ci-dessus.
+                    Future<void> closeWithoutTransmission() async {
+                      try {
+                        await SubmitPostController.updatePost(
+                          like: post.like,
+                          uid: post.user,
+                          statut: "Terminé",
+                          idPost: post.id,
+                          selectedLabel: post.type,
+                          imagePath: post.pathImage,
+                          isVideo: post.isVideo,
+                          title: post.title,
+                          timeStamp: post.creationDate,
+                          desc: post.description,
+                          anonymPost: post.hideUser,
+                          docRes: post.refResidence,
+                          localisation: post.locationElement,
+                          etage: post.locationFloor,
+                          element: post.locationDetails,
+                        );
+                        await FirestorePostRepository().updatePostFields(
+                          post.refResidence,
+                          post.id,
+                          {'dates.closedDate': Timestamp.now()},
+                        );
+                        setState(() {
+                          currentStep = 3;
+                          post.statut = "Terminé";
+                        });
+                      } catch (e) {
+                        showUpdateError(e);
+                      }
+                    }
+
+                    Future<void> confirmCloseWithoutTransmission() async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (dialogContext) => AlertDialog(
+                          title: MyTextStyle.lotName(
+                              "Clôturer sans transmission ?",
+                              Colors.black87,
+                              SizeFont.h2.size),
+                          content: MyTextStyle.annonceDesc(
+                            "Vous vous apprêtez à clôturer ce sinistre sans "
+                            "le transmettre à votre gestionnaire. Cela peut "
+                            "convenir si la situation s'est réglée par vos "
+                            "propres moyens - dans ce cas, sachez que le "
+                            "gestionnaire, n'en ayant pas connaissance, ne "
+                            "pourra ni intervenir ni être engagé si le sujet "
+                            "revenait sur la table. Confirmez-vous la "
+                            "clôture ?",
+                            SizeFont.h3.size,
+                            4,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(dialogContext, false),
+                              child: MyTextStyle.lotName("Annuler",
+                                  Colors.black87, SizeFont.h3.size),
+                            ),
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.pop(dialogContext, true),
+                              child: MyTextStyle.lotName("Clôturer",
+                                  Colors.black87, SizeFont.h3.size),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirmed == true) {
+                        await closeWithoutTransmission();
+                      }
+                    }
+
                     Future<void> handleCanceled() async {
                       try {
                         // Réouverture depuis Terminé uniquement (même
@@ -344,41 +425,64 @@ Widget iconModifyOrDelette(
                                         ControlsDetails details) {
                                       return Padding(
                                         padding: const EdgeInsets.only(top: 16),
-                                        child: Row(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: <Widget>[
-                                            Visibility(
-                                              visible: currentStep != 3,
-                                              child: ElevatedButton(
-                                                onPressed:
-                                                    details.onStepContinue,
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
+                                            Row(
+                                              children: <Widget>[
+                                                Visibility(
+                                                  visible: currentStep != 3,
+                                                  child: ElevatedButton(
+                                                    onPressed:
+                                                        details.onStepContinue,
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .primary,
+                                                      shape: RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                8),
+                                                      ),
+                                                    ),
+                                                    child: MyTextStyle.postDesc(
+                                                        "Suivant",
+                                                        SizeFont.para.size,
+                                                        Colors.white),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Visibility(
+                                                  visible: currentStep == 3,
+                                                  child: TextButton(
+                                                    onPressed:
+                                                        details.onStepCancel,
+                                                    child: MyTextStyle.postDesc(
+                                                      "Retour",
+                                                      SizeFont.para.size,
                                                       Theme.of(context)
                                                           .colorScheme
                                                           .primary,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
+                                                    ),
                                                   ),
                                                 ),
-                                                child: MyTextStyle.postDesc(
-                                                    "Suivant",
-                                                    SizeFont.para.size,
-                                                    Colors.white),
-                                              ),
+                                              ],
                                             ),
-                                            const SizedBox(width: 8),
+                                            // Raccourci "Non envoyé" ->
+                                            // "Terminé" : uniquement tant que
+                                            // rien n'a encore été transmis au
+                                            // gestionnaire.
                                             Visibility(
-                                              visible: currentStep == 3,
+                                              visible: currentStep == 0,
                                               child: TextButton(
-                                                onPressed: details.onStepCancel,
+                                                onPressed:
+                                                    confirmCloseWithoutTransmission,
                                                 child: MyTextStyle.postDesc(
-                                                  "Retour",
+                                                  "Clôturer sans transmission au gestionnaire",
                                                   SizeFont.para.size,
-                                                  Theme.of(context)
-                                                      .colorScheme
-                                                      .primary,
+                                                  Colors.black54,
                                                 ),
                                               ),
                                             ),
