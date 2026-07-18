@@ -32,7 +32,7 @@ class MyTextStyle {
   static Text symbolKasa(String text, Color color, [double? size]) {
     return Text(
       text,
-      style: GoogleFonts.majorMonoDisplay(
+      style: GoogleFonts.roboto(
         fontSize: size,
         fontWeight: FontWeight.w300,
       ),
@@ -44,7 +44,7 @@ class MyTextStyle {
     return styledText(
       context,
       text,
-      GoogleFonts.majorMonoDisplay(
+      GoogleFonts.roboto(
         fontSize: size,
         fontWeight: FontWeight.w300,
       ),
