@@ -322,9 +322,12 @@ def send_email_on_create(event: firestore_fn.Event[firestore_fn.DocumentSnapshot
     to_list = data.get('to') or []
     message = data.get('message') or {}
     subject = message.get('subject')
-    body = message.get('html')
+    body = message.get('text')
+    html_body = message.get('html')
 
-    results = [_send_email_logic(to_address, subject, body) for to_address in to_list]
+    results = [
+        _send_email_logic(to_address, subject, body, html_body) for to_address in to_list
+    ]
     success = all(r['success'] for r in results)
 
     update_payload = {
@@ -2098,6 +2101,77 @@ def create_shared_signalement(req: https_fn.Request) -> https_fn.Response:
 
 
 @https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
+def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
+    """Le prestataire déclare l'intervention faite, avec photo(s) à l'appui,
+    depuis la page de partage - contrairement à create_shared_signalement,
+    ne nécessite AUCUN sinistre lié (disponible sur n'importe quelle
+    intervention). Écrit un post de type "rapport" au même niveau que
+    sinistres/events (residences/{id}/posts), avec linkedEventId pointant
+    vers l'intervention d'origine - jamais visible d'un résident (cf.
+    firestore.rules match /posts/{postId} : lecture "rapport" restreinte à
+    isCsMember/isSuperAdmin), consultable uniquement par l'agence dans le
+    BO."""
+    token = (req.form.get("token") or "").strip()
+    title = (req.form.get("title") or "").strip()
+    description = (req.form.get("description") or "").strip()
+    file_storage = req.files.get("file")
+
+    if not token or not title:
+        return https_fn.Response(
+            json.dumps({"error": "Paramètres manquants"}),
+            status=400,
+            content_type="application/json",
+        )
+
+    db = firestore.client()
+    try:
+        token_data, error_response = _resolve_share_token(db, token)
+        if error_response is not None:
+            return error_response
+
+        residence_id = token_data.get("residenceId")
+        post_id = token_data.get("postId")
+        posts_ref = db.collection("residences").document(residence_id).collection("posts")
+
+        intervention_doc = posts_ref.document(post_id).get()
+        if not intervention_doc.exists:
+            return https_fn.Response(
+                json.dumps({"error": "Intervention introuvable"}),
+                status=404,
+                content_type="application/json",
+            )
+
+        path_image = ""
+        if file_storage is not None and file_storage.filename:
+            path_image, _ = _upload_shared_media(file_storage, residence_id)
+
+        posts_ref.add({
+            "type": "rapport",
+            "refResidence": residence_id,
+            "title": title,
+            "description": description,
+            "pathImage": path_image,
+            "user": "Prestataire (lien de partage)",
+            "hideUser": True,
+            "dates": {"creationDate": firestore.SERVER_TIMESTAMP},
+            "linkedEventId": post_id,
+        })
+
+        return https_fn.Response(
+            json.dumps({"success": True}),
+            status=200,
+            content_type="application/json",
+        )
+
+    except Exception as e:
+        return https_fn.Response(
+            json.dumps({"error": str(e)}),
+            status=500,
+            content_type="application/json",
+        )
+
+
+@https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
 def complete_shared_intervention(req: https_fn.Request) -> https_fn.Response:
     """Le prestataire déclare son intervention terminée depuis la page de
     partage : fait passer le sinistre lié à "Terminé", même sémantique que
@@ -2160,14 +2234,18 @@ def complete_shared_intervention(req: https_fn.Request) -> https_fn.Response:
 def reschedule_shared_intervention(req: https_fn.Request) -> https_fn.Response:
     """Le prestataire n'a pas terminé et reprogramme un passage depuis la
     page de partage : crée une NOUVELLE intervention (même titre/description/
-    prestataire/photo que l'originale) liée au même sinistre, remet le
-    sinistre à "En cours" (jamais "Terminé" - cf. demande explicite) et pose
-    dates.interventionDate, comme le fait SinistreDetailPage côté BO. Comme
-    le nouveau post a un postId différent, l'ancien token ne lui donne pas
-    accès : on génère un nouveau shareTokens scoré sur cette nouvelle
-    intervention et on renvoie son id, pour que la page fasse elle-même la
-    redirection - pas besoin de renvoyer un email, le prestataire est déjà
-    sur la page."""
+    prestataire/photo que l'originale), publiée immédiatement (pas de
+    validation agence pour ce point - décision explicite). Si l'intervention
+    d'origine est liée à un sinistre, la nouvelle l'est aussi et le sinistre
+    repasse à "En cours" (jamais "Terminé" - cf. demande explicite) avec
+    dates.interventionDate, comme le fait SinistreDetailPage côté BO. Sans
+    sinistre lié (intervention créée directement depuis la page Interventions
+    du BO), la duplication se fait à l'identique mais sans toucher à aucun
+    sinistre. Comme le nouveau post a un postId différent, l'ancien token ne
+    lui donne pas accès : on génère un nouveau shareTokens scoré sur cette
+    nouvelle intervention et on renvoie son id, pour que la page fasse
+    elle-même la redirection - pas besoin de renvoyer un email, le
+    prestataire est déjà sur la page."""
     payload = req.get_json(silent=True) or {}
     token = payload.get("token")
     event_date_raw = payload.get("eventDate")
@@ -2206,16 +2284,9 @@ def reschedule_shared_intervention(req: https_fn.Request) -> https_fn.Response:
             )
         intervention_data = intervention_doc.to_dict() or {}
         linked_sinistre_id = intervention_data.get("linkedSinistreId")
-        if not linked_sinistre_id:
-            return https_fn.Response(
-                json.dumps({"error": "Aucun sinistre lié à cette intervention"}),
-                status=400,
-                content_type="application/json",
-            )
         event = intervention_data.get("event") or {}
 
-        new_post_ref = posts_ref.document()
-        new_post_ref.set({
+        new_post_data = {
             "type": "events",
             "refResidence": residence_id,
             "user": "prestataire-partage",
@@ -2229,14 +2300,19 @@ def reschedule_shared_intervention(req: https_fn.Request) -> https_fn.Response:
                 "eventType": ["prestation"],
                 "prestaName": event.get("prestaName", ""),
             },
-            "linkedSinistreId": linked_sinistre_id,
-        })
+        }
+        if linked_sinistre_id:
+            new_post_data["linkedSinistreId"] = linked_sinistre_id
 
-        posts_ref.document(linked_sinistre_id).update({
-            "statut": "En cours",
-            "dates.interventionDate": event_date,
-            "dates.inProgressDate": firestore.SERVER_TIMESTAMP,
-        })
+        new_post_ref = posts_ref.document()
+        new_post_ref.set(new_post_data)
+
+        if linked_sinistre_id:
+            posts_ref.document(linked_sinistre_id).update({
+                "statut": "En cours",
+                "dates.interventionDate": event_date,
+                "dates.inProgressDate": firestore.SERVER_TIMESTAMP,
+            })
 
         new_token = str(uuid.uuid4())
         db.collection("shareTokens").document(new_token).set({
