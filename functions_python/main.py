@@ -2105,12 +2105,14 @@ def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
     """Le prestataire déclare l'intervention faite, avec photo(s) à l'appui,
     depuis la page de partage - contrairement à create_shared_signalement,
     ne nécessite AUCUN sinistre lié (disponible sur n'importe quelle
-    intervention). Écrit un post de type "rapport" au même niveau que
-    sinistres/events (residences/{id}/posts), avec linkedEventId pointant
-    vers l'intervention d'origine - jamais visible d'un résident (cf.
-    firestore.rules match /posts/{postId} : lecture "rapport" restreinte à
-    isCsMember/isSuperAdmin), consultable uniquement par l'agence dans le
-    BO."""
+    intervention). Écrit dans la sous-collection dédiée
+    posts/{postId}/rapports (PAS un post "type: rapport" au même niveau que
+    sinistres/events : l'app résident scanne toute la collection posts sans
+    filtrer sur type, donc une restriction de lecture par type y casse
+    Firestore en bloc sur toute requête de liste - cf. incident du
+    2026-07-19). Jamais visible d'un résident (cf. firestore.rules match
+    /posts/{postId}/rapports/{id}), consultable uniquement par l'agence dans
+    le BO."""
     token = (req.form.get("token") or "").strip()
     title = (req.form.get("title") or "").strip()
     description = (req.form.get("description") or "").strip()
@@ -2145,16 +2147,12 @@ def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
         if file_storage is not None and file_storage.filename:
             path_image, _ = _upload_shared_media(file_storage, residence_id)
 
-        posts_ref.add({
-            "type": "rapport",
-            "refResidence": residence_id,
+        posts_ref.document(post_id).collection("rapports").add({
             "title": title,
             "description": description,
             "pathImage": path_image,
             "user": "Prestataire (lien de partage)",
-            "hideUser": True,
             "dates": {"creationDate": firestore.SERVER_TIMESTAMP},
-            "linkedEventId": post_id,
         })
 
         return https_fn.Response(

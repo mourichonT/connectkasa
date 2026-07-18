@@ -327,22 +327,12 @@ service cloud.firestore {
       }
 
       match /posts/{postId} {
-        // type == "rapport" : compte-rendu de fin d'intervention soumis par
-        // un prestataire externe via lien de partage (create_shared_rapport,
-        // functions_python/main.py, Admin SDK - bypass ces règles). Jamais
-        // visible d'un résident, contrairement à tous les autres types de
-        // post - seule l'agence (CS member/Super Admin) le consulte.
-        allow read: if (resource.data.type != 'rapport' &&
-            (isResidenceMember(residenceId) || isSuperAdmin())) ||
-          (resource.data.type == 'rapport' && (isCsMember(residenceId) || isSuperAdmin()));
+        allow read: if isResidenceMember(residenceId) || isSuperAdmin();
         // isSuperAdmin() en création : le backoffice crée des events
         // "prestation" pour une résidence dont il n'est pas forcément
-        // membre - même bypass que read/update/delete ci-dessous. Un post
-        // "rapport" ne doit jamais être créé par un client (uniquement par
-        // la Cloud Function ci-dessus, qui bypass cette règle).
-        allow create: if ((isResidenceMember(residenceId) &&
-          request.resource.data.user == request.auth.uid) || isSuperAdmin()) &&
-          (request.resource.data.type != 'rapport' || isSuperAdmin());
+        // membre - même bypass que read/update/delete ci-dessous.
+        allow create: if (isResidenceMember(residenceId) &&
+          request.resource.data.user == request.auth.uid) || isSuperAdmin();
         // Modération : un CS member peut éditer/supprimer n'importe quel
         // post, pas seulement les siens (comportement actuel de l'app).
         // Liker le post de quelqu'un d'autre est aussi un update() Firestore
@@ -372,6 +362,22 @@ service cloud.firestore {
           // (update/delete) reste réservée aux CS members (+ Super Admin).
           allow read: if isResidenceMember(residenceId) || isSuperAdmin();
           allow update, delete: if isCsMember(residenceId) || isSuperAdmin();
+        }
+
+        match /rapports/{id} {
+          // Compte-rendu de fin d'intervention soumis par un prestataire
+          // externe via lien de partage (create_shared_rapport,
+          // functions_python/main.py, Admin SDK - bypass cette règle,
+          // aucune création cliente). Sous-collection dédiée (pas un post
+          // "type: rapport" au même niveau que sinistres/events) : l'app
+          // résident ne connaît que le chemin posts/{postId}, jamais
+          // posts/{postId}/rapports, donc aucun risque de casser une requête
+          // de liste existante en conditionnant sa visibilité - contrairement
+          // à une restriction par type sur /posts lui-même (cf. incident du
+          // 2026-07-19, règle posts/{postId}.read conditionnée par
+          // resource.data.type : Firestore rejette en bloc toute requête de
+          // liste qui ne filtre pas sur ce même champ).
+          allow read: if isCsMember(residenceId) || isSuperAdmin();
         }
 
         match /comments/{id} {
