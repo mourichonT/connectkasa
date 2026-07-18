@@ -327,12 +327,22 @@ service cloud.firestore {
       }
 
       match /posts/{postId} {
-        allow read: if isResidenceMember(residenceId) || isSuperAdmin();
+        // type == "rapport" : compte-rendu de fin d'intervention soumis par
+        // un prestataire externe via lien de partage (create_shared_rapport,
+        // functions_python/main.py, Admin SDK - bypass ces règles). Jamais
+        // visible d'un résident, contrairement à tous les autres types de
+        // post - seule l'agence (CS member/Super Admin) le consulte.
+        allow read: if (resource.data.type != 'rapport' &&
+            (isResidenceMember(residenceId) || isSuperAdmin())) ||
+          (resource.data.type == 'rapport' && (isCsMember(residenceId) || isSuperAdmin()));
         // isSuperAdmin() en création : le backoffice crée des events
         // "prestation" pour une résidence dont il n'est pas forcément
-        // membre - même bypass que read/update/delete ci-dessous.
-        allow create: if (isResidenceMember(residenceId) &&
-          request.resource.data.user == request.auth.uid) || isSuperAdmin();
+        // membre - même bypass que read/update/delete ci-dessous. Un post
+        // "rapport" ne doit jamais être créé par un client (uniquement par
+        // la Cloud Function ci-dessus, qui bypass cette règle).
+        allow create: if ((isResidenceMember(residenceId) &&
+          request.resource.data.user == request.auth.uid) || isSuperAdmin()) &&
+          (request.resource.data.type != 'rapport' || isSuperAdmin());
         // Modération : un CS member peut éditer/supprimer n'importe quel
         // post, pas seulement les siens (comportement actuel de l'app).
         // Liker le post de quelqu'un d'autre est aussi un update() Firestore
