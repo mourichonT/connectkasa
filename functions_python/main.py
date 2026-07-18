@@ -2121,6 +2121,15 @@ def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
             status=400,
             content_type="application/json",
         )
+    # Photo obligatoire : preuve de l'intervention réalisée, pas seulement un
+    # champ facultatif côté client (garde-fou serveur, ne pas se reposer
+    # uniquement sur l'attribut `required` du formulaire).
+    if file_storage is None or not file_storage.filename:
+        return https_fn.Response(
+            json.dumps({"error": "Une photo est requise"}),
+            status=400,
+            content_type="application/json",
+        )
 
     db = firestore.client()
     try:
@@ -2140,9 +2149,7 @@ def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
                 content_type="application/json",
             )
 
-        path_image = ""
-        if file_storage is not None and file_storage.filename:
-            path_image, _ = _upload_shared_media(file_storage, residence_id)
+        path_image, _ = _upload_shared_media(file_storage, residence_id)
 
         posts_ref.add({
             "type": "rapport",
