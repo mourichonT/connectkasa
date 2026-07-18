@@ -9,9 +9,11 @@ import 'package:konodal/core/repositories/firestore_post_repository.dart';
 import 'package:konodal/core/repositories/firestore_lot_repository.dart';
 import 'package:konodal/core/repositories/firestore_storage_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
+import 'package:konodal/models/enum/post_deletion_reason.dart';
 import 'package:konodal/models/pages_models/gerance_ref.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:flutter/material.dart';
 
 FetchPdfreport fetchPDFreport = FetchPdfreport();
@@ -608,12 +610,13 @@ int _getCurrentStep(String? statut) {
   }
 }
 
-Future<void> _onDeletePost(Post post, Function updatePostsList) async {
+Future<void> _onDeletePost(
+    Post post, String deletionReason, Function updatePostsList) async {
   final storageServices = FirestoreStorageRepository();
   final IPostRepository dbService = FirestorePostRepository();
 
   await dbService
-      .removePost(post.refResidence, post.id)
+      .removePost(post.refResidence, post.id, deletionReason: deletionReason)
       .then((result) => result.when(
           success: (_) {}, failure: (error) => throw error));
   if (post.pathImage != null) {
@@ -633,44 +636,67 @@ void showAlertDialog(
   // couches dans le mauvais ordre - jusqu'à parfois popper la page
   // elle-même après la suppression, provoquant un
   // "setState() called after dispose()".
+  String reason = '';
+  final dropdownWidth = MediaQuery.of(context).size.width - 80;
+
   showDialog(
     context: context,
     builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        title: MyTextStyle.lotName(
-            "Confirmation", Colors.black87, SizeFont.h1.size),
-        content: MyTextStyle.annonceDesc(
-          "Êtes-vous sûr de vouloir supprimer ${post.title} ?",
-          SizeFont.h3.size,
-          3,
-        ),
-        actions: [
-          TextButton(
-            child: MyTextStyle.lotName(
-                "Annuler", Colors.black87, SizeFont.h3.size),
-            onPressed: () => Navigator.pop(dialogContext),
+      return StatefulBuilder(builder: (dialogContext, setState) {
+        return AlertDialog(
+          title: MyTextStyle.lotName(
+              "Confirmation", Colors.black87, SizeFont.h1.size),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              MyTextStyle.annonceDesc(
+                "Êtes-vous sûr de vouloir supprimer ${post.title} ? Veuillez indiquer la raison de cette suppression.",
+                SizeFont.h3.size,
+                4,
+              ),
+              const SizedBox(height: 10),
+              MyDropDownMenu(
+                dropdownWidth,
+                "Raison de la suppression",
+                "Raison de la suppression",
+                false,
+                items: PostDeletionReason.labels(),
+                onValueChanged: (value) => setState(() => reason = value),
+              ),
+            ],
           ),
-          TextButton(
-            child: MyTextStyle.lotName(
-                "Supprimer", Colors.black87, SizeFont.h3.size),
-            onPressed: () async {
-              Navigator.pop(dialogContext); // Ferme l'AlertDialog
-              Navigator.pop(context); // Ferme le BottomSheet
-              try {
-                await _onDeletePost(post, updatePostsList);
-              } catch (e) {
-                if (!context.mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: Colors.red,
-                    content: Text('Erreur lors de la suppression : $e'),
-                  ),
-                );
-              }
-            },
-          ),
-        ],
-      );
+          actions: [
+            TextButton(
+              child: MyTextStyle.lotName(
+                  "Annuler", Colors.black87, SizeFont.h3.size),
+              onPressed: () => Navigator.pop(dialogContext),
+            ),
+            TextButton(
+              child: MyTextStyle.lotName(
+                  "Supprimer", Colors.black87, SizeFont.h3.size),
+              onPressed: reason.isEmpty
+                  ? null
+                  : () async {
+                      Navigator.pop(dialogContext); // Ferme l'AlertDialog
+                      Navigator.pop(context); // Ferme le BottomSheet
+                      try {
+                        await _onDeletePost(post, reason, updatePostsList);
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Colors.red,
+                            content:
+                                Text('Erreur lors de la suppression : $e'),
+                          ),
+                        );
+                      }
+                    },
+            ),
+          ],
+        );
+      });
     },
   );
 }

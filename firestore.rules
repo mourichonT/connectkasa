@@ -390,6 +390,14 @@ service cloud.firestore {
         }
       }
 
+      match /deletedPosts/{postId} {
+        // Archive créée par removePost (batch, atomique avec le delete du
+        // post) au moment où un CS member supprime un post - conserve le
+        // contenu complet + la raison, réservé à la modération.
+        allow read: if isCsMember(residenceId) || isSuperAdmin();
+        allow create: if isCsMember(residenceId) || isSuperAdmin();
+      }
+
       match /chats/{chatId} {
         // Doc ID = deux uids triés joints par "_" — suffisant pour un get()
         // direct (chatInfoStream), mais une requête de LISTE non filtrée

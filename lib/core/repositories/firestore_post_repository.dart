@@ -65,7 +65,8 @@ class FirestorePostRepository implements IPostRepository {
   }
 
   @override
-  Future<Result<void>> removePost(String residenceId, String postId) async {
+  Future<Result<void>> removePost(String residenceId, String postId,
+      {String? deletionReason}) async {
     try {
       QuerySnapshot<Map<String, dynamic>> postQuery = await _firestore
           .collection("residences")
@@ -79,8 +80,28 @@ class FirestorePostRepository implements IPostRepository {
             'Aucune publication trouvée avec l\'ID $postId dans la résidence $residenceId'));
       }
 
-      DocumentSnapshot postDoc = postQuery.docs.first;
-      await postDoc.reference.delete();
+      DocumentSnapshot<Map<String, dynamic>> postDoc = postQuery.docs.first;
+
+      final batch = _firestore.batch();
+      if (deletionReason != null) {
+        // Doc id = postId : un post ne peut avoir qu'une seule archive, un
+        // nouvel appel écrase l'existante au lieu d'en empiler une seconde.
+        // On archive le contenu complet du post (pas seulement la raison)
+        // pour ne pas perdre son contenu à la suppression.
+        final deletedPostRef = _firestore
+            .collection("residences")
+            .doc(residenceId)
+            .collection("deletedPosts")
+            .doc(postId);
+        batch.set(deletedPostRef, {
+          ...postDoc.data() ?? <String, dynamic>{},
+          "deletionReason": deletionReason,
+          "deletedAt": Timestamp.now(),
+        });
+      }
+      batch.delete(postDoc.reference);
+      await batch.commit();
+
       return const Result.success(null);
     } catch (e) {
       return Result.failure(AppException.from(e));

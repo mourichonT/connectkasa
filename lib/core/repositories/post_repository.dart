@@ -23,7 +23,13 @@ class PostPage {
 abstract interface class IPostRepository {
   Future<Result<Post>> getPost(String residenceId, String postId);
 
-  Future<Result<void>> removePost(String residenceId, String postId);
+  /// Si [deletionReason] est fourni, le post est archivé (contenu complet +
+  /// raison + date/heure de suppression) dans un document unique
+  /// (residences/{residenceId}/deletedPosts/{postId}) avant d'être effacé de
+  /// "posts". L'id du document est le postId : un nouvel appel écrase
+  /// l'archive existante plutôt que d'en créer une seconde.
+  Future<Result<void>> removePost(String residenceId, String postId,
+      {String? deletionReason});
 
   Future<Result<List<Post>>> getAllAnnonces(String doc);
 
