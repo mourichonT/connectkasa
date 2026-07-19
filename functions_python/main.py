@@ -2163,6 +2163,10 @@ def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
             "linkedEventId": post_id,
         })
 
+        # Le compte-rendu fait foi que l'intervention est terminée - champ
+        # backoffice uniquement (comme linkedSinistreId), ignoré par l'app.
+        posts_ref.document(post_id).update({"termine": True})
+
         return https_fn.Response(
             json.dumps({"success": True}),
             status=200,
@@ -2234,6 +2238,29 @@ def complete_shared_intervention(req: https_fn.Request) -> https_fn.Response:
             status=500,
             content_type="application/json",
         )
+
+
+@https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
+def revoke_shared_token(req: https_fn.Request) -> https_fn.Response:
+    """Révoque un lien de partage (shareTokens/{token}) - appelé via
+    navigator.sendBeacon() quand le prestataire ferme la page de partage
+    après avoir soumis son compte-rendu, pour que le lien ne soit plus
+    réutilisable ensuite. Le corps est le token en texte brut (pas du JSON) :
+    sendBeacon avec un content-type "simple" (text/plain) évite un préflight
+    CORS, peu fiable dans la fenêtre de temps très courte d'un beacon envoyé
+    pendant la fermeture de la page. sendBeacon n'attend pas la réponse : on
+    répond vite et sobrement, silencieux sur toute erreur (token déjà
+    expiré/absent)."""
+    token = (req.get_data(as_text=True) or "").strip()
+    if not token:
+        return https_fn.Response(status=400)
+
+    try:
+        firestore.client().collection("shareTokens").document(token).delete()
+    except Exception as e:
+        print(f"revoke_shared_token: échec de la révocation du token {token}:", str(e))
+
+    return https_fn.Response(status=204)
 
 
 @https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
