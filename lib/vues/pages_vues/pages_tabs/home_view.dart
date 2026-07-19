@@ -8,6 +8,7 @@ import 'package:konodal/vues/widget_view/page_widget/post_page_widget/asking_nei
 import 'package:konodal/vues/widget_view/page_widget/event_widget.dart';
 import 'package:konodal/vues/widget_view/page_widget/annonce_page_widget/annonce_widget.dart';
 import 'package:konodal/vues/widget_view/page_widget/post_page_widget/post_widget.dart';
+import 'package:konodal/vues/widget_view/page_widget/post_page_widget/report_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
@@ -127,6 +128,17 @@ class HomeviewState extends ConsumerState<Homeview> {
                         scrollPosition,
                         widget.isCsMember,
                         widget.updatePostsList,
+                      ),
+                    if (post.type == "rapport")
+                      ReportWidget(
+                        post: post,
+                        lot: widget.preferedLot,
+                        uid: widget.uid,
+                        residenceSelected: widget.residenceSelected,
+                        colorStatut: widget.colorStatut,
+                        scrollController: scrollPosition,
+                        isCsMember: widget.isCsMember,
+                        updatePostsList: widget.updatePostsList,
                       ),
                     if (post.type == "annonces")
                       AnnonceWidget(

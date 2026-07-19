@@ -6,6 +6,7 @@ class TypeList {
       ["Communication", "communication"],
       ["Petite annonce", "annonces"],
       ["Evénement", "events"],
+      ["Compte-rendu", "rapport"],
     ];
   }
 

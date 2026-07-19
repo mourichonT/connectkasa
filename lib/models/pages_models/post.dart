@@ -30,6 +30,10 @@ class Post {
   int? price;
   PostStyle? style;
   String? prestaName;
+  // Id (business, pas doc Firestore) du post "events" que ce compte-rendu
+  // (type "rapport") documente - écrit uniquement côté Cloud Function
+  // (create_shared_rapport, functions_python/main.py), jamais par l'app.
+  String? linkedEventId;
 
   Post(
       {required this.id,
@@ -55,7 +59,8 @@ class Post {
       this.eventType = const [],
       this.price = 0,
       this.style,
-      this.prestaName}) {
+      this.prestaName,
+      this.linkedEventId}) {
     _pathImage = pathImage;
     _statut = statut;
     _subtype = subtype;
@@ -238,6 +243,7 @@ class Post {
               ? PostStyle.fromMap(map)
               : null),
       prestaName: event['prestaName'] ?? map['prestaName'],
+      linkedEventId: map['linkedEventId'],
     );
   }
 
