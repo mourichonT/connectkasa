@@ -2,10 +2,11 @@ import 'package:konodal/core/result/result.dart';
 import 'package:konodal/models/pages_models/ad_campaign.dart';
 
 abstract interface class IAdCampaignRepository {
-  /// La campagne active ciblant [residenceId], s'il y en a une. Au plus une
-  /// à la fois est gérée pour l'instant (pas de rotation entre plusieurs
-  /// campagnes actives sur la même résidence).
-  Stream<AdCampaign?> watchActiveCampaign(String residenceId);
+  /// Toutes les campagnes actives ciblant [residenceId] (peut en avoir
+  /// plusieurs en même temps) - Homeview les fait tourner (round-robin, sur
+  /// un ordre mélangé une fois par session) au lieu de toujours afficher la
+  /// même.
+  Stream<List<AdCampaign>> watchActiveCampaigns(String residenceId);
 
   Future<Result<void>> recordImpression(String campaignId);
 

@@ -1,8 +1,11 @@
 // ignore_for_file: must_be_immutable, library_private_types_in_public_api
 
 import 'dart:async';
+import 'dart:math';
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:konodal/core/providers/ad_campaign_providers.dart';
 import 'package:konodal/core/providers/post_providers.dart';
+import 'package:konodal/models/pages_models/ad_campaign.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/widget_view/page_widget/post_page_widget/adv_widget.dart';
@@ -92,13 +95,42 @@ class HomeviewState extends ConsumerState<Homeview> {
     return count ~/ groupSize;
   }
 
+  // Ordre (ids) dans lequel les campagnes actives tournent aux emplacements
+  // pub - mélangé une seule fois par session (pas à chaque rebuild, sinon
+  // le simple fait d'incrémenter impressionCount/clickCount, qui refait
+  // émettre le stream Firestore, rebattrait les cartes en permanence).
+  // Recalculé seulement si l'ensemble des campagnes actives change (ajout/
+  // retrait côté BO), jamais pour une simple mise à jour de compteurs.
+  List<String>? _shuffledCampaignOrder;
+
+  List<AdCampaign> _orderedCampaigns(List<AdCampaign> campaigns) {
+    final currentIds = campaigns.map((c) => c.id).toSet();
+    final knownIds = _shuffledCampaignOrder?.toSet();
+    if (_shuffledCampaignOrder == null || !setEquals(knownIds, currentIds)) {
+      _shuffledCampaignOrder = campaigns.map((c) => c.id).toList()
+        ..shuffle(Random());
+    }
+    final byId = {for (final c in campaigns) c.id: c};
+    return _shuffledCampaignOrder!
+        .map((id) => byId[id])
+        .whereType<AdCampaign>()
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final paginatedAsync =
         ref.watch(postsByResidenceProvider(widget.residenceSelected));
-    final campaign =
-        ref.watch(activeAdCampaignProvider(widget.residenceSelected)).valueOrNull;
-    final frequency = campaign?.displayFrequency ?? 0;
+    final campaigns = _orderedCampaigns(
+        ref.watch(activeAdCampaignsProvider(widget.residenceSelected)).valueOrNull ??
+            const []);
+    // Fréquence commune à toutes les campagnes actives sur cette résidence :
+    // la plus exigeante (la plus petite valeur) l'emporte, pour qu'aucune
+    // campagne ne soit montrée moins souvent que ce qui a été configuré côté
+    // BO pour elle.
+    final frequency = campaigns.isEmpty
+        ? 0
+        : campaigns.map((c) => c.displayFrequency).reduce(min);
 
     return paginatedAsync.when(
       loading: () => const Center(child: AppLoader()),
@@ -121,7 +153,7 @@ class HomeviewState extends ConsumerState<Homeview> {
           // combinée) - cf. _completeGroupsIn. Pas de pub insérée après un
           // groupe incomplet en fin de liste (les posts pas encore chargés
           // au scroll suivant complèteront le groupe).
-          final totalAdSlots = campaign != null
+          final totalAdSlots = campaigns.isNotEmpty
               ? _completeGroupsIn(allPosts.length, frequency)
               : 0;
           final totalItems =
@@ -137,9 +169,17 @@ class HomeviewState extends ConsumerState<Homeview> {
                   top: 30, bottom: 120, right: 10, left: 10),
               separatorBuilder: (context, index) => const SizedBox(height: 30),
               itemBuilder: (context, index) {
-                if (campaign != null && frequency > 0) {
+                if (campaigns.isNotEmpty && frequency > 0) {
                   final groupSize = frequency + 1;
                   if (index % groupSize == frequency) {
+                    // Rotation round-robin sur l'ordre mélangé une fois par
+                    // session (_shuffledCampaignOrder) : le K-ème emplacement
+                    // pub (K=0,1,2...) prend la campagne à l'index K modulo
+                    // le nombre de campagnes actives, pour ne jamais montrer
+                    // la même deux fois de suite quand il y en a plusieurs.
+                    final adSlotIndex = index ~/ groupSize;
+                    final campaign =
+                        campaigns[adSlotIndex % campaigns.length];
                     return AdvWidget(campaign: campaign);
                   }
                   index -= _completeGroupsIn(index, groupSize);

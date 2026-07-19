@@ -11,8 +11,8 @@ class FirestoreAdCampaignRepository implements IAdCampaignRepository {
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
   @override
-  Stream<AdCampaign?> watchActiveCampaign(String residenceId) {
-    if (residenceId.isEmpty) return Stream.value(null);
+  Stream<List<AdCampaign>> watchActiveCampaigns(String residenceId) {
+    if (residenceId.isEmpty) return Stream.value(const []);
     // Les deux filtres (active + targetResidenceIds) doivent rester alignés
     // avec la règle Firestore (allow read: if resource.data.active == true)
     // - une requête de liste qui ne filtrerait pas elle-même sur "active"
@@ -22,12 +22,10 @@ class FirestoreAdCampaignRepository implements IAdCampaignRepository {
         .collection("adCampaigns")
         .where("active", isEqualTo: true)
         .where("targetResidenceIds", arrayContains: residenceId)
-        .limit(1)
         .snapshots()
-        .map((snapshot) => snapshot.docs.isEmpty
-            ? null
-            : AdCampaign.fromMap(
-                snapshot.docs.first.id, snapshot.docs.first.data()));
+        .map((snapshot) => snapshot.docs
+            .map((doc) => AdCampaign.fromMap(doc.id, doc.data()))
+            .toList());
   }
 
   @override
