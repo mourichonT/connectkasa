@@ -41,6 +41,7 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
   bool anonymPost = false;
   bool showAllFilters = false;
   bool removeImage = false;
+  bool _isSubmitting = false;
   late List<String> labelsCat;
 
   final ValueNotifier<double> priceNotifier = ValueNotifier<double>(0.0);
@@ -344,34 +345,38 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                   const Divider(),
                   const SizedBox(height: 30),
                   ElevatedButton(
-                    onPressed: () async {
-                      try {
-                        await SubmitPostController.updatePost(
-                            subtype: categorie,
-                            like: widget.post.like,
-                            uid: widget.uid,
-                            selectedLabel: widget.post.type,
-                            idPost: widget.post.id,
-                            imagePath: imagePath!,
-                            title: capitalizeFirstLetter(title.text),
-                            desc: capitalizeFirstLetter(desc.text),
-                            anonymPost: anonymPost,
-                            docRes: widget.post.refResidence,
-                            price: int.parse(price.text));
-                      } catch (e) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: Colors.red,
-                            content:
-                                Text("Erreur lors de la modification : $e"),
-                          ),
-                        );
-                        return;
-                      }
-                      if (!context.mounted) return;
-                      Navigator.pop(context);
-                    },
+                    onPressed: _isSubmitting
+                        ? null
+                        : () async {
+                            setState(() => _isSubmitting = true);
+                            try {
+                              await SubmitPostController.updatePost(
+                                  subtype: categorie,
+                                  like: widget.post.like,
+                                  uid: widget.uid,
+                                  selectedLabel: widget.post.type,
+                                  idPost: widget.post.id,
+                                  imagePath: imagePath!,
+                                  title: capitalizeFirstLetter(title.text),
+                                  desc: capitalizeFirstLetter(desc.text),
+                                  anonymPost: anonymPost,
+                                  docRes: widget.post.refResidence,
+                                  price: int.parse(price.text));
+                            } catch (e) {
+                              if (!context.mounted) return;
+                              setState(() => _isSubmitting = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: Colors.red,
+                                  content: Text(
+                                      "Erreur lors de la modification : $e"),
+                                ),
+                              );
+                              return;
+                            }
+                            if (!context.mounted) return;
+                            Navigator.pop(context);
+                          },
                     child: MyTextStyle.lotName("Modifier",
                         Theme.of(context).primaryColor, SizeFont.h3.size),
                   ),

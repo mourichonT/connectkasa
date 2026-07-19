@@ -55,6 +55,7 @@ class ModifyPostFormState extends State<ModifyPostForm> {
   bool anonymPost = false;
   bool showAllFilters = false;
   bool removeImage = false;
+  bool _isSubmitting = false;
   late List<String> labelsType;
 
   @override
@@ -434,46 +435,51 @@ class ModifyPostFormState extends State<ModifyPostForm> {
               height: 30,
             ),
             ElevatedButton(
-              onPressed: () async {
-                try {
-                  await SubmitPostController.updatePost(
-                    like: widget.post.like,
-                    uid: widget.uid,
-                    idPost: widget.post.id,
-                    selectedLabel: type!,
-                    imagePath: imagePath,
-                    isVideo: isVideoMedia,
-                    title: capitalizeFirstLetter(title.text),
-                    desc: capitalizeFirstLetter(desc.text),
-                    anonymPost: anonymPost,
-                    docRes: widget.post.refResidence,
-                    localisation: localisation,
-                    etage: etage,
-                    element: widget.post.locationDetails!,
-                    // Ce formulaire ne permet pas d'éditer le statut du
-                    // workflow (Stepper dédié, icon_modify_or_delette.dart)
-                    // ni la date de déclaration/transmission - sans les
-                    // reporter explicitement ici, updatePost() les recevait
-                    // à null puis toUpdateMap() les effaçait
-                    // (FieldValue.delete()) à chaque simple modification de
-                    // titre/description/image.
-                    statut: widget.post.statut,
-                    timeStamp: widget.post.creationDate,
-                    declaredDate: widget.post.declaredDate,
-                  );
-                } catch (e) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: Colors.red,
-                      content: Text("Erreur lors de la modification : $e"),
-                    ),
-                  );
-                  return;
-                }
-                if (!context.mounted) return;
-                Navigator.pop(context);
-              },
+              onPressed: _isSubmitting
+                  ? null
+                  : () async {
+                      setState(() => _isSubmitting = true);
+                      try {
+                        await SubmitPostController.updatePost(
+                          like: widget.post.like,
+                          uid: widget.uid,
+                          idPost: widget.post.id,
+                          selectedLabel: type!,
+                          imagePath: imagePath,
+                          isVideo: isVideoMedia,
+                          title: capitalizeFirstLetter(title.text),
+                          desc: capitalizeFirstLetter(desc.text),
+                          anonymPost: anonymPost,
+                          docRes: widget.post.refResidence,
+                          localisation: localisation,
+                          etage: etage,
+                          element: widget.post.locationDetails!,
+                          // Ce formulaire ne permet pas d'éditer le statut du
+                          // workflow (Stepper dédié, icon_modify_or_delette.dart)
+                          // ni la date de déclaration/transmission - sans les
+                          // reporter explicitement ici, updatePost() les recevait
+                          // à null puis toUpdateMap() les effaçait
+                          // (FieldValue.delete()) à chaque simple modification de
+                          // titre/description/image.
+                          statut: widget.post.statut,
+                          timeStamp: widget.post.creationDate,
+                          declaredDate: widget.post.declaredDate,
+                        );
+                      } catch (e) {
+                        if (!context.mounted) return;
+                        setState(() => _isSubmitting = false);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            backgroundColor: Colors.red,
+                            content:
+                                Text("Erreur lors de la modification : $e"),
+                          ),
+                        );
+                        return;
+                      }
+                      if (!context.mounted) return;
+                      Navigator.pop(context);
+                    },
               child: MyTextStyle.lotName(
                   "Modifier", Theme.of(context).primaryColor, SizeFont.h3.size),
             ),

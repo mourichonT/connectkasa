@@ -129,6 +129,7 @@ class ModifyAskingNeighborsFormState
   bool _fontBold = false;
   String imagePath = "";
   bool anonymPost = false;
+  bool _isSubmitting = false;
   final GlobalKey _globalKey = GlobalKey();
   // String _backgroundColor = "";
   // String _backgroundImage = "";
@@ -524,73 +525,78 @@ class ModifyAskingNeighborsFormState
               padding: const EdgeInsets.only(top: 30),
               child: ElevatedButton(
                 style: style,
-                onPressed: () async {
-                  String? imageUrl = "";
+                onPressed: _isSubmitting
+                    ? null
+                    : () async {
+                        String? imageUrl = "";
 
-                  if (_selectedText.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        backgroundColor: Colors.red,
-                        content: Text(
-                          'Tous les champs sont requis!',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    );
-                    return;
-                  }
+                        if (_selectedText.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              backgroundColor: Colors.red,
+                              content: Text(
+                                'Tous les champs sont requis!',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          );
+                          return;
+                        }
 
-                  try {
-                    if (_selectedColor != null &&
-                            _selectedColor != Colors.white ||
-                        _selectedImagePath != null) {
-                      FocusManager.instance.primaryFocus?.unfocus();
-                      Uint8List pngBytes = await _capturePng();
-                      File file = await _saveImage(pngBytes);
+                        setState(() => _isSubmitting = true);
+                        try {
+                          if (_selectedColor != null &&
+                                  _selectedColor != Colors.white ||
+                              _selectedImagePath != null) {
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            Uint8List pngBytes = await _capturePng();
+                            File file = await _saveImage(pngBytes);
 
-                      imageUrl = await _storageRepository
-                          .uploadImg(
-                            XFile(file.path),
-                            "residences",
-                            widget.residence,
-                            widget.post.type,
-                            widget.post.id,
-                          )
-                          .then((result) => result.when(
-                              success: (v) => v,
-                              failure: (error) => throw error));
-                    }
+                            imageUrl = await _storageRepository
+                                .uploadImg(
+                                  XFile(file.path),
+                                  "residences",
+                                  widget.residence,
+                                  widget.post.type,
+                                  widget.post.id,
+                                )
+                                .then((result) => result.when(
+                                    success: (v) => v,
+                                    failure: (error) => throw error));
+                          }
 
-                    await SubmitPostController.updatePost(
-                        uid: widget.uid,
-                        like: widget.post.like,
-                        idPost: widget.post.id,
-                        selectedLabel: widget.post.type,
-                        imagePath: imageUrl,
-                        desc: capitalizeFirstLetter(desc.text),
-                        anonymPost: anonymPost,
-                        docRes: widget.residence,
-                        style: PostStyle(
-                          backgroundColor: _selectedColor.toString(),
-                          backgroundImage: _selectedImagePath,
-                          fontColor: _selectedFontColor.toString(),
-                          fontStyle: _selectedFontStyle.toString(),
-                          fontSize: _selectedFontSize,
-                          fontWeight: _selectedFontWeight.toString(),
-                        ));
-                    if (!context.mounted) return;
-                    Navigator.pop(context);
-                  } catch (e) {
-                    appLog("Erreur lors de la mise à jour du post: $e");
-                    if (!context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        backgroundColor: Colors.red,
-                        content: Text("Erreur lors de la modification : $e"),
-                      ),
-                    );
-                  }
-                },
+                          await SubmitPostController.updatePost(
+                              uid: widget.uid,
+                              like: widget.post.like,
+                              idPost: widget.post.id,
+                              selectedLabel: widget.post.type,
+                              imagePath: imageUrl,
+                              desc: capitalizeFirstLetter(desc.text),
+                              anonymPost: anonymPost,
+                              docRes: widget.residence,
+                              style: PostStyle(
+                                backgroundColor: _selectedColor.toString(),
+                                backgroundImage: _selectedImagePath,
+                                fontColor: _selectedFontColor.toString(),
+                                fontStyle: _selectedFontStyle.toString(),
+                                fontSize: _selectedFontSize,
+                                fontWeight: _selectedFontWeight.toString(),
+                              ));
+                          if (!context.mounted) return;
+                          Navigator.pop(context);
+                        } catch (e) {
+                          appLog("Erreur lors de la mise à jour du post: $e");
+                          if (!context.mounted) return;
+                          setState(() => _isSubmitting = false);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: Colors.red,
+                              content:
+                                  Text("Erreur lors de la modification : $e"),
+                            ),
+                          );
+                        }
+                      },
                 child: MyTextStyle.lotName("Mettre à jour",
                     Theme.of(context).primaryColor, SizeFont.h2.size),
               ),
