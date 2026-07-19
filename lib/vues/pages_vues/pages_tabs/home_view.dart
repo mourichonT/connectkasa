@@ -1,9 +1,11 @@
 // ignore_for_file: must_be_immutable, library_private_types_in_public_api
 
 import 'dart:async';
+import 'package:konodal/core/providers/ad_campaign_providers.dart';
 import 'package:konodal/core/providers/post_providers.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/page_widget/post_page_widget/adv_widget.dart';
 import 'package:konodal/vues/widget_view/page_widget/post_page_widget/asking_neighbors_widget.dart';
 import 'package:konodal/vues/widget_view/page_widget/event_widget.dart';
 import 'package:konodal/vues/widget_view/page_widget/annonce_page_widget/annonce_widget.dart';
@@ -79,10 +81,24 @@ class HomeviewState extends ConsumerState<Homeview> {
     super.dispose();
   }
 
+  /// Nombre de groupes complets de taille [groupSize] contenus dans
+  /// [count]. Sert deux fois dans le calcul d'intercalation des pubs :
+  /// une fois pour compter combien de pubs au total tiennent dans les posts
+  /// déjà chargés (groupSize = frequency), une fois pour retrouver, à partir
+  /// d'un index dans la liste combinée posts+pubs, combien de pubs le
+  /// précèdent (groupSize = frequency + 1).
+  int _completeGroupsIn(int count, int groupSize) {
+    if (groupSize <= 0) return 0;
+    return count ~/ groupSize;
+  }
+
   @override
   Widget build(BuildContext context) {
     final paginatedAsync =
         ref.watch(postsByResidenceProvider(widget.residenceSelected));
+    final campaign =
+        ref.watch(activeAdCampaignProvider(widget.residenceSelected)).valueOrNull;
+    final frequency = campaign?.displayFrequency ?? 0;
 
     return paginatedAsync.when(
       loading: () => const Center(child: AppLoader()),
@@ -100,16 +116,34 @@ class HomeviewState extends ConsumerState<Homeview> {
             child: Text("Aucun post n'a été publié pour le moment"),
           );
         } else {
+          // Une pub s'intercale après chaque groupe complet de [frequency]
+          // posts réels (groupe de taille frequency + 1 dans la liste
+          // combinée) - cf. _completeGroupsIn. Pas de pub insérée après un
+          // groupe incomplet en fin de liste (les posts pas encore chargés
+          // au scroll suivant complèteront le groupe).
+          final totalAdSlots = campaign != null
+              ? _completeGroupsIn(allPosts.length, frequency)
+              : 0;
+          final totalItems =
+              allPosts.length + totalAdSlots + (paginated.hasMore ? 1 : 0);
+
           return RefreshIndicator(
             onRefresh: _handleRefresh,
             child: ListView.separated(
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),
-              itemCount: allPosts.length + (paginated.hasMore ? 1 : 0),
+              itemCount: totalItems,
               padding: const EdgeInsets.only(
                   top: 30, bottom: 120, right: 10, left: 10),
               separatorBuilder: (context, index) => const SizedBox(height: 30),
               itemBuilder: (context, index) {
+                if (campaign != null && frequency > 0) {
+                  final groupSize = frequency + 1;
+                  if (index % groupSize == frequency) {
+                    return AdvWidget(campaign: campaign);
+                  }
+                  index -= _completeGroupsIn(index, groupSize);
+                }
                 if (index >= allPosts.length) {
                   return const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),

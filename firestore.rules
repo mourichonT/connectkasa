@@ -516,6 +516,34 @@ service cloud.firestore {
       allow read, write: if isSuperAdmin();
     }
 
+    // ---------- Root "adCampaigns" (publicité inter-résidences) ----------
+    // Campagne gérée uniquement par le backoffice (image, ciblage
+    // targetResidenceIds, fréquence d'affichage) - l'app ne fait que lire
+    // les campagnes actives et incrémenter les compteurs de suivi
+    // (impressionCount/clickCount). Le filtre "active" DOIT rester dans la
+    // requête cliente (FirestoreAdCampaignRepository.watchActiveCampaign) :
+    // une requête de liste qui ne filtre pas elle-même sur un champ dont
+    // dépend la règle est refusée en bloc par Firestore, même sans aucun
+    // document qui violerait réellement la règle (cf. incident déjà vécu sur
+    // posts/{postId}, type "rapport").
+    match /adCampaigns/{id} {
+      // isSuperAdmin() en bypass de lecture/écriture pour le backoffice web
+      // (konodal_bo, gestion des campagnes) : cette condition ne dépend PAS
+      // de resource.data, donc pas de risque de reproduire l'incident
+      // posts/{postId} - le filtre "active" reste uniquement nécessaire côté
+      // requête app résident (non-superAdmin), inchangé.
+      allow read: if isSuperAdmin() || (isSignedIn() && resource.data.active == true);
+      // Un résident ne peut faire évoluer que impressionCount/clickCount
+      // (FieldValue.increment, même pattern que "like" sur les posts) ; le
+      // backoffice superAdmin peut éditer librement (image, ciblage,
+      // fréquence, statut actif).
+      allow update: if isSuperAdmin() ||
+        (isSignedIn() &&
+          request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['impressionCount', 'clickCount']));
+      allow create, delete: if isSuperAdmin();
+    }
+
     // Règle dédiée aux requêtes collectionGroup('contacts')
     // (FirestoreAgencyRepository.searchByEmail, recherche de syndic/agence
     // par email) : une requête collectionGroup interroge "contacts" à
