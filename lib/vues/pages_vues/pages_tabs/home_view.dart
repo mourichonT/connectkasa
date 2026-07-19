@@ -77,6 +77,20 @@ class HomeviewState extends ConsumerState<Homeview> {
   /// du formulaire de création de post), via un `GlobalKey<HomeviewState>`.
   Future<void> refreshPosts() => _handleRefresh();
 
+  /// Statut du résident courant sur son lot préféré (idProprietaire/
+  /// idLocataire du Lot, pas un champ direct) - remonté avec chaque
+  /// impression/clic pub pour le rapport de campagne (engagement par profil
+  /// propriétaire/locataire, cf. AdCampaignDetailPage côté BO).
+  String get _statutResident {
+    if (widget.preferedLot.idProprietaire?.contains(widget.uid) == true) {
+      return "Propriétaire";
+    }
+    if (widget.preferedLot.idLocataire?.contains(widget.uid) == true) {
+      return "Locataire";
+    }
+    return "Inconnu";
+  }
+
   @override
   void dispose() {
     _scrollController.removeListener(_scrollListener);
@@ -124,13 +138,11 @@ class HomeviewState extends ConsumerState<Homeview> {
     final campaigns = _orderedCampaigns(
         ref.watch(activeAdCampaignsProvider(widget.residenceSelected)).valueOrNull ??
             const []);
-    // Fréquence commune à toutes les campagnes actives sur cette résidence :
-    // la plus exigeante (la plus petite valeur) l'emporte, pour qu'aucune
-    // campagne ne soit montrée moins souvent que ce qui a été configuré côté
-    // BO pour elle.
+    // Fréquence d'affichage : réglage global partagé par toutes les
+    // campagnes (plus un champ par campagne), cf. AdCampaignConfig.
     final frequency = campaigns.isEmpty
         ? 0
-        : campaigns.map((c) => c.displayFrequency).reduce(min);
+        : ref.watch(adCampaignConfigProvider).valueOrNull?.displayFrequency ?? 0;
 
     return paginatedAsync.when(
       loading: () => const Center(child: AppLoader()),
@@ -180,7 +192,12 @@ class HomeviewState extends ConsumerState<Homeview> {
                     final adSlotIndex = index ~/ groupSize;
                     final campaign =
                         campaigns[adSlotIndex % campaigns.length];
-                    return AdvWidget(campaign: campaign);
+                    return AdvWidget(
+                      campaign: campaign,
+                      residenceId: widget.residenceSelected,
+                      uid: widget.uid,
+                      statutResident: _statutResident,
+                    );
                   }
                   index -= _completeGroupsIn(index, groupSize);
                 }

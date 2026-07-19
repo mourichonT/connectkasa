@@ -518,9 +518,12 @@ service cloud.firestore {
 
     // ---------- Root "adCampaigns" (publicité inter-résidences) ----------
     // Campagne gérée uniquement par le backoffice (image, ciblage
-    // targetResidenceIds, fréquence d'affichage) - l'app ne fait que lire
+    // targetResidenceIds, période startDate/endDate) - l'app ne fait que lire
     // les campagnes actives et incrémenter les compteurs de suivi
-    // (impressionCount/clickCount). Le filtre "active" DOIT rester dans la
+    // (impressionCount/clickCount). `active` n'est plus jamais écrit par le
+    // BO : c'est reconcile_ad_campaigns_* (functions_python/main.py, Admin
+    // SDK) qui l'active/désactive selon la période et le quota de 3
+    // campagnes actives par département. Le filtre "active" DOIT rester dans la
     // requête cliente (FirestoreAdCampaignRepository.watchActiveCampaign) :
     // une requête de liste qui ne filtre pas elle-même sur un champ dont
     // dépend la règle est refusée en bloc par Firestore, même sans aucun
@@ -533,15 +536,44 @@ service cloud.firestore {
       // posts/{postId} - le filtre "active" reste uniquement nécessaire côté
       // requête app résident (non-superAdmin), inchangé.
       allow read: if isSuperAdmin() || (isSignedIn() && resource.data.active == true);
-      // Un résident ne peut faire évoluer que impressionCount/clickCount
-      // (FieldValue.increment, même pattern que "like" sur les posts) ; le
+      // Un résident ne peut faire évoluer que impressionCount/clickCount et
+      // leur répartition par résidence (impressionsByResidence/
+      // clicksByResidence, écriture en chemin pointé "champ.$residenceId" -
+      // affectedKeys() ne reporte que la clé de premier niveau, pas la
+      // sous-clé résidence) - même pattern que "like" sur les posts ; le
       // backoffice superAdmin peut éditer librement (image, ciblage,
       // fréquence, statut actif).
       allow update: if isSuperAdmin() ||
         (isSignedIn() &&
           request.resource.data.diff(resource.data).affectedKeys()
-            .hasOnly(['impressionCount', 'clickCount']));
+            .hasOnly(['impressionCount', 'clickCount', 'impressionsByResidence', 'clicksByResidence']));
       allow create, delete: if isSuperAdmin();
+
+      // Journal détaillé événement par événement (qui, quand, depuis quelle
+      // résidence) - en plus des compteurs agrégés ci-dessus, pour un
+      // rapport de campagne précis côté BO. La résidence sert de dimension
+      // géographique (pas la position de l'utilisateur : un résident peut se
+      // connecter loin de son lot, et une gérance multi-résidences fausserait
+      // le signal si on utilisait sa position réelle). Immutable une fois
+      // créé - aucun update/delete, même pour l'auteur.
+      match /impressions/{eventId} {
+        allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+        allow read: if isSuperAdmin();
+      }
+      match /clicks/{eventId} {
+        allow create: if isSignedIn() && request.resource.data.uid == request.auth.uid;
+        allow read: if isSuperAdmin();
+      }
+    }
+
+    // ---------- Root "config" (réglages globaux backoffice) ----------
+    // Singleton config/adCampaigns : fréquence d'affichage des pubs, commune
+    // à toutes les campagnes (retirée du modèle par-campagne, cf. adCampaigns
+    // ci-dessus) - lu par tous les résidents (home_view.dart), écrit
+    // uniquement par le backoffice.
+    match /config/adCampaigns {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
     }
 
     // Règle dédiée aux requêtes collectionGroup('contacts')

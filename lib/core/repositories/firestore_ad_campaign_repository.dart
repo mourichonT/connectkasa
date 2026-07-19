@@ -3,6 +3,7 @@ import 'package:konodal/core/errors/app_exceptions.dart';
 import 'package:konodal/core/repositories/ad_campaign_repository.dart';
 import 'package:konodal/core/result/result.dart';
 import 'package:konodal/models/pages_models/ad_campaign.dart';
+import 'package:konodal/models/pages_models/ad_campaign_config.dart';
 
 class FirestoreAdCampaignRepository implements IAdCampaignRepository {
   final FirebaseFirestore _firestore;
@@ -29,11 +30,30 @@ class FirestoreAdCampaignRepository implements IAdCampaignRepository {
   }
 
   @override
-  Future<Result<void>> recordImpression(String campaignId) async {
+  Stream<AdCampaignConfig> watchConfig() {
+    // Doc absent -> fréquence 0 (aucune pub insérée), cohérent avec le
+    // comportement actuel de Homeview quand `campaigns` est vide.
+    return _firestore.doc("config/adCampaigns").snapshots().map(
+        (snapshot) => AdCampaignConfig.fromMap(snapshot.data()));
+  }
+
+  @override
+  Future<Result<void>> recordImpression(
+      String campaignId, String residenceId, String uid, String statutResident) async {
     try {
-      await _firestore.collection("adCampaigns").doc(campaignId).update({
+      final campaignRef = _firestore.collection("adCampaigns").doc(campaignId);
+      final batch = _firestore.batch();
+      batch.update(campaignRef, {
         "impressionCount": FieldValue.increment(1),
+        "impressionsByResidence.$residenceId": FieldValue.increment(1),
       });
+      batch.set(campaignRef.collection("impressions").doc(), {
+        "uid": uid,
+        "residenceId": residenceId,
+        "statutResident": statutResident,
+        "timestamp": FieldValue.serverTimestamp(),
+      });
+      await batch.commit();
       return const Result.success(null);
     } catch (e) {
       return Result.failure(AppException.from(e));
@@ -41,11 +61,22 @@ class FirestoreAdCampaignRepository implements IAdCampaignRepository {
   }
 
   @override
-  Future<Result<void>> recordClick(String campaignId) async {
+  Future<Result<void>> recordClick(
+      String campaignId, String residenceId, String uid, String statutResident) async {
     try {
-      await _firestore.collection("adCampaigns").doc(campaignId).update({
+      final campaignRef = _firestore.collection("adCampaigns").doc(campaignId);
+      final batch = _firestore.batch();
+      batch.update(campaignRef, {
         "clickCount": FieldValue.increment(1),
+        "clicksByResidence.$residenceId": FieldValue.increment(1),
       });
+      batch.set(campaignRef.collection("clicks").doc(), {
+        "uid": uid,
+        "residenceId": residenceId,
+        "statutResident": statutResident,
+        "timestamp": FieldValue.serverTimestamp(),
+      });
+      await batch.commit();
       return const Result.success(null);
     } catch (e) {
       return Result.failure(AppException.from(e));

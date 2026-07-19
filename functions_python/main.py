@@ -2528,3 +2528,149 @@ def check_similar_post_OpenAI(req: https_fn.Request) -> https_fn.Response:
         status=200,
         content_type='application/json',
     )
+
+
+# ---------------------------------------------------------------------------
+# Campagnes publicitaires (adCampaigns) : activation/désactivation
+# automatique selon startDate/endDate et un quota de 3 campagnes actives
+# maximum par département (zone géographique dérivée du code postal des
+# résidences ciblées - departmentCodeFromZip côté konodal_bo, réimplémenté à
+# l'identique ici). Non préemptif : une campagne déjà active garde son
+# emplacement jusqu'à la fin de SA PROPRE période ; les emplacements libres
+# sont distribués aux campagnes en attente par ordre (date de début la plus
+# proche, puis date de création en cas d'égalité) - "1er arrivé, 1er servi",
+# jamais de coupure d'une campagne en cours par l'arrivée d'une concurrente.
+# Campagnes sans startDate/endDate (legacy) : jamais touchées, ni forcées
+# inactives ni activées - migration douce, cf. PublicitesPage ("Dates à
+# renseigner").
+# ---------------------------------------------------------------------------
+
+MAX_ACTIVE_CAMPAIGNS_PER_DEPARTMENT = 3
+
+
+def _department_code_from_zip(zip_code):
+    zip_code = (zip_code or "").strip()
+    if zip_code.startswith("97") or zip_code.startswith("98"):
+        return zip_code[:3]
+    if zip_code.startswith("20"):
+        try:
+            num = int(zip_code)
+        except ValueError:
+            return "20"
+        return "2B" if num >= 20200 else "2A"
+    return zip_code[:2]
+
+
+def _reconcile_ad_campaigns(db):
+    campaign_docs = list(db.collection("adCampaigns").stream())
+    if not campaign_docs:
+        return
+
+    # Résout chaque résidence ciblée -> département en une seule lecture par
+    # résidence référencée (get_all), pas une lecture par campagne.
+    residence_ids = sorted({
+        rid
+        for doc in campaign_docs
+        for rid in (doc.to_dict() or {}).get("targetResidenceIds", [])
+    })
+    department_by_residence = {}
+    if residence_ids:
+        refs = [db.collection("residences").document(rid) for rid in residence_ids]
+        for snapshot in db.get_all(refs):
+            if snapshot.exists:
+                zip_code = ((snapshot.to_dict() or {}).get("address") or {}).get("zipCode", "")
+                department_by_residence[snapshot.id] = _department_code_from_zip(zip_code)
+
+    # Granularité jour uniquement (dates sans heure) : la comparaison en UTC
+    # plutôt qu'Europe/Paris est sans conséquence pratique ici.
+    today = datetime.now(timezone.utc).date().isoformat()
+
+    campaigns = []
+    for doc in campaign_docs:
+        data = doc.to_dict() or {}
+        target_departments = sorted({
+            department_by_residence[rid]
+            for rid in data.get("targetResidenceIds", [])
+            if rid in department_by_residence
+        })
+        campaigns.append({
+            "ref": doc.reference,
+            "data": data,
+            "target_departments": target_departments,
+        })
+
+    used = {}  # département -> nombre de campagnes sticky actives
+    sticky_ids = set()
+
+    # Phase A (sticky) : campagnes déjà actives et toujours dans leur période
+    # gardent leur emplacement sans jamais être réévaluées contre la phase B.
+    for c in campaigns:
+        start_date = c["data"].get("startDate")
+        end_date = c["data"].get("endDate")
+        if not start_date or not end_date:
+            continue  # legacy sans dates : jamais touchée
+        if start_date <= today <= end_date and c["data"].get("active") is True:
+            sticky_ids.add(c["ref"].id)
+            for dept in c["target_departments"]:
+                used[dept] = used.get(dept, 0) + 1
+
+    # Phase B (FIFO, all-or-nothing) : candidates dans leur période, pas
+    # encore actives, triées par (startDate, createdAt) - createdAt manquant
+    # (campagne pas encore backfillée) traité comme le plus ancien possible.
+    def sort_key(c):
+        created_at = c["data"].get("createdAt")
+        created_key = created_at.timestamp() if created_at else 0
+        return (c["data"].get("startDate") or "", created_key)
+
+    pending = sorted(
+        (
+            c for c in campaigns
+            if c["ref"].id not in sticky_ids
+            and c["data"].get("startDate") and c["data"].get("endDate")
+            and c["data"]["startDate"] <= today <= c["data"]["endDate"]
+        ),
+        key=sort_key,
+    )
+
+    activated_ids = set()
+    for c in pending:
+        depts = c["target_departments"]
+        if all(used.get(d, 0) < MAX_ACTIVE_CAMPAIGNS_PER_DEPARTMENT for d in depts):
+            activated_ids.add(c["ref"].id)
+            for d in depts:
+                used[d] = used.get(d, 0) + 1
+
+    # Phase C : n'écrit que ce qui change (idempotent - condition d'arrêt de
+    # la cascade de re-déclenchements du trigger on-write).
+    for c in campaigns:
+        updates = {}
+        if c["data"].get("createdAt") is None:
+            updates["createdAt"] = firestore.SERVER_TIMESTAMP
+        if c["target_departments"] != sorted(c["data"].get("targetDepartments", [])):
+            updates["targetDepartments"] = c["target_departments"]
+
+        start_date = c["data"].get("startDate")
+        end_date = c["data"].get("endDate")
+        if start_date and end_date:
+            desired_active = c["ref"].id in sticky_ids or c["ref"].id in activated_ids
+            if bool(c["data"].get("active")) != desired_active:
+                updates["active"] = desired_active
+
+        if updates:
+            c["ref"].update(updates)
+
+
+@scheduler_fn.on_schedule(schedule="0 * * * *", timezone="Europe/Paris")
+def reconcile_ad_campaigns_scheduled(event=None, context=None):
+    _reconcile_ad_campaigns(firestore.client())
+
+
+@firestore_fn.on_document_written(document="adCampaigns/{campaignId}")
+def reconcile_ad_campaigns_on_write(event: firestore_fn.Event) -> None:
+    before = (event.data.before.to_dict() if event.data.before and event.data.before.exists else {}) or {}
+    after = (event.data.after.to_dict() if event.data.after and event.data.after.exists else {}) or {}
+    changed_keys = set(before.keys()) ^ set(after.keys())
+    changed_keys |= {k for k in before if before.get(k) != after.get(k)}
+    if changed_keys and changed_keys <= {"impressionCount", "clickCount"}:
+        return  # simple compteur résident (like/impression) : pas de recalcul de quota
+    _reconcile_ad_campaigns(firestore.client())
