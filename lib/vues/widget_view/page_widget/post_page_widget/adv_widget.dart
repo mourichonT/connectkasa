@@ -12,8 +12,17 @@ import 'package:flutter/material.dart';
 /// clic ; l'affichage de la carte compte une impression.
 class AdvWidget extends StatefulWidget {
   final AdCampaign campaign;
+  final String residenceId;
+  final String uid;
+  final String statutResident;
 
-  const AdvWidget({super.key, required this.campaign});
+  const AdvWidget({
+    super.key,
+    required this.campaign,
+    required this.residenceId,
+    required this.uid,
+    required this.statutResident,
+  });
 
   @override
   State<AdvWidget> createState() => _AdvWidgetState();
@@ -29,7 +38,8 @@ class _AdvWidgetState extends State<AdvWidget> {
     // aussi à chaque fois qu'un scroll le fait sortir puis revenir dans la
     // fenêtre visible (ListView.separated recrée l'item), pas de déduplication
     // par utilisateur pour cette première version (décision produit).
-    _adService.recordImpression(widget.campaign.id);
+    _adService.recordImpression(
+        widget.campaign.id, widget.residenceId, widget.uid, widget.statutResident);
   }
 
   @override
@@ -37,7 +47,8 @@ class _AdvWidgetState extends State<AdvWidget> {
     return RoundedCard(
       child: InkWell(
         onTap: () {
-          _adService.recordClick(widget.campaign.id);
+          _adService.recordClick(
+              widget.campaign.id, widget.residenceId, widget.uid, widget.statutResident);
           final targetUrl = widget.campaign.targetUrl;
           if (targetUrl != null && targetUrl.isNotEmpty) {
             ContactFeatures.openUrl(targetUrl);
