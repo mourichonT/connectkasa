@@ -14,6 +14,7 @@ import 'package:flutter_carousel_widget/flutter_carousel_widget.dart';
 
 import '../../../../../models/pages_models/post.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
+import 'package:konodal/vues/widget_view/components/rounded_card.dart';
 
 class PostWidget extends StatefulWidget {
   final Lot lot;
@@ -57,15 +58,8 @@ class PostWidgetState extends State<PostWidget> {
     Color colorStatut = Theme.of(context).primaryColor;
     double width = MediaQuery.of(context).size.width;
 
-    return Container(
-      decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(color: Colors.grey, blurRadius: 10, offset: Offset(0, 3))
-        ],
-      ),
-      child: Container(
-        color: Colors.white,
-        child: Column(
+    return RoundedCard(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -79,6 +73,7 @@ class PostWidgetState extends State<PostWidget> {
             const Divider(
               height: 20,
               thickness: 0.5,
+              color: Colors.black12,
             ),
             FutureBuilder<List<Post>>(
               future: _signalementFuture,
@@ -182,7 +177,6 @@ class PostWidgetState extends State<PostWidget> {
                 widget.post, widget.residence, widget.uid, colorStatut)
           ],
         ),
-      ),
     );
   }
 }

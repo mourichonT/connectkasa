@@ -8,7 +8,7 @@ Widget iteractionLine(
     Post post, String residence, String uid, Color colorStatut) {
   return Column(
     children: [
-      const Divider(thickness: 0.6),
+      const Divider(thickness: 0.6, color: Colors.black12),
       Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [

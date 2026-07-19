@@ -11,6 +11,7 @@ import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/vues/widget_view/components/rounded_card.dart';
 import 'package:konodal/vues/pages_vues/annonces_page/annonce_page_details.dart';
 import 'package:konodal/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:konodal/vues/widget_view/components/header_row.dart';
@@ -51,13 +52,8 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    return Container(
-      decoration: const BoxDecoration(boxShadow: [
-        BoxShadow(color: Colors.grey, blurRadius: 10, offset: Offset(0, 3))
-      ]),
-      child: Container(
-        color: Colors.white,
-        child: Column(
+    return RoundedCard(
+      child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -71,6 +67,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
               const Divider(
                 height: 20,
                 thickness: 0.5,
+                color: Colors.black12,
               ),
               InkWell(
                 onTap: () async {
@@ -245,7 +242,6 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                 ),
               ),
             ]),
-      ),
     );
   }
 

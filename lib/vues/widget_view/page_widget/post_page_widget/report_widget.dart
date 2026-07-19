@@ -10,6 +10,7 @@ import 'package:konodal/vues/widget_view/components/comment_button.dart';
 import 'package:konodal/vues/widget_view/components/header_row.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:konodal/vues/widget_view/components/like_button_post.dart';
+import 'package:konodal/vues/widget_view/components/rounded_card.dart';
 import 'package:konodal/vues/widget_view/components/share_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -72,16 +73,8 @@ class _ReportWidgetState extends State<ReportWidget> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
-    return Container(
-      decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(color: Colors.grey, blurRadius: 10, offset: Offset(0, 3))
-        ],
-      ),
-      child: Container(
-        color: Colors.white,
-        child: Column(
+    return RoundedCard(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -92,7 +85,7 @@ class _ReportWidgetState extends State<ReportWidget> {
               isCsMember: widget.isCsMember,
               updatePostsList: widget.updatePostsList,
             ),
-            const Divider(height: 20, thickness: 0.5),
+            const Divider(height: 20, thickness: 0.5, color: Colors.black12),
             FutureBuilder<Post?>(
               future: _linkedEventFuture,
               builder: (context, snapshot) {
@@ -109,17 +102,30 @@ class _ReportWidgetState extends State<ReportWidget> {
                   children: [
                     if (linkedEvent != null)
                       _linkedEventBanner(context, linkedEvent),
-                    if ((widget.post.pathImage ?? '').isNotEmpty)
-                      SizedBox(
-                        height: width,
-                        width: width,
-                        child: Image.network(
-                          widget.post.pathImage!,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    else
-                      imageAnnounced(context, width, width),
+                    // LayoutBuilder plutôt que MediaQuery.size.width : la
+                    // largeur de l'écran ignore le padding horizontal du
+                    // ListView (Homeview), donnant un carré plus haut que
+                    // large (largeur forcée par le parent, hauteur non
+                    // contrainte). constraints.maxWidth reflète la largeur
+                    // réellement disponible ici.
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        // .ceilToDouble() : évite une fine ligne de
+                        // quelques pixels non couverte sur les bords de fin
+                        // (droite/bas), cf. adv_widget.dart.
+                        final width = constraints.maxWidth.ceilToDouble();
+                        return (widget.post.pathImage ?? '').isNotEmpty
+                            ? SizedBox(
+                                height: width,
+                                width: width,
+                                child: Image.network(
+                                  widget.post.pathImage!,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : imageAnnounced(context, width, width);
+                      },
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 15, vertical: 15),
@@ -135,7 +141,7 @@ class _ReportWidgetState extends State<ReportWidget> {
                         ],
                       ),
                     ),
-                    const Divider(thickness: 0.6),
+                    const Divider(thickness: 0.6, color: Colors.black12),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: Row(
@@ -167,7 +173,6 @@ class _ReportWidgetState extends State<ReportWidget> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -191,7 +196,7 @@ class _ReportWidgetState extends State<ReportWidget> {
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: widget.colorStatut.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(color: widget.colorStatut.withValues(alpha: 0.3)),
         ),
         child: Row(

@@ -12,6 +12,7 @@ import 'package:konodal/models/pages_models/user.dart';
 import 'package:konodal/vues/pages_vues/event_page/event_page_details.dart';
 import 'package:konodal/vues/widget_view/components/header_row.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
+import 'package:konodal/vues/widget_view/components/rounded_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -58,15 +59,8 @@ class _EventWidgetState extends State<EventWidget> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    return Container(
-      decoration: const BoxDecoration(
-        boxShadow: [
-          BoxShadow(color: Colors.grey, blurRadius: 10, offset: Offset(0, 3))
-        ],
-      ),
-      child: Container(
-        color: Colors.white,
-        child: Column(
+    return RoundedCard(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -80,6 +74,7 @@ class _EventWidgetState extends State<EventWidget> {
             const Divider(
               height: 20,
               thickness: 0.5,
+              color: Colors.black12,
             ),
             InkWell(
               onTap: () async {
@@ -134,7 +129,6 @@ class _EventWidgetState extends State<EventWidget> {
                 widget.colorStatut)
           ],
         ),
-      ),
     );
   }
 

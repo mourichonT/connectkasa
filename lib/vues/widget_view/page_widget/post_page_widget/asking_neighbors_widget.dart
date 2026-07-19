@@ -8,6 +8,7 @@ import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
 import 'package:konodal/vues/widget_view/components/header_row.dart';
+import 'package:konodal/vues/widget_view/components/rounded_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -43,13 +44,8 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    return Container(
-      decoration: const BoxDecoration(boxShadow: [
-        BoxShadow(color: Colors.grey, blurRadius: 10, offset: Offset(0, 3))
-      ]),
-      child: Container(
-        color: Colors.white,
-        child: Column(
+    return RoundedCard(
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -63,6 +59,7 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
             const Divider(
               height: 20,
               thickness: 0.5,
+              color: Colors.black12,
             ),
             if (widget.post.pathImage != "")
               InkWell(
@@ -175,7 +172,6 @@ class AskingNeighborsState extends State<AskingNeighborsWidget> {
                 widget.colorStatut)
           ],
         ),
-      ),
     );
   }
 
