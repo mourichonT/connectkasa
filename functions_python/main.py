@@ -1910,9 +1910,9 @@ def _shared_sinistre_payload(sinistre_doc, posts_ref) -> dict:
 def _resolve_share_token(db, token: str):
     """Retrouve (residenceId, postId, posts_ref) pour un token de partage, ou
     une https_fn.Response d'erreur (404/403) si invalide/expiré - factorisé
-    entre get_shared_intervention (lecture) et create_shared_signalement
-    (écriture scoped), les deux seuls points d'entrée qui consultent
-    shareTokens/{token}."""
+    entre tous les points d'entrée de la page de partage prestataire
+    (get_shared_intervention, create_shared_rapport, reschedule_shared_
+    intervention...) qui consultent shareTokens/{token}."""
     token_doc = db.collection("shareTokens").document(token).get()
     if not token_doc.exists:
         return None, https_fn.Response(
@@ -2023,93 +2023,23 @@ def _upload_shared_media(file_storage, residence_id: str) -> tuple[str, bool]:
 
 
 @https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
-def create_shared_signalement(req: https_fn.Request) -> https_fn.Response:
-    """Point d'entrée en écriture pour un prestataire sans compte BO : ajoute
-    un signalement (avec photo/vidéo optionnelle) au sinistre lié à
-    l'intervention de son lien de partage. Portée strictement bornée par le
-    token (résolu comme get_shared_intervention) - ni le résidenceId ni le
-    postId ne viennent du corps de la requête, donc ce endpoint ne peut
-    jamais écrire ailleurs que sur CE sinistre précis. Toujours multipart
-    (pas de JSON) pour accepter le fichier au même titre que les champs
-    texte."""
-    token = (req.form.get("token") or "").strip()
-    title = (req.form.get("title") or "").strip()
-    description = (req.form.get("description") or "").strip()
-    file_storage = req.files.get("file")
-
-    if not token or not title:
-        return https_fn.Response(
-            json.dumps({"error": "Paramètres manquants"}),
-            status=400,
-            content_type="application/json",
-        )
-
-    db = firestore.client()
-    try:
-        token_data, error_response = _resolve_share_token(db, token)
-        if error_response is not None:
-            return error_response
-
-        residence_id = token_data.get("residenceId")
-        post_id = token_data.get("postId")
-        posts_ref = db.collection("residences").document(residence_id).collection("posts")
-
-        intervention_doc = posts_ref.document(post_id).get()
-        if not intervention_doc.exists:
-            return https_fn.Response(
-                json.dumps({"error": "Intervention introuvable"}),
-                status=404,
-                content_type="application/json",
-            )
-
-        linked_sinistre_id = (intervention_doc.to_dict() or {}).get("linkedSinistreId")
-        if not linked_sinistre_id:
-            return https_fn.Response(
-                json.dumps({"error": "Aucun sinistre lié à cette intervention"}),
-                status=400,
-                content_type="application/json",
-            )
-
-        path_image = ""
-        is_video = False
-        if file_storage is not None and file_storage.filename:
-            path_image, is_video = _upload_shared_media(file_storage, residence_id)
-
-        posts_ref.document(linked_sinistre_id).collection("signalements").add({
-            "type": "sinistres",
-            "title": title,
-            "description": description,
-            "pathImage": path_image,
-            "isVideo": is_video,
-            "user": "Prestataire (lien de partage)",
-            "hideUser": True,
-            "dates": {"creationDate": firestore.SERVER_TIMESTAMP},
-        })
-
-        return https_fn.Response(
-            json.dumps({"success": True}),
-            status=200,
-            content_type="application/json",
-        )
-
-    except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            content_type="application/json",
-        )
-
-
-@https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
 def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
     """Le prestataire déclare l'intervention faite, avec photo(s) à l'appui,
-    depuis la page de partage - contrairement à create_shared_signalement,
-    ne nécessite AUCUN sinistre lié (disponible sur n'importe quelle
-    intervention). Écrit un post de type "rapport" au même niveau que
-    sinistres/incivilites/events (residences/{id}/posts), sans restriction de
-    visibilité particulière - lu par isResidenceMember comme n'importe quel
-    autre type de post (linkedEventId permet de retrouver l'intervention
-    d'origine)."""
+    depuis la page de partage - ne nécessite AUCUN sinistre lié (disponible
+    sur n'importe quelle intervention). Écrit un post de type "rapport" au
+    même niveau que sinistres/incivilites/events (residences/{id}/posts),
+    sans restriction de visibilité particulière - lu par isResidenceMember
+    comme n'importe quel autre type de post (linkedEventId permet de
+    retrouver l'intervention d'origine).
+
+    Seul flux de clôture désormais (remplace l'ancien couple
+    create_shared_signalement/complete_shared_intervention, dont le flux
+    "déclaration" était strictement moins bien conçu que celui-ci - décision
+    explicite de tout unifier sur le compte-rendu, y compris pour une
+    intervention liée à un sinistre) : marque l'event `termine: True`, ET,
+    si l'intervention est liée à un sinistre, fait aussi passer ce sinistre
+    à "Terminé" (même sémantique que l'ancien complete_shared_intervention/
+    updateSinistreStatut côté BO)."""
     token = (req.form.get("token") or "").strip()
     title = (req.form.get("title") or "").strip()
     description = (req.form.get("description") or "").strip()
@@ -2167,64 +2097,15 @@ def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
         # backoffice uniquement (comme linkedSinistreId), ignoré par l'app.
         posts_ref.document(post_id).update({"termine": True})
 
-        return https_fn.Response(
-            json.dumps({"success": True}),
-            status=200,
-            content_type="application/json",
-        )
-
-    except Exception as e:
-        return https_fn.Response(
-            json.dumps({"error": str(e)}),
-            status=500,
-            content_type="application/json",
-        )
-
-
-@https_fn.on_request(cors=options.CorsOptions(cors_origins="*", cors_methods=["post"]))
-def complete_shared_intervention(req: https_fn.Request) -> https_fn.Response:
-    """Le prestataire déclare son intervention terminée depuis la page de
-    partage : fait passer le sinistre lié à "Terminé", même sémantique que
-    updateSinistreStatut côté BO (konodal_bo/src/lib/sinistres.ts)."""
-    payload = req.get_json(silent=True) or {}
-    token = payload.get("token")
-    if not token:
-        return https_fn.Response(
-            json.dumps({"error": "Paramètre 'token' manquant"}),
-            status=400,
-            content_type="application/json",
-        )
-
-    db = firestore.client()
-    try:
-        token_data, error_response = _resolve_share_token(db, token)
-        if error_response is not None:
-            return error_response
-
-        residence_id = token_data.get("residenceId")
-        post_id = token_data.get("postId")
-        posts_ref = db.collection("residences").document(residence_id).collection("posts")
-
-        intervention_doc = posts_ref.document(post_id).get()
-        if not intervention_doc.exists:
-            return https_fn.Response(
-                json.dumps({"error": "Intervention introuvable"}),
-                status=404,
-                content_type="application/json",
-            )
-
+        # Intervention liée à un sinistre : le compte-rendu vaut aussi
+        # clôture du sinistre (fusion de l'ancien bouton séparé "Marquer
+        # comme terminée" dans ce même geste).
         linked_sinistre_id = (intervention_doc.to_dict() or {}).get("linkedSinistreId")
-        if not linked_sinistre_id:
-            return https_fn.Response(
-                json.dumps({"error": "Aucun sinistre lié à cette intervention"}),
-                status=400,
-                content_type="application/json",
-            )
-
-        posts_ref.document(linked_sinistre_id).update({
-            "statut": "Terminé",
-            "dates.closedDate": firestore.SERVER_TIMESTAMP,
-        })
+        if linked_sinistre_id:
+            posts_ref.document(linked_sinistre_id).update({
+                "statut": "Terminé",
+                "dates.closedDate": firestore.SERVER_TIMESTAMP,
+            })
 
         return https_fn.Response(
             json.dumps({"success": True}),
