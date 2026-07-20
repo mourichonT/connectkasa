@@ -1865,10 +1865,17 @@ def trigger_report_by_url(req: https_fn.Request) -> https_fn.Response:
 def _shared_intervention_payload(post_data: dict) -> dict:
     event = post_data.get("event") or {}
     event_date = event.get("eventDate")
+    # Posé par reschedule_shared_intervention sur la NOUVELLE intervention au
+    # moment de la reprogrammation, pour que la page de partage puisse
+    # afficher l'ancien horaire barré à côté du nouveau (le post d'origine,
+    # lui, garde son event.eventDate inchangé - c'est bien la copie qui porte
+    # la trace de l'ancienne valeur).
+    previous_event_date = event.get("previousEventDate")
     return {
         "title": post_data.get("title", ""),
         "description": post_data.get("description", ""),
         "eventDate": event_date.isoformat() if hasattr(event_date, "isoformat") else None,
+        "previousEventDate": previous_event_date.isoformat() if hasattr(previous_event_date, "isoformat") else None,
         "prestaName": event.get("prestaName", ""),
         "pathImage": post_data.get("pathImage", ""),
     }
@@ -1892,6 +1899,8 @@ def _shared_signalement_payload(data: dict) -> dict:
 def _shared_sinistre_payload(sinistre_doc, posts_ref) -> dict:
     data = sinistre_doc.to_dict() or {}
     location = data.get("location") or data
+    dates = data.get("dates") or data
+    creation_date = dates.get("creationDate") or dates.get("timeStamp")
     signalements = [
         _shared_signalement_payload(d.to_dict() or {})
         for d in posts_ref.document(sinistre_doc.id).collection("signalements").stream()
@@ -1902,7 +1911,14 @@ def _shared_sinistre_payload(sinistre_doc, posts_ref) -> dict:
         "statut": data.get("statut", ""),
         "locationElement": location.get("locationElements", ""),
         "locationFloor": location.get("locationFloor", ""),
+        # Photo/vidéo + date du sinistre lui-même (la déclaration d'origine
+        # qui a créé le ticket) - à ne pas confondre avec `signalements`, qui
+        # ne contient que les déclarations ultérieures/doublons (cf.
+        # SinistreDetailPage.tsx côté BO, où le sinistre est affiché comme
+        # "Déclaration principale" avant la liste des signalements).
         "pathImage": data.get("pathImage", ""),
+        "isVideo": data.get("isVideo", False),
+        "creationDate": creation_date.isoformat() if hasattr(creation_date, "isoformat") else None,
         "signalements": signalements,
     }
 
@@ -2081,7 +2097,13 @@ def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
 
         path_image, _ = _upload_shared_media(file_storage, residence_id)
 
-        posts_ref.add({
+        # linkedSinistreId : celui de l'INTERVENTION (post_id), pas un champ
+        # propre au rapport - le rapport doit porter la même référence pour
+        # être retrouvable depuis le sinistre lui-même (ex: BO), pas
+        # seulement depuis l'intervention via linkedEventId.
+        linked_sinistre_id = (intervention_doc.to_dict() or {}).get("linkedSinistreId")
+
+        rapport_data = {
             "type": "rapport",
             "refResidence": residence_id,
             "title": title,
@@ -2091,7 +2113,10 @@ def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
             "hideUser": True,
             "dates": {"creationDate": firestore.SERVER_TIMESTAMP},
             "linkedEventId": post_id,
-        })
+        }
+        if linked_sinistre_id:
+            rapport_data["linkedSinistreId"] = linked_sinistre_id
+        posts_ref.add(rapport_data)
 
         # Le compte-rendu fait foi que l'intervention est terminée - champ
         # backoffice uniquement (comme linkedSinistreId), ignoré par l'app.
@@ -2100,7 +2125,6 @@ def create_shared_rapport(req: https_fn.Request) -> https_fn.Response:
         # Intervention liée à un sinistre : le compte-rendu vaut aussi
         # clôture du sinistre (fusion de l'ancien bouton séparé "Marquer
         # comme terminée" dans ce même geste).
-        linked_sinistre_id = (intervention_doc.to_dict() or {}).get("linkedSinistreId")
         if linked_sinistre_id:
             posts_ref.document(linked_sinistre_id).update({
                 "statut": "Terminé",
@@ -2213,6 +2237,11 @@ def reschedule_shared_intervention(req: https_fn.Request) -> https_fn.Response:
                 "eventDate": event_date,
                 "eventType": ["prestation"],
                 "prestaName": event.get("prestaName", ""),
+                # Trace l'horaire remplacé pour l'affichage barré côté page
+                # de partage (cf. _shared_intervention_payload) - absent si
+                # l'intervention d'origine n'avait elle-même pas encore de
+                # date (ne devrait pas arriver ici, mais par prudence).
+                **({"previousEventDate": event["eventDate"]} if event.get("eventDate") else {}),
             },
         }
         if linked_sinistre_id:
