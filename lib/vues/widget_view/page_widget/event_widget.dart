@@ -10,6 +10,7 @@ import 'package:konodal/models/pages_models/lot.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/models/pages_models/user.dart';
 import 'package:konodal/vues/pages_vues/event_page/event_page_details.dart';
+import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
 import 'package:konodal/vues/widget_view/components/header_row.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:konodal/vues/widget_view/components/rounded_card.dart';
@@ -49,11 +50,22 @@ class _EventWidgetState extends State<EventWidget> {
   //late Timestamp _selectedDate;
   IPostRepository postServices = FirestorePostRepository();
   int userParticipatedCount = 0;
+  // Non-null seulement si cette intervention est reliée à une déclaration
+  // (sinistre/incivilité) - jamais requis (create_shared_rapport n'exige
+  // aucun sinistre lié), d'où le CTA "Voir la déclaration originale"
+  // affiché seulement quand cette Future résout un post.
+  Future<Post?>? _linkedSinistreFuture;
 
   @override
   void initState() {
     super.initState();
     //_selectedDate = widget.post.eventDate!.toUtc();
+    final linkedSinistreId = widget.post.linkedSinistreId;
+    if (linkedSinistreId != null && linkedSinistreId.isNotEmpty) {
+      _linkedSinistreFuture = postServices
+          .getPost(widget.residenceSelected, linkedSinistreId)
+          .then((result) => result.when(success: (v) => v, failure: (_) => null));
+    }
   }
 
   @override
@@ -125,6 +137,47 @@ class _EventWidgetState extends State<EventWidget> {
                 ],
               ),
             ),
+            if (_linkedSinistreFuture != null)
+              FutureBuilder<Post?>(
+                future: _linkedSinistreFuture,
+                builder: (context, snapshot) {
+                  final sinistrePost = snapshot.data;
+                  if (sinistrePost == null) return const SizedBox.shrink();
+                  return Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.of(context).push(CupertinoPageRoute(
+                          builder: (context) => PostView(
+                            postOrigin: sinistrePost,
+                            residence: widget.residenceSelected,
+                            uid: widget.uid,
+                            scrollController: widget.scrollController,
+                            postSelected: sinistrePost,
+                            returnHomePage: true,
+                          ),
+                        ));
+                      },
+                      child: Row(
+                        children: [
+                          Icon(Icons.description_outlined,
+                              color: widget.colorStatut, size: 18),
+                          const SizedBox(width: 8),
+                          MyTextStyle.lotName(
+                              "Voir la déclaration originale",
+                              widget.colorStatut,
+                              SizeFont.para.size,
+                              FontWeight.w600),
+                          const Spacer(),
+                          Icon(Icons.chevron_right,
+                              color: widget.colorStatut, size: 18),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             iteractionLine(widget.post, widget.residenceSelected, widget.uid,
                 widget.colorStatut)
           ],

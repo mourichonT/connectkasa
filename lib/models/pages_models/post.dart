@@ -34,6 +34,12 @@ class Post {
   // (type "rapport") documente - écrit uniquement côté Cloud Function
   // (create_shared_rapport, functions_python/main.py), jamais par l'app.
   String? linkedEventId;
+  // Id (business) du post "sinistres"/"incivilites" à l'origine de cette
+  // intervention (type "events") ou de ce compte-rendu (type "rapport") -
+  // absent si l'intervention n'a jamais été liée à une déclaration (cf.
+  // create_shared_rapport : aucun sinistre requis). Écrit uniquement côté
+  // Cloud Function, jamais par l'app.
+  String? linkedSinistreId;
 
   Post(
       {required this.id,
@@ -60,7 +66,8 @@ class Post {
       this.price = 0,
       this.style,
       this.prestaName,
-      this.linkedEventId}) {
+      this.linkedEventId,
+      this.linkedSinistreId}) {
     _pathImage = pathImage;
     _statut = statut;
     _subtype = subtype;
@@ -244,6 +251,7 @@ class Post {
               : null),
       prestaName: event['prestaName'] ?? map['prestaName'],
       linkedEventId: map['linkedEventId'],
+      linkedSinistreId: map['linkedSinistreId'],
     );
   }
 

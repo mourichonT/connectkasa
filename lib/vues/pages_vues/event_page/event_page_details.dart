@@ -2,6 +2,8 @@ import 'package:konodal/controllers/features/line_interaction.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/controllers/features/participed_button.dart';
 import 'package:konodal/core/providers/user_by_id_provider.dart';
+import 'package:konodal/core/repositories/post_repository.dart';
+import 'package:konodal/core/repositories/firestore_post_repository.dart';
 import 'package:konodal/models/enum/event_type.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/post.dart';
@@ -9,6 +11,7 @@ import 'package:konodal/models/pages_models/user.dart';
 import 'package:konodal/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 
@@ -37,12 +40,23 @@ class EventPageDetails extends ConsumerStatefulWidget {
 class EventPageDetailsState extends ConsumerState<EventPageDetails> {
   bool alreadyParticipated = false;
   int userParticipatedCount = 0;
+  final IPostRepository _postServices = FirestorePostRepository();
+  // Non-null seulement si cette intervention est reliée à une déclaration
+  // (sinistre/incivilité) - jamais requis, d'où le CTA "Voir la déclaration
+  // originale" affiché seulement quand cette Future résout un post.
+  Future<Post?>? _linkedSinistreFuture;
 
   @override
   void initState() {
     super.initState();
     alreadyParticipated = widget.post.participants!.contains(widget.uid);
     userParticipatedCount = widget.post.participants!.length;
+    final linkedSinistreId = widget.post.linkedSinistreId;
+    if (linkedSinistreId != null && linkedSinistreId.isNotEmpty) {
+      _linkedSinistreFuture = _postServices
+          .getPost(widget.residence, linkedSinistreId)
+          .then((result) => result.when(success: (v) => v, failure: (_) => null));
+    }
   }
 
   Widget buildOrganizerInfo(AsyncValue<User?> userAsync) {
@@ -263,7 +277,50 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
                             widget.post.description, SizeFont.h3.size, 15),
                       ),
                     ],
-                  )
+                  ),
+                  if (_linkedSinistreFuture != null)
+                    FutureBuilder<Post?>(
+                      future: _linkedSinistreFuture,
+                      builder: (context, snapshot) {
+                        final sinistrePost = snapshot.data;
+                        if (sinistrePost == null) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 15),
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.of(context).push(MaterialPageRoute(
+                                builder: (context) => PostView(
+                                  postOrigin: sinistrePost,
+                                  residence: widget.residence,
+                                  uid: widget.uid,
+                                  scrollController: widget.scrollController,
+                                  postSelected: sinistrePost,
+                                  returnHomePage: true,
+                                ),
+                              ));
+                            },
+                            child: Row(
+                              children: [
+                                Icon(Icons.description_outlined,
+                                    color: widget.colorStatut, size: 18),
+                                const SizedBox(width: 8),
+                                MyTextStyle.lotName(
+                                    "Voir la déclaration originale",
+                                    widget.colorStatut,
+                                    SizeFont.h3.size,
+                                    FontWeight.w600),
+                                const Spacer(),
+                                Icon(Icons.chevron_right,
+                                    color: widget.colorStatut, size: 18),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                 ],
               ),
             ),
