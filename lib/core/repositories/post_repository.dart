@@ -127,6 +127,13 @@ abstract interface class IPostRepository {
 
   Future<Result<List<Post>>> getSignalementsList(String docRes, String postId);
 
+  /// Équivalent temps réel de getSignalementsList - PostWidget (carrousel de
+  /// doublons sur Homeview) y était abonné via une simple Future, jamais
+  /// rafraîchie après le premier chargement de la carte : un signalement
+  /// détecté pendant que la carte est déjà affichée n'apparaissait donc
+  /// jamais sans quitter/revenir sur Homeview.
+  Stream<List<Post>> watchSignalementsList(String docRes, String postId);
+
   Future<Result<List<Post>>> getPostsByUser(
       String residenceId, String userId);
 

@@ -503,11 +503,19 @@ class FirestorePostRepository implements IPostRepository {
   @override
   Future<Result<Post?>> addPost(Post newPost, String docRes) async {
     try {
+      // .doc(newPost.id).set(...) et non .add(...) : .add() aurait généré
+      // un id de document Firestore aléatoire, DIFFÉRENT de newPost.id (déjà
+      // fixé côté client - Uuid().v1() dans post_form.dart) embarqué dans
+      // toMap(). Toute relecture par id (updatePost/removePost/
+      // getSignalementsList/addComment/... - où("id", ==, postId)) ne
+      // retrouvait alors jamais ce post, puisque le champ "id" stocké ne
+      // correspondait à aucun document réel.
       await _firestore
           .collection("residences")
           .doc(docRes)
           .collection("posts")
-          .add(newPost.toMap());
+          .doc(newPost.id)
+          .set(newPost.toMap());
       return Result.success(newPost);
     } catch (e) {
       return Result.failure(AppException.from(e));
@@ -902,6 +910,34 @@ class FirestorePostRepository implements IPostRepository {
     } catch (e) {
       return Result.failure(AppException.from(e));
     }
+  }
+
+  @override
+  Stream<List<Post>> watchSignalementsList(
+      String docRes, String postId) async* {
+    if (docRes.isEmpty || postId.isEmpty) {
+      yield const [];
+      return;
+    }
+    // Résout le doc Firestore du post une seule fois (comme
+    // FirestoreCommentRepository._resolvePostRef), puis flux uniquement sur
+    // sa sous-collection signalements - pas besoin de réécouter la requête
+    // where("id", ...) elle-même, le post ne change pas de doc Firestore.
+    final postQuery = await _firestore
+        .collection("residences")
+        .doc(docRes)
+        .collection("posts")
+        .where("id", isEqualTo: postId)
+        .limit(1)
+        .get();
+    if (postQuery.docs.isEmpty) {
+      yield const [];
+      return;
+    }
+    yield* postQuery.docs.first.reference
+        .collection("signalements")
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map(_postFromDoc).toList());
   }
 
   @override

@@ -33,7 +33,7 @@ class PostWidget extends StatefulWidget {
 }
 
 class PostWidgetState extends State<PostWidget> {
-  late Future<List<Post>> _signalementFuture;
+  late Stream<List<Post>> _signalementStream;
   IPostRepository dbService = FirestorePostRepository();
   List<List<String>> typeList = TypeList().typeDeclaration();
   int postCount = 0;
@@ -42,15 +42,16 @@ class PostWidgetState extends State<PostWidget> {
   void initState() {
     super.initState();
     //likeCount = widget.post.like.length;
-    // getSignalementsList ne renvoie QUE les signalements imbriqués (pas
+    // watchSignalementsList ne renvoie QUE les signalements imbriqués (pas
     // le post lui-même, contrairement à getSignalements) : widget.post
     // est déjà disponible directement, pas besoin de le re-télécharger.
     // Ça évite aussi que le post entier devienne invisible (carrousel
-    // vide) si cette requête échoue ou ne trouve rien.
-    _signalementFuture = dbService
-        .getSignalementsList(widget.residence, widget.post.id)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (error) => throw error));
+    // vide) si cette requête échoue ou ne trouve rien. Flux temps réel (pas
+    // une Future ponctuelle) : un signalement détecté par la Cloud Function
+    // pendant que la carte est déjà affichée apparaît donc sans quitter/
+    // revenir sur Homeview.
+    _signalementStream =
+        dbService.watchSignalementsList(widget.residence, widget.post.id);
   }
 
   @override
@@ -75,8 +76,8 @@ class PostWidgetState extends State<PostWidget> {
               thickness: 0.5,
               color: Colors.black12,
             ),
-            FutureBuilder<List<Post>>(
-              future: _signalementFuture,
+            StreamBuilder<List<Post>>(
+              stream: _signalementStream,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: AppLoader());
