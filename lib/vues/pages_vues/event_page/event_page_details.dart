@@ -132,9 +132,20 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
               top: height / 3,
               left: 0,
               right: 0,
-              child: Column(
+              // bottom: 0 (absent avant ce correctif) : sans lui, ce
+              // Positioned se dimensionne à la taille naturelle de son
+              // contenu, sans limite - le contenu (titre, organisateur,
+              // date, description, CTA) débordait donc simplement hors de
+              // l'écran, inaccessible, faute de conteneur scrollable.
+              bottom: 0,
+              child: SingleChildScrollView(
+                // Réserve la hauteur de la barre d'interaction (like/
+                // commentaire/partage, Positioned séparément en bas) pour
+                // que le dernier élément ne reste pas caché dessous.
+                padding: const EdgeInsets.only(bottom: 80),
+                child: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
-                mainAxisSize: MainAxisSize.max,
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
@@ -322,6 +333,7 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
                       },
                     ),
                 ],
+                ),
               ),
             ),
             Positioned(
