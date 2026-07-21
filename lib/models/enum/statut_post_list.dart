@@ -3,6 +3,12 @@ enum StatutPostList {
   transmis('Transmis'),
   enCours('En cours'),
   termine('Terminé'),
+  // Les deux suivants ne font PAS partie du workflow sinistre/incivilité
+  // (statut, 4 valeurs ci-dessus) : ce sont les statuts d'une intervention
+  // (type "events"), dérivés des booléens termine/reporte du post (cf.
+  // header_row.dart) - jamais un statut de sinistre.
+  programme('Programmé'),
+  reporte('Reporté'),
   empty('');
 
   final String label;
@@ -20,6 +26,10 @@ enum StatutPostList {
         return StatutPostList.enCours;
       case 'Terminé':
         return StatutPostList.termine;
+      case 'Programmé':
+        return StatutPostList.programme;
+      case 'Reporté':
+        return StatutPostList.reporte;
       default:
         return StatutPostList.empty; // Retourne null si aucune correspondance
     }

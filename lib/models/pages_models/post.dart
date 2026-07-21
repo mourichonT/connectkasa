@@ -40,6 +40,16 @@ class Post {
   // create_shared_rapport : aucun sinistre requis). Écrit uniquement côté
   // Cloud Function, jamais par l'app.
   String? linkedSinistreId;
+  // Statuts d'une intervention (type "events") : contrairement au workflow
+  // sinistre/incivilité (_statut, 4 valeurs), une intervention a 3 états
+  // (Programmé par défaut, Reporté, Terminé - cf. header_row.dart) posés
+  // automatiquement par les Cloud Functions (create_shared_rapport pour
+  // termine, reschedule_shared_intervention pour reporte), jamais par
+  // l'app. reporte==true marque l'ANCIENNE intervention remplacée par une
+  // nouvelle après reprogrammation - jamais les deux vrais en même temps
+  // en pratique (une intervention reportée n'a pas de compte-rendu).
+  bool termine;
+  bool reporte;
 
   Post(
       {required this.id,
@@ -67,7 +77,9 @@ class Post {
       this.style,
       this.prestaName,
       this.linkedEventId,
-      this.linkedSinistreId}) {
+      this.linkedSinistreId,
+      this.termine = false,
+      this.reporte = false}) {
     _pathImage = pathImage;
     _statut = statut;
     _subtype = subtype;
@@ -252,6 +264,8 @@ class Post {
       prestaName: event['prestaName'] ?? map['prestaName'],
       linkedEventId: map['linkedEventId'],
       linkedSinistreId: map['linkedSinistreId'],
+      termine: map['termine'] ?? false,
+      reporte: map['reporte'] ?? false,
     );
   }
 

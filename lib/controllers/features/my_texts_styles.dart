@@ -310,6 +310,13 @@ class MyTextStyle {
         return Colors.blue;
       case StatutPostList.termine:
         return colorTheme;
+      case StatutPostList.programme:
+        return Colors.grey;
+      case StatutPostList.reporte:
+        // Jaune : même code couleur que le calendrier BO pour une
+        // intervention reportée (cf. reschedule_shared_intervention,
+        // functions_python/main.py).
+        return Colors.amber[800]!;
       default:
         return Colors.transparent;
     }

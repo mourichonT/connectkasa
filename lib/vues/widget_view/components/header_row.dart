@@ -25,6 +25,17 @@ class CustomHeaderRow extends StatelessWidget {
     required this.lot,
   });
 
+  // Une intervention (type "events") n'a pas de champ statut (le workflow à
+  // 4 états sinistre/incivilité ne s'applique pas ici) : 3 états dérivés des
+  // booléens termine/reporte du post (posés uniquement par les Cloud
+  // Functions - create_shared_rapport/reschedule_shared_intervention),
+  // jamais par l'app. Purement informatif, pas de Stepper.
+  String _eventStatusLabel(Post post) {
+    if (post.termine) return "Terminé";
+    if (post.reporte) return "Reporté";
+    return "Programmé";
+  }
+
   String getType(Post post) {
     for (var type in typeList) {
       // Vous pouvez accéder à chaque type avec type[0] pour le nom et type[1] pour la valeur
@@ -50,7 +61,9 @@ class CustomHeaderRow extends StatelessWidget {
         children: [
           MyTextStyle.lotName(getType(post), Colors.black87, SizeFont.h3.size),
           Spacer(),
-          MyTextStyle.statuColor(post.statut!, colorStatut),
+          MyTextStyle.statuColor(
+              post.type == "events" ? _eventStatusLabel(post) : post.statut!,
+              colorStatut),
           Visibility(
               visible: isCsMember,
               child: iconModifyOrDelette(post, lot, context, updatePostsList)),

@@ -80,6 +80,7 @@ class _EventWidgetState extends State<EventWidget> {
             CustomHeaderRow(
               lot: widget.lot,
               post: widget.post,
+              colorStatut: widget.colorStatut,
               isCsMember: widget.isCsMember,
               updatePostsList: widget.updatePostsList,
             ),
