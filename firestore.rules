@@ -584,18 +584,22 @@ service cloud.firestore {
       // Plus rien de sensible par résidence sur ce document une fois
       // residencesIds sorti - même niveau d'ouverture que residences/{id}.
       allow read: if isSignedIn();
-      // Une création côté app ne peut jamais s'auto-approuver (isApproved
-      // doit naître à false) - seul un Super Admin (backoffice) revalide
-      // ensuite. Même verrou que isApproved (users/{uid}) / isApprovedLot.
-      // Plus de résidence précise à vérifier dans le payload (le
-      // rattachement se fait séparément sur residences/{id}.contactRefs).
+      // Une création côté app (CS member) ne peut jamais s'auto-approuver
+      // (isApproved doit naître à false) - seul un Super Admin (backoffice)
+      // revalide ensuite. Même verrou que isApproved (users/{uid}) /
+      // isApprovedLot. Plus de résidence précise à vérifier dans le
+      // payload (le rattachement se fait séparément sur
+      // residences/{id}.contactRefs).
       // Agence/Agent (backoffice web) peuvent aussi créer un contact - pas
       // de scoping résidence possible ici (annuaire partagé multi-agences,
       // cf. commentaire en tête de bloc), donc ouvert à tout compte
       // professionnel, pas seulement ceux liés à une résidence précise.
+      // Contrairement à un CS member (app résident), une création depuis
+      // le BO (superAdmin ET agence/agent) est déjà considérée validée -
+      // isApproved: true exigé pour ces deux rôles, pas de file d'attente.
       allow create: if (isCsMemberOfAnyResidenceAtAll() &&
         request.resource.data.isApproved == false) || isSuperAdmin() ||
-        (isAgenceOrAgentAccount() && request.resource.data.isApproved == false);
+        (isAgenceOrAgentAccount() && request.resource.data.isApproved == true);
       // Fiche (nom/service/coordonnées) modifiable par tout compte
       // professionnel ; approbation (isApproved) et nettoyage doublons
       // (likelyDuplicateIds, cf. dismissDuplicate/mergeContacts côté BO)
