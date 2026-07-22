@@ -4,19 +4,19 @@
 class GeranceRef {
   final String geranceId;
   final String serviceType; // "serviceSyndic", "geranceLocative", ...
-  final String? agentMail; // contact direct d'un agent précis, si choisi
+  final String? agentUid; // uid de l'agent précis choisi, si choisi
 
   GeranceRef({
     required this.geranceId,
     required this.serviceType,
-    this.agentMail,
+    this.agentUid,
   });
 
   factory GeranceRef.fromJson(Map<String, dynamic> json) {
     return GeranceRef(
       geranceId: json['geranceId'] ?? '',
       serviceType: json['serviceType'] ?? '',
-      agentMail: json['agentMail'],
+      agentUid: json['agentUid'],
     );
   }
 
@@ -24,7 +24,7 @@ class GeranceRef {
     return {
       'geranceId': geranceId,
       'serviceType': serviceType,
-      if (agentMail != null) 'agentMail': agentMail,
+      if (agentUid != null) 'agentUid': agentUid,
     };
   }
 }

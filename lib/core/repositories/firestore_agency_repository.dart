@@ -2,17 +2,37 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:konodal/controllers/services/firestore_paths.dart';
 import 'package:konodal/core/errors/app_exceptions.dart';
 import 'package:konodal/core/repositories/agency_repository.dart';
+import 'package:konodal/core/repositories/firestore_user_repository.dart';
 import 'package:konodal/core/result/result.dart';
 import 'package:konodal/models/pages_models/address.dart';
 import 'package:konodal/models/pages_models/agency.dart';
 import 'package:konodal/models/pages_models/agency_dept.dart';
 import 'package:konodal/models/pages_models/gerance_ref.dart';
+import 'package:konodal/models/pages_models/user.dart';
+
+const _agentUidFieldByService = {
+  'serviceSyndic': 'serviceSyndicAgentUids',
+  'geranceLocative': 'geranceLocativeAgentUids',
+};
+
+Agent _agentFromUser(User user) => Agent(
+      uid: user.uid,
+      nameAgent: user.name,
+      surnameAgent: user.surname,
+      mail: user.email,
+      phone: user.phone,
+    );
 
 class FirestoreAgencyRepository implements IAgencyRepository {
   final FirebaseFirestore _firestore;
+  final FirestoreUserRepository _userRepository;
 
-  FirestoreAgencyRepository({FirebaseFirestore? firestore})
-      : _firestore = firestore ?? FirebaseFirestore.instance;
+  FirestoreAgencyRepository({
+    FirebaseFirestore? firestore,
+    FirestoreUserRepository? userRepository,
+  })  : _firestore = firestore ?? FirebaseFirestore.instance,
+        _userRepository =
+            userRepository ?? FirestoreUserRepository(firestore: firestore);
 
   @override
   Future<Result<List<Agency>>> searchByEmail(
@@ -23,56 +43,53 @@ class FirestoreAgencyRepository implements IAgencyRepository {
 
     try {
       // Recherche par sous-chaîne (n'importe où dans le mail, pas seulement
-      // en préfixe) dans l'index gerances/{id}/contacts, filtré par type de
-      // service ("serviceSyndic", "geranceLocative", ...). Même approche que
-      // rechercheFirestore (recherche de résidence à l'inscription) :
+      // en préfixe) parmi les comptes "agent"/"agence" (users/{uid}) -
       // Firestore ne fait pas de recherche par sous-chaîne nativement, donc
-      // on filtre côté client après récupération par serviceType. Cet index
-      // est généré automatiquement (Cloud Function sync_gerance_contacts) à
-      // partir du champ gerances/{id}.services : jamais écrit à la main.
-      final contactsSnapshot = await _firestore
-          .collectionGroup(FirestorePaths.contacts)
-          .where('serviceType', isEqualTo: serviceType)
+      // on filtre côté client après récupération, comme pour
+      // rechercheFirestore (recherche de résidence à l'inscription).
+      final usersSnapshot = await _firestore
+          .collection('users')
+          .where('accountType', whereIn: ['agent', 'agence'])
           .get();
 
-      final matchingDocs = contactsSnapshot.docs.where((doc) {
-        final mail = (doc.data()['mail'] as String?)?.toLowerCase() ?? '';
-        return mail.contains(emailPart.toLowerCase());
-      }).toList();
+      final matchingUsers = usersSnapshot.docs
+          .map((doc) => User.fromMap(doc.data()))
+          .where((user) => user.email.toLowerCase().contains(
+                emailPart.toLowerCase(),
+              ))
+          .toList();
 
-      if (matchingDocs.isEmpty) return const Result.success([]);
+      if (matchingUsers.isEmpty) return const Result.success([]);
 
-      // Un même cabinet peut matcher plusieurs contacts (service + agents) ;
-      // on ne relit chaque document gerances parent qu'une seule fois.
-      final geranceIds =
-          matchingDocs.map((doc) => doc.reference.parent.parent!.id).toSet();
-      final geranceDocs = await Future.wait(geranceIds.map(
-          (id) => _firestore.collection(FirestorePaths.gerance).doc(id).get()));
-      final geranceById = {
-        for (final doc in geranceDocs)
-          if (doc.exists) doc.id: doc.data()!
-      };
+      final agentUidField = _agentUidFieldByService[serviceType]!;
 
+      // Une personne (agent ou agence) par ligne de résultat, pas une
+      // gérance entière : chaque uid trouvé est reversé vers SA/ses
+      // gérance(s) via <serviceType>AgentUids (array-contains).
       final results = <Agency>[];
-      for (final contactDoc in matchingDocs) {
-        final geranceId = contactDoc.reference.parent.parent!.id;
-        final geranceData = geranceById[geranceId];
-        if (geranceData == null) continue; // cabinet supprimé entretemps
+      for (final user in matchingUsers) {
+        final geranceSnapshot = await _firestore
+            .collection(FirestorePaths.gerance)
+            .where(agentUidField, arrayContains: user.uid)
+            .get();
 
-        final services = geranceData['services'] as Map<String, dynamic>?;
-        final serviceData = services?[serviceType] as Map<String, dynamic>?;
-        if (serviceData == null) continue;
-
-        final address = Address.fromJson(geranceData['address']);
-        results.add(Agency(
-          id: geranceId,
-          name: geranceData['name'] ?? '',
-          city: address.city,
-          street: address.street,
-          zipCode: address.zipCode,
-          codeQualite: address.codeQualite,
-          syndic: AgencyDept.fromJson(serviceData),
-        ));
+        for (final geranceDoc in geranceSnapshot.docs) {
+          final geranceData = geranceDoc.data();
+          final address = Address.fromJson(geranceData['address']);
+          results.add(Agency(
+            id: geranceDoc.id,
+            name: geranceData['name'] ?? '',
+            city: address.city,
+            street: address.street,
+            zipCode: address.zipCode,
+            codeQualite: address.codeQualite,
+            syndic: AgencyDept(
+              agents: [_agentFromUser(user)],
+              mail: user.email,
+              phone: user.phone,
+            ),
+          ));
+        }
       }
       return Result.success(results);
     } catch (e) {
@@ -96,18 +113,32 @@ class FirestoreAgencyRepository implements IAgencyRepository {
 
       String mail = serviceData['mail'] ?? '';
       String phone = serviceData['phone'] ?? '';
-      final agentsJson =
-          (serviceData['agents'] as List<dynamic>? ?? []).cast<dynamic>();
+      final agents = <Agent>[];
 
-      if (ref.agentMail != null) {
-        final agentJson = agentsJson.cast<Map<String, dynamic>>().firstWhere(
-              (a) => a['mail'] == ref.agentMail,
-              orElse: () => <String, dynamic>{},
-            );
-        if (agentJson.isNotEmpty) {
-          mail = agentJson['mail'] ?? mail;
-          phone = agentJson['phone'] ?? phone;
-        }
+      // ref.agentUid absent (ref legacy, ou choix "cabinet" générique sans
+      // agent précis) : on retombe sur le premier uid de
+      // <serviceType>AgentUids plutôt que sur le mail générique du service -
+      // sinon toute résidence dont le syndic a été choisi sans agent précis
+      // (le cas de TOUTES les résidences existantes à ce jour) afficherait un
+      // contact générique potentiellement incomplet (mail/téléphone vides)
+      // au lieu d'un vrai compte agent/agence.
+      final agentUids =
+          (data[_agentUidFieldByService[ref.serviceType]] as List<dynamic>?)
+              ?.cast<String>() ??
+              [];
+      final resolvedUid =
+          ref.agentUid ?? (agentUids.isNotEmpty ? agentUids.first : null);
+
+      if (resolvedUid != null) {
+        final userResult = await _userRepository.getUserById(resolvedUid);
+        userResult.when(
+          success: (user) {
+            agents.add(_agentFromUser(user));
+            mail = user.email;
+            phone = user.phone;
+          },
+          failure: (_) {}, // compte supprimé entretemps : fallback service
+        );
       }
 
       final address = Address.fromJson(data['address']);
@@ -119,9 +150,7 @@ class FirestoreAgencyRepository implements IAgencyRepository {
         zipCode: address.zipCode,
         codeQualite: address.codeQualite,
         syndic: AgencyDept(
-          agents: agentsJson
-              .map((a) => Agent.fromJson(a as Map<String, dynamic>))
-              .toList(),
+          agents: agents,
           mail: mail,
           phone: phone,
         ),

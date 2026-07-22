@@ -3,12 +3,14 @@ class Agent {
   final String surnameAgent;
   final String? mail; // contact direct de l'agent, si l'agence le permet
   final String? phone;
+  final String? uid; // uid users/{uid} - null pour une agence custom non référencée
 
   Agent({
     required this.nameAgent,
     required this.surnameAgent,
     this.mail,
     this.phone,
+    this.uid,
   });
 
   factory Agent.fromJson(Map<String, dynamic> json) {
@@ -17,6 +19,7 @@ class Agent {
       surnameAgent: json['surname_agent'] ?? '',
       mail: json['mail'],
       phone: json['phone'],
+      uid: json['uid'],
     );
   }
 
@@ -26,6 +29,7 @@ class Agent {
       'surname_agent': surnameAgent,
       if (mail != null) 'mail': mail,
       if (phone != null) 'phone': phone,
+      if (uid != null) 'uid': uid,
     };
   }
 }

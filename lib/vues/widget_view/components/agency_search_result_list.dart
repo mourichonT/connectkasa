@@ -33,11 +33,20 @@ class AgencySearchResultList extends StatelessWidget {
           itemCount: searchResults.length,
           itemBuilder: (context, index) {
             final agency = searchResults[index];
+            final agent =
+                agency.syndic?.agents.isNotEmpty == true
+                    ? agency.syndic!.agents.first
+                    : null;
+            final agentName =
+                '${agent?.nameAgent ?? ''} ${agent?.surnameAgent ?? ''}'
+                    .trim();
             return ListTile(
               title: Text(
                   agency.syndic?.mail.isNotEmpty == true
                       ? agency.syndic!.mail
                       : agency.name),
+              subtitle: Text(
+                  agentName.isNotEmpty ? '$agentName · ${agency.name}' : agency.name),
               onTap: () => onSelect(agency),
             );
           },

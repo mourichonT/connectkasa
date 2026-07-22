@@ -111,9 +111,10 @@ service cloud.firestore {
 
     // Agent d'une gérance pour un service donné (serviceSyndic ou
     // geranceLocative) : dénormalisé sur gerances/{id}.serviceSyndicAgentUids
-    // / geranceLocativeAgentUids (tableaux plats d'UIDs, à maintenir par le
-    // futur backoffice web à partir de services.<type>.agents[].uid - les
-    // règles ne peuvent pas vérifier l'appartenance à un tableau d'objets).
+    // / geranceLocativeAgentUids (tableaux plats d'UIDs), maintenus par
+    // invite_agency_account/revoke_agency_account (functions_python/main.py) -
+    // seule source de vérité pour l'appartenance à une gérance, users/{uid}
+    // ne portant pas ce lien lui-même.
     // 'in' sur un champ absent lève une erreur : gardé par 'x in gerance'.
     function isSyndicAgent(geranceId) {
       let gerance = get(/databases/$(database)/documents/gerances/$(geranceId)).data;
@@ -301,6 +302,17 @@ service cloud.firestore {
       // d'y accéder, le motif étant déjà dupliqué sur demandes_loc lui-même.
       match /demandes_historique/{id} {
         allow read, write: if isOwner(uid);
+      }
+
+      // Notifications persistées (nouveau post / nouvelle demande de
+      // location) en plus du push FCM déjà envoyé - écrites uniquement par
+      // les Cloud Functions (functions/index.js, Admin SDK). Seul "read" est
+      // modifiable depuis l'app (marquer comme lu).
+      match /notifications/{notifId} {
+        allow read: if isOwner(uid);
+        allow update: if isOwner(uid) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+        allow create, delete: if false;
       }
     }
 
@@ -542,10 +554,10 @@ service cloud.firestore {
     // résidences liées (fuite cross-agence). En sortant le rattachement sur
     // le document résidence (déjà lisible par tout isSignedIn(), une
     // résidence à la fois), il n'y a plus de tableau cross-résidence à
-    // corréler. Match RACINE EXPLICITE (pas {path=**}) : s'ajoute à la règle
-    // collectionGroup('contacts') ci-dessous (gerances/{id}/contacts, annuaire
-    // d'agences sans rapport - même collision de nom déjà documentée sur
-    // cette dernière), ne la remplace pas.
+    // corréler. Match RACINE EXPLICITE (pas {path=**}) : gerances/{id}/contacts
+    // portait le même nom de collection (annuaire d'agences, sans rapport)
+    // mais a été supprimé - la recherche par email itère maintenant sur
+    // users/{uid}, cf. FirestoreAgencyRepository.searchByEmail.
     match /contacts/{id} {
       // Plus rien de sensible par résidence sur ce document une fois
       // residencesIds sorti - même niveau d'ouverture que residences/{id}.
@@ -647,35 +659,6 @@ service cloud.firestore {
     match /config/adCampaigns {
       allow read: if isSignedIn();
       allow write: if isSuperAdmin();
-    }
-
-    // Règle dédiée aux requêtes collectionGroup('contacts')
-    // (FirestoreAgencyRepository.searchByEmail, recherche de syndic/agence
-    // par email) : une requête collectionGroup interroge "contacts" à
-    // travers tous les gerances/{id} d'un coup, ce qui nécessite une règle
-    // {path=**} distincte de la règle imbriquée gerances/{id}/{document=**}
-    // ci-dessous (qui ne couvre que les lectures directes sous un
-    // gerances/{id} déjà connu, pas une requête cross-documents).
-    // ATTENTION dette technique : "contacts" est aussi le nom de la nouvelle
-    // collection RACINE /contacts/{id} définie plus haut - un match
-    // {path=**} peut matcher un préfixe vide, donc cette règle
-    // collectionGroup s'applique AUSSI aux documents racine. Un contact
-    // racine est déjà lisible par isSignedIn() via la règle dédiée
-    // ci-dessus, donc l'enjeu n'est plus de le protéger lui, mais d'éviter
-    // que cette règle collectionGroup n'expose en lecture les documents
-    // gerances/{id}/contacts (annuaire d'agences, restriction propre à ce
-    // dernier) à travers une requête collectionGroup('contacts') brute qui
-    // contournerait sa règle imbriquée dédiée.
-    // Tentative de restriction avec path[0] == 'gerances' testée et
-    // abandonnée par le passé (provoque un PERMISSION_DENIED alors que la
-    // règle compile sans erreur, comportement de path[] non élucidé) : on
-    // restreint donc sur un CHAMP plutôt que le chemin, comme suggéré
-    // précédemment - 'serviceType' n'existe que sur gerances/{id}/contacts
-    // (index généré par sync_gerance_contacts), jamais sur un Contact de la
-    // collection racine.
-    match /{path=**}/contacts/{contactId} {
-      allow read: if isSignedIn() && 'serviceType' in resource.data;
-      allow write: if false;
     }
 
     // Règle dédiée aux requêtes collectionGroup('demandes_loc')

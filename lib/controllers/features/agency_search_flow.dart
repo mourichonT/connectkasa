@@ -41,12 +41,18 @@ class AgencySearchFlow {
   /// null si `agency` est une entrée custom (id vide, jamais trouvée dans
   /// gerances) : peut arriver même via onSelect, car l'entrée custom est
   /// affichée dans la même liste cliquable que les vrais matchs gerances.
-  GeranceRef? refFor(Agency agency, {String? agentMail}) {
+  /// `agentUid` est lu directement sur `agency` : chaque résultat de
+  /// recherche représente déjà une personne précise (agent ou agence),
+  /// cf. FirestoreAgencyRepository.searchByEmail.
+  GeranceRef? refFor(Agency agency) {
     if (agency.id.isEmpty) return null;
     return GeranceRef(
       geranceId: agency.id,
       serviceType: serviceType,
-      agentMail: agentMail,
+      agentUid:
+          agency.syndic?.agents.isNotEmpty == true
+              ? agency.syndic!.agents.first.uid
+              : null,
     );
   }
 }
