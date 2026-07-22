@@ -7,7 +7,11 @@ import 'package:konodal/core/utils/text_formatting.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/custom_textfield_widget.dart';
+import 'package:konodal/vues/widget_view/components/my_dropdown_menu.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
+import 'package:konodal/vues/widget_view/components/thumbnail_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,6 +46,7 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
   bool showAllFilters = false;
   bool removeImage = false;
   bool _isSubmitting = false;
+  late List<String> _thumbnails;
   late List<String> labelsCat;
 
   final ValueNotifier<double> priceNotifier = ValueNotifier<double>(0.0);
@@ -60,6 +65,7 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
     desc = TextEditingController(text: widget.post.description);
     price = TextEditingController(text: widget.post.price.toString());
     imagePath = widget.post.pathImage ?? "";
+    _thumbnails = List.of(widget.post.thumbnails ?? []);
     anonymPost = widget.post.hideUser;
     feesNotifier.value = priceNotifier.value * 0.95;
 
@@ -132,156 +138,71 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                           Colors.black87, SizeFont.h2.size),
                     ],
                   ),
+                  const SizedBox(height: 15),
+
+                  /// **Catégorie**
+                  MyDropDownMenu(
+                    width,
+                    "Catégorie",
+                    "Choisir une catégorie",
+                    false,
+                    items: labelsCat,
+                    initialValue: categorie,
+                    onValueChanged: (String value) {
+                      setState(() => categorie = value);
+                    },
+                  ),
+
+                  /// **Titre**
+                  CustomTextFieldWidget(
+                    label: "Titre",
+                    text: "Saisissez le titre de votre post",
+                    controller: title,
+                    isEditable: true,
+                    minLines: 1,
+                    maxLines: 1,
+                  ),
+
+                  /// **Description**
+                  CustomTextFieldWidget(
+                    label: "Description",
+                    text: "Saisissez une description",
+                    controller: desc,
+                    isEditable: true,
+                    minLines: 4,
+                    maxLines: 4,
+                  ),
+
+                  /// **Prix**
+                  CustomTextFieldWidget(
+                    label: "Prix",
+                    text: "0",
+                    controller: price,
+                    isEditable: true,
+                    minLines: 1,
+                    maxLines: 1,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly
+                    ],
+                    suffixText: "€",
+                  ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 20, bottom: 20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        DropdownButtonFormField<String>(
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
-                            decoration: InputDecoration(
-                              isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 5),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            value: categorie,
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                categorie = newValue;
-                              });
-                            },
-                            items: labelsCat
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Text(
-                                  value,
-                                  style: TextStyle(
-                                    fontSize: SizeFont.h3.size,
-                                  ),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15),
-                          child: Row(
-                            children: [
-                              MyTextStyle.lotName(
-                                  "Titre : ", Colors.black87, SizeFont.h3.size),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: TextField(
-                                  controller: title,
-                                  maxLines: 1,
-                                  decoration: const InputDecoration.collapsed(
-                                      hintText:
-                                          "Saisissez le titre de votre post"),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Divider(),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              MyTextStyle.lotName("Description : ",
-                                  Colors.black87, SizeFont.h3.size),
-                              const SizedBox(width: 15),
-                              Expanded(
-                                child: TextField(
-                                  controller: desc,
-                                  maxLines: 4,
-                                  decoration: const InputDecoration.collapsed(
-                                      hintText: "Saisissez une description"),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 15, bottom: 15),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              MyTextStyle.lotName(
-                                  "Prix : ", Colors.black87, SizeFont.h3.size),
-                              const SizedBox(width: 15),
-                              Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 0),
-                                      width: width / 3,
-                                      height: 40,
-                                      child: TextField(
-                                        controller: price,
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: <TextInputFormatter>[
-                                          FilteringTextInputFormatter.digitsOnly
-                                        ],
-                                        textAlign: TextAlign.right,
-                                        decoration: InputDecoration(
-                                          hintText: "0",
-                                          border:
-                                              const OutlineInputBorder(), // Adds a border to the TextField
-                                          focusedBorder: OutlineInputBorder(
-                                            borderSide: BorderSide(
-                                                color: Theme.of(context)
-                                                    .primaryColor),
-                                          ),
-                                          enabledBorder:
-                                              const OutlineInputBorder(
-                                            borderSide:
-                                                BorderSide(color: Colors.grey),
-                                          ),
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                  vertical: 5, horizontal: 10),
-                                        ),
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20),
-                                      child: MyTextStyle.lotDesc(
-                                          "€",
-                                          SizeFont.h3.size,
-                                          FontStyle.normal,
-                                          FontWeight.bold),
-                                    ),
-                                  ],
-                                ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: ValueListenableBuilder<double>(
-                            valueListenable: feesNotifier,
-                            builder: (context, fees, child) {
-                              if (priceNotifier.value == 0) {
-                                return const SizedBox
-                                    .shrink(); // Returns an empty widget if price is 0
-                              }
-                              return MyTextStyle.lotDesc(
-                                "*Pour ${priceNotifier.value.toStringAsFixed(2)}€, vous recevrez sur votre compte Kasa ${fees.toStringAsFixed(2)}€",
-                                SizeFont.para.size,
-                                FontStyle.italic,
-                                FontWeight.normal,
-                              );
-                            },
-                          ),
-                        ),
-                        const Divider(),
-                      ],
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: ValueListenableBuilder<double>(
+                      valueListenable: feesNotifier,
+                      builder: (context, fees, child) {
+                        if (priceNotifier.value == 0) {
+                          return const SizedBox
+                              .shrink(); // Returns an empty widget if price is 0
+                        }
+                        return MyTextStyle.lotDesc(
+                          "*Pour ${priceNotifier.value.toStringAsFixed(2)}€, vous recevrez sur votre compte Kasa ${fees.toStringAsFixed(2)}€",
+                          SizeFont.para.size,
+                          FontStyle.italic,
+                          FontWeight.normal,
+                        );
+                      },
                     ),
                   ),
                   if (imagePath != null &&
@@ -341,46 +262,66 @@ class ModifyAnnonceFormState extends ConsumerState<ModifyAnnonceForm> {
                         ),
                       ],
                     ),
-                  const SizedBox(height: 30),
-                  const Divider(),
-                  const SizedBox(height: 30),
-                  ElevatedButton(
-                    onPressed: _isSubmitting
-                        ? null
-                        : () async {
-                            setState(() => _isSubmitting = true);
-                            try {
-                              await SubmitPostController.updatePost(
-                                  subtype: categorie,
-                                  like: widget.post.like,
-                                  uid: widget.uid,
-                                  selectedLabel: widget.post.type,
-                                  idPost: widget.post.id,
-                                  imagePath: imagePath!,
-                                  title: capitalizeFirstLetter(title.text),
-                                  desc: capitalizeFirstLetter(desc.text),
-                                  anonymPost: anonymPost,
-                                  docRes: widget.post.refResidence,
-                                  price: int.parse(price.text));
-                            } catch (e) {
-                              if (!context.mounted) return;
-                              setState(() => _isSubmitting = false);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  backgroundColor: Colors.red,
-                                  content: Text(
-                                      "Erreur lors de la modification : $e"),
-                                ),
-                              );
-                              return;
-                            }
-                            if (!context.mounted) return;
-                            Navigator.pop(context);
-                          },
-                    child: MyTextStyle.lotName("Modifier",
-                        Theme.of(context).primaryColor, SizeFont.h3.size),
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: MyTextStyle.lotName("Photos supplémentaires (max 3) :",
+                        Colors.black87, SizeFont.h3.size),
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 10),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: ThumbnailPicker(
+                      initialThumbnails: _thumbnails,
+                      residence: widget.residence,
+                      folderName: "${widget.post.type}/${widget.post.id}",
+                      onChanged: (updated) => _thumbnails = updated,
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  Center(
+                    child: ButtonAdd(
+                      color: Theme.of(context).primaryColor,
+                      text: "Modifier",
+                      horizontal: 20,
+                      vertical: 5,
+                      size: SizeFont.h2.size,
+                      function: _isSubmitting
+                          ? null
+                          : () async {
+                              setState(() => _isSubmitting = true);
+                              try {
+                                await SubmitPostController.updatePost(
+                                    subtype: categorie,
+                                    like: widget.post.like,
+                                    uid: widget.uid,
+                                    selectedLabel: widget.post.type,
+                                    idPost: widget.post.id,
+                                    imagePath: imagePath!,
+                                    title: capitalizeFirstLetter(title.text),
+                                    desc: capitalizeFirstLetter(desc.text),
+                                    anonymPost: anonymPost,
+                                    docRes: widget.post.refResidence,
+                                    price: int.parse(price.text),
+                                    thumbnails: _thumbnails);
+                              } catch (e) {
+                                if (!context.mounted) return;
+                                setState(() => _isSubmitting = false);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    backgroundColor: Colors.red,
+                                    content: Text(
+                                        "Erreur lors de la modification : $e"),
+                                  ),
+                                );
+                                return;
+                              }
+                              if (!context.mounted) return;
+                              Navigator.pop(context);
+                            },
+                    ),
+                  ),
+                  const SizedBox(height: 50),
                 ],
               ),
             ),

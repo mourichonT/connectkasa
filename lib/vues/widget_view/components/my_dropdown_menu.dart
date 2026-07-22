@@ -14,13 +14,18 @@ class MyDropDownMenu extends StatefulWidget {
   final double? height;
   final List<String> items;
   final Function(String) onValueChanged;
+  // Valeur déjà sélectionnée à afficher au premier rendu (ex: catégorie
+  // existante d'une annonce en modification) - hintText reste le texte de
+  // repli quand rien n'est présélectionné, comme avant cet ajout.
+  final String? initialValue;
 
   const MyDropDownMenu(this.width, this.label, this.hintText, this.inverseColor,
       {super.key,
       this.preferedLot,
       required this.items,
       required this.onValueChanged,
-      this.height});
+      this.height,
+      this.initialValue});
 
   @override
   State<MyDropDownMenu> createState() => MyDropDownMenuState();
@@ -32,7 +37,7 @@ class MyDropDownMenuState extends State<MyDropDownMenu> {
   @override
   void initState() {
     super.initState();
-    selectedValue = widget.hintText; // Aucune sélection par défaut
+    selectedValue = widget.initialValue ?? widget.hintText;
   }
 
   @override

@@ -13,6 +13,7 @@ import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/models/pages_models/user.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
+import 'package:konodal/vues/widget_view/components/thumbnail_row.dart';
 import 'package:konodal/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:konodal/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
@@ -248,6 +249,14 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                             15,
                           ),
                         ),
+                        if ((widget.post.thumbnails ?? []).isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(
+                                left: 20, right: 20, bottom: 20),
+                            child: ThumbnailRow(
+                                thumbnails: widget.post.thumbnails!,
+                                size: 90),
+                          ),
                       ],
                     ),
                     const Divider(),

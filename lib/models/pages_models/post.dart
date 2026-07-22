@@ -28,6 +28,10 @@ class Post {
   List<String>? participants;
   List<String>? eventType;
   int? price;
+  // Vignettes secondaires d'une annonce (max 3, cf. add_annonceform.dart/
+  // modify_annonceform.dart) - pathImage reste l'image principale, ce champ
+  // ne concerne que le type "annonces".
+  List<String>? thumbnails;
   PostStyle? style;
   String? prestaName;
   // Id (business, pas doc Firestore) du post "events" que ce compte-rendu
@@ -74,6 +78,7 @@ class Post {
       this.participants = const [],
       this.eventType = const [],
       this.price = 0,
+      this.thumbnails = const [],
       this.style,
       this.prestaName,
       this.linkedEventId,
@@ -209,6 +214,16 @@ class Post {
       }
     }
 
+    List<dynamic>? thumbnailsList = annonce['thumbnails'];
+    List<String> convertedThumbnails = [];
+    if (thumbnailsList != null) {
+      for (var thumbnail in thumbnailsList) {
+        if (thumbnail is String) {
+          convertedThumbnails.add(thumbnail);
+        }
+      }
+    }
+
     return Post(
       id: map['id'] ?? "",
       description: map['description'] ?? "",
@@ -248,6 +263,7 @@ class Post {
       participants: convertedParticipantsList,
       eventType: convertedEventTyeList,
       price: annonce['price'] ?? map['price'] ?? 0,
+      thumbnails: convertedThumbnails,
       // Nouveau format : style imbriqué. Ancien format (documents déjà en
       // base avant ce refactor) : champs à plat directement sur le post -
       // on les relit tels quels, sans migration de données nécessaire.
@@ -286,6 +302,8 @@ class Post {
     final annonce = {
       if ((subtype ?? '').isNotEmpty) 'subType': subtype,
       if (price != null && price != 0) 'price': price,
+      if (thumbnails != null && thumbnails!.isNotEmpty)
+        'thumbnails': thumbnails,
     };
     final dates = {
       'creationDate': creationDate,
@@ -364,6 +382,8 @@ class Post {
 
     setOrClear('annonce.subType', subtype, (subtype ?? '').isEmpty);
     setOrClear('annonce.price', price, price == null || price == 0);
+    setOrClear('annonce.thumbnails', thumbnails,
+        thumbnails == null || thumbnails!.isEmpty);
 
     return map;
   }

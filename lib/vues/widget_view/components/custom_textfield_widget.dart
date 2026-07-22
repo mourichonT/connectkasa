@@ -1,6 +1,7 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class CustomTextFieldWidget extends StatelessWidget {
   final String? label;
@@ -18,6 +19,7 @@ class CustomTextFieldWidget extends StatelessWidget {
   final Function(String value)? onChanged;
   final TextInputType? keyboardType;
   final String? suffixText;
+  final List<TextInputFormatter>? inputFormatters;
 
   const CustomTextFieldWidget({
     super.key,
@@ -36,6 +38,7 @@ class CustomTextFieldWidget extends StatelessWidget {
     this.onChanged,
     this.keyboardType,
     this.suffixText,
+    this.inputFormatters,
   });
 
   @override
@@ -71,6 +74,7 @@ class CustomTextFieldWidget extends StatelessWidget {
                 keyboardType: keyboardType ?? TextInputType.text,
                 controller: controller,
                 focusNode: focusNode,
+                inputFormatters: inputFormatters,
                 readOnly: isReadOnlyTapField,
                 onTap: pickDate,
                 textAlign:

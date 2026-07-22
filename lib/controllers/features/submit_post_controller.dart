@@ -30,6 +30,7 @@ class SubmitPostController {
     List<String>? eventType,
     Timestamp? eventDate,
     String? prestaName,
+    List<String>? thumbnails,
   }) {
     return Post(
       id: idPost,
@@ -55,6 +56,7 @@ class SubmitPostController {
       style: style ?? PostStyle(),
       eventDate: eventDate,
       prestaName: prestaName,
+      thumbnails: thumbnails ?? [],
     );
   }
 
@@ -77,7 +79,8 @@ class SubmitPostController {
       List<String>? participants,
       List<String>? eventType,
       Timestamp? eventDate,
-      String? prestaName}) async {
+      String? prestaName,
+      List<String>? thumbnails}) async {
     IPostRepository dataBasesPostServices = FirestorePostRepository();
 
     final newPost = _buildPost(
@@ -100,6 +103,7 @@ class SubmitPostController {
       eventType: eventType,
       eventDate: eventDate,
       prestaName: prestaName,
+      thumbnails: thumbnails,
     );
 
     await dataBasesPostServices
@@ -263,7 +267,8 @@ class SubmitPostController {
       List<String>? participants,
       List<String>? eventType,
       PostStyle? style,
-      String? prestaName}) async {
+      String? prestaName,
+      List<String>? thumbnails}) async {
     IPostRepository dataBasesPostServices = FirestorePostRepository();
 
     // Créer un nouvel objet Post
@@ -289,7 +294,8 @@ class SubmitPostController {
         eventType: eventType ?? [],
         style: style ?? PostStyle(),
         declaredDate: declaredDate,
-        prestaName: prestaName);
+        prestaName: prestaName,
+        thumbnails: thumbnails ?? []);
 
     // Appeler la méthode updatePost pour mettre à jour le post
     await dataBasesPostServices
