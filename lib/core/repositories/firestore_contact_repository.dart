@@ -34,12 +34,28 @@ class FirestoreContactRepository implements IContactRepository {
   Future<Result<List<Contact>>> getContactsByResidence(
       String residenceId) async {
     try {
-      final querySnapshot = await _contacts
-          .where('residencesIds', arrayContains: residenceId)
-          .get();
-      final contacts = querySnapshot.docs
-          .map((docSnapshot) => Contact.fromJson(docSnapshot.data()))
-          .toList();
+      final residenceSnapshot =
+          await _firestore.collection("residences").doc(residenceId).get();
+      final contactRefs =
+          (residenceSnapshot.data()?['contactRefs'] as Map<String, dynamic>?) ??
+              {};
+      final contactIds = contactRefs.keys.toList();
+      if (contactIds.isEmpty) {
+        return const Result.success([]);
+      }
+
+      // whereIn (documentId) est limité à 30 éléments par requête - on
+      // découpe par lots pour les résidences avec beaucoup de contacts liés.
+      final contacts = <Contact>[];
+      for (var i = 0; i < contactIds.length; i += 30) {
+        final batchIds = contactIds.sublist(
+            i, i + 30 > contactIds.length ? contactIds.length : i + 30);
+        final querySnapshot = await _contacts
+            .where(FieldPath.documentId, whereIn: batchIds)
+            .get();
+        contacts.addAll(querySnapshot.docs
+            .map((docSnapshot) => Contact.fromJson(docSnapshot.data())));
+      }
       return Result.success(contacts);
     } catch (e) {
       return Result.failure(AppException.from(e));
@@ -66,7 +82,6 @@ class FirestoreContactRepository implements IContactRepository {
   Future<Result<Contact>> createContact(
       String residenceId, Contact contact) async {
     try {
-      contact.residencesIds = [residenceId];
       // Verrouillé : une création côté app ne peut jamais s'auto-approuver
       // (cf. firestore.rules) - seul un Super Admin peut faire passer
       // isApproved à true après revue.
@@ -75,6 +90,9 @@ class FirestoreContactRepository implements IContactRepository {
       final docRef = await _contacts.add(contact.toJson());
       contact.id = docRef.id;
       await docRef.update({'id': contact.id});
+      await _firestore.collection("residences").doc(residenceId).update({
+        'contactRefs.${docRef.id}': true,
+      });
 
       return Result.success(contact);
     } catch (e) {
@@ -101,8 +119,8 @@ class FirestoreContactRepository implements IContactRepository {
   Future<Result<void>> linkResidence(
       String contactId, String residenceId) async {
     try {
-      await _contacts.doc(contactId).update({
-        'residencesIds': FieldValue.arrayUnion([residenceId]),
+      await _firestore.collection("residences").doc(residenceId).update({
+        'contactRefs.$contactId': true,
       });
       return const Result.success(null);
     } catch (e) {
@@ -114,10 +132,11 @@ class FirestoreContactRepository implements IContactRepository {
   Future<Result<void>> unlinkResidence(
       String contactId, String residenceId) async {
     try {
-      // arrayRemove, jamais un delete : le contact reste dans l'annuaire
-      // partagé même si residencesIds devient vide (cf. IContactRepository).
-      await _contacts.doc(contactId).update({
-        'residencesIds': FieldValue.arrayRemove([residenceId]),
+      // Efface la clé, jamais un delete du contact : il reste dans
+      // l'annuaire partagé même si plus aucune résidence ne le référence
+      // (cf. IContactRepository).
+      await _firestore.collection("residences").doc(residenceId).update({
+        'contactRefs.$contactId': FieldValue.delete(),
       });
       return const Result.success(null);
     } catch (e) {

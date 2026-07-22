@@ -10,10 +10,6 @@ class Contact {
   // numéro/rue/ville/code postal éparpillés) - cf. address.dart.
   Address address;
   String? web;
-  // Résidences auxquelles ce contact est rattaché (collection racine
-  // "contacts", partagée entre résidences - cf. IContactRepository). Vide
-  // pour emergencyContactsFr (non scopé résidence).
-  List<String> residencesIds;
   // Ids d'autres contacts racine détectés comme doublons probables (même
   // nameNormalized, résidences source différentes) au moment de la
   // migration residences/*/contacts/* -> contacts/* - jamais fusionnés
@@ -22,11 +18,12 @@ class Contact {
   // Un contact partagé ne doit jamais être modifiable par un CS member une
   // fois créé (l'édition impacterait silencieusement toutes les résidences
   // qui le référencent) : seule la création (isApproved: false par défaut)
-  // et le rattachement/détachement (residencesIds) restent possibles côté
-  // app - toute correction de champ passe par une validation manuelle d'un
-  // Super Admin (backoffice web), qui repasse isApproved à true. Même
-  // logique verrouillée que User.isApproved / lot isApprovedLot - cf.
-  // firestore.rules.
+  // reste possible côté app - le rattachement/détachement à une résidence se
+  // fait désormais sur residences/{id}.contactRefs (pas sur ce document, cf.
+  // IContactRepository.linkResidence/unlinkResidence), et toute correction
+  // de champ passe par une validation manuelle d'un Super Admin (backoffice
+  // web), qui repasse isApproved à true. Même logique verrouillée que
+  // User.isApproved / lot isApprovedLot - cf. firestore.rules.
   bool isApproved;
 
   Contact({
@@ -37,11 +34,9 @@ class Contact {
     Address? address,
     this.mail,
     this.web,
-    List<String>? residencesIds,
     List<String>? likelyDuplicateIds,
     this.isApproved = false,
   })  : address = address ?? Address(),
-        residencesIds = residencesIds ?? [],
         likelyDuplicateIds = likelyDuplicateIds ?? [];
 
   factory Contact.fromJson(Map<String, dynamic> json) {
@@ -68,7 +63,6 @@ class Contact {
       mail: json['mail'],
       address: address,
       web: json['web'],
-      residencesIds: (json['residencesIds'] as List?)?.cast<String>() ?? [],
       likelyDuplicateIds:
           (json['likelyDuplicateIds'] as List?)?.cast<String>() ?? [],
       // Absent sur emergencyContactsFr (jamais scopé résidence, pas soumis
@@ -87,7 +81,6 @@ class Contact {
       'mail': mail,
       'address': address.toJson(),
       'web': web,
-      'residencesIds': residencesIds,
       // Dérivé de 'name' à chaque écriture (jamais un paramètre constructeur
       // séparé, pour ne jamais désynchroniser des deux) : clé de
       // rapprochement insensible à la casse utilisée par
