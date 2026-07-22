@@ -146,6 +146,19 @@ service cloud.firestore {
         isGeranceLocativeAgent(lot.geranceRef.geranceId);
     }
 
+    // users/{uid}/lots/{lotId}/documents : residenceId résolu depuis le lot
+    // DESTINATAIRE {uid} (chemin de la requête, jamais resource.data du
+    // document /documents/{docId} lui-même) - safe pour une requête *list*,
+    // contrairement à users/{uid}/lots où ce même besoin (residenceId
+    // inconnu à l'avance) exige un where() côté client (cf. commentaire
+    // dédié sur cette collection, backoffice web).
+    function canAccessRecipientLotDocuments(uid, lotId) {
+      let recipientLot = get(/databases/$(database)/documents/users/$(uid)/lots/$(lotId)).data;
+      return isCsMember(recipientLot.residenceId) ||
+        isProfessionnelResidence(recipientLot.residenceId) ||
+        isProfessionnelLot(recipientLot.residenceId, lotId);
+    }
+
     // ---------- users ----------
     match /users/{uid} {
       // Recherche par email/refApp (ajout locataire/garant), affichage
@@ -215,8 +228,12 @@ service cloud.firestore {
         allow delete: if isOwner(uid) || isCsMember(resource.data.residenceId) || isSuperAdmin();
 
         match /documents/{docId} {
+          // Un seul get() sur le lot du DESTINATAIRE {uid} (chemin connu à
+          // l'avance depuis les segments de la requête, jamais depuis
+          // resource.data) - donc, contrairement à users/{uid}/lots
+          // lui-même, aucun souci pour une requête *list* ici.
           allow read: if isOwner(uid) || isSharedTenantDoc(uid) || isSuperAdmin() ||
-            isCsMember(get(/databases/$(database)/documents/users/$(uid)/lots/$(lotId)).data.residenceId);
+            canAccessRecipientLotDocuments(uid, lotId);
           // isLotOwner résout residenceId depuis le lot du PROPRIÉTAIRE
           // AGISSANT (request.auth.uid), pas celui du destinataire {uid} :
           // un propriétaire doit pouvoir nettoyer la copie d'un locataire
