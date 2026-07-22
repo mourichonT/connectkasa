@@ -1,8 +1,10 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/expandable_description.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class EventTileComp extends StatelessWidget {
   final Post post;
@@ -60,8 +62,13 @@ class EventTileComp extends StatelessWidget {
                       Colors.black87, SizeFont.h3.size),
                   MyTextStyle.lotDesc(
                       post.title, SizeFont.h3.size, FontStyle.normal),
-                  MyTextStyle.annonceDesc(
-                      post.description, SizeFont.h3.size, 2),
+                  ExpandableDescription(
+                    text: post.description,
+                    style: GoogleFonts.roboto(
+                      fontSize: SizeFont.h3.size,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
                 ],
               ),
             )

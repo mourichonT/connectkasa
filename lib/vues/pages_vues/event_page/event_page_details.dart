@@ -38,8 +38,6 @@ class EventPageDetails extends ConsumerStatefulWidget {
 }
 
 class EventPageDetailsState extends ConsumerState<EventPageDetails> {
-  bool alreadyParticipated = false;
-  int userParticipatedCount = 0;
   final IPostRepository _postServices = FirestorePostRepository();
   // Non-null seulement si cette intervention est reliée à une déclaration
   // (sinistre/incivilité) - jamais requis, d'où le CTA "Voir la déclaration
@@ -49,8 +47,6 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
   @override
   void initState() {
     super.initState();
-    alreadyParticipated = widget.post.participants!.contains(widget.uid);
-    userParticipatedCount = widget.post.participants!.length;
     final linkedSinistreId = widget.post.linkedSinistreId;
     if (linkedSinistreId != null && linkedSinistreId.isNotEmpty) {
       _linkedSinistreFuture = _postServices
@@ -122,9 +118,22 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
                                                 widget.scrollController)))
                                 : Navigator.pop(context);
                           },
-                          icon: Icon(
-                            Icons.arrow_back_ios,
-                            color: Colors.grey.withValues(alpha: 0.20),
+                          // Un gris à 20% d'opacité sans fond dessous devient
+                          // invisible selon la luminosité de la photo -
+                          // scrim sombre derrière une icône blanche pleine,
+                          // seule combinaison garantissant le contraste quel
+                          // que soit le fond.
+                          icon: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.black.withValues(alpha: 0.35),
+                            ),
+                            child: const Icon(
+                              Icons.arrow_back_ios,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                           ),
                         ),
                       ]),

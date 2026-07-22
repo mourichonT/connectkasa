@@ -3,10 +3,12 @@ import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
+import 'package:konodal/vues/widget_view/components/expandable_description.dart';
 import 'package:konodal/vues/widget_view/components/feed_video_post.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SignalementTile extends StatelessWidget {
   final Post post;
@@ -91,7 +93,7 @@ class SignalementTile extends StatelessWidget {
         ),
         Expanded(
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 15),
+            padding: const EdgeInsets.only(top: 10, left: 15, right: 15),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -118,9 +120,22 @@ class SignalementTile extends StatelessWidget {
                 const SizedBox(
                   height: 15,
                 ),
-                Flexible(
-                    child: MyTextStyle.annonceDesc(
-                        post.description, SizeFont.h3.size, 3)),
+                // Expanded + SingleChildScrollView plutôt que Flexible seul :
+                // SignalementTile vit dans un FlutterCarousel à hauteur
+                // fixe - si le titre/la localisation prennent plus de place
+                // que prévu (2 lignes, texte long...), la description
+                // défile dans l'espace qui reste au lieu de faire déborder
+                // toute la tuile (RenderFlex overflow).
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: ExpandableDescription(
+                        text: post.description,
+                        style: GoogleFonts.roboto(
+                          fontSize: SizeFont.h3.size,
+                          fontStyle: FontStyle.italic,
+                        )),
+                  ),
+                ),
                 //const SizedBox(height: 10),
 
                 //SignalementsCountController(post: post, postCount: postCount),

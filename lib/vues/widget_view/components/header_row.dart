@@ -1,4 +1,5 @@
 import 'package:konodal/controllers/features/icon_modify_or_delette.dart';
+import 'package:konodal/models/enum/event_type.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/lot.dart';
@@ -49,6 +50,14 @@ class CustomHeaderRow extends StatelessWidget {
     return '';
   }
 
+  // Un événement participatif (EventType.evenement) n'a pas de workflow
+  // d'intervention (pas de prestataire à programmer/reporter) : le badge
+  // Programmé/Reporté/Terminé n'a de sens que pour une intervention
+  // (EventType.prestation).
+  bool get _isParticipativeEvent =>
+      post.type == "events" &&
+      (post.eventType?.contains(EventType.evenement.value) ?? false);
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -61,9 +70,12 @@ class CustomHeaderRow extends StatelessWidget {
         children: [
           MyTextStyle.lotName(getType(post), Colors.black87, SizeFont.h3.size),
           Spacer(),
-          MyTextStyle.statuColor(
-              post.type == "events" ? _eventStatusLabel(post) : post.statut!,
-              colorStatut),
+          Visibility(
+            visible: !_isParticipativeEvent,
+            child: MyTextStyle.statuColor(
+                post.type == "events" ? _eventStatusLabel(post) : post.statut!,
+                colorStatut),
+          ),
           Visibility(
               visible: isCsMember,
               child: iconModifyOrDelette(post, lot, context, updatePostsList)),

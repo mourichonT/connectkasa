@@ -7,6 +7,7 @@ import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/pages_vues/event_page/event_page_details.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
 import 'package:konodal/vues/widget_view/components/comment_button.dart';
+import 'package:konodal/vues/widget_view/components/expandable_description.dart';
 import 'package:konodal/vues/widget_view/components/header_row.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:konodal/vues/widget_view/components/like_button_post.dart';
@@ -14,6 +15,7 @@ import 'package:konodal/vues/widget_view/components/rounded_card.dart';
 import 'package:konodal/vues/widget_view/components/share_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Affiche un post de type "rapport" (compte-rendu prestataire, créé via le
 /// lien de partage - create_shared_rapport, functions_python/main.py). Basé
@@ -136,8 +138,13 @@ class _ReportWidgetState extends State<ReportWidget> {
                           MyTextStyle.lotName(widget.post.title,
                               Colors.black87, SizeFont.h2.size),
                           const SizedBox(height: 10),
-                          MyTextStyle.annonceDesc(
-                              widget.post.description, SizeFont.h3.size, 6),
+                          ExpandableDescription(
+                            text: widget.post.description,
+                            style: GoogleFonts.roboto(
+                              fontSize: SizeFont.h3.size,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
                         ],
                       ),
                     ),

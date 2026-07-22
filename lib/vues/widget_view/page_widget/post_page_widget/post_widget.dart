@@ -96,6 +96,12 @@ class PostWidgetState extends State<PostWidget> {
                     children: [
                       FlutterCarousel(
                         options: FlutterCarouselOptions(
+                          // Hauteur fixe explicite (au lieu du ratio/hauteur
+                          // par défaut du package) : la description passant
+                          // à 5 lignes + lien "Voir plus" (ExpandableDescription)
+                          // ne tenait plus dans la hauteur par défaut,
+                          // provoquant un RenderFlex overflow sur SignalementTile.
+                          height: 480,
                           viewportFraction: 1.0,
                           pageSnapping: true,
                           showIndicator: true,

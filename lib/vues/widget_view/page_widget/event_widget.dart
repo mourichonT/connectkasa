@@ -11,11 +11,13 @@ import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/models/pages_models/user.dart';
 import 'package:konodal/vues/pages_vues/event_page/event_page_details.dart';
 import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
+import 'package:konodal/vues/widget_view/components/expandable_description.dart';
 import 'package:konodal/vues/widget_view/components/header_row.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:konodal/vues/widget_view/components/rounded_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class EventWidget extends StatefulWidget {
   final Lot lot;
@@ -138,6 +140,27 @@ class _EventWidgetState extends State<EventWidget> {
                 ],
               ),
             ),
+            // En dehors de l'InkWell ci-dessus (pas dans buildListTile) :
+            // imbriquer le bouton "Participer" dans la zone tappable qui
+            // ouvre les détails faisait parfois gagner l'arène de gestes au
+            // tap parent, ouvrant EventPageDetails avec un post relu AVANT
+            // que l'écriture de participation n'ait été prise en compte -
+            // d'où une participation "perdue" une fois sur le détail.
+            Visibility(
+              visible: widget.post.eventType!
+                  .contains(EventType.evenement.value),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: PartipedTile(
+                  sizeFont: SizeFont.h3.size,
+                  post: widget.post,
+                  residenceSelected: widget.residenceSelected,
+                  uid: widget.uid,
+                  space: 0.5,
+                  number: 5,
+                ),
+              ),
+            ),
             if (_linkedSinistreFuture != null)
               FutureBuilder<Post?>(
                 future: _linkedSinistreFuture,
@@ -183,6 +206,16 @@ class _EventWidgetState extends State<EventWidget> {
                 widget.colorStatut)
           ],
         ),
+    );
+  }
+
+  Widget _buildDescription() {
+    return ExpandableDescription(
+      text: widget.post.description,
+      style: GoogleFonts.roboto(
+        fontSize: SizeFont.h3.size,
+        fontStyle: FontStyle.italic,
+      ),
     );
   }
 
@@ -244,24 +277,8 @@ class _EventWidgetState extends State<EventWidget> {
                 MyTextStyle.lotName(
                     widget.post.title, Colors.black87, SizeFont.h2.size),
                 const SizedBox(height: 10),
-                SizedBox(
-                  height: 50,
-                  child: MyTextStyle.annonceDesc(
-                      widget.post.description, SizeFont.h3.size, 3),
-                ),
+                _buildDescription(),
                 const SizedBox(height: 10),
-                Visibility(
-                  visible: widget.post.eventType!
-                      .contains(EventType.evenement.value),
-                  child: PartipedTile(
-                    sizeFont: SizeFont.h3.size,
-                    post: widget.post,
-                    residenceSelected: widget.residenceSelected,
-                    uid: widget.uid,
-                    space: 0.5,
-                    number: 5,
-                  ),
-                ),
                 Visibility(
                   visible: widget.post.eventType!
                       .contains(EventType.prestation.value),

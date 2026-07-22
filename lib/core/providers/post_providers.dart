@@ -195,3 +195,13 @@ final userPostsByResidenceProvider = StreamProvider.family<List<Post>,
   final repository = ref.watch(postRepositoryProvider);
   return repository.watchPostsByUser(args.residenceId, args.userId);
 });
+
+/// Participants d'un événement (uids), en temps réel - PartipedTile
+/// (EventWidget Homeview ET EventPageDetails) partageaient chacun une copie
+/// locale figée à l'ouverture de l'écran (initState) : participer sur l'un
+/// ne se reflétait jamais sur l'autre sans redémarrer l'app.
+final participantsProvider = StreamProvider.family<List<String>,
+    ({String residenceId, String postId})>((ref, args) {
+  final repository = ref.watch(postRepositoryProvider);
+  return repository.watchParticipants(args.residenceId, args.postId);
+});

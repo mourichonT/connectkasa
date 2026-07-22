@@ -9,7 +9,9 @@ import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/lot.dart';
 import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/expandable_description.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
+import 'package:konodal/vues/widget_view/components/thumbnail_row.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:konodal/vues/widget_view/components/rounded_card.dart';
 import 'package:konodal/vues/pages_vues/annonces_page/annonce_page_details.dart';
@@ -17,6 +19,7 @@ import 'package:konodal/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:konodal/vues/widget_view/components/header_row.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../../models/pages_models/post.dart';
 
 class AnnonceWidget extends StatefulWidget {
@@ -168,76 +171,82 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                                   widget.post.creationDate)
                                             ])),
                                         Flexible(
-                                          child: MyTextStyle.annonceDesc(
-                                              widget.post.description,
-                                              SizeFont.h3.size,
-                                              3),
+                                          child: ExpandableDescription(
+                                            text: widget.post.description,
+                                            style: GoogleFonts.roboto(
+                                              fontSize: SizeFont.h3.size,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
                                         ),
+                                        if ((widget.post.thumbnails ?? [])
+                                            .isNotEmpty) ...[
+                                          const SizedBox(height: 10),
+                                          ThumbnailRow(
+                                              thumbnails:
+                                                  widget.post.thumbnails!),
+                                        ],
                                         const SizedBox(
                                           height: 10,
                                         ),
-                                        Column(
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              mainAxisSize: MainAxisSize.max,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    MyTextStyle.lotDesc(
-                                                      "Prix:",
-                                                      SizeFont.h3.size,
-                                                      FontStyle.italic,
-                                                      FontWeight.w900,
-                                                    ),
-                                                    const SizedBox(
-                                                      width: 5,
-                                                    ),
-                                                    MyTextStyle.lotDesc(
-                                                      widget.post.setPrice(
-                                                          widget.post.price),
-                                                      SizeFont.h3.size,
-                                                      FontStyle.italic,
-                                                      FontWeight.w900,
-                                                    ),
-                                                  ],
-                                                ),
-                                                ButtonAdd(
-                                                  function: () {
-                                                    Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) => ChatPage(
-                                                                message:
-                                                                    "Je vous contact au sujet de votre annonce \"${widget.post.title}\", est-ce toujours possible?",
-                                                                residence: widget
-                                                                    .residenceSelected,
-                                                                idUserFrom:
-                                                                    widget.uid,
-                                                                idUserTo: widget
-                                                                    .post
-                                                                    .user)));
-                                                  },
-                                                  color: Theme.of(context)
-                                                      .primaryColor,
-                                                  icon: Icons.mail,
-                                                  text: "Contacter",
-                                                  horizontal: 10,
-                                                  vertical: 5,
-                                                  size: SizeFont.h3.size,
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        )
                                       ],
                                     )),
                               )
                             ],
                           ),
                         )),
+                  ],
+                ),
+              ),
+              // En dehors de l'InkWell ci-dessus (qui ouvre AnnoncePageDetails
+              // au tap) : le bouton "Contacter" y était imbriqué, risquant de
+              // faire gagner l'arène de gestes au tap parent et d'ouvrir le
+              // détail au lieu d'envoyer le message - même bug déjà corrigé
+              // sur EventWidget/PartipedTile.
+              Padding(
+                padding: const EdgeInsets.only(left: 60, right: 20, bottom: 15),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Row(
+                      children: [
+                        MyTextStyle.lotDesc(
+                          "Prix:",
+                          SizeFont.h3.size,
+                          FontStyle.italic,
+                          FontWeight.w900,
+                        ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        MyTextStyle.lotDesc(
+                          widget.post.setPrice(widget.post.price),
+                          SizeFont.h3.size,
+                          FontStyle.italic,
+                          FontWeight.w900,
+                        ),
+                      ],
+                    ),
+                    ButtonAdd(
+                      function: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => ChatPage(
+                                    message:
+                                        "Je vous contact au sujet de votre annonce \"${widget.post.title}\", est-ce toujours possible?",
+                                    residence: widget.residenceSelected,
+                                    idUserFrom: widget.uid,
+                                    idUserTo: widget.post.user)));
+                      },
+                      color: Theme.of(context).primaryColor,
+                      icon: Icons.mail,
+                      text: "Contacter",
+                      horizontal: 10,
+                      vertical: 5,
+                      size: SizeFont.h3.size,
+                    ),
                   ],
                 ),
               ),

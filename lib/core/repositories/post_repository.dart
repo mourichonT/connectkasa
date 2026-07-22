@@ -134,6 +134,13 @@ abstract interface class IPostRepository {
   /// jamais sans quitter/revenir sur Homeview.
   Stream<List<Post>> watchSignalementsList(String docRes, String postId);
 
+  /// Équivalent temps réel de post.participants - EventWidget (Homeview) et
+  /// EventPageDetails affichaient chacun une copie locale figée au premier
+  /// chargement (StatefulWidget.initState), jamais resynchronisée entre les
+  /// deux écrans ni entre appareils : participer sur l'un ne se reflétait
+  /// pas sur l'autre sans redémarrer l'app.
+  Stream<List<String>> watchParticipants(String docRes, String postId);
+
   Future<Result<List<Post>>> getPostsByUser(
       String residenceId, String userId);
 

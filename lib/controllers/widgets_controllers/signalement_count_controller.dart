@@ -18,14 +18,11 @@ class SignalementsCountController extends StatefulWidget {
 
 class _SignalementsCountControllerState
     extends State<SignalementsCountController> {
-  int _postCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _postCount = widget.postCount;
-  }
-
+  // Lire widget.postCount directement plutôt que le copier une fois dans
+  // initState() : le parent (PostWidget) passe un postCount à jour à
+  // chaque émission de son StreamBuilder de signalements, mais une copie
+  // locale figée à la création de ce State ignorait silencieusement toute
+  // mise à jour ultérieure (pas de didUpdateWidget).
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -33,14 +30,14 @@ class _SignalementsCountControllerState
       child: Row(
         children: [
           const Spacer(),
-          (_postCount > 1)
+          (widget.postCount > 1)
               ? Icon(Icons.notifications,
                   color: Theme.of(context).primaryColor, size: 20)
               : const Icon(Icons.notifications_none, size: 20),
           const SizedBox(
             width: 10,
           ),
-          MyTextStyle.iconText(widget.post.setSignalement(_postCount)),
+          MyTextStyle.iconText(widget.post.setSignalement(widget.postCount)),
         ],
       ),
     );

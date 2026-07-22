@@ -1,14 +1,12 @@
 import 'dart:async';
 
 import 'package:konodal/controllers/features/my_texts_styles.dart';
-import 'package:konodal/core/repositories/post_repository.dart';
 import 'package:konodal/core/repositories/firestore_post_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/pages_vues/post_page/sinistre_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:konodal/core/utils/app_logger.dart';
-import 'package:konodal/vues/widget_view/components/app_loader.dart';
 
 class SinitresTileController extends StatefulWidget {
   final Post post;
@@ -33,131 +31,114 @@ class SinitresTileController extends StatefulWidget {
 
 class SinitresTileControllerState extends State<SinitresTileController> {
   bool showSignalement = false;
-  late Future<List<Post>> _signalementFuture;
-  IPostRepository dbService = FirestorePostRepository();
-  int postCount = 0;
-  void _loadSignalements() {
-    _signalementFuture = dbService
-        .getSignalementsList(widget.residenceId, widget.post.id)
-        .then((result) =>
-            result.when(success: (v) => v, failure: (error) => throw error));
-    _signalementFuture.then((signalements) {
-      if (!mounted) return;
-      setState(() {
-        postCount = signalements.length;
-      });
-    }).catchError((error) {
-      // Gérer les erreurs si nécessaire
-      appLog("Erreur lors du chargement des signalements: $error");
-    });
-  }
+  // Stream plutôt qu'un Future chargé une seule fois à initState : un
+  // nouveau signalement déclaré pendant que cette tuile est déjà affichée
+  // n'apparaissait jamais sans quitter/revenir sur l'écran (même bug que
+  // celui déjà corrigé sur PostWidget/Homeview, cf. watchSignalementsList).
+  late final Stream<List<Post>> _signalementStream;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    // Initialisez post à partir des propriétés du widget
-    _loadSignalements();
+    _signalementStream = FirestorePostRepository()
+        .watchSignalementsList(widget.residenceId, widget.post.id);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-          SinistreTile(widget.post, widget.residenceId, widget.uid,
-              widget.canModify, widget.colorStatut, widget.updatePostsList),
-          if (showSignalement && postCount != 0)
-            Padding(
-                padding: const EdgeInsets.only(left: 25),
-                child: FutureBuilder<List<Post>>(
-                    future: _signalementFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: AppLoader());
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      } else {
-                        List<Post> signalements = snapshot.data!;
-                        postCount = signalements.length;
-                        return ListView.builder(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: const EdgeInsets.symmetric(horizontal: 5),
-                            itemCount: signalements.length,
-                            itemBuilder: (context, index) {
-                              final post = signalements[index];
+    return StreamBuilder<List<Post>>(
+      stream: _signalementStream,
+      builder: (context, snapshot) {
+        final signalements = snapshot.data ?? [];
+        final postCount = signalements.length;
+        return Column(
+          children: [
+            SinistreTile(widget.post, widget.residenceId, widget.uid,
+                widget.canModify, widget.colorStatut, widget.updatePostsList),
+            if (showSignalement && postCount != 0)
+              Padding(
+                  padding: const EdgeInsets.only(left: 25),
+                  child: ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      itemCount: signalements.length,
+                      itemBuilder: (context, index) {
+                        final post = signalements[index];
 
-                              return SinistreTile(
-                                  post,
-                                  widget.residenceId,
-                                  widget.uid,
-                                  widget.canModify,
-                                  widget.colorStatut,
-                                  widget.updatePostsList);
-                            });
-                      }
-                    })),
-          if (postCount != 0)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Expanded(
-                    child: Divider(
-                      thickness: 0.5,
-                      color: Colors.grey[400],
+                        return SinistreTile(
+                            post,
+                            widget.residenceId,
+                            widget.uid,
+                            widget.canModify,
+                            widget.colorStatut,
+                            widget.updatePostsList);
+                      })),
+            if (postCount != 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      child: Divider(
+                        thickness: 0.5,
+                        color: Colors.grey[400],
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          showSignalement = !showSignalement;
-                        });
-                        appLog(showSignalement);
-                      },
-                      child: !showSignalement
-                          ? Row(
-                              children: [
-                                MyTextStyle.postDesc("Voir plus ($postCount)",
-                                    SizeFont.para.size, Colors.black54),
-                                const SizedBox(
-                                  width: 5,
-                                ),
-                                const Icon(
-                                  Icons.keyboard_arrow_down,
-                                  size: 18,
-                                  color: Colors.black54,
-                                )
-                              ],
-                            )
-                          : Row(
-                              children: [
-                                MyTextStyle.postDesc("Réduire",
-                                    SizeFont.para.size, Colors.black54),
-                                const SizedBox(
-                                  width: 5,
-                                ),
-                                const Icon(Icons.keyboard_arrow_up,
-                                    size: 18, color: Colors.black54)
-                              ],
-                            ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            showSignalement = !showSignalement;
+                          });
+                          appLog(showSignalement);
+                        },
+                        child: !showSignalement
+                            ? Row(
+                                children: [
+                                  MyTextStyle.postDesc(
+                                      "Voir plus ($postCount)",
+                                      SizeFont.para.size,
+                                      Colors.black54),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  const Icon(
+                                    Icons.keyboard_arrow_down,
+                                    size: 18,
+                                    color: Colors.black54,
+                                  )
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  MyTextStyle.postDesc("Réduire",
+                                      SizeFont.para.size, Colors.black54),
+                                  const SizedBox(
+                                    width: 5,
+                                  ),
+                                  const Icon(Icons.keyboard_arrow_up,
+                                      size: 18, color: Colors.black54)
+                                ],
+                              ),
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: Divider(
-                      thickness: 0.5,
-                      color: Colors.grey[400],
+                    Expanded(
+                      child: Divider(
+                        thickness: 0.5,
+                        color: Colors.grey[400],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-      ],
+          ],
+        );
+      },
     );
   }
 }

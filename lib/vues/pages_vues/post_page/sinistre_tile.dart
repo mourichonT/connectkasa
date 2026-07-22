@@ -6,6 +6,7 @@ import 'package:konodal/core/repositories/firestore_storage_repository.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/post.dart';
+import 'package:konodal/vues/widget_view/components/expandable_description.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
 import 'package:konodal/vues/widget_view/components/network_video_player.dart';
 import 'package:konodal/vues/pages_vues/annonces_page/annonce_page_details.dart';
@@ -17,6 +18,7 @@ import 'package:konodal/vues/pages_vues/post_page/post_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 // ignore: must_be_immutable
 class SinistreTile extends StatefulWidget {
@@ -54,71 +56,82 @@ class SinistreTileState extends State<SinistreTile> {
     return '';
   }
 
+  void _openDetails(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+          // widget.post est déjà disponible immédiatement (c'est ce qui
+          // affiche cette tuile) - pas besoin d'attendre une requête
+          // Firestore avant d'ouvrir le détail (l'ancien FutureBuilder
+          // bloquait l'ouverture derrière un loader plein écran pour
+          // rien : les deux branches de son résultat affichaient de
+          // toute façon widget.post, jamais la valeur récupérée).
+          // Le rafraîchissement au retour (PopScope) reste inchangé.
+          builder: (context) => PopScope(
+                onPopInvokedWithResult: (didPop, result) async {
+                  Post? postChanges = await dbService
+                      .getUpdatePost(widget.residenceId, widget.post.id)
+                      .then((result) => result.when(
+                          success: (v) => v, failure: (_) => null));
+
+                  if (postChanges != null && mounted) {
+                    setState(() {
+                      widget.post = postChanges;
+                    });
+                  }
+                },
+                child: Builder(builder: (context) {
+                  if (widget.post.type == "sinistres" ||
+                      widget.post.type == "incivilites") {
+                    return PostView(
+                      postOrigin: widget.post,
+                      residence: widget.residenceId,
+                      uid: widget.uid,
+                      postSelected: widget.post,
+                      returnHomePage: false,
+                    );
+                  } else if (widget.post.type == "communication") {
+                    return CommunicationDetails(
+                      uid: widget.uid,
+                      post: widget.post,
+                      residenceId: widget.residenceId,
+                    );
+                  } else {
+                    return AnnoncePageDetails(
+                      returnHomePage: false,
+                      post: widget.post,
+                      uid: widget.uid,
+                      residence: widget.residenceId,
+                      colorStatut: widget.colorStatut,
+                    );
+                  }
+                }),
+              )),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(1.0),
-      child: GestureDetector(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                // widget.post est déjà disponible immédiatement (c'est ce qui
-                // affiche cette tuile) - pas besoin d'attendre une requête
-                // Firestore avant d'ouvrir le détail (l'ancien FutureBuilder
-                // bloquait l'ouverture derrière un loader plein écran pour
-                // rien : les deux branches de son résultat affichaient de
-                // toute façon widget.post, jamais la valeur récupérée).
-                // Le rafraîchissement au retour (PopScope) reste inchangé.
-                builder: (context) => PopScope(
-                      onPopInvokedWithResult: (didPop, result) async {
-                        Post? postChanges = await dbService
-                            .getUpdatePost(widget.residenceId, widget.post.id)
-                            .then((result) => result.when(
-                                success: (v) => v, failure: (_) => null));
-
-                        if (postChanges != null && mounted) {
-                          setState(() {
-                            widget.post = postChanges;
-                          });
-                        }
-                      },
-                      child: Builder(builder: (context) {
-                        if (widget.post.type == "sinistres" ||
-                            widget.post.type == "incivilites") {
-                          return PostView(
-                            postOrigin: widget.post,
-                            residence: widget.residenceId,
-                            uid: widget.uid,
-                            postSelected: widget.post,
-                            returnHomePage: false,
-                          );
-                        } else if (widget.post.type == "communication") {
-                          return CommunicationDetails(
-                            uid: widget.uid,
-                            post: widget.post,
-                            residenceId: widget.residenceId,
-                          );
-                        } else {
-                          return AnnoncePageDetails(
-                            returnHomePage: false,
-                            post: widget.post,
-                            uid: widget.uid,
-                            residence: widget.residenceId,
-                            colorStatut: widget.colorStatut,
-                          );
-                        }
-                      }),
-                    )),
-          );
-        },
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsetsDirectional.symmetric(
-                  horizontal: 10, vertical: 10),
-              width: MediaQuery.of(context).size.width * 0.95,
-              child: Row(
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsetsDirectional.symmetric(
+                horizontal: 10, vertical: 10),
+            width: MediaQuery.of(context).size.width * 0.95,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // GestureDetector limité à la zone image+texte (Expanded) -
+                // les boutons modifier/supprimer ci-dessous restent EN
+                // DEHORS, comme siblings du Row : les y imbriquer risquait
+                // de faire gagner l'arène de gestes au tap parent et
+                // d'ouvrir le détail au lieu de modifier/supprimer.
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => _openDetails(context),
+                    child: Row(
                       children: [
                         if (widget.post.pathImage != "" &&
                             widget.post.pathImage != null &&
@@ -210,10 +223,13 @@ class SinistreTileState extends State<SinistreTile> {
                                 children: [
                                   MyTextStyle.lotName(widget.post.title,
                                       Colors.black87, SizeFont.h3.size),
-                                  MyTextStyle.annonceDesc(
-                                      widget.post.description,
-                                      SizeFont.para.size,
-                                      2),
+                                  ExpandableDescription(
+                                    text: widget.post.description,
+                                    style: GoogleFonts.roboto(
+                                      fontSize: SizeFont.para.size,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
                                   const Divider(),
                                   Row(
                                     mainAxisAlignment:
@@ -235,87 +251,85 @@ class SinistreTileState extends State<SinistreTile> {
                             ],
                           ),
                         ),
-                        if (widget.canModify)
-                          Container(
-                            padding: const EdgeInsets.only(left: 10),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              mainAxisSize: MainAxisSize.max,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                    padding: EdgeInsets.zero,
-                                    onPressed: () async {
-                                      if (widget.post.type == "communication") {
-                                        await Navigator.push(
-                                            context,
-                                            CupertinoPageRoute(
-                                                builder: (context) =>
-                                                    ModifyAskingNeighborsForm(
-                                                      uid: widget.uid,
-                                                      residence:
-                                                          widget.residenceId,
-                                                      post: widget.post,
-                                                    )));
-                                      }
-                                      if (!context.mounted) return;
-
-                                      if (widget.post.type == "sinistres" ||
-                                          widget.post.type == "incivilites") {
-                                        await Navigator.push(
-                                            context,
-                                            CupertinoPageRoute(
-                                                builder: (context) =>
-                                                    ModifyPostForm(
-                                                      uid: widget.uid,
-                                                      residence:
-                                                          widget.residenceId,
-                                                      post: widget.post,
-                                                    )));
-                                      }
-                                      if (!context.mounted) return;
-                                      if (widget.post.type == "annonces") {
-                                        await Navigator.push(
-                                            context,
-                                            CupertinoPageRoute(
-                                                builder: (context) =>
-                                                    ModifyAnnonceForm(
-                                                      uid: widget.uid,
-                                                      residence:
-                                                          widget.residenceId,
-                                                      post: widget.post,
-                                                    )));
-                                      }
-                                      // Rafraîchit la liste au retour du
-                                      // formulaire, sinon la modification
-                                      // n'apparaît pas tant que l'écran
-                                      // n'est pas rechargé.
-                                      if (widget.updatePostsList != null) {
-                                        widget.updatePostsList!();
-                                      }
-                                    },
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      size: 20,
-                                    )),
-                                IconButton(
-                                    padding: EdgeInsets.zero,
-                                    onPressed: () {
-                                      showAlertDialog(
-                                          context, widget.post.title);
-                                    },
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      size: 20,
-                                    )),
-                              ],
-                            ),
-                          )
                       ],
                     ),
+                  ),
+                ),
+                if (widget.canModify)
+                  Container(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.max,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        IconButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () async {
+                              if (widget.post.type == "communication") {
+                                await Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                        builder: (context) =>
+                                            ModifyAskingNeighborsForm(
+                                              uid: widget.uid,
+                                              residence: widget.residenceId,
+                                              post: widget.post,
+                                            )));
+                              }
+                              if (!context.mounted) return;
+
+                              if (widget.post.type == "sinistres" ||
+                                  widget.post.type == "incivilites") {
+                                await Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                        builder: (context) => ModifyPostForm(
+                                              uid: widget.uid,
+                                              residence: widget.residenceId,
+                                              post: widget.post,
+                                            )));
+                              }
+                              if (!context.mounted) return;
+                              if (widget.post.type == "annonces") {
+                                await Navigator.push(
+                                    context,
+                                    CupertinoPageRoute(
+                                        builder: (context) =>
+                                            ModifyAnnonceForm(
+                                              uid: widget.uid,
+                                              residence: widget.residenceId,
+                                              post: widget.post,
+                                            )));
+                              }
+                              // Rafraîchit la liste au retour du
+                              // formulaire, sinon la modification
+                              // n'apparaît pas tant que l'écran
+                              // n'est pas rechargé.
+                              if (widget.updatePostsList != null) {
+                                widget.updatePostsList!();
+                              }
+                            },
+                            icon: const Icon(
+                              Icons.edit,
+                              size: 20,
+                            )),
+                        IconButton(
+                            padding: EdgeInsets.zero,
+                            onPressed: () {
+                              showAlertDialog(context, widget.post.title);
+                            },
+                            icon: const Icon(
+                              Icons.delete,
+                              size: 20,
+                            )),
+                      ],
+                    ),
+                  ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -366,6 +380,9 @@ class SinistreTileState extends State<SinistreTile> {
         .then((result) => result.when(
             success: (_) {}, failure: (error) => throw error));
     await _storageServices.removeFileFromUrl(widget.post.pathImage!);
+    for (final thumbnail in widget.post.thumbnails ?? []) {
+      await _storageServices.removeFileFromUrl(thumbnail);
+    }
     // await _databaseServices.getAllPostsToModify(widget.residenceId);
     widget.updatePostsList!();
     if (!mounted) return;

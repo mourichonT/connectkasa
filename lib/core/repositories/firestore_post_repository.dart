@@ -941,6 +941,28 @@ class FirestorePostRepository implements IPostRepository {
   }
 
   @override
+  Stream<List<String>> watchParticipants(String docRes, String postId) async* {
+    if (docRes.isEmpty || postId.isEmpty) {
+      yield const [];
+      return;
+    }
+    final postQuery = await _firestore
+        .collection("residences")
+        .doc(docRes)
+        .collection("posts")
+        .where("id", isEqualTo: postId)
+        .limit(1)
+        .get();
+    if (postQuery.docs.isEmpty) {
+      yield const [];
+      return;
+    }
+    yield* postQuery.docs.first.reference.snapshots().map((doc) =>
+        (doc.data()?['participants'] as List<dynamic>? ?? [])
+            .cast<String>());
+  }
+
+  @override
   Future<Result<List<Post>>> getPostsByUser(
       String residenceId, String userId) async {
     List<Post> posts = [];
