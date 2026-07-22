@@ -1093,9 +1093,19 @@ def invite_agency_account(req: https_fn.CallableRequest):
     # fiche user (en plus de l'appartenance aux tableaux d'agents de la
     # gérance, qui reste la source de vérité pour les règles Firestore) -
     # remis à True ici pour couvrir le cas d'une réinvitation après
-    # révocation.
+    # révocation. `isApproved` : absent sinon (compte jamais passé par
+    # l'inscription normale), ce qui faisait planter la comparaison
+    # firestore.rules sur users/{uid}.update (accès direct sans garde 'in')
+    # et bloquait toute auto-édition de ces comptes (ex: /profil côté BO).
     db.collection("users").document(uid).set(
-        {"uid": uid, "email": email_address, "accountType": role, "active": True}, merge=True
+        {
+            "uid": uid,
+            "email": email_address,
+            "accountType": role,
+            "active": True,
+            "isApproved": False,
+        },
+        merge=True,
     )
 
     uid_field = AGENT_UID_FIELD_BY_SERVICE[service_type]

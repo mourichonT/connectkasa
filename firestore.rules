@@ -161,8 +161,14 @@ service cloud.firestore {
       // une vraie UI). Les comptes créés avant l'ajout d'accountType n'ont
       // pas ce champ : traité comme 'utilisateur' par défaut des deux côtés
       // de la comparaison, pour ne pas bloquer les mises à jour normales.
+      // Même traitement pour isApproved : un compte agence/agent créé par
+      // invite_agency_account n'a jamais ce champ (absent, pas juste false)
+      // - un accès direct en dot-notation lève une erreur d'évaluation sur
+      // les deux côtés de la comparaison et bloquait AUCUNE auto-édition
+      // (ex: /profil) pour ces comptes, faute de garde 'in'.
       allow update: if isSuperAdmin() || (isOwner(uid) &&
-        request.resource.data.isApproved == resource.data.isApproved &&
+        (('isApproved' in request.resource.data) ? request.resource.data.isApproved : false) ==
+        (('isApproved' in resource.data) ? resource.data.isApproved : false) &&
         (('accountType' in request.resource.data) ? request.resource.data.accountType : 'utilisateur') ==
         (('accountType' in resource.data) ? resource.data.accountType : 'utilisateur'));
       // Suppression gérée par le flux dédié (Auth supprimé d'abord, puis
