@@ -147,6 +147,20 @@ service cloud.firestore {
         isGeranceLocativeAgent(lot.geranceRef.geranceId);
     }
 
+    // Un Professionnel serviceSyndic peut corriger le téléphone d'un
+    // résident dont il gère AU MOINS une résidence (users/{uid}.residencesIds,
+    // déjà dénormalisé pour isResidenceMember) - déroulé sur les 3 premiers
+    // éléments faute de boucle possible sur un tableau dynamique en règles,
+    // limitation assumée (un résident a rarement plus de 2-3 résidences
+    // actives). geranceLocative non couvert ici : ses lots vivent dans une
+    // sous-collection (users/{uid}/lots), pas exposés comme tableau sur ce
+    // document racine.
+    function isProfessionnelForAnyResidence(residenceIds) {
+      return (residenceIds.size() > 0 && isProfessionnelResidence(residenceIds[0])) ||
+        (residenceIds.size() > 1 && isProfessionnelResidence(residenceIds[1])) ||
+        (residenceIds.size() > 2 && isProfessionnelResidence(residenceIds[2]));
+    }
+
     // users/{uid}/lots/{lotId}/documents : residenceId résolu depuis le lot
     // DESTINATAIRE {uid} (chemin de la requête, jamais resource.data du
     // document /documents/{docId} lui-même) - safe pour une requête *list*,
@@ -184,7 +198,15 @@ service cloud.firestore {
         (('isApproved' in request.resource.data) ? request.resource.data.isApproved : false) ==
         (('isApproved' in resource.data) ? resource.data.isApproved : false) &&
         (('accountType' in request.resource.data) ? request.resource.data.accountType : 'utilisateur') ==
-        (('accountType' in resource.data) ? resource.data.accountType : 'utilisateur'));
+        (('accountType' in resource.data) ? resource.data.accountType : 'utilisateur')) ||
+        // Correction du téléphone d'un résident par le professionnel qui
+        // gère (au moins) une de ses résidences (cf. updateUserPhone,
+        // ResidentDetailPage) - jamais le reste de l'identité, réservé
+        // superAdmin (cf. commentaire ci-dessus).
+        (isAgenceOrAgentAccount() &&
+          'residencesIds' in resource.data &&
+          isProfessionnelForAnyResidence(resource.data.residencesIds) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profil']));
       // Suppression gérée par le flux dédié (Auth supprimé d'abord, puis
       // purge des données), jamais par un delete direct depuis le client.
       allow delete: if false;
