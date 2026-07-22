@@ -103,29 +103,32 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
               right: 0,
               child: SizedBox(
                 height: height / 9,
-                child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      IconButton(
-                        onPressed: () async {
-                          widget.returnHomePage
-                              ? Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => MyNavBar(
-                                          uid: widget.uid,
-                                          scrollController:
-                                              widget.scrollController)))
-                              : Navigator.pop(context);
-                        },
-                        icon: const Icon(
-                          Icons.arrow_back_ios,
-                          color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8, bottom: 8),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        IconButton(
+                          onPressed: () async {
+                            widget.returnHomePage
+                                ? Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => MyNavBar(
+                                            uid: widget.uid,
+                                            scrollController:
+                                                widget.scrollController)))
+                                : Navigator.pop(context);
+                          },
+                          icon: Icon(
+                            Icons.arrow_back_ios,
+                            color: Colors.grey.withValues(alpha: 0.20),
+                          ),
                         ),
-                      ),
-                    ]),
+                      ]),
+                ),
               ),
             ),
             Positioned(
