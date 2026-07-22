@@ -458,15 +458,22 @@ service cloud.firestore {
           // doublons sur un post dans Homeview, "Voir plus (N)" sur les
           // tuiles sinistres/incivilités/annonces) - la modération
           // (update/delete) reste réservée aux CS members (+ Super Admin).
-          allow read: if isResidenceMember(residenceId) || isSuperAdmin();
+          // Agence/Agent (isProfessionnelResidence) lisent aussi ce compteur
+          // (badge doublons sur les tuiles Sinistres du BO, useSignalementCount).
+          allow read: if isResidenceMember(residenceId) || isSuperAdmin() ||
+            isProfessionnelResidence(residenceId);
           allow update, delete: if isCsMember(residenceId) || isSuperAdmin();
         }
 
         match /comments/{id} {
           // isSuperAdmin() en lecture/création : le backoffice affiche et
           // répond aux commentaires d'un post (ex: fil sous un sinistre) sans
-          // que ce compte soit résident de la résidence.
-          allow read, create: if isResidenceMember(residenceId) || isSuperAdmin();
+          // que ce compte soit résident de la résidence. Agence/Agent
+          // (isProfessionnelResidence) ont le même besoin - oubliés lors du
+          // premier passage RBAC, même défaut que residences/{id}/mail et
+          // shareTokens.
+          allow read, create: if isResidenceMember(residenceId) || isSuperAdmin() ||
+            isProfessionnelResidence(residenceId);
           // Édition/suppression complète réservée à l'auteur (ou modération) ;
           // mais liker le commentaire de quelqu'un d'autre est aussi un
           // update() Firestore - autorisé séparément à tout résident du
@@ -478,7 +485,8 @@ service cloud.firestore {
           allow delete: if resource.data.user == request.auth.uid || isCsMember(residenceId) || isSuperAdmin();
 
           match /replies/{id} {
-            allow read, create: if isResidenceMember(residenceId) || isSuperAdmin();
+            allow read, create: if isResidenceMember(residenceId) || isSuperAdmin() ||
+              isProfessionnelResidence(residenceId);
             allow update: if resource.data.user == request.auth.uid || isCsMember(residenceId) ||
               isSuperAdmin() ||
               (isResidenceMember(residenceId) &&
