@@ -1007,6 +1007,41 @@ def _require_superadmin(req: https_fn.CallableRequest):
     return db
 
 
+# Un compte "agence" (siège principal) gère ses propres agents (inviter/
+# révoquer) sans passer par un superAdmin - contrairement à "agent", en
+# lecture seule sur ce type d'action côté BO (cf. matrice de droits). Portée
+# strictement limitée à SA PROPRE gérance : appartenance vérifiée via
+# serviceSyndicAgentUids/geranceLocativeAgentUids de la gérance ciblée, pas
+# juste accountType == 'agence' (sinon une agence pourrait gérer les agents
+# d'une AUTRE agence en devinant son geranceId).
+def _require_superadmin_or_own_agence(req: https_fn.CallableRequest, gerance_id: str | None):
+    if req.auth is None:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
+            message="Authentification requise"
+        )
+    db = firestore.client()
+    caller_snap = db.collection("users").document(req.auth.uid).get()
+    caller_data = caller_snap.to_dict() if caller_snap.exists else None
+    account_type = (caller_data or {}).get("accountType")
+
+    if account_type == "superAdmin":
+        return db
+
+    if account_type == "agence" and gerance_id:
+        gerance_data = db.collection("gerances").document(gerance_id).get().to_dict() or {}
+        if any(
+            req.auth.uid in (gerance_data.get(field) or [])
+            for field in AGENT_UID_FIELD_BY_SERVICE.values()
+        ):
+            return db
+
+    raise https_fn.HttpsError(
+        code=https_fn.FunctionsErrorCode.PERMISSION_DENIED,
+        message="Réservé aux administrateurs KONODAL ou à l'agence elle-même"
+    )
+
+
 # Même gabarit visuel (bandeau vert, logo) que buildInterventionEmailHtml
 # côté konodal_bo - reset_link vient de auth.generate_password_reset_link,
 # jamais envoyé automatiquement par Firebase (on l'envoie nous-même via
@@ -1044,12 +1079,13 @@ def _invite_email_html(role_label: str, reset_link: str) -> str:
 
 @https_fn.on_call(secrets=[EMAIL_PASSWORD])
 def invite_agency_account(req: https_fn.CallableRequest):
-    db = _require_superadmin(req)
     data = req.data or {}
     gerance_id = data.get("geranceId")
     service_type = data.get("serviceType")
     email_address = (data.get("email") or "").strip()
     role = data.get("role")
+
+    db = _require_superadmin_or_own_agence(req, gerance_id)
 
     if service_type not in AGENT_UID_FIELD_BY_SERVICE:
         raise https_fn.HttpsError(
@@ -1129,11 +1165,12 @@ def invite_agency_account(req: https_fn.CallableRequest):
 # si l'agence reprend une licence, sans perdre l'historique du compte.
 @https_fn.on_call()
 def revoke_agency_account(req: https_fn.CallableRequest):
-    db = _require_superadmin(req)
     data = req.data or {}
     gerance_id = data.get("geranceId")
     service_type = data.get("serviceType")
     uid = data.get("uid")
+
+    db = _require_superadmin_or_own_agence(req, gerance_id)
 
     if service_type not in AGENT_UID_FIELD_BY_SERVICE:
         raise https_fn.HttpsError(
