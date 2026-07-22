@@ -71,12 +71,17 @@ service cloud.firestore {
         request.auth.uid in get(/databases/$(database)/documents/residences/$(residenceId)/lots/$(lotId)).data.idProprietaire;
     }
 
-    // ---------- Rôles de compte (accountType) : préparation backoffice web ----------
-    // accountType ('utilisateur'|'professionnel'|'superAdmin') est verrouillé
-    // côté client (cf. règle users/{uid} plus bas) : seul le futur backoffice
-    // web (Admin SDK, hors règles) peut le positionner à autre chose que
-    // 'utilisateur'. Ces helpers restent inertes tant qu'aucun compte de ce
-    // type n'existe - cf. project note "rôles de compte".
+    // ---------- Rôles de compte (accountType) : RBAC backoffice web ----------
+    // accountType ('utilisateur'|'superAdmin'|'agence'|'agent') est verrouillé
+    // côté client (cf. règle users/{uid} plus bas) : seul le backoffice web
+    // (Admin SDK, hors règles - cf. invite_agency_account dans
+    // functions_python/main.py) peut le positionner à autre chose que
+    // 'utilisateur'. 'agence'/'agent' sont deux "sièges" vendus par licence à
+    // une gérance (une adresse mail = un compte), scopés aux résidences dont
+    // geranceRef.geranceId pointe vers leur gérance (cf.
+    // isProfessionnelResidence/isProfessionnelLot ci-dessous) - 'agence' a en
+    // plus accès aux actions sensibles/destructrices, 'agent' non (cf.
+    // isAgenceAccount).
 
     // Super Admin plateforme : accès complet à toute résidence/lot. Ajouté en
     // || sur les règles ci-dessous plutôt qu'un bypass global en tête de
@@ -84,6 +89,24 @@ service cloud.firestore {
     function isSuperAdmin() {
       return isSignedIn() &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.accountType == 'superAdmin';
+    }
+
+    // Compte "siège principal" d'une gérance (backoffice web, RBAC) : les
+    // deux valeurs d'accountType 'agence'/'agent' partagent le même
+    // périmètre de résidences (cf. isProfessionnelResidence/Lot ci-dessous),
+    // mais seul 'agence' a accès aux actions sensibles/destructrices
+    // (archiver, annuler, supprimer, approuver, fusionner) - 'agent' reste
+    // en lecture seule dessus. Utilisé en plus de, jamais à la place de,
+    // isProfessionnelResidence/isProfessionnelLot (qui vérifient le
+    // périmètre résidence/lot, pas le niveau de droits).
+    function isAgenceAccount() {
+      return isSignedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.accountType == 'agence';
+    }
+
+    function isAgenceOrAgentAccount() {
+      let accountType = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.accountType;
+      return isSignedIn() && (accountType == 'agence' || accountType == 'agent');
     }
 
     // Agent d'une gérance pour un service donné (serviceSyndic ou
@@ -173,10 +196,14 @@ service cloud.firestore {
         allow create: if isOwner(uid) && request.resource.data.isApprovedLot == false;
         // isApprovedLot ne doit jamais être modifiable par le propriétaire du
         // compte (même logique que users/{uid}.isApproved) : seul un Super
-        // Admin peut le repasser à true (remplace la validation manuelle
-        // Console après vérification humaine des documents déposés).
+        // Admin, ou une Agence gérant cette résidence/ce lot (cas gérance/
+        // syndic du domain model - jamais un simple Agent), peut le repasser
+        // à true (remplace la validation manuelle Console après vérification
+        // humaine des documents déposés).
         allow update: if isSuperAdmin() || ((isOwner(uid) || isCsMember(resource.data.residenceId)) &&
-          request.resource.data.isApprovedLot == resource.data.isApprovedLot);
+          request.resource.data.isApprovedLot == resource.data.isApprovedLot) ||
+          (isAgenceAccount() && (isProfessionnelResidence(resource.data.residenceId) ||
+            isProfessionnelLot(resource.data.residenceId, lotId)));
         allow delete: if isOwner(uid) || isCsMember(resource.data.residenceId) || isSuperAdmin();
 
         match /documents/{docId} {
@@ -270,7 +297,7 @@ service cloud.firestore {
         // (step3.dart, getLotByResidence), avant d'être membre de la
         // résidence (isResidenceMember serait toujours faux à ce stade).
         allow read: if isSignedIn();
-        allow create, delete: if isCsMember(residenceId) || isSuperAdmin();
+        allow create, delete: if isCsMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
         // Le propriétaire du lot peut ajouter/retirer des locataires
         // (addTenant / removeIdLocataire) sans être CS member, mais
         // uniquement sur idLocataire (+ idLocataireOld, l'historique des
@@ -330,9 +357,13 @@ service cloud.firestore {
         allow read: if isResidenceMember(residenceId) || isSuperAdmin();
         // isSuperAdmin() en création : le backoffice crée des events
         // "prestation" pour une résidence dont il n'est pas forcément
-        // membre - même bypass que read/update/delete ci-dessous.
+        // membre - même bypass que read/update/delete ci-dessous. Agence/
+        // Agent (isProfessionnelResidence) ont le même bypass, SAUF pour
+        // programmer une intervention depuis un sinistre (linkedSinistreId
+        // renseigné) - réservé Superadmin, cf. matrice de droits BO.
         allow create: if (isResidenceMember(residenceId) &&
-          request.resource.data.user == request.auth.uid) || isSuperAdmin();
+          request.resource.data.user == request.auth.uid) || isSuperAdmin() ||
+          (isProfessionnelResidence(residenceId) && !('linkedSinistreId' in request.resource.data));
         // Modération : un CS member peut éditer/supprimer n'importe quel
         // post, pas seulement les siens (comportement actuel de l'app).
         // Liker le post de quelqu'un d'autre est aussi un update() Firestore
@@ -340,12 +371,19 @@ service cloud.firestore {
         // seul champ modifié est "like" (même pattern que les commentaires).
         // Une fois declaredDate posé (transmission à la gérance), impossible
         // de repasser le statut à "Non envoyé" - règle absolue, y compris
-        // pour isSuperAdmin.
+        // pour isSuperAdmin. Agence/Agent (isProfessionnelResidence) peuvent
+        // modifier statut/priorité/contenu, mais seule une Agence (pas un
+        // simple Agent) peut toucher archived/annule - actions jugées
+        // sensibles dans la matrice de droits BO (archiver un sinistre,
+        // annuler une intervention).
         allow update: if (
           (isResidenceMember(residenceId) &&
             (resource.data.user == request.auth.uid || isCsMember(residenceId) ||
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like']))) ||
-          isSuperAdmin()
+          isSuperAdmin() ||
+          (isProfessionnelResidence(residenceId) &&
+            (isAgenceAccount() ||
+              !request.resource.data.diff(resource.data).affectedKeys().hasAny(['archived', 'annule'])))
         ) && !(
           resource.data.get('declaredDate', null) != null &&
           request.resource.data.statut == 'Non envoyé'
@@ -419,12 +457,12 @@ service cloud.firestore {
 
       match /structures/{id} {
         allow read: if isResidenceMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
-        allow write: if isCsMember(residenceId) || isSuperAdmin();
+        allow write: if isCsMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
       }
 
       match /documents_copro/{id} {
         allow read: if isResidenceMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
-        allow write: if isCsMember(residenceId) || isSuperAdmin();
+        allow write: if isCsMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
       }
 
       match /mail/{id} {
@@ -492,16 +530,26 @@ service cloud.firestore {
       // ensuite. Même verrou que isApproved (users/{uid}) / isApprovedLot.
       // Plus de résidence précise à vérifier dans le payload (le
       // rattachement se fait séparément sur residences/{id}.contactRefs).
+      // Agence/Agent (backoffice web) peuvent aussi créer un contact - pas
+      // de scoping résidence possible ici (annuaire partagé multi-agences,
+      // cf. commentaire en tête de bloc), donc ouvert à tout compte
+      // professionnel, pas seulement ceux liés à une résidence précise.
       allow create: if (isCsMemberOfAnyResidenceAtAll() &&
-        request.resource.data.isApproved == false) || isSuperAdmin();
-      // Plus de carve-out CS member : le rattachement/détachement résidence
-      // passe désormais par residences/{id}.contactRefs, donc toute
-      // modification de ce document (nom, service, isApproved...) est
-      // réservée au Super Admin (backoffice web) après revue.
-      allow update: if isSuperAdmin();
-      // Jamais de delete direct par l'app : réservé au Super Admin (nettoyage
-      // manuel, qui détache aussi contactRefs sur les résidences concernées).
-      allow delete: if isSuperAdmin();
+        request.resource.data.isApproved == false) || isSuperAdmin() ||
+        (isAgenceOrAgentAccount() && request.resource.data.isApproved == false);
+      // Fiche (nom/service/coordonnées) modifiable par tout compte
+      // professionnel ; approbation (isApproved) et nettoyage doublons
+      // (likelyDuplicateIds, cf. dismissDuplicate/mergeContacts côté BO)
+      // réservés à une Agence (pas un simple Agent) - actions jugées
+      // sensibles dans la matrice de droits BO.
+      allow update: if isSuperAdmin() ||
+        (isAgenceOrAgentAccount() &&
+          (isAgenceAccount() ||
+            !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isApproved', 'likelyDuplicateIds'])));
+      // Jamais de delete direct par l'app : réservé au Super Admin ou à une
+      // Agence (nettoyage manuel, qui détache aussi contactRefs sur les
+      // résidences concernées) - pas un simple Agent.
+      allow delete: if isSuperAdmin() || isAgenceAccount();
     }
 
     // ---------- Root "shareTokens" (liens de partage à portée limitée) ----------
@@ -620,10 +668,22 @@ service cloud.firestore {
     // côté app, non sensible.
     match /gerances/{id} {
       allow read: if isSignedIn();
-      // Annuaire syndic/agences : édition réservée au Super Admin (futur
-      // backoffice web) - un Professionnel ne gère pas sa propre fiche
-      // gérance depuis cette app résident.
-      allow write: if isSuperAdmin();
+      // Annuaire syndic/agences : édition réservée au Super Admin, plus une
+      // Agence (pas un simple Agent) éditant SA PROPRE fiche depuis le
+      // backoffice web (isSyndicAgent/isGeranceLocativeAgent vérifient déjà
+      // l'appartenance à CETTE gérance précise, id) - un Professionnel ne
+      // gère toujours pas sa fiche gérance depuis l'app résident (aucun
+      // accès accountType='agence'/'agent' prévu côté app mobile).
+      // serviceSyndicAgentUids/geranceLocativeAgentUids exclus de ce bypass
+      // à dessein : une Agence ne doit jamais pouvoir s'auto-ajouter (ou
+      // ajouter un tiers) elle-même à ces tableaux, sous peine de
+      // s'octroyer l'accès à d'autres résidences - seul invite_agency_account/
+      // revoke_agency_account (Cloud Function Admin SDK, réservée Super
+      // Admin appelant) les modifie.
+      allow write: if isSuperAdmin() ||
+        (isAgenceAccount() && (isSyndicAgent(id) || isGeranceLocativeAgent(id)) &&
+          !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['serviceSyndicAgentUids', 'geranceLocativeAgentUids']));
 
       match /{document=**} {
         allow read: if isSignedIn();

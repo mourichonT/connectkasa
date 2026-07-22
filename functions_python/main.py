@@ -2,7 +2,7 @@
 from firebase_functions import scheduler_fn, https_fn, firestore_fn, options, params
 
 # The Firebase Admin SDK to access Cloud Firestore.
-from firebase_admin import initialize_app, firestore, storage
+from firebase_admin import initialize_app, firestore, storage, auth
 import imaplib
 import smtplib
 import email
@@ -973,6 +973,185 @@ def extract_id_card_data(req: https_fn.CallableRequest):
         )
 
 
+
+
+# ---------------------------------------------------------------------------
+# RBAC BACKOFFICE - invitation / révocation d'un compte agence ou agent
+# (accountType 'agence'/'agent', cf. konodal_bo /agences). Un compte
+# "agence"/"agent" n'a accès qu'aux résidences dont geranceRef.geranceId
+# pointe vers sa gérance (isProfessionnelResidence/isProfessionnelLot,
+# firestore.rules) - l'appartenance à une gérance est portée par
+# gerances/{id}.serviceSyndicAgentUids / geranceLocativeAgentUids (tableaux
+# plats d'uid), pas par un champ sur le compte lui-même.
+# ---------------------------------------------------------------------------
+
+AGENT_UID_FIELD_BY_SERVICE = {
+    "serviceSyndic": "serviceSyndicAgentUids",
+    "geranceLocative": "geranceLocativeAgentUids",
+}
+
+
+def _require_superadmin(req: https_fn.CallableRequest):
+    if req.auth is None:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.UNAUTHENTICATED,
+            message="Authentification requise"
+        )
+    db = firestore.client()
+    caller = db.collection("users").document(req.auth.uid).get()
+    if not caller.exists or caller.to_dict().get("accountType") != "superAdmin":
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.PERMISSION_DENIED,
+            message="Réservé aux administrateurs KONODAL"
+        )
+    return db
+
+
+# Même gabarit visuel (bandeau vert, logo) que buildInterventionEmailHtml
+# côté konodal_bo - reset_link vient de auth.generate_password_reset_link,
+# jamais envoyé automatiquement par Firebase (on l'envoie nous-même via
+# _send_email_logic pour rester sur le même compte SMTP que le reste de
+# l'app plutôt que le mail générique Firebase).
+def _invite_email_html(role_label: str, reset_link: str) -> str:
+    return f"""
+    <!DOCTYPE html>
+    <html lang="fr">
+    <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
+    <table align="center" width="600" style="background-color: #ffffff; border-collapse: collapse; margin-top: 20px;">
+        <tr>
+        <td style="background-color: rgba(72, 119, 91, 1); color: #ffffff; text-align: center; padding: 30px 20px">
+            <h2 style="margin: 0; font-size: 20px">Accès au backoffice KONODAL</h2>
+        </td>
+        </tr>
+        <tr>
+        <td style="padding: 20px 20px; color: #333333; text-align: center;">
+            <p>Vous avez été invité(e) en tant que <strong>{role_label}</strong> sur le backoffice KONODAL.</p>
+            <div style="margin: 30px 0;">
+                <a href="{reset_link}" style="background-color: #48775B; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; display: inline-block;">
+                    Définir mon mot de passe
+                </a>
+            </div>
+            <p style="font-size: 12px; color: #666;">
+                En cas de difficultés, contactez admin.konodal@gmail.com
+            </p>
+        </td>
+        </tr>
+    </table>
+    </body>
+    </html>
+    """
+
+
+@https_fn.on_call(secrets=[EMAIL_PASSWORD])
+def invite_agency_account(req: https_fn.CallableRequest):
+    db = _require_superadmin(req)
+    data = req.data or {}
+    gerance_id = data.get("geranceId")
+    service_type = data.get("serviceType")
+    email_address = (data.get("email") or "").strip()
+    role = data.get("role")
+
+    if service_type not in AGENT_UID_FIELD_BY_SERVICE:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="serviceType invalide"
+        )
+    if role not in ("agence", "agent"):
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="role invalide"
+        )
+    if not gerance_id or not email_address:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="geranceId et email requis"
+        )
+
+    gerance_ref = db.collection("gerances").document(gerance_id)
+    if not gerance_ref.get().exists:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.NOT_FOUND,
+            message="Gérance introuvable"
+        )
+
+    # Compte déjà existant (ex: déjà résident/bailleur ailleurs, ou déjà
+    # invité une première fois) : on ne le recrée pas, on l'ajoute juste au
+    # périmètre demandé. Réactive un compte précédemment révoqué (disabled)
+    # - ré-inviter après une révocation doit redonner l'accès.
+    try:
+        user_record = auth.get_user_by_email(email_address)
+        if user_record.disabled:
+            auth.update_user(user_record.uid, disabled=False)
+    except auth.UserNotFoundError:
+        user_record = auth.create_user(email=email_address)
+
+    uid = user_record.uid
+    # `uid` est un champ à part entière du document côté modèle app mobile
+    # (User.toMap()/fromMap(), user.dart) - jamais seulement dérivé de l'ID
+    # du document - à écrire ici pour rester cohérent avec ce que produirait
+    # une inscription normale. `active` : flag lisible directement sur la
+    # fiche user (en plus de l'appartenance aux tableaux d'agents de la
+    # gérance, qui reste la source de vérité pour les règles Firestore) -
+    # remis à True ici pour couvrir le cas d'une réinvitation après
+    # révocation.
+    db.collection("users").document(uid).set(
+        {"uid": uid, "email": email_address, "accountType": role, "active": True}, merge=True
+    )
+
+    uid_field = AGENT_UID_FIELD_BY_SERVICE[service_type]
+    gerance_ref.update({uid_field: firestore.ArrayUnion([uid])})
+
+    reset_link = auth.generate_password_reset_link(email_address)
+    role_label = "Agence" if role == "agence" else "Agent"
+    _send_email_logic(
+        email_address,
+        "Invitation au backoffice KONODAL",
+        None,
+        _invite_email_html(role_label, reset_link),
+    )
+
+    return {"uid": uid}
+
+
+# Ne supprime rien (ni le compte Auth, ni users/{uid}) : retire juste l'uid
+# du tableau d'agents de CETTE gérance (il peut être agent d'une autre) et
+# désactive l'authentification - coupe l'accès immédiatement, réactivable
+# si l'agence reprend une licence, sans perdre l'historique du compte.
+@https_fn.on_call()
+def revoke_agency_account(req: https_fn.CallableRequest):
+    db = _require_superadmin(req)
+    data = req.data or {}
+    gerance_id = data.get("geranceId")
+    service_type = data.get("serviceType")
+    uid = data.get("uid")
+
+    if service_type not in AGENT_UID_FIELD_BY_SERVICE:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="serviceType invalide"
+        )
+    if not gerance_id or not uid:
+        raise https_fn.HttpsError(
+            code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
+            message="geranceId et uid requis"
+        )
+
+    uid_field = AGENT_UID_FIELD_BY_SERVICE[service_type]
+    db.collection("gerances").document(gerance_id).update(
+        {uid_field: firestore.ArrayRemove([uid])}
+    )
+    db.collection("users").document(uid).set({"active": False}, merge=True)
+    auth.update_user(uid, disabled=True)
+    # disabled=True bloque les FUTURES connexions/rafraîchissements de
+    # token, mais un ID token déjà émis reste valide (jusqu'à 1h) tant que
+    # ses refresh tokens ne sont pas explicitement révoqués - sans ça, une
+    # session déjà ouverte pourrait continuer à agir sur Firestore un moment
+    # après la révocation malgré le retrait de serviceSyndicAgentUids/
+    # geranceLocativeAgentUids (le token contient encore l'ancien état au
+    # moment de sa vérification, les règles ne relisent que ces tableaux).
+    auth.revoke_refresh_tokens(uid)
+
+    return {"success": True}
 
 
 # ---------------------------------------------------------------------------
@@ -2246,9 +2425,20 @@ def reschedule_shared_intervention(req: https_fn.Request) -> https_fn.Response:
         }
         if linked_sinistre_id:
             new_post_data["linkedSinistreId"] = linked_sinistre_id
+        # Relie la nouvelle intervention à celle qu'elle remplace (même
+        # principe que linkedSinistreId) - permet de remonter la chaîne de
+        # reprogrammations depuis le BO, en plus de previousEventDate qui ne
+        # sert, lui, qu'à l'affichage côté page de partage.
+        new_post_data["previousEventId"] = post_id
 
         new_post_ref = posts_ref.document()
         new_post_ref.set(new_post_data)
+
+        # L'ancienne intervention n'est pas supprimée (elle reste
+        # consultable/historisée) mais ne doit plus apparaître comme "à
+        # venir" : marquée reportée pour que le calendrier BO l'affiche en
+        # jaune à son ancienne date plutôt que dans le statut normal.
+        posts_ref.document(post_id).update({"reporte": True})
 
         if linked_sinistre_id:
             posts_ref.document(linked_sinistre_id).update({
