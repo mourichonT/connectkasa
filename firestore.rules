@@ -192,7 +192,9 @@ service cloud.firestore {
       }
 
       match /lots/{lotId} {
-        allow read: if isOwner(uid) || isCsMember(resource.data.residenceId) || isSuperAdmin();
+        allow read: if isOwner(uid) || isCsMember(resource.data.residenceId) || isSuperAdmin() ||
+          isProfessionnelResidence(resource.data.residenceId) ||
+          isProfessionnelLot(resource.data.residenceId, lotId);
         allow create: if isOwner(uid) && request.resource.data.isApprovedLot == false;
         // isApprovedLot ne doit jamais être modifiable par le propriétaire du
         // compte (même logique que users/{uid}.isApproved) : seul un Super
@@ -354,7 +356,7 @@ service cloud.firestore {
       }
 
       match /posts/{postId} {
-        allow read: if isResidenceMember(residenceId) || isSuperAdmin();
+        allow read: if isResidenceMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
         // isSuperAdmin() en création : le backoffice crée des events
         // "prestation" pour une résidence dont il n'est pas forcément
         // membre - même bypass que read/update/delete ci-dessous. Agence/
