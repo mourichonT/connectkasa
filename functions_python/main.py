@@ -1182,6 +1182,18 @@ def revoke_agency_account(req: https_fn.CallableRequest):
             code=https_fn.FunctionsErrorCode.INVALID_ARGUMENT,
             message="geranceId et uid requis"
         )
+    # Une Agence gérant sa propre fiche ne doit jamais pouvoir se révoquer
+    # elle-même (couperait son propre accès en cours d'usage, sans recours
+    # possible derrière) - un superAdmin appelant reste libre de le faire
+    # (ex: départ effectif d'un agent, hors self-service). Filet de sécurité
+    # serveur en plus du bouton masqué côté BO (konodal_bo/AgencesPage).
+    if uid == req.auth.uid:
+        caller = db.collection("users").document(req.auth.uid).get()
+        if (caller.to_dict() or {}).get("accountType") != "superAdmin":
+            raise https_fn.HttpsError(
+                code=https_fn.FunctionsErrorCode.PERMISSION_DENIED,
+                message="Impossible de révoquer votre propre accès"
+            )
 
     uid_field = AGENT_UID_FIELD_BY_SERVICE[service_type]
     db.collection("gerances").document(gerance_id).update(
