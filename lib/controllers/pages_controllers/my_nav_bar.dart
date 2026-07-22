@@ -1,7 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+// Préfixe : package:provider (déjà utilisé dans ce fichier pour
+// MessageProvider) et flutter_riverpod exportent chacun "Provider" ET
+// "Consumer" - un simple hide ne suffit pas pour les deux à la fois.
+import 'package:flutter_riverpod/flutter_riverpod.dart' as riverpod;
 import 'package:provider/provider.dart';
 
+import '../../core/providers/notification_providers.dart';
+import '../../vues/pages_vues/notifications_page.dart';
 import '../providers/message_provider.dart';
 import 'my_tab_bar_controller.dart';
 import 'select_lot_component_controller.dart';
@@ -413,13 +419,63 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                               width: MediaQuery.of(context).size.width / 3,
                               fit: BoxFit.fitWidth,
                             ),
-                            Builder(
-                              builder: (scaffoldContext) => GestureDetector(
-                                onTap: () => Scaffold.of(scaffoldContext)
-                                    .openEndDrawer(),
-                                child:
-                                    profilTile(widget.uid, 22, 19, 22, false),
-                              ),
+                            Row(
+                              children: [
+                                riverpod.Consumer(
+                                  builder: (context, ref, child) {
+                                    final notifications = ref
+                                        .watch(
+                                            notificationsProvider(widget.uid))
+                                        .valueOrNull;
+                                    final hasUnread = notifications
+                                            ?.any((n) => !n.read) ??
+                                        false;
+                                    return Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(
+                                              Icons.notifications_outlined,
+                                              color: Colors.black54),
+                                          onPressed: () => Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => NotificationsPage(
+                                                  uid: widget.uid),
+                                            ),
+                                          ),
+                                        ),
+                                        if (hasUnread)
+                                          Positioned(
+                                            right: 8,
+                                            top: 8,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.all(2),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context)
+                                                    .primaryColor,
+                                                shape: BoxShape.circle,
+                                              ),
+                                              constraints: const BoxConstraints(
+                                                minWidth: 12,
+                                                minHeight: 12,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                                Builder(
+                                  builder: (scaffoldContext) => GestureDetector(
+                                    onTap: () => Scaffold.of(scaffoldContext)
+                                        .openEndDrawer(),
+                                    child: profilTile(
+                                        widget.uid, 22, 19, 22, false),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

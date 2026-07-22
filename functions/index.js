@@ -271,10 +271,15 @@ exports.notifyNewPost = onDocumentCreated(
 
       // Étape 3 & 4 : Construire la notification et envoyer avec
       // sendEachForMulticast
+      const notifTitle = `Un résident a publié dans votre copropriété`;
+      // "postData.titre" n'existe pas sur Post (le champ s'appelle "title") -
+      // ce fallback était donc systématiquement utilisé jusqu'ici.
+      const notifBody =
+        postData.title || "Nouvelle publication dans la résidence.";
       const message = {
         notification: {
-          title: `Un résident a publié dans votre copropriété`,
-          body: postData.titre || "Nouvelle publication dans la résidence.",
+          title: notifTitle,
+          body: notifBody,
         },
         data: {
           type: postData.type || "",
@@ -296,7 +301,7 @@ exports.notifyNewPost = onDocumentCreated(
               apns: message.apns,
             });
         console.log(
-            `Notifications envoyées: ${response.successCount} réussies, 
+            `Notifications envoyées: ${response.successCount} réussies,
             ${response.failureCount} échouées.`,
         );
         if (response.failureCount > 0) {
@@ -306,11 +311,39 @@ exports.notifyNewPost = onDocumentCreated(
             }
           });
         }
-        return null;
       } catch (error) {
         console.error("Erreur envoi notification:", error);
-        return null;
       }
+
+      // Persiste une notification par résident (sauf l'auteur du post, qui
+      // n'a pas besoin d'être notifié de sa propre publication) pour le
+      // centre de notifications de l'app - indépendant du succès/échec du
+      // push ci-dessus (un token invalide ne doit pas empêcher l'historique).
+      try {
+        const recipients = users.filter((uid) => uid !== postData.user);
+        if (recipients.length > 0) {
+          const batch = db.batch();
+          recipients.forEach((uid) => {
+            const ref = db.collection("users").doc(uid)
+                .collection("notifications").doc();
+            batch.set(ref, {
+              type: "post",
+              title: notifTitle,
+              body: notifBody,
+              read: false,
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+              residenceId,
+              postId: event.params.postId,
+              postType: postData.type || "",
+            });
+          });
+          await batch.commit();
+        }
+      } catch (error) {
+        console.error("Erreur écriture notifications persistées :", error);
+      }
+
+      return null;
     },
 );
 
@@ -413,6 +446,32 @@ exports.notifyDemandeLoc = onDocumentCreated(
         return null;
       }
 
+      const lotInfo = demandeData.lotAddress ?
+        ` pour le bien situé ${demandeData.lotAddress}` +
+        (demandeData.lotNumero ? ` (lot ${demandeData.lotNumero})` : "") :
+        " pour l'un de vos biens";
+      const notifTitle = "Nouvelle demande de location";
+      const notifBody =
+        `Vous avez reçu une nouvelle demande de location${lotInfo}.`;
+
+      // Persistée indépendamment du token/des préférences push ci-dessous :
+      // notificationPrefs gouverne le push système, pas l'historique en
+      // app - un propriétaire qui a désactivé les push doit quand même
+      // pouvoir la retrouver dans son centre de notifications.
+      try {
+        await db.collection("users").doc(proprietaireUid)
+            .collection("notifications").add({
+              type: "demande_loc",
+              title: notifTitle,
+              body: notifBody,
+              read: false,
+              createdAt: admin.firestore.FieldValue.serverTimestamp(),
+              tenantId: demandeData.tenantId,
+            });
+      } catch (error) {
+        console.error("Erreur écriture notification persistée :", error);
+      }
+
       try {
         const token = await getTokenIfNotificationAllowed(
             db, proprietaireUid, "demande_loc");
@@ -424,15 +483,10 @@ exports.notifyDemandeLoc = onDocumentCreated(
           return null;
         }
 
-        const lotInfo = demandeData.lotAddress ?
-        ` pour le bien situé ${demandeData.lotAddress}` +
-        (demandeData.lotNumero ? ` (lot ${demandeData.lotNumero})` : "") :
-        " pour l'un de vos biens";
-
         const notificationPayload = {
           notification: {
-            title: "Nouvelle demande de location",
-            body: `Vous avez reçu une nouvelle demande de location${lotInfo}.`,
+            title: notifTitle,
+            body: notifBody,
           },
           data: {
             type: "demande_loc",
