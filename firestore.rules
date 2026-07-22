@@ -417,12 +417,13 @@ service cloud.firestore {
         // isSuperAdmin() en création : le backoffice crée des events
         // "prestation" pour une résidence dont il n'est pas forcément
         // membre - même bypass que read/update/delete ci-dessous. Agence/
-        // Agent (isProfessionnelResidence) ont le même bypass, SAUF pour
-        // programmer une intervention depuis un sinistre (linkedSinistreId
-        // renseigné) - réservé Superadmin, cf. matrice de droits BO.
+        // Agent (isProfessionnelResidence) ont le même bypass, y compris
+        // pour programmer une intervention depuis un sinistre
+        // (linkedSinistreId renseigné) - ouvert aux deux rôles suite à
+        // retour utilisateur (initialement réservé Superadmin seul).
         allow create: if (isResidenceMember(residenceId) &&
           request.resource.data.user == request.auth.uid) || isSuperAdmin() ||
-          (isProfessionnelResidence(residenceId) && !('linkedSinistreId' in request.resource.data));
+          isProfessionnelResidence(residenceId);
         // Modération : un CS member peut éditer/supprimer n'importe quel
         // post, pas seulement les siens (comportement actuel de l'app).
         // Liker le post de quelqu'un d'autre est aussi un update() Firestore
