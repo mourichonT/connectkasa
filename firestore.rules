@@ -526,7 +526,8 @@ service cloud.firestore {
       }
 
       match /mail/{id} {
-        allow read, write: if isResidenceMember(residenceId) || isSuperAdmin();
+        allow read, write: if isResidenceMember(residenceId) || isSuperAdmin() ||
+          isProfessionnelResidence(residenceId);
       }
 
       match /events/{id} {
@@ -626,6 +627,12 @@ service cloud.firestore {
     // document directement.
     match /shareTokens/{token} {
       allow read, write: if isSuperAdmin();
+      // Génération du lien de partage depuis la fiche intervention
+      // (EvenementDetailPage, "Envoyer l'email au prestataire") - ouvert à
+      // Agence/Agent au même titre que la création de l'intervention
+      // elle-même, pas seulement Superadmin (oubli lors du premier passage
+      // RBAC, jamais remis à jour depuis).
+      allow create: if isProfessionnelResidence(request.resource.data.residenceId);
     }
 
     // ---------- Root "adCampaigns" (publicité inter-résidences) ----------
