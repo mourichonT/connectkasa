@@ -1,4 +1,5 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/post_repository_provider.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
@@ -7,8 +8,9 @@ import 'package:konodal/vues/widget_view/components/like_button_post.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:konodal/vues/widget_view/components/share_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CommunicationDetails extends StatelessWidget {
+class CommunicationDetails extends ConsumerStatefulWidget {
   final Post post;
   final String uid;
   final String residenceId;
@@ -18,6 +20,26 @@ class CommunicationDetails extends StatelessWidget {
       required this.post,
       required this.uid,
       required this.residenceId});
+
+  @override
+  ConsumerState<CommunicationDetails> createState() =>
+      _CommunicationDetailsState();
+}
+
+class _CommunicationDetailsState extends ConsumerState<CommunicationDetails> {
+  Post get post => widget.post;
+  String get uid => widget.uid;
+  String get residenceId => widget.residenceId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Vue enregistrée une fois à l'ouverture (pas à chaque rebuild) - sert au
+    // comptage de vues uniques côté backoffice (page Communication).
+    ref
+        .read(postRepositoryProvider)
+        .recordPostView(residenceId, post.id, uid);
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -145,4 +145,11 @@ abstract interface class IPostRepository {
       String residenceId, String userId);
 
   Future<Result<Map<String, int>>> getMinMaxPrices(String doc);
+
+  /// Marque le post comme vu par [userId] (1 doc par uid, id = uid, sous
+  /// residences/{residenceId}/posts/{postId}/vues) - sert à compter les vues
+  /// uniques côté backoffice (page Communication). Idempotent : rouvrir un
+  /// post déjà vu ne recrée pas d'entrée, merge sur le même doc.
+  Future<Result<void>> recordPostView(
+      String residenceId, String postId, String userId);
 }

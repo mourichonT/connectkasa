@@ -475,6 +475,16 @@ service cloud.firestore {
           allow update, delete: if isCsMember(residenceId) || isSuperAdmin();
         }
 
+        match /vues/{uid} {
+          // Marqueur "vu" par utilisateur (1 doc par uid, id = uid) - posé
+          // côté app à l'ouverture d'un post (CommunicationDetails), sert au
+          // comptage de vues uniques côté backoffice (page Communication,
+          // useUniqueViewCount). Écriture réservée à l'utilisateur concerné.
+          allow read: if isResidenceMember(residenceId) || isSuperAdmin() ||
+            isProfessionnelResidence(residenceId);
+          allow create, update: if isResidenceMember(residenceId) && request.auth.uid == uid;
+        }
+
         match /comments/{id} {
           // isSuperAdmin() en lecture/création : le backoffice affiche et
           // répond aux commentaires d'un post (ex: fil sous un sinistre) sans

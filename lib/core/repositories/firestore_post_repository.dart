@@ -1029,4 +1029,22 @@ class FirestorePostRepository implements IPostRepository {
       return Result.failure(AppException.from(e));
     }
   }
+
+  @override
+  Future<Result<void>> recordPostView(
+      String residenceId, String postId, String userId) async {
+    try {
+      await _firestore
+          .collection("residences")
+          .doc(residenceId)
+          .collection("posts")
+          .doc(postId)
+          .collection("vues")
+          .doc(userId)
+          .set({'timestamp': Timestamp.now()}, SetOptions(merge: true));
+      return const Result.success(null);
+    } catch (e) {
+      return Result.failure(AppException.from(e));
+    }
+  }
 }
