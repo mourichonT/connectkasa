@@ -265,9 +265,16 @@ service cloud.firestore {
           // pas dépendre d'un document qui n'existe plus forcément côté
           // destinataire. Le propriétaire, lui, a toujours son propre
           // users/{request.auth.uid}/lots/{lotId} tant qu'il possède ce lot.
+          // canAccessRecipientLotDocuments couvre déjà isCsMember (résolu
+          // depuis le lot du DESTINATAIRE, cf. son commentaire) - ajouté ici
+          // surtout pour isProfessionnelResidence/isProfessionnelLot,
+          // manquant à l'écriture alors qu'il était déjà là en lecture
+          // (LotDocumentFormDialog, "Ajouter un document" sur un lot,
+          // Missing or insufficient permissions pour agence/agent).
           allow write: if isOwner(uid) ||
             isLotOwner(get(/databases/$(database)/documents/users/$(request.auth.uid)/lots/$(lotId)).data.residenceId, lotId) ||
-            isCsMember(get(/databases/$(database)/documents/users/$(uid)/lots/$(lotId)).data.residenceId);
+            isCsMember(get(/databases/$(database)/documents/users/$(uid)/lots/$(lotId)).data.residenceId) ||
+            canAccessRecipientLotDocuments(uid, lotId);
         }
       }
 
