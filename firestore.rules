@@ -373,10 +373,14 @@ service cloud.firestore {
           // sur CE lot précisément) : uniquement les champs descriptifs,
           // jamais idProprietaire/idLocataire/parentLotId/isLinkable (gérés
           // exclusivement par CS member/Super Admin ou par le propriétaire
-          // lui-même via les branches dédiées ci-dessous).
+          // lui-même via les branches dédiées ci-dessous). `order` ajouté
+          // (réorganisation click-and-déplace, LotsSection) - écrit à
+          // chaque "Enregistrer les lots", même quand rien d'autre ne
+          // change, jamais laissé de côté sous peine de bloquer tout
+          // enregistrement pour ce rôle.
           ((isProfessionnelResidence(residenceId) || isProfessionnelLot(residenceId, lotId)) &&
            request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['typeLot', 'batiment', 'lot', 'refLot', 'type'])) ||
+             .hasOnly(['typeLot', 'batiment', 'lot', 'refLot', 'type', 'order'])) ||
           (isSignedIn() && request.auth.uid in resource.data.idProprietaire &&
            request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['idLocataire', 'idLocataireOld'])) ||
