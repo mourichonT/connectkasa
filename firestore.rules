@@ -443,18 +443,17 @@ service cloud.firestore {
         // Une fois declaredDate posé (transmission à la gérance), impossible
         // de repasser le statut à "Non envoyé" - règle absolue, y compris
         // pour isSuperAdmin. Agence/Agent (isProfessionnelResidence) peuvent
-        // modifier statut/priorité/contenu, mais seule une Agence (pas un
-        // simple Agent) peut toucher archived/annule - actions jugées
-        // sensibles dans la matrice de droits BO (archiver un sinistre,
-        // annuler une intervention).
+        // modifier statut/priorité/contenu ET archived/annule - initialement
+        // réservé à une Agence seule (pas un simple Agent) dans la matrice
+        // de droits BO, ouvert aux deux rôles suite à retour utilisateur
+        // (même mouvement que "programmer une intervention depuis un
+        // sinistre" plus tôt dans ce lot).
         allow update: if (
           (isResidenceMember(residenceId) &&
             (resource.data.user == request.auth.uid || isCsMember(residenceId) ||
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['like']))) ||
           isSuperAdmin() ||
-          (isProfessionnelResidence(residenceId) &&
-            (isAgenceAccount() ||
-              !request.resource.data.diff(resource.data).affectedKeys().hasAny(['archived', 'annule'])))
+          isProfessionnelResidence(residenceId)
         ) && !(
           resource.data.get('declaredDate', null) != null &&
           request.resource.data.statut == 'Non envoyé'
