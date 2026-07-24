@@ -19,7 +19,7 @@ import 'package:konodal/vues/widget_view/components/app_loader.dart';
 /// ce qui faisait "perdre" la participation en passant de la carte
 /// Homeview (EventWidget) à la page de détail (EventPageDetails), chacune
 /// gardant sa propre copie jamais resynchronisée.
-class PartipedTile extends ConsumerWidget {
+class PartipedTile extends ConsumerStatefulWidget {
   final String residenceSelected;
   final Post post;
   final String uid;
@@ -38,15 +38,46 @@ class PartipedTile extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PartipedTile> createState() => _PartipedTileState();
+}
+
+class _PartipedTileState extends ConsumerState<PartipedTile> {
+  static final IUserRepository _userRepository = FirestoreUserRepository();
+
+  // Cache la Future de résolution des avatars, recalculée seulement quand
+  // la liste des participants a réellement changé - sans ça, chaque
+  // rebuild du widget (ex: recyclage ListView au scroll) créait une
+  // nouvelle Future à chaque frame, provoquant un flash de rechargement
+  // visible même quand rien n'avait changé côté Firestore.
+  List<String>? _cachedParticipants;
+  Future<List<User?>>? _usersFuture;
+
+  bool _sameParticipants(List<String>? a, List<String> b) {
+    if (a == null || a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  Future<List<User?>> _usersFor(List<String> participants) {
+    if (!_sameParticipants(_cachedParticipants, participants)) {
+      _cachedParticipants = participants;
+      _usersFuture = _getUsersForParticipants(participants);
+    }
+    return _usersFuture!;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final participantsAsync = ref.watch(participantsProvider(
-        (residenceId: residenceSelected, postId: post.id)));
+        (residenceId: widget.residenceSelected, postId: widget.post.id)));
 
     return participantsAsync.when(
       loading: () => const AppLoader(),
       error: (error, _) => Text('Error: $error'),
       data: (participants) {
-        final alreadyParticipated = participants.contains(uid);
+        final alreadyParticipated = participants.contains(widget.uid);
         return Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.end,
@@ -55,8 +86,8 @@ class PartipedTile extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 MyTextStyle.lotDesc(
-                  post.setParticipant(participants.length),
-                  sizeFont,
+                  widget.post.setParticipant(participants.length),
+                  widget.sizeFont,
                   FontStyle.italic,
                   FontWeight.w900,
                 ),
@@ -67,7 +98,7 @@ class PartipedTile extends ConsumerWidget {
             ),
             alreadyParticipated
                 ? ButtonAdd(
-                    function: () => _toggleParticipation(ref, participants, true),
+                    function: () => _toggleParticipation(participants, true),
                     color: Colors.black38,
                     icon: Icons.cancel_outlined,
                     text: "Se désengager",
@@ -76,7 +107,7 @@ class PartipedTile extends ConsumerWidget {
                     size: SizeFont.h3.size,
                   )
                 : ButtonAdd(
-                    function: () => _toggleParticipation(ref, participants, false),
+                    function: () => _toggleParticipation(participants, false),
                     color: Theme.of(context).primaryColor,
                     icon: Icons.check,
                     text: "Participer",
@@ -92,7 +123,7 @@ class PartipedTile extends ConsumerWidget {
 
   Widget buildParticipantsList(List<String> participants) {
     return FutureBuilder<List<User?>>(
-      future: _getUsersForParticipants(participants),
+      future: _usersFor(participants),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const AppLoader();
@@ -107,10 +138,10 @@ class PartipedTile extends ConsumerWidget {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            for (int i = 0; i < min(participants.length, number); i++)
+            for (int i = 0; i < min(participants.length, widget.number); i++)
               if (i < users.length && users[i] != null)
                 Container(
-                  padding: EdgeInsets.all(space),
+                  padding: EdgeInsets.all(widget.space),
                   child: profilTile(users[i]!.uid, 12, 11, 12, false),
                 ),
           ],
@@ -120,23 +151,21 @@ class PartipedTile extends ConsumerWidget {
   }
 
   Future<void> _toggleParticipation(
-      WidgetRef ref, List<String> participants, bool alreadyParticipated) async {
+      List<String> participants, bool alreadyParticipated) async {
     final repository = ref.read(postRepositoryProvider);
     // Pas de setState local : participantsProvider (StreamProvider) capte
     // l'écriture Firestore et republie automatiquement la nouvelle liste à
     // tous les écrans qui l'observent (Homeview ET détail).
     if (!alreadyParticipated) {
       await repository
-          .updatePostParticipants(residenceSelected, post.id, uid)
+          .updatePostParticipants(widget.residenceSelected, widget.post.id, widget.uid)
           .then((result) => result.when(success: (_) {}, failure: (error) => throw error));
     } else {
       await repository
-          .removePostParticipants(residenceSelected, post.id, uid)
+          .removePostParticipants(widget.residenceSelected, widget.post.id, widget.uid)
           .then((result) => result.when(success: (_) {}, failure: (error) => throw error));
     }
   }
-
-  static final IUserRepository _userRepository = FirestoreUserRepository();
 
   Future<List<User?>> _getUsersForParticipants(List<String> participantIds) async {
     List<User?> users = [];
