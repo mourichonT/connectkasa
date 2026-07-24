@@ -54,7 +54,24 @@ class _ThumbnailPickerState extends ConsumerState<ThumbnailPicker> {
   }
 
   Future<void> _pickFromCamera() async {
-    final picked = await ImagePicker().pickImage(source: ImageSource.camera);
+    final XFile? picked;
+    try {
+      // pickImage peut lever (PlatformException) plutôt que renvoyer null
+      // sur certains OEM Android (permission refusée définitivement,
+      // caméra indisponible) - pas seulement le cas "annulé" (null) déjà
+      // géré ci-dessous.
+      picked = await ImagePicker().pickImage(source: ImageSource.camera);
+    } catch (e) {
+      appLog("Erreur lors de l'ouverture de la caméra: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text("Impossible d'accéder à la caméra : $e"),
+        ),
+      );
+      return;
+    }
     if (picked == null) return;
 
     setState(() => _uploading = true);
@@ -86,7 +103,20 @@ class _ThumbnailPickerState extends ConsumerState<ThumbnailPicker> {
     final remaining = widget.maxCount - _thumbnails.length;
     if (remaining <= 0) return;
 
-    final picked = await ImagePicker().pickMultiImage(limit: remaining);
+    final List<XFile> picked;
+    try {
+      picked = await ImagePicker().pickMultiImage(limit: remaining);
+    } catch (e) {
+      appLog("Erreur lors de l'ouverture de la galerie: $e");
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red,
+          content: Text("Impossible d'accéder à la galerie : $e"),
+        ),
+      );
+      return;
+    }
     if (picked.isEmpty) return;
 
     setState(() => _uploading = true);
