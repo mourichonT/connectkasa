@@ -345,6 +345,7 @@ class _MyNavBarState extends State<MyNavBar> with TickerProviderStateMixin {
                     argument1: "sinistres",
                     argument2: "incivilites",
                     argument3: "communication",
+                    isProprietaire: lot.idProprietaire?.contains(widget.uid) == true,
                   ),
                 ),
                 Padding(

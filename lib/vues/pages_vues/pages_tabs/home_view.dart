@@ -253,7 +253,14 @@ class HomeviewState extends ConsumerState<Homeview> {
                         isCsMember: widget.isCsMember,
                         updatePostsList: widget.updatePostsList,
                       ),
-                    if (post.type == "communication")
+                    // audience "proprietaires" (posé uniquement depuis le BO,
+                    // CommunicationFormDialog) : masqué aux locataires - pas
+                    // une vraie barrière de sécurité (le post reste lisible
+                    // côté Firestore), juste un filtre d'affichage, cf.
+                    // commentaire sur Post.audience.
+                    if (post.type == "communication" &&
+                        (post.audience != 'proprietaires' ||
+                            _statutResident == 'Propriétaire'))
                       AskingNeighborsWidget(
                         lot: widget.preferedLot,
                         post: post,

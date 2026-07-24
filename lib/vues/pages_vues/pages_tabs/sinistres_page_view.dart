@@ -17,6 +17,11 @@ class SinistrePageView extends ConsumerStatefulWidget {
   final String? argument1;
   final String? argument2;
   final String? argument3;
+  // Statut propriétaire du résident sur son lot préféré (idProprietaire, pas
+  // le statutResident auto-déclaré) - sert uniquement à filtrer l'affichage
+  // des communications à audience "proprietaires" (cf. Post.audience), même
+  // filtre que Homeview._statutResident.
+  final bool isProprietaire;
 
   const SinistrePageView({
     super.key,
@@ -26,6 +31,7 @@ class SinistrePageView extends ConsumerStatefulWidget {
     this.argument1,
     this.argument2,
     this.argument3,
+    this.isProprietaire = false,
   });
 
   @override
@@ -218,8 +224,11 @@ class SinistrePageViewState extends ConsumerState<SinistrePageView>
                           }
                           final post = allPosts[index];
                           if ((post.type == widget.argument1 ||
-                              post.type == widget.argument2 ||
-                              post.type == widget.argument3)) {
+                                  post.type == widget.argument2 ||
+                                  post.type == widget.argument3) &&
+                              (post.type != 'communication' ||
+                                  post.audience != 'proprietaires' ||
+                                  widget.isProprietaire)) {
                             return SinitresTileController(
                               post: post,
                               residenceId: widget.residenceId,

@@ -54,6 +54,14 @@ class Post {
   // en pratique (une intervention reportée n'a pas de compte-rendu).
   bool termine;
   bool reporte;
+  // Ciblage d'audience (type "communication" uniquement, posé depuis le
+  // backoffice - CommunicationFormDialog) : "all" (défaut, tout résident) ou
+  // "proprietaires" (masqué aux locataires côté app - Homeview,
+  // SinistrePageView - selon idProprietaire du lot préféré du résident, PAS
+  // une règle Firestore : cf. décision projet, une règle de lecture
+  // conditionnée sur ce champ casserait les requêtes de liste non filtrées
+  // watchPostsPage/watchPostsToModifyPage pour tout le monde).
+  String audience;
 
   Post(
       {required this.id,
@@ -84,7 +92,8 @@ class Post {
       this.linkedEventId,
       this.linkedSinistreId,
       this.termine = false,
-      this.reporte = false}) {
+      this.reporte = false,
+      this.audience = 'all'}) {
     _pathImage = pathImage;
     _statut = statut;
     _subtype = subtype;
@@ -282,6 +291,7 @@ class Post {
       linkedSinistreId: map['linkedSinistreId'],
       termine: map['termine'] ?? false,
       reporte: map['reporte'] ?? false,
+      audience: map['audience'] ?? 'all',
     );
   }
 
@@ -329,6 +339,7 @@ class Post {
       'hideUser': hideUser,
       if (annonce.isNotEmpty) 'annonce': annonce,
       if (style != null) 'style': style!.toMap(),
+      if (audience != 'all') 'audience': audience,
     };
   }
 
@@ -364,6 +375,7 @@ class Post {
     setOrClear('signalement', signalement.map((p) => p.toMap()).toList(),
         signalement.isEmpty);
     setOrClear('style', style?.toMap(), style == null);
+    setOrClear('audience', audience, audience == 'all');
 
     setOrClear('location.locationElements', locationElement,
         locationElement.isEmpty);
