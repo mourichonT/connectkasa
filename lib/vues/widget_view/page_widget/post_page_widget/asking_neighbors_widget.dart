@@ -1,6 +1,7 @@
 import 'package:konodal/controllers/features/line_interaction.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
+import 'package:konodal/core/providers/post_repository_provider.dart';
 import 'package:konodal/models/enum/font_setting.dart';
 import 'package:konodal/models/enum/type_list.dart';
 import 'package:konodal/models/pages_models/lot.dart';
@@ -11,8 +12,9 @@ import 'package:konodal/vues/widget_view/components/header_row.dart';
 import 'package:konodal/vues/widget_view/components/rounded_card.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AskingNeighborsWidget extends StatefulWidget {
+class AskingNeighborsWidget extends ConsumerStatefulWidget {
   final Post post;
   final Lot lot;
   final String uid;
@@ -34,12 +36,28 @@ class AskingNeighborsWidget extends StatefulWidget {
       required this.updatePostsList});
 
   @override
-  State<StatefulWidget> createState() => AskingNeighborsState();
+  ConsumerState<AskingNeighborsWidget> createState() => AskingNeighborsState();
 }
 
-class AskingNeighborsState extends State<AskingNeighborsWidget> {
+class AskingNeighborsState extends ConsumerState<AskingNeighborsWidget> {
   final FormatProfilPic formatProfilPic = FormatProfilPic();
   late Post? updatedPost;
+
+  @override
+  void initState() {
+    super.initState();
+    // Vue enregistrée dès l'affichage dans le fil résident (Homeview) - la
+    // plupart des communications (publiées depuis le BO) n'ont jamais
+    // d'image, donc pas de tap-through vers un écran détail séparé : le
+    // contenu est déjà entièrement affiché ici (cf. build(), branche
+    // pathImage == ""). CommunicationDetails (ouvert depuis l'onglet
+    // Sinistres/Communications ou une notification) enregistre aussi sa
+    // propre vue - écriture idempotente sur le même doc (vues/{uid}), pas de
+    // double comptage.
+    ref
+        .read(postRepositoryProvider)
+        .recordPostView(widget.residenceSelected, widget.post.id, widget.uid);
+  }
 
   @override
   Widget build(BuildContext context) {
