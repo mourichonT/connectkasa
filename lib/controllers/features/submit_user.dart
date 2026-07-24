@@ -102,6 +102,7 @@ class SubmitUser {
         timeStamp: Timestamp.now(),
         documentPathRecto: imagepathIDrecto,
         documentPathVerso: imagepathIDverso,
+        destinataire: [newUserId],
       );
       await docsRepository.setDocument(
           newDocId, newUserId, realLotId);
@@ -116,6 +117,7 @@ class SubmitUser {
         timeStamp: Timestamp.now(),
         documentPathRecto: imagepathJustif,
         lotId: lotId,
+        destinataire: [newUserId],
       );
       await docsRepository.setDocument(
         newDocJustif,
@@ -133,6 +135,7 @@ class SubmitUser {
         timeStamp: Timestamp.now(),
         documentPathRecto: kbisPath,
         lotId: lotId,
+        destinataire: [newUserId],
       );
       await docsRepository.setDocument(
           newDocKbis, newUserId, realLotId);
@@ -166,6 +169,7 @@ class SubmitUser {
               timeStamp: Timestamp.now(),
               documentPathRecto: copiedUrl,
               lotId: childLotId,
+              destinataire: [newUserId],
             ),
             newUserId,
             childLotId,
@@ -192,6 +196,7 @@ class SubmitUser {
               timeStamp: Timestamp.now(),
               documentPathRecto: copiedKbisUrl,
               lotId: childLotId,
+              destinataire: [newUserId],
             ),
             newUserId,
             childLotId,

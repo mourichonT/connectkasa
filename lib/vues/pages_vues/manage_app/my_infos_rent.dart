@@ -339,6 +339,7 @@ class _MyInfosRentState extends ConsumerState<MyInfosRent> {
                                 type: doc.docType,
                                 timeStamp: Timestamp.now(),
                                 documentPathRecto: downloadUrl,
+                                destinataire: [widget.uid],
                               );
                               await docsRepository.setDocumentTenant(
                                 newDocJustif,

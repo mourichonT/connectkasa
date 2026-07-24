@@ -24,6 +24,12 @@ class DocumentModel {
   }) {
     _documentPathRecto = documentPathRecto;
     _documentPathVerso = documentPathVerso;
+    // Aucun nom saisi par l'utilisateur : on retombe sur le type du
+    // document (quittance, bail...) plutôt que de laisser "name" vide,
+    // pour toujours avoir un libellé lisible à l'affichage (my_docs.dart).
+    if (name == null || name!.isEmpty) {
+      name = type;
+    }
   }
 
   String get documentPathRecto {

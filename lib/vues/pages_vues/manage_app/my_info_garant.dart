@@ -581,6 +581,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
                                 type: doc.docType,
                                 timeStamp: Timestamp.now(),
                                 documentPathRecto: downloadUrl,
+                                destinataire: [widget.uid],
                               );
                               await docsRepository.setDocumentGarant(
                                 garantId: garantId,
@@ -1025,6 +1026,7 @@ class _MyGarantInfosState extends ConsumerState<MyGarantInfos> {
           type: doc.docType,
           timeStamp: Timestamp.now(),
           documentPathRecto: doc.fileUrl!,
+          destinataire: [widget.uid],
         );
         await docsRepository.setDocumentGarant(
           garantId: newGarantId,
