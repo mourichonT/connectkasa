@@ -37,6 +37,13 @@ class _ManageListLotState extends State<ManageListLot> {
   // l'identité de l'objet, comme ObjectKey ci-dessous.
   final Set<Lot> _expandedLots = {};
 
+  // Un bâtiment peut avoir des dizaines de lots - regroupés dans un menu
+  // déroulant (ExpansionTile) replié par défaut, plutôt que tous affichés
+  // en une longue liste. État purement local (clé = nom de groupe).
+  final Set<String> _expandedBuildingGroups = {};
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = "";
+
   // Regroupement visuel par bâtiment : figé tant que le lot n'est pas
   // enregistré, pour que la carte ne saute pas d'un groupe à l'autre
   // pendant la saisie (dès qu'on choisit l'emplacement). Mis à jour
@@ -52,6 +59,7 @@ class _ManageListLotState extends State<ManageListLot> {
         ? lot.batiment!.trim()
         : "Sans bâtiment";
   }
+
   final Map<String, TextEditingController> _controllers = {};
   final Map<String, FocusNode> _focusNodes = {};
   final IResidenceRepository _residenceServices =
@@ -76,9 +84,7 @@ class _ManageListLotState extends State<ManageListLot> {
               result.when(success: (v) => v, failure: (error) => throw error));
       if (mounted) {
         setState(() {
-          nameBuildings = fetched
-              .map((b) => "${b.type} ${b.name}")
-              .toList()
+          nameBuildings = fetched.map((b) => "${b.type} ${b.name}").toList()
             ..sort((a, b) {
               // Trier par longueur d'abord, puis alphabétiquement si égalité
               if (a.length != b.length) {
@@ -107,7 +113,7 @@ class _ManageListLotState extends State<ManageListLot> {
       _expandedLots.clear();
       _groupKeyForLot.clear();
     });
-    }
+  }
 
   void _addLot() {
     setState(() {
@@ -172,13 +178,36 @@ class _ManageListLotState extends State<ManageListLot> {
   Widget build(BuildContext context) {
     final double width = MediaQuery.of(context).size.width;
 
+    // Filtre de recherche (N°, référence administrative ou bâtiment) - un
+    // bâtiment n'apparaît dans la liste que s'il contient au moins un lot
+    // correspondant, cf. boucle ci-dessous.
+    final String query = _searchQuery.trim().toLowerCase();
+    final bool isSearching = query.isNotEmpty;
+    bool matchesQuery(Lot lot) {
+      if (query.isEmpty) return true;
+      return [lot.lot, lot.refLot, lot.batiment]
+          .any((f) => (f ?? '').toLowerCase().contains(query));
+    }
+
     // Regrouper les lots par nom de bâtiment (clé figée jusqu'à
     // l'enregistrement, voir _groupKeyFor)
     Map<String, List<Lot>> lotsGroupedByBuilding = {};
     for (var lot in lots) {
+      if (!matchesQuery(lot)) continue;
       String key = _groupKeyFor(lot);
       lotsGroupedByBuilding.putIfAbsent(key, () => []);
       lotsGroupedByBuilding[key]!.add(lot);
+    }
+    // Tri croissant par "order" au sein de chaque bâtiment - un lot sans
+    // order (jamais positionné manuellement) est relégué en fin de groupe
+    // plutôt que de perturber l'ordre de ceux déjà rangés.
+    for (final group in lotsGroupedByBuilding.values) {
+      group.sort((a, b) {
+        if (a.order == null && b.order == null) return 0;
+        if (a.order == null) return 1;
+        if (b.order == null) return -1;
+        return a.order!.compareTo(b.order!);
+      });
     }
     String getFullBuildingName(String buildingName) {
       final index = buildings.indexWhere((b) => b.name.trim() == buildingName);
@@ -220,134 +249,165 @@ class _ManageListLotState extends State<ManageListLot> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-            // Affichage groupé des lots par bâtiment
-            ...sortedEntries.map((entry) {
-              final buildingName = entry.key;
-              final lotsForBuilding = entry.value;
+                  CustomTextFieldWidget(
+                    label: "Rechercher un lot",
+                    text: "N°, référence ou bâtiment...",
+                    controller: _searchController,
+                    isEditable: true,
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                  ),
+                  const SizedBox(height: 10),
+                  // Affichage groupé des lots par bâtiment, repliés par défaut
+                  // dans un menu déroulant (un bâtiment peut contenir des
+                  // dizaines de lots) - automatiquement dépliés pendant une
+                  // recherche, pour ne pas avoir à ouvrir chaque bâtiment
+                  // manuellement afin de voir un résultat qui matche.
+                  ...sortedEntries.map((entry) {
+                    final buildingName = entry.key;
+                    final lotsForBuilding = entry.value;
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  MyTextStyle.lotName(getFullBuildingName(buildingName),
-                      Colors.black87, SizeFont.h1.size),
-                  const SizedBox(height: 20),
-                  ...lotsForBuilding.asMap().entries.map((lotEntry) {
-                    final index = lots.indexOf(lotEntry.value);
-                    final lot = lotEntry.value;
-                    final prefix = 'lot_$index';
-
-                    final refLotController =
-                        _initController('${prefix}_refLot', lot.refLot);
-                    final lotNameController =
-                        _initController('${prefix}_lot', lot.lot);
                     return Card(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       elevation: 2,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                       child: ExpansionTile(
-                        key: ObjectKey(lot),
-                        initiallyExpanded: _expandedLots.contains(lot),
+                        key: ValueKey('bldg_${buildingName}_$isSearching'),
+                        initiallyExpanded: isSearching ||
+                            _expandedBuildingGroups.contains(buildingName),
                         onExpansionChanged: (expanded) {
                           setState(() {
                             if (expanded) {
-                              _expandedLots.add(lot);
+                              _expandedBuildingGroups.add(buildingName);
                             } else {
-                              _expandedLots.remove(lot);
+                              _expandedBuildingGroups.remove(buildingName);
                             }
                           });
                         },
                         title: MyTextStyle.lotName(
-                          lot.lot ?? "Nouveau Lot",
-                          Colors.black87,
-                          SizeFont.h3.size,
-                        ),
+                            "${getFullBuildingName(buildingName)} (${lotsForBuilding.length})",
+                            Colors.black87,
+                            SizeFont.h1.size),
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                CustomTextFieldWidget(
-                                  label: "Référence administrative du lot",
-                                  controller: refLotController,
-                                  isEditable: true,
-                                  onChanged: (val) => lot.refLot = val,
+                          ...lotsForBuilding.asMap().entries.map((lotEntry) {
+                            final index = lots.indexOf(lotEntry.value);
+                            final lot = lotEntry.value;
+                            final prefix = 'lot_$index';
+
+                            final refLotController =
+                                _initController('${prefix}_refLot', lot.refLot);
+                            final lotNameController =
+                                _initController('${prefix}_lot', lot.lot);
+                            return Card(
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: ExpansionTile(
+                                key: ObjectKey(lot),
+                                initiallyExpanded: _expandedLots.contains(lot),
+                                onExpansionChanged: (expanded) {
+                                  setState(() {
+                                    if (expanded) {
+                                      _expandedLots.add(lot);
+                                    } else {
+                                      _expandedLots.remove(lot);
+                                    }
+                                  });
+                                },
+                                title: MyTextStyle.lotName(
+                                  lot.lot ?? "Nouveau Lot",
+                                  Colors.black87,
+                                  SizeFont.h3.size,
                                 ),
-                                const SizedBox(height: 10),
-                                MyDropDownMenu(
-                                  height: 90,
-                                  width,
-                                  "Type de lot ",
-                                  lot.typeLot,
-                                  false,
-                                  items: TypeList.typeLot,
-                                  onValueChanged: (value) {
-                                    setState(() {
-                                      lot.typeLot = value;
-                                      // Suggestion par défaut selon le type -
-                                      // ajustable ensuite via le switch
-                                      // ci-dessous (ex: un local commercial
-                                      // exceptionnellement rattachable).
-                                      lot.isLinkable =
-                                          Lot.defaultIsLinkableForType(value);
-                                    });
-                                  },
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: MyTextStyle.lotDesc(
-                                        "Rattachable à un autre lot (ex: parking, cave)",
-                                        SizeFont.h3.size,
-                                      ),
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      children: [
+                                        CustomTextFieldWidget(
+                                          label:
+                                              "Référence administrative du lot",
+                                          controller: refLotController,
+                                          isEditable: true,
+                                          onChanged: (val) => lot.refLot = val,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        MyDropDownMenu(
+                                          height: 90,
+                                          width,
+                                          "Type de lot ",
+                                          lot.typeLot,
+                                          false,
+                                          items: TypeList.typeLot,
+                                          onValueChanged: (value) {
+                                            setState(() {
+                                              lot.typeLot = value;
+                                              // Suggestion par défaut selon le type -
+                                              // ajustable ensuite via le switch
+                                              // ci-dessous (ex: un local commercial
+                                              // exceptionnellement rattachable).
+                                              lot.isLinkable =
+                                                  Lot.defaultIsLinkableForType(
+                                                      value);
+                                            });
+                                          },
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: MyTextStyle.lotDesc(
+                                                "Rattachable à un autre lot (ex: parking, cave)",
+                                                SizeFont.h3.size,
+                                              ),
+                                            ),
+                                            Switch(
+                                              value: lot.isLinkable,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  lot.isLinkable = value;
+                                                });
+                                              },
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 10),
+                                        MyDropDownMenu(
+                                          height: 90,
+                                          width,
+                                          "Emplacement ",
+                                          lot.batiment ?? "",
+                                          false,
+                                          items: nameBuildings,
+                                          onValueChanged: (value) {
+                                            setState(() {
+                                              lot.batiment = value;
+                                            });
+                                          },
+                                        ),
+                                        const SizedBox(height: 10),
+                                        CustomTextFieldWidget(
+                                          label: "N°",
+                                          controller: lotNameController,
+                                          isEditable: true,
+                                          onChanged: (val) => lot.lot = val,
+                                        ),
+                                        const SizedBox(height: 10),
+                                        _removeLotButton(index, lot),
+                                      ],
                                     ),
-                                    Switch(
-                                      value: lot.isLinkable,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          lot.isLinkable = value;
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                MyDropDownMenu(
-                                  height: 90,
-                                  width,
-                                  "Emplacement ",
-                                  lot.batiment ?? "",
-                                  false,
-                                  items: nameBuildings,
-                                  onValueChanged: (value) {
-                                    setState(() {
-                                      lot.batiment = value;
-                                    });
-                                  },
-                                ),
-                                const SizedBox(height: 10),
-                                CustomTextFieldWidget(
-                                  label: "N°",
-                                  controller: lotNameController,
-                                  isEditable: true,
-                                  onChanged: (val) => lot.lot = val,
-                                ),
-                                const SizedBox(height: 10),
-                                _removeLotButton(index, lot),
-                              ],
-                            ),
-                          ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
                         ],
                       ),
                     );
                   }),
-                  const SizedBox(height: 30),
-                ],
-              );
-            }),
 
                   const SizedBox(height: 20),
                   Center(
@@ -370,8 +430,7 @@ class _ManageListLotState extends State<ManageListLot> {
           SafeArea(
             top: false,
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
               child: Center(
                 child: ButtonAdd(
                   color: widget.color,

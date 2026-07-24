@@ -34,6 +34,10 @@ class Lot {
   // logement principal (appartement, maison/villa...), vrai pour un lot
   // dépendant (parking, cave...).
   bool isLinkable;
+  // Position d'affichage dans la liste "Gestion des Lots" (manage_list_lot.dart),
+  // triée par ordre croissant - null pour un lot pas encore ordonné
+  // manuellement (relégué en fin de liste, cf. le tri qui l'utilise).
+  int? order;
   String residenceId;
   Map<String, dynamic> residenceData;
   Map<String, dynamic> userLotDetails;
@@ -91,6 +95,7 @@ class Lot {
     this.parentLotId,
     this.groupedWithParent = false,
     this.isLinkable = false,
+    this.order,
     required this.residenceId,
     required this.residenceData,
     required this.userLotDetails,
@@ -134,6 +139,7 @@ class Lot {
       parentLotId: json["parentLotId"],
       groupedWithParent: json["groupedWithParent"] ?? false,
       isLinkable: json["isLinkable"] ?? false,
+      order: json["order"] is int ? json["order"] : null,
       residenceId: json["residenceId"] ?? "",
       residenceData: json["residenceData"] != null
           ? Map<String, dynamic>.from(json["residenceData"])
@@ -174,6 +180,7 @@ class Lot {
       "parentLotId": parentLotId,
       "groupedWithParent": groupedWithParent,
       "isLinkable": isLinkable,
+      "order": order,
       "residenceId": residenceId,
       "residenceData": residenceData,
       'userLotDetails': userLotDetails,
@@ -222,6 +229,7 @@ class Lot {
       parentLotId: map['parentLotId'],
       groupedWithParent: map['groupedWithParent'] ?? false,
       isLinkable: map['isLinkable'] ?? false,
+      order: map['order'] is int ? map['order'] : null,
       residenceId: map["residenceId"] ?? "",
       residenceData: map["residenceData"] != null
           ? Map<String, dynamic>.from(map["residenceData"])
@@ -248,6 +256,7 @@ class Lot {
       if (typeLot.isNotEmpty) "typeLot": typeLot,
       if (type.isNotEmpty) "type": type,
       "isLinkable": isLinkable,
+      if (order != null) "order": order,
       if (idProprietaire != null) "idProprietaire": idProprietaire,
       if (syndicAgency != null) "syndicAgency": syndicAgency!.toJson(),
       if (geranceRef != null) "geranceRef": geranceRef!.toJson(),
