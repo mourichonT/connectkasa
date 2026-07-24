@@ -271,7 +271,39 @@ exports.notifyNewPost = onDocumentCreated(
 
       // Étape 3 & 4 : Construire la notification et envoyer avec
       // sendEachForMulticast
-      const notifTitle = `Un résident a publié dans votre copropriété`;
+      // Le libellé dépend du type de post plutôt que d'un unique "Un
+      // résident a publié..." générique : un compte-rendu (rapport) est
+      // toujours déposé par un prestataire (lien de partage sans compte
+      // Konodal, create_shared_rapport), une intervention (events) est
+      // toujours à l'initiative du syndic (seul un Professionnel
+      // "serviceSyndic" a accès à toute la résidence, périmètre de cette
+      // notification). Pour les autres types (sinistres, annonces,
+      // communication...), l'auteur peut aussi être un compte agent/agence
+      // (ex: communication postée depuis konodal_bo) et pas un résident -
+      // vérifié via son accountType plutôt que supposé résident par défaut.
+      let notifTitle;
+      if (postData.type === "rapport") {
+        notifTitle = "Un professionnel a publié un compte-rendu d'intervention";
+      } else if (postData.type === "events") {
+        notifTitle = "Votre syndic a publié une intervention";
+      } else {
+        let isProfessional = false;
+        if (postData.user) {
+          try {
+            const authorSnap = await db.collection("users")
+                .doc(postData.user).get();
+            const accountType = authorSnap.exists ?
+              authorSnap.data().accountType : null;
+            isProfessional = accountType === "agent" ||
+              accountType === "agence";
+          } catch (error) {
+            console.error("Erreur lecture auteur du post :", error);
+          }
+        }
+        notifTitle = isProfessional ?
+          "Un professionnel a publié dans votre copropriété" :
+          "Un résident a publié dans votre copropriété";
+      }
       // "postData.titre" n'existe pas sur Post (le champ s'appelle "title") -
       // ce fallback était donc systématiquement utilisé jusqu'ici.
       const notifBody =
