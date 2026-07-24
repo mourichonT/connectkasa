@@ -1,4 +1,5 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/agent_agency_name_provider.dart';
 import 'package:konodal/core/providers/user_by_id_provider.dart';
 import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:flutter/material.dart';
@@ -13,24 +14,32 @@ Widget profilTile(
       final userAsync = ref.watch(userByIdProvider(uid));
       final userUnique = userAsync.valueOrNull;
       if (userUnique != null) {
+        // displayNameFor court-circuite le cas agent/agence (backoffice,
+        // jamais de pseudo/surname renseigné - invite_agency_account
+        // n'écrit que uid/email/accountType) avec l'affichage strict sur 2
+        // lignes "{prenom}\n{nomAgence}"/"{nomAgence}" - le ConstrainedBox
+        // + maxLines/overflow ci-dessous absorbe un nom de cabinet encore
+        // trop long pour la largeur disponible (pas de Expanded/Flexible
+        // ici : planterait dès que l'appelant place ce Row dans un
+        // contexte de largeur non contrainte).
+        final displayName = displayNameFor(ref, userUnique, (u) {
+          // Extraire uniquement la première lettre de u.name et la mettre en majuscule
+          String firstName = u.name;
+          String formattedFirstName = firstName.isNotEmpty
+              ? firstName[0].toUpperCase() // Première lettre en majuscule
+              : ''; // Si le prénom est vide, on laisse une chaîne vide
 
-        // Extraire uniquement la première lettre de userUnique.name et la mettre en majuscule
-        String firstName = userUnique.name;
-        String formattedFirstName = firstName.isNotEmpty
-            ? firstName[0].toUpperCase() // Première lettre en majuscule
-            : ''; // Si le prénom est vide, on laisse une chaîne vide
+          // Extraire seulement le premier mot de u.surname
+          String surname = u.surname;
+          String firstWordOfSurname = surname.isNotEmpty
+              ? surname.split(' ')[0] // On prend le premier mot avant un espace
+              : ''; // Si le nom est vide, on laisse une chaîne vide
 
-        // Extraire seulement le premier mot de userUnique.surname
-        String surname = userUnique.surname;
-        String firstWordOfSurname = surname.isNotEmpty
-            ? surname.split(' ')[0] // On prend le premier mot avant un espace
-            : ''; // Si le nom est vide, on laisse une chaîne vide
-
-        // Construire le nom à afficher : pseudo ou nom complet avec prénom formaté
-        String displayName = (userUnique.pseudo == null ||
-                userUnique.pseudo == "")
-            ? "$firstWordOfSurname $formattedFirstName" // Utilise le premier mot du nom et la première lettre du prénom
-            : userUnique.pseudo!;
+          // Construire le nom à afficher : pseudo ou nom complet avec prénom formaté
+          return (u.pseudo == null || u.pseudo == "")
+              ? "$firstWordOfSurname $formattedFirstName" // Utilise le premier mot du nom et la première lettre du prénom
+              : u.pseudo!;
+        });
 
         if (userUnique.profilPic != null && userUnique.profilPic != "") {
           // Retourner le widget avec l'image de profil si disponible
@@ -44,8 +53,16 @@ Widget profilTile(
               if (pseudoHidden)
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
-                  child: MyTextStyle.lotName(
-                      displayName, color ?? Colors.black87, pseudoFontSize),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 150),
+                    child: MyTextStyle.lotName(
+                        displayName,
+                        color ?? Colors.black87,
+                        pseudoFontSize,
+                        null,
+                        TextOverflow.ellipsis,
+                        2),
+                  ),
                 )
             ],
           );
@@ -61,8 +78,16 @@ Widget profilTile(
               if (pseudoHidden)
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
-                  child: MyTextStyle.lotName(
-                      displayName, color ?? Colors.black87, pseudoFontSize),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 150),
+                    child: MyTextStyle.lotName(
+                        displayName,
+                        color ?? Colors.black87,
+                        pseudoFontSize,
+                        null,
+                        TextOverflow.ellipsis,
+                        2),
+                  ),
                 )
             ],
           );

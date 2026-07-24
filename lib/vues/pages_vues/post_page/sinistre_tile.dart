@@ -1,4 +1,5 @@
 import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/agent_agency_name_provider.dart';
 import 'package:konodal/core/providers/user_by_id_provider.dart';
 import 'package:konodal/core/repositories/post_repository.dart';
 import 'package:konodal/core/repositories/firestore_post_repository.dart';
@@ -207,10 +208,22 @@ class SinistreTileState extends State<SinistreTile> {
                                                     "Vous",
                                                     SizeFont.para.size,
                                                     1)
-                                                : MyTextStyle.annonceDesc(
-                                                    user.pseudo ?? "",
-                                                    SizeFont.para.size,
-                                                    1);
+                                                : ConstrainedBox(
+                                                    constraints:
+                                                        const BoxConstraints(
+                                                            maxWidth: 150),
+                                                    child: MyTextStyle
+                                                        .annonceDesc(
+                                                            displayNameFor(
+                                                                ref,
+                                                                user,
+                                                                (u) =>
+                                                                    u.pseudo ??
+                                                                    ""),
+                                                            SizeFont
+                                                                .para.size,
+                                                            2),
+                                                  );
                                           } else {
                                             return Container();
                                           }

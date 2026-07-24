@@ -1,6 +1,7 @@
 import 'package:konodal/controllers/features/line_interaction.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
 import 'package:konodal/controllers/features/participed_button.dart';
+import 'package:konodal/core/providers/agent_agency_name_provider.dart';
 import 'package:konodal/core/providers/user_by_id_provider.dart';
 import 'package:konodal/core/repositories/post_repository.dart';
 import 'package:konodal/core/repositories/firestore_post_repository.dart';
@@ -61,10 +62,20 @@ class EventPageDetailsState extends ConsumerState<EventPageDetails> {
       error: (error, stackTrace) => Text("Error: $error"),
       data: (user) {
         if (user == null) return const Text("No data found");
-        return MyTextStyle.lotName(
-            user.pseudo != "" ? "${user.pseudo}" : "${user.surname} ${user.name}",
-            Colors.black54,
-            SizeFont.h2.size);
+        return ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 200),
+          child: MyTextStyle.lotName(
+              displayNameFor(
+                  ref,
+                  user,
+                  (u) =>
+                      u.pseudo != "" ? "${u.pseudo}" : "${u.surname} ${u.name}"),
+              Colors.black54,
+              SizeFont.h2.size,
+              null,
+              TextOverflow.ellipsis,
+              2),
+        );
       },
     );
   }

@@ -1,6 +1,7 @@
 // ignore_for_file: must_be_immutable
 
 import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/agent_agency_name_provider.dart';
 import 'package:konodal/core/providers/comment_providers.dart';
 import 'package:konodal/core/providers/user_by_id_provider.dart';
 import 'package:konodal/models/enum/font_setting.dart';
@@ -122,8 +123,16 @@ class CommentTileState extends ConsumerState<CommentTile> {
     final userAsync = ref.watch(userByIdProvider(comment.user));
     final user = userAsync.valueOrNull;
     if (user != null) {
-      return MyTextStyle.lotName(
-          user.pseudo ?? "", Colors.black87, SizeFont.h3.size);
+      return ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 150),
+        child: MyTextStyle.lotName(
+            displayNameFor(ref, user, (u) => u.pseudo ?? ""),
+            Colors.black87,
+            SizeFont.h3.size,
+            null,
+            TextOverflow.ellipsis,
+            2),
+      );
     } else {
       return MyTextStyle.lotName(
           "Utilisateur inconnu", Colors.black87, SizeFont.h3.size);
@@ -236,7 +245,22 @@ class CommentTileState extends ConsumerState<CommentTile> {
       widget.getCommentId(currentComment.id);
       widget.getInitialComment(initComment);
 
-      String replyText = "@${user.pseudo} ";
+      // user.pseudo est toujours vide pour un compte agent/agence
+      // (backoffice) - "@ " sinon, d'où la même règle stricte que
+      // profilTile/displayNameFor, mais via ref.read (contexte impératif,
+      // pas un build()).
+      String mentionName = user.pseudo ?? "";
+      if (user.accountType == 'agent' || user.accountType == 'agence') {
+        final agencyName =
+            await ref.read(agentAgencyNameProvider(user.uid).future) ?? '';
+        if (!mounted) return;
+        mentionName = user.accountType == 'agence'
+            ? (agencyName.isNotEmpty ? agencyName : user.name)
+            : (agencyName.isNotEmpty
+                ? '${user.name} - $agencyName'
+                : user.name);
+      }
+      String replyText = "@$mentionName ";
       _textEditingController.text = replyText;
 
       _textEditingController.selection = TextSelection.fromPosition(
