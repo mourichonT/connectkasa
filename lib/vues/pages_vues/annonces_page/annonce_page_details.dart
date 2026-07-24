@@ -3,7 +3,9 @@ import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:konodal/controllers/features/my_texts_styles.dart';
+import 'package:konodal/core/providers/agent_agency_name_provider.dart';
 import 'package:konodal/core/repositories/post_repository.dart';
 import 'package:konodal/core/repositories/firestore_post_repository.dart';
 import 'package:konodal/core/repositories/user_repository.dart';
@@ -12,11 +14,13 @@ import 'package:konodal/controllers/widgets_controllers/format_profil_pic.dart';
 import 'package:konodal/models/pages_models/post.dart';
 import 'package:konodal/models/pages_models/user.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
+import 'package:konodal/vues/widget_view/components/expandable_description.dart';
+import 'package:konodal/vues/widget_view/components/fullscreen_image_view.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
-import 'package:konodal/vues/widget_view/components/thumbnail_row.dart';
 import 'package:konodal/vues/pages_vues/chat_page/chat_page.dart';
 import 'package:konodal/controllers/pages_controllers/my_nav_bar.dart';
 import 'package:konodal/vues/widget_view/components/app_loader.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AnnoncePageDetails extends StatefulWidget {
   final Post post;
@@ -46,6 +50,16 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
   late Future<List<Post>> _allAnnonceFuture;
   final IPostRepository _databaseServices = FirestorePostRepository();
   final IUserRepository _userRepository = FirestoreUserRepository();
+  final PageController _galleryController = PageController();
+  int _currentImageIndex = 0;
+
+  // Galerie façon Leboncoin : image principale + vignettes dans un seul
+  // carrousel plein écran, plutôt qu'une image fixe en haut et les
+  // vignettes séparément plus bas dans la page.
+  List<String> get _images => [
+        if ((widget.post.pathImage ?? '').isNotEmpty) widget.post.pathImage!,
+        ...(widget.post.thumbnails ?? []),
+      ];
 
   @override
   void initState() {
@@ -57,6 +71,12 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
         .getAnnonceById(widget.residence, widget.post.user)
         .then((result) => result.when(
             success: (v) => v, failure: (error) => throw error));
+  }
+
+  @override
+  void dispose() {
+    _galleryController.dispose();
+    super.dispose();
   }
 
   @override
@@ -81,20 +101,60 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                       )
                     : Navigator.pop(context);
               },
-              icon: const Icon(
-                Icons.arrow_back_ios,
-                color: Colors.white,
+              icon: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withValues(alpha: 0.35),
+                ),
+                child:
+                    const Icon(Icons.arrow_back_ios, color: Colors.white, size: 18),
               ),
             ),
             expandedHeight: height / 3,
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
-              background: widget.post.pathImage != ""
-                  ? Image.network(
-                      widget.post.pathImage!,
-                      fit: BoxFit.cover,
-                    )
-                  : imageAnnounced(context, width, height / 3),
+              background: _images.isEmpty
+                  ? imageAnnounced(context, width, height / 3)
+                  : Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        PageView.builder(
+                          controller: _galleryController,
+                          itemCount: _images.length,
+                          onPageChanged: (index) =>
+                              setState(() => _currentImageIndex = index),
+                          itemBuilder: (context, index) => GestureDetector(
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => FullScreenImageView(
+                                    imageUrl: _images[index]),
+                              ),
+                            ),
+                            child:
+                                Image.network(_images[index], fit: BoxFit.cover),
+                          ),
+                        ),
+                        if (_images.length > 1)
+                          Positioned(
+                            right: 12,
+                            bottom: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.55),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                "${_currentImageIndex + 1}/${_images.length}",
+                                style: const TextStyle(
+                                    color: Colors.white, fontSize: 12),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
             ),
           ),
           SliverList(
@@ -154,88 +214,49 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                           ),
                         ),
                         const Divider(),
-                        const SizedBox(height: 5),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SizedBox(
-                                height: 30,
-                                child: MyTextStyle.lotName(
-                                  widget.post.title,
-                                  Colors.black87,
-                                  SizeFont.h1.size,
-                                ),
+                              const SizedBox(height: 10),
+                              MyTextStyle.lotName(
+                                widget.post.title,
+                                Colors.black87,
+                                SizeFont.h1.size,
                               ),
-                              MyTextStyle.annonceDesc(
-                                MyTextStyle.completDate(widget.post.creationDate),
-                                SizeFont.h3.size,
-                                1,
+                              const SizedBox(height: 6),
+                              MyTextStyle.lotName(
+                                widget.post.setPrice(widget.post.price),
+                                Colors.black87,
+                                SizeFont.h2.size,
                               ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: MyTextStyle.lotDesc(
-                              widget.post.subtype ?? 'n/a', SizeFont.h3.size),
-                        ),
-                        const SizedBox(height: 20),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
+                              const SizedBox(height: 8),
                               Row(
                                 children: [
-                                  MyTextStyle.lotDesc(
-                                    'Prix :',
-                                    SizeFont.h3.size,
-                                    FontStyle.italic,
-                                    FontWeight.w900,
-                                  ),
-                                  const SizedBox(
-                                    width: 5,
-                                  ),
-                                  MyTextStyle.lotName(
-                                    widget.post.setPrice(widget.post.price),
-                                    Theme.of(context).primaryColor,
-                                    SizeFont.h2.size,
+                                  if ((widget.post.subtype ?? '').isNotEmpty)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 10, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF5F6F9),
+                                        borderRadius:
+                                            BorderRadius.circular(20),
+                                      ),
+                                      child: MyTextStyle.lotDesc(
+                                          widget.post.subtype!,
+                                          SizeFont.para.size),
+                                    ),
+                                  const Spacer(),
+                                  MyTextStyle.annonceDesc(
+                                    MyTextStyle.completDate(
+                                        widget.post.creationDate),
+                                    SizeFont.para.size,
+                                    1,
                                   ),
                                 ],
                               ),
-                              // Row(
-                              //   children: [
-                              //     MyTextStyle.lotDesc(
-                              //       'Votre solde :',
-                              //       SizeFont.h3.size,
-                              //       //FontWeight.w300,
-                              //     ),
-                              //     SizedBox(
-                              //       width: 5,
-                              //     ),
-                              //     FutureBuilder<User?>(
-                              //       future: userCurrent,
-                              //       builder: (context, snapshot) {
-                              //         if (snapshot.connectionState ==
-                              //             ConnectionState.waiting) {
-                              //           return AppLoader();
-                              //         } else {
-                              //           var user = snapshot.data;
-                              //           if (user != null) {
-                              //             return MyTextStyle.lotDesc(
-                              //               user.setSolde(user.solde),
-                              //               SizeFont.h3.size,
-                              //             );
-                              //           } else {
-                              //             return Text('Utilisateur inconnu');
-                              //           }
-                              //         }
-                              //       },
-                              //     ),
-                              //   ],
-                              // ),
+                              const SizedBox(height: 10),
                             ],
                           ),
                         ),
@@ -243,69 +264,83 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                         Padding(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 20),
-                          child: MyTextStyle.annonceDesc(
-                            widget.post.description,
-                            SizeFont.h3.size,
-                            15,
+                          child: ExpandableDescription(
+                            text: widget.post.description,
+                            style: GoogleFonts.roboto(fontSize: SizeFont.h3.size),
+                            collapsedMaxLines: 8,
                           ),
                         ),
-                        if ((widget.post.thumbnails ?? []).isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                left: 20, right: 20, bottom: 20),
-                            child: ThumbnailRow(
-                                thumbnails: widget.post.thumbnails!,
-                                size: 90),
-                          ),
                       ],
                     ),
-                    const Divider(),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
-                          ),
-                          child: FutureBuilder<User?>(
-                            future: userPost,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState ==
-                                  ConnectionState.waiting) {
-                                return const AppLoader();
-                              } else {
-                                var owner = snapshot.data;
-                                return owner != null
-                                    ? MyTextStyle.lotName(
-                                        "Les autres annonces de ${owner.pseudo!}",
-                                        Colors.black87,
-                                        SizeFont.h2.size)
-                                    : const Text('Chargement...');
-                              }
-                            },
-                          ),
-                        ),
-                        FutureBuilder<List<Post>>(
-                          future: _allAnnonceFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                  child: AppLoader());
-                            } else if (snapshot.hasError) {
-                              return Text('Error: ${snapshot.error}');
-                            } else {
-                              List<Post> allAnnonces = snapshot.data ?? [];
-                              return SizedBox(
-                                height: 290,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: allAnnonces.length,
-                                  itemBuilder: (context, index) {
-                                    Post annonce = allAnnonces[index];
-                                    if (annonce.id != widget.post.id) {
+                    // Section masquée entièrement (Divider compris) si le
+                    // vendeur n'a aucune AUTRE annonce - avant ce correctif,
+                    // le titre "Les autres annonces de ..." restait affiché
+                    // même avec une liste vide en dessous.
+                    FutureBuilder<List<Post>>(
+                      future: _allAnnonceFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const SizedBox.shrink();
+                        }
+                        if (snapshot.hasError) {
+                          return Text('Error: ${snapshot.error}');
+                        }
+                        final otherAnnonces = (snapshot.data ?? [])
+                            .where((a) => a.id != widget.post.id)
+                            .toList();
+                        if (otherAnnonces.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Column(
+                          children: [
+                            const Divider(),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 10,
+                                  ),
+                                  child: FutureBuilder<User?>(
+                                    future: userPost,
+                                    builder: (context, snapshot) {
+                                      if (snapshot.connectionState ==
+                                          ConnectionState.waiting) {
+                                        return const AppLoader();
+                                      } else {
+                                        var owner = snapshot.data;
+                                        return owner != null
+                                            ? Consumer(
+                                                builder: (context, ref, _) =>
+                                                    MyTextStyle.lotName(
+                                                        // Un compte agent/agence n'a jamais
+                                                        // de pseudo - displayNameFor peut
+                                                        // renvoyer 2 lignes ("\n"), moins
+                                                        // naturel dans cette phrase mais
+                                                        // reste correct et sans risque de
+                                                        // débordement (maxLines/ellipsis).
+                                                        "Les autres annonces de ${displayNameFor(ref, owner, (u) => u.pseudo ?? '')}",
+                                                        Colors.black87,
+                                                        SizeFont.h2.size,
+                                                        null,
+                                                        TextOverflow.ellipsis,
+                                                        2),
+                                              )
+                                            : const Text('Chargement...');
+                                      }
+                                    },
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 290,
+                                  child: ListView.builder(
+                                    scrollDirection: Axis.horizontal,
+                                    itemCount: otherAnnonces.length,
+                                    itemBuilder: (context, index) {
+                                      Post annonce = otherAnnonces[index];
                                       return Padding(
                                         padding: const EdgeInsets.all(8.0),
                                         child: InkWell(
@@ -395,17 +430,14 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                                           ),
                                         ),
                                       );
-                                    } else {
-                                      // Retourner un widget vide si c'est l'annonce principale
-                                      return const SizedBox.shrink();
-                                    }
-                                  },
+                                    },
+                                  ),
                                 ),
-                              );
-                            }
-                          },
-                        ),
-                      ],
+                              ],
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -424,7 +456,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 20),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -437,7 +469,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                       MaterialPageRoute(
                         builder: (context) => ChatPage(
                           message:
-                              "Bonjour, je souhaiterais réservé \"${widget.post.title}\", est-ce toujours possible?",
+                              "Bonjour, je vous contacte au sujet de votre annonce \"${widget.post.title}\", est-ce toujours possible?",
                           residence: widget.residence,
                           idUserFrom: widget.uid,
                           idUserTo: widget.post.user,
@@ -446,7 +478,7 @@ class AnnoncePageDetailsState extends State<AnnoncePageDetails> {
                     );
                   },
                   color: Theme.of(context).primaryColor,
-                  text: "Réservé",
+                  text: "Contacter",
                   horizontal: 20,
                   vertical: 5,
                   size: SizeFont.h2.size)
