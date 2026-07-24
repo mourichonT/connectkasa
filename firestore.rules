@@ -354,8 +354,19 @@ service cloud.firestore {
       allow update: if isCsMember(residenceId) || isSuperAdmin() || isProfessionnelResidence(residenceId);
       // Création/suppression d'une résidence hors périmètre de l'app
       // résident : réservée au backoffice web (konodal_bo), donc gatée sur
-      // isSuperAdmin() plutôt que bloquée totalement.
-      allow create, delete: if isSuperAdmin();
+      // isSuperAdmin() plutôt que bloquée totalement. Ouvert en plus à une
+      // Agence (pas un simple Agent) créant sa PROPRE résidence : le doc créé
+      // doit déjà porter geranceRef vers sa gérance serviceSyndic (sinon
+      // isProfessionnelResidence resterait faux ensuite, la rendant
+      // invisible/non modifiable pour son créateur - même contrainte que
+      // isSyndicAgent ci-dessous, qui vérifie l'appartenance réelle à CETTE
+      // gérance précise, jamais une valeur arbitraire envoyée par le client).
+      allow create: if isSuperAdmin() ||
+        (isAgenceAccount() &&
+          'geranceRef' in request.resource.data &&
+          request.resource.data.geranceRef.serviceType == 'serviceSyndic' &&
+          isSyndicAgent(request.resource.data.geranceRef.geranceId));
+      allow delete: if isSuperAdmin();
 
       match /lots/{lotId} {
         // Comme pour residences/{id} : un nouvel utilisateur doit pouvoir
