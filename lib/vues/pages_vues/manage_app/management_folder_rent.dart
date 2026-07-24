@@ -123,7 +123,7 @@ class _ManagementFolderRentState extends State<ManagementFolderRent> {
               child: Center(
                 child: ButtonAdd(
                   color: Colors.transparent,
-                  text: "Soummettre mon dossier locataire",
+                  text: "Soumettre mon dossier locataire",
                   size: SizeFont.h3.size,
                   horizontal: 20,
                   vertical: 10,
