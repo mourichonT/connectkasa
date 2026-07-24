@@ -11,7 +11,6 @@ import 'package:konodal/vues/pages_vues/profil_page/show_profil_page.dart';
 import 'package:konodal/vues/widget_view/components/button_add.dart';
 import 'package:konodal/vues/widget_view/components/expandable_description.dart';
 import 'package:konodal/vues/widget_view/components/image_annonce.dart';
-import 'package:konodal/vues/widget_view/components/thumbnail_row.dart';
 import 'package:konodal/vues/widget_view/components/profil_tile.dart';
 import 'package:konodal/vues/widget_view/components/rounded_card.dart';
 import 'package:konodal/vues/pages_vues/annonces_page/annonce_page_details.dart';
@@ -68,7 +67,7 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                 updatePostsList: widget.updatePostsList,
               ),
               const Divider(
-                height: 20,
+                height: 0,
                 thickness: 0.5,
                 color: Colors.black12,
               ),
@@ -179,13 +178,6 @@ class AnnonceWidgetState extends State<AnnonceWidget> {
                                             ),
                                           ),
                                         ),
-                                        if ((widget.post.thumbnails ?? [])
-                                            .isNotEmpty) ...[
-                                          const SizedBox(height: 10),
-                                          ThumbnailRow(
-                                              thumbnails:
-                                                  widget.post.thumbnails!),
-                                        ],
                                         const SizedBox(
                                           height: 10,
                                         ),

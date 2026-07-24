@@ -68,7 +68,11 @@ class CustomHeaderRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment
             .center, // Aligner verticalement les éléments au centre
         children: [
-          MyTextStyle.lotName(getType(post), Colors.black87, SizeFont.h3.size),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: MyTextStyle.lotName(
+                getType(post), Colors.black87, SizeFont.h3.size),
+          ),
           Spacer(),
           Visibility(
             visible: !_isParticipativeEvent,

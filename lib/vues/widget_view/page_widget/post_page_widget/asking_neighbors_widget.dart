@@ -75,10 +75,11 @@ class AskingNeighborsState extends ConsumerState<AskingNeighborsWidget> {
               updatePostsList: widget.updatePostsList,
             ),
             const Divider(
-              height: 20,
+              height: 0,
               thickness: 0.5,
               color: Colors.black12,
             ),
+            const SizedBox(height: 10),
             if (widget.post.pathImage != "")
               InkWell(
                 onTap: () async {

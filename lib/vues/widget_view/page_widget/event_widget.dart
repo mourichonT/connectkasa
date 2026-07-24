@@ -87,7 +87,7 @@ class _EventWidgetState extends State<EventWidget> {
               updatePostsList: widget.updatePostsList,
             ),
             const Divider(
-              height: 20,
+              height: 0,
               thickness: 0.5,
               color: Colors.black12,
             ),

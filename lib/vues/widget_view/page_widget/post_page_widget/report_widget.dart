@@ -87,7 +87,12 @@ class _ReportWidgetState extends State<ReportWidget> {
               isCsMember: widget.isCsMember,
               updatePostsList: widget.updatePostsList,
             ),
-            const Divider(height: 20, thickness: 0.5, color: Colors.black12),
+            // Divider(height:) centre toujours le trait dans sa boîte (pas
+            // de padding haut/bas indépendant) - trait collé en haut (pas
+            // de padding top) puis un espace explicite en dessous pour
+            // garder la même respiration qu'avant avec l'image.
+            const Divider(height: 0.5, thickness: 0.5, color: Colors.black12),
+            const SizedBox(height: 10),
             FutureBuilder<Post?>(
               future: _linkedEventFuture,
               builder: (context, snapshot) {
